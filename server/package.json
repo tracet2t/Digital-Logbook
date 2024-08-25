@@ -8,6 +8,10 @@
     "start": "next start",
     "lint": "next lint"
   },
+  "engines": {
+    "node": "22.7.0",
+    "npm": "10.8.2"
+  },
   "dependencies": {
     "@ant-design/nextjs-registry": "^1.0.1",
     "antd": "^5.20.2",
@@ -27,3 +31,4 @@
     "typescript": "^5"
   }
 }
+
