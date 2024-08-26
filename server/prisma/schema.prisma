@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // Adjust the provider as needed
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(uuid())
+  email          String   @unique
+  passwordHash   String
+  firstName      String
+  lastName       String
+  emailConfirmed Boolean  @default(false)
+  role           Role
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  activities     Activity[]
+  mentorFeedback MentorFeedback[]
+  mentorReports  Report[] @relation(name: "mentorReports")
+  studentReports Report[] @relation(name: "studentReports")
+  mentorRoles    Mentorship[] @relation(name: "mentorRole")
+  studentRoles   Mentorship[] @relation(name: "studentRole")
+
+  @@map("users")
+}
+
+model Activity {
+  id        String    @id @default(uuid())
+  studentId String
+  date      DateTime
+  timeSpent Int
+  notes     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  student   User      @relation(fields: [studentId], references: [id])
+  feedback  MentorFeedback[]
+
+  @@map("activities")
+}
+
+model MentorFeedback {
+  id            String    @id @default(uuid())
+  activityId    String
+  mentorId      String
+  status        FeedbackStatus
+  feedbackNotes String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  activity      Activity  @relation(fields: [activityId], references: [id])
+  mentor        User      @relation(fields: [mentorId], references: [id])
+
+  @@map("mentorfeedback")
+}
+
+model Report {
+  id          String   @id @default(uuid())
+  mentorId    String
+  studentId   String?
+  reportData  Json
+  generatedAt DateTime @default(now())
+  mentor      User     @relation(fields: [mentorId], references: [id], name: "mentorReports")
+  student     User?    @relation(fields: [studentId], references: [id], name: "studentReports")
+
+  @@map("reports")
+}
+
+model Mentorship {
+  id        String @id @default(uuid())
+  mentorId  String
+  studentId String
+  mentor    User   @relation(fields: [mentorId], references: [id], name: "mentorRole")
+  student   User   @relation(fields: [studentId], references: [id], name: "studentRole")
+
+  @@map("mentorship")
+}
+
+enum Role {
+  student
+  mentor
+  admin
+}
+
+enum FeedbackStatus {
+  approved
+  rejected
+  pending
+}
