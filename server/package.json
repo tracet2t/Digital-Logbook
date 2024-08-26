@@ -14,10 +14,13 @@
   },
   "dependencies": {
     "@ant-design/nextjs-registry": "^1.0.1",
+    "@prisma/client": "^5.18.0",
     "antd": "^5.20.2",
+    "bcrypt": "^5.1.1",
     "dayjs": "^1.11.13",
     "next": "14.2.5",
     "npm": "^10.8.2",
+    "prisma": "^5.18.0",
     "react": "^18",
     "react-dom": "^18"
   },
