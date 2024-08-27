@@ -4,12 +4,16 @@ const bcrypt = require('bcrypt');
 const prisma = new PrismaClient();
 
 async function main() {
+  await prisma.mentorship.deleteMany({});
+  await prisma.user.deleteMany({});
+  
   // Symmetric key for password hashing
   const saltRounds = 10;
   const defaultPassword = 't2tuser';
   const hashedPassword = await bcrypt.hash(defaultPassword, saltRounds);
 
   // Create mentors
+  try {
   const mentor1 = await prisma.user.create({
     data: {
       firstName: 'Sam',
@@ -67,10 +71,14 @@ async function main() {
       { mentorId: mentor1.id, studentId: student1.id },
       { mentorId: mentor1.id, studentId: student3.id },
       { mentorId: mentor2.id, studentId: student2.id }
-    ]
+    ],
+    skipDuplicates: true //  duplicate errors
   });
 
   console.log({ mentor1, mentor2, student1, student2, student3 });
+} catch (error) {
+  console.error('Error seeding data:', error);
+}
 }
 
 main()
