@@ -4,7 +4,19 @@ import React, { useState } from 'react';
 import { Calendar as BigCalendar, momentLocalizer, Views, Event as BigCalendarEvent } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { Modal } from 'antd';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
+import { Button } from "@/components/ui/button";
 
 moment.locale('en-GB');
 const localizer = momentLocalizer(moment);
@@ -63,24 +75,29 @@ const TaskCalendar: React.FC = () => {
     setTaskModalOpen(true);
   };
 
-  const handleOk = () => {
-    setTaskModalOpen(false);
-  };
-
-  const handleCancel = () => {
+  const handleClose = () => {
     setTaskModalOpen(false);
   };
 
   return (
     <>
-      <Modal
-        title="Task Detail"
-        open={taskModalOpen}
-        onOk={handleOk}
-        onCancel={handleCancel}
-      >
-        <div>{taskDetail.selectedDate}</div>
-      </Modal>
+      <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
+        <AlertDialogTrigger asChild>
+          <div />
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Task Detail</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogDescription>
+            <div>{taskDetail.selectedDate}</div>
+          </AlertDialogDescription>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleClose}>Close</AlertDialogCancel>
+            <AlertDialogAction onClick={handleClose}>OK</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <div style={styles.container}>
         <BigCalendar
           selectable
