@@ -17,3 +17,23 @@ services:
 volumes:
   postgres:
     driver: local
+
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4:latest
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com  
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+    networks:
+      - mynetwork
+    depends_on:
+      - postgres
+
+
+networks:
+  mynetwork:
+    driver: bridge
