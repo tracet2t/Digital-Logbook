@@ -26,7 +26,6 @@ interface CalendarEvent {
   start: Date;
   end: Date;
   allDay?: boolean;
-  feedback?: string; // Specific feedback for individual events
 }
 
 const events: CalendarEvent[] = [
@@ -34,8 +33,7 @@ const events: CalendarEvent[] = [
     id: '1',
     title: 'Board meeting',
     start: new Date(2024, 7, 29, 9, 0, 0),
-    end: new Date(2024, 7, 29, 13, 0, 0),
-    feedback: '',
+    end: new Date(2024, 7, 29, 13, 0, 0),  
   },
   {
     id: '2',
@@ -43,7 +41,6 @@ const events: CalendarEvent[] = [
     allDay: true,
     start: new Date(2024, 7, 29, 14, 0, 0),
     end: new Date(2024, 7, 29, 16, 30, 0),
-    feedback: '',
   },
 ];
 
@@ -62,17 +59,13 @@ const styles = {
 const TaskCalendar: React.FC = () => {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [overallFeedbackOpen, setOverallFeedbackOpen] = useState(false);
-  const [taskDetail, setTaskDetail] = useState<{ id: string; title: string; feedback?: string }>({ id: '', title: '' });
+  const [taskDetail, setTaskDetail] = useState<{ id: string; title: string; }>({ id: '', title: '' });
   const [currentStudentId, setCurrentStudentId] = useState<number | null>(null);
 
   const handleSelectEvent = (event: BigCalendarEvent) => {
     const calendarEvent = event as CalendarEvent;
-    setTaskDetail({ id: calendarEvent.id, title: calendarEvent.title, feedback: calendarEvent.feedback });
+    setTaskDetail({ id: calendarEvent.id, title: calendarEvent.title, });
     setTaskModalOpen(true);
-  };
-
-  const handleSaveFeedback = (feedback: string) => {
-    setTaskModalOpen(false);
   };
 
   const handleSaveOverallFeedback = (feedback: string) => {
@@ -99,17 +92,9 @@ const TaskCalendar: React.FC = () => {
             </AlertDialogHeader>
             <AlertDialogDescription>
               <div>{taskDetail.title}</div>
-              <textarea
-                value={taskDetail.feedback || ''}
-                onChange={(e) => setTaskDetail({ ...taskDetail, feedback: e.target.value })}
-                placeholder="Add your feedback here"
-                rows={4}
-                style={{ width: '100%' }}
-              />
             </AlertDialogDescription>
             <AlertDialogFooter>
               <AlertDialogCancel onClick={() => setTaskModalOpen(false)}>Close</AlertDialogCancel>
-              <AlertDialogAction onClick={() => handleSaveFeedback(taskDetail.feedback || '')}>Save Feedback</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
