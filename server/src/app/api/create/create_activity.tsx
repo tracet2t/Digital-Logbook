@@ -1,20 +1,20 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
+import ActivityService from '../../modules/activity_service';
 
 const prisma = new PrismaClient();
+const activityService = new ActivityService(prisma);
 
 export default async function createActivity(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
-    const { student_id, date, working_hours, notes } = req.body;
+    const { studentId, date, timeSpent, notes } = req.body;
 
     try {
-      const newActivity = await prisma.dailyActivity.create({
-        data: {
-          student_id,
-          date: new Date(date),
-          working_hours,
-          notes
-        },
+      const newActivity = await activityService.createActivity({
+        studentId,
+        date: new Date(date),
+        timeSpent,
+        notes,
       });
 
       res.status(201).json(newActivity);
