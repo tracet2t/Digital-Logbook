@@ -1,35 +1,52 @@
+// app/mentor/mentorregstudentform.tsx
+import { prisma } from '@/services/prisma';
+import bcrypt from 'bcrypt';
+import { useState } from 'react';
 
-"use client"; // Ensure the page is a client component
+export default function MentorRegistrationPage() {
+  const [submissionStatus, setSubmissionStatus] = useState<string | null>(null);
 
-import React, { useState } from 'react';
-import MentorRegStudentForm from '@/components/mentorregstudentform'; 
+  const handleSubmit = async (formData: FormData) => {
+    try {
+      const firstName = formData.get('firstName') as string;
+      const lastName = formData.get('lastName') as string;
+      const email = formData.get('email') as string;
 
-const MentorPage: React.FC = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+      const randomPassword = Math.random().toString(36).slice(-8);
+      const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+      await prisma.user.create({
+        data: {
+          firstName,
+          lastName,
+          email,
+          password: hashedPassword,
+          role: 'STUDENT',
+        },
+      });
+
+      setSubmissionStatus('Student registered successfully!');
+    } catch (error) {
+      setSubmissionStatus('An error occurred while registering the student.');
+    }
+  };
+
+  const handleCancel = () => {
+    // router.push('/'); 
+  };
 
   return (
-    <div className="p-4">
-      <h1 className="text-xl font-bold mb-4">Mentor Dashboard</h1>
-      <button onClick={openModal} className="bg-blue-500 text-white py-2 px-4 rounded">
-        Register Student
-      </button>
+    <div>
+      <h1>Register Student</h1>
+      <form action={handleSubmit}>
+        <input type="text" name="firstName" placeholder="First Name" required />
+        <input type="text" name="lastName" placeholder="Last Name" required />
+        <input type="email" name="email" placeholder="Email" required />
+        <button type="submit">Register</button>
+        <button type="button" onClick={handleCancel}>Cancel</button>
+      </form>
 
-      {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg">
-            <button onClick={closeModal} className="text-gray-500 hover:text-gray-700 absolute top-2 right-2">
-              &times;
-            </button>
-            <h2 className="text-lg font-semibold mb-4">Register a New Student</h2>
-            <MentorRegStudentForm />
-          </div>
-        </div>
-      )}
+      {submissionStatus && <p>{submissionStatus}</p>}
     </div>
   );
-};
-
-export default MentorPage;
+}
