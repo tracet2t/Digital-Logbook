@@ -45,7 +45,7 @@ Prior to setting up the enviornment, if you are not familiar with Node.js and NP
    ```
    ### Installing database
    
-   To host the database locally we are going to use docker, please make sure that you have docker desktop installed in your PC.
+To host the database locally we are going to use docker, please make sure that you have docker desktop installed in your PC.
 
 - Once you do, if you have cloned the repo for the first time then type this command in the root directory of the project
 ```
@@ -55,3 +55,20 @@ docker compose up --build
 ```
 docker compose up
 ```
+### Installing pgAdmin 4
+
+1. Open your web browser and navigate to http://localhost:8080.
+Log in: 
+Email: admin@example.com
+Password: admin_password
+```
+2. In pgAdmin, create a new server connection
+```
+3. Save the server connection to manage the database
+```
+4. Do the database initialization
+```
+5. Stopping the Services
+docker compose down
+```
+
