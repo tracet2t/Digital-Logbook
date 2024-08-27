@@ -72,12 +72,10 @@ const TaskCalendar: React.FC = () => {
   };
 
   const handleSaveFeedback = (feedback: string) => {
-    // Handle saving specific feedback here
     setTaskModalOpen(false);
   };
 
   const handleSaveOverallFeedback = (feedback: string) => {
-    // Handle saving overall feedback here
     setOverallFeedbackOpen(false);
   };
 
@@ -88,11 +86,9 @@ const TaskCalendar: React.FC = () => {
   return (
     <>
       <div>
-        
           <Button onClick={handleOverallFeedbackButtonClick}>
             Add Overall Feedback
           </Button>
-        
       </div>
 
       {taskModalOpen && (
