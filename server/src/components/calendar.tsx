@@ -15,6 +15,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+
 import { Button } from "@/components/ui/button";
 
 moment.locale('en-GB');
@@ -26,8 +27,8 @@ interface CalendarEvent {
   start: Date;
   end: Date;
   allDay?: boolean;
-  feedback?: string;
-  studentId?: number;
+  feedback?: string; 
+  studentId?: number; 
 }
 
 const events: CalendarEvent[] = [
@@ -48,8 +49,19 @@ const events: CalendarEvent[] = [
     studentId: 124,
     feedback: '',
   },
-  // Add other events as needed
 ];
+
+const styles = {
+  container: {
+    width: '80vw',
+    height: '60vh',
+    margin: '2em'
+  },
+  header: {
+    margin: '1em 0',
+    textAlign: 'center'
+  }
+};
 
 const TaskCalendar: React.FC = () => {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
@@ -102,42 +114,50 @@ const TaskCalendar: React.FC = () => {
         <AlertDialogTrigger asChild>
           <div />
         </AlertDialogTrigger>
-        <AlertDialogContent className="max-w-2xl mx-auto p-4">
+        <AlertDialogContent className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-lg">
           <AlertDialogHeader>
-            <AlertDialogTitle>Task Detail for {taskDetail.selectedDate}</AlertDialogTitle>
+            <AlertDialogTitle className="text-2xl font-semibold text-gray-900">Task Detail</AlertDialogTitle>
           </AlertDialogHeader>
-          <AlertDialogDescription>
-            <div className="flex justify-between mb-4">
-              <span>Date: {taskDetail.selectedDate}</span>
-              <span>Working Hours: {taskDetail.workingHours}</span>
+          <AlertDialogDescription className="text-gray-700">
+            <div className="flex gap-6 mb-4">
+              <div className="w-1/2">
+                <span className="block text-sm font-medium text-black mb-1">Date</span>
+                <div className="p-3 border border-gray-300 rounded-md bg-gray-50">
+                  <p>{taskDetail.selectedDate}</p>
+                </div>
+              </div>
+              <div className="w-1/2">
+                <span className="block text-sm font-medium text-black mb-1">Working Hours</span>
+                <div className="p-3 border border-gray-300 rounded-md bg-gray-50">
+                  <p>{taskDetail.workingHours}</p>
+                </div>
+              </div>
             </div>
             <div className="mb-6">
-              <h3 className="text-lg font-semibold">Activity</h3>
-              <p>{taskDetail.studentActivity}</p>
+              <h3 className="text-lg font-semibold text-black mb-2">Activity</h3>
+              <div className="p-3 border border-gray-300 rounded-md bg-gray-50 min-h-[120px] overflow-auto">
+                <p>{taskDetail.studentActivity}</p>
+              </div>
             </div>
-            <div className="mb-4">
-              <h3 className="text-lg font-semibold">Review</h3>
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-black mb-2">Review</h3>
               <textarea
                 value={review}
                 onChange={handleReviewChange}
                 placeholder="Enter your review here..."
-                className="w-full h-24 p-2 border rounded-md"
+                className="w-full h-32 p-3 border border-gray-300 rounded-md bg-white"
               />
             </div>
           </AlertDialogDescription>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleClose} className="bg-green-500 text-white hover:bg-green-600">Close</AlertDialogCancel>
-            <AlertDialogAction onClick={handleAccept} className="bg-blue-500 text-white hover:bg-blue-600">
-              Accept
-            </AlertDialogAction>
-            <AlertDialogAction onClick={handleReject} className="bg-red-500 text-white hover:bg-red-600">
-              Reject
-            </AlertDialogAction>
+          <AlertDialogFooter className="flex justify-end gap-3 mt-4">
+            <AlertDialogCancel onClick={handleClose} className="bg-green-500 text-white hover:bg-green-600 px-4 py-2 rounded-md">Close</AlertDialogCancel>
+            <AlertDialogAction onClick={handleAccept} className="bg-blue-500 text-white hover:bg-blue-700 px-4 py-2 rounded-md">Accept</AlertDialogAction>
+            <AlertDialogAction onClick={handleReject} className="bg-red-500 text-white hover:bg-red-700 px-4 py-2 rounded-md">Reject</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="w-4/5 h-3/5 mx-auto my-4">
+      <div style={styles.container}>
         <BigCalendar
           selectable
           localizer={localizer}
