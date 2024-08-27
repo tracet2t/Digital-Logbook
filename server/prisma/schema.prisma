@@ -1,12 +1,3 @@
-<<<<<<< HEAD
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
-=======
->>>>>>> 21209ba9a0113f9eada87752d174a0b8ef1464e7
 generator client {
   provider = "prisma-client-js"
 }
@@ -17,23 +8,6 @@ datasource db {
 }
 
 model User {
-<<<<<<< HEAD
-  id             String           @id @default(uuid())
-  email          String           @unique
-  passwordHash   String
-  firstName      String
-  lastName       String
-  emailConfirmed Boolean          @default(false)
-  role           Role
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  activities     Activity[]
-  mentorFeedback MentorFeedback[]
-  mentorReports  Report[]         @relation(name: "mentorReports")
-  studentReports Report[]         @relation(name: "studentReports")
-  mentorRoles    Mentorship[]     @relation(name: "mentorRole")
-  studentRoles   Mentorship[]     @relation(name: "studentRole")
-=======
   id             String   @id @default(uuid())
   email          String   @unique
   passwordHash   String
@@ -49,56 +23,34 @@ model User {
   studentReports Report[] @relation(name: "studentReports")
   mentorRoles    Mentorship[] @relation(name: "mentorRole")
   studentRoles   Mentorship[] @relation(name: "studentRole")
->>>>>>> 21209ba9a0113f9eada87752d174a0b8ef1464e7
 
   @@map("users")
 }
 
 model Activity {
-<<<<<<< HEAD
-  id        String           @id @default(uuid())
-=======
   id        String    @id @default(uuid())
->>>>>>> 21209ba9a0113f9eada87752d174a0b8ef1464e7
   studentId String
   date      DateTime
   timeSpent Int
   notes     String?
-<<<<<<< HEAD
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
-  student   User             @relation(fields: [studentId], references: [id])
-=======
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   student   User      @relation(fields: [studentId], references: [id])
->>>>>>> 21209ba9a0113f9eada87752d174a0b8ef1464e7
   feedback  MentorFeedback[]
 
   @@map("activities")
 }
 
 model MentorFeedback {
-<<<<<<< HEAD
-  id            String         @id @default(uuid())
-=======
   id            String    @id @default(uuid())
->>>>>>> 21209ba9a0113f9eada87752d174a0b8ef1464e7
   activityId    String
   mentorId      String
   status        FeedbackStatus
   feedbackNotes String?
-<<<<<<< HEAD
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  activity      Activity       @relation(fields: [activityId], references: [id])
-  mentor        User           @relation(fields: [mentorId], references: [id])
-=======
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   activity      Activity  @relation(fields: [activityId], references: [id])
   mentor        User      @relation(fields: [mentorId], references: [id])
->>>>>>> 21209ba9a0113f9eada87752d174a0b8ef1464e7
 
   @@map("mentorfeedback")
 }

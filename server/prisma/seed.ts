@@ -4,8 +4,12 @@ const bcrypt = require('bcrypt');
 const prisma = new PrismaClient();
 
 async function main() {
+  // Clear existing data in the reverse order of dependencies
   await prisma.mentorship.deleteMany({});
   await prisma.user.deleteMany({});
+  await prisma.activity.deleteMany({});
+  await prisma.mentorFeedback.deleteMany({});
+  await prisma.report.deleteMany({});
   
   // Symmetric key for password hashing
   const saltRounds = 10;
@@ -65,6 +69,63 @@ async function main() {
     }
   });
 
+  // Create activities
+  const activity1 = await prisma.activity.create({
+    data: {
+      studentId: student1.id,
+      date: new Date(),
+      timeSpent: 2,
+      notes: 'Completed initial tasks',
+    }
+  });
+
+  const activity2 = await prisma.activity.create({
+    data: {
+      studentId: student2.id,
+      date: new Date(),
+      timeSpent: 3,
+      notes: 'Reviewed project',
+    }
+  });
+   // Create mentor feedback
+   const feedback1 = await prisma.mentorFeedback.create({
+    data: {
+      activityId: activity1.id,
+      mentorId: mentor1.id,
+      status: 'pending',
+      feedbackNotes: 'Good start',
+    },
+  });
+
+  const feedback2 = await prisma.mentorFeedback.create({
+    data: {
+      activityId: activity2.id,
+      mentorId: mentor2.id,
+      status: 'approved',
+      feedbackNotes: 'Well done',
+    }
+  });
+
+
+  // Create reports
+  const report1 = await prisma.report.create({
+    data: {
+      mentorId: mentor1.id,
+      studentId: student1.id,
+      reportData: { progress: 'On track' },
+      generatedAt: new Date(),
+    },
+  });
+
+  const report2 = await prisma.report.create({
+    data: {
+      mentorId: mentor2.id,
+      studentId: student2.id,
+      reportData: { progress: 'Needs improvement' },
+      generatedAt: new Date(),
+    }
+  });
+
   // Create mentorships (relations between mentors and students)
   await prisma.mentorship.createMany({
     data: [
@@ -72,10 +133,10 @@ async function main() {
       { mentorId: mentor1.id, studentId: student3.id },
       { mentorId: mentor2.id, studentId: student2.id }
     ],
-    skipDuplicates: true //  duplicate errors
+    skipDuplicates: true // skip duplicate errors
   });
 
-  console.log({ mentor1, mentor2, student1, student2, student3 });
+  console.log({ mentor1, mentor2, student1, student2, student3, feedback1, feedback2, report1, report2 });
 } catch (error) {
   console.error('Error seeding data:', error);
 }
