@@ -5,7 +5,7 @@ import ActivityService from '../../modules/activity_service';
 const prisma = new PrismaClient();
 const activityService = new ActivityService(prisma);
 
-export default async function createActivity(req: NextApiRequest, res: NextApiResponse) {
+export async function createActivity(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     const { studentId, date, timeSpent, notes } = req.body;
 
