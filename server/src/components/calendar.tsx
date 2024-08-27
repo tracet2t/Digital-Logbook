@@ -1,102 +1,102 @@
-'use client'
+'use client';
 
-import type { BadgeProps, CalendarProps } from 'antd';
-import { Badge, Calendar, Modal } from 'antd';
-import { SelectInfo } from 'antd/es/calendar/generateCalendar';
-import type { Dayjs } from 'dayjs';
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { Calendar as BigCalendar, momentLocalizer, Views, Event as BigCalendarEvent } from 'react-big-calendar';
+import moment from 'moment';
+import 'react-big-calendar/lib/css/react-big-calendar.css';
+import { Modal } from 'antd';
 
-const getListData = (value: Dayjs) => {
-    let listData: { type: string; content: string }[] = []; // Specify the type of listData
-    switch (value.date()) {
-      case 8:
-        listData = [
-          { type: 'warning', content: 'This is warning event.' },
-          { type: 'success', content: 'This is usual event.' },
-        ];
-        break;
-      case 10:
-        listData = [
-          { type: 'warning', content: 'This is warning event.' },
-          { type: 'success', content: 'This is usual event.' },
-          { type: 'error', content: 'This is error event.' },
-        ];
-        break;
-      case 15:
-        listData = [
-          { type: 'warning', content: 'This is warning event' },
-          { type: 'success', content: 'This is very long usual event......' },
-          { type: 'error', content: 'This is error event 1.' },
-          { type: 'error', content: 'This is error event 2.' },
-          { type: 'error', content: 'This is error event 3.' },
-          { type: 'error', content: 'This is error event 4.' },
-        ];
-        break;
-      default:
-    }
-    return listData || [];
-  };
-  
-  const getMonthData = (value: Dayjs) => {
-    if (value.month() === 8) {
-      return 1394;
-    }
+moment.locale('en-GB');
+const localizer = momentLocalizer(moment);
+
+interface CalendarEvent {
+  id: number;
+  title: string;
+  start: Date;
+  end: Date;
+  allDay?: boolean;
+}
+
+const events: CalendarEvent[] = [
+  {
+    id: 0,
+    title: 'Board meeting',
+    start: new Date(2024, 7, 29, 9, 0, 0), // August 29, 2024, 9:00 AM
+    end: new Date(2024, 7, 29, 13, 0, 0), // August 29, 2024, 1:00 PM
+  },
+  {
+    id: 1,
+    title: 'MS training',
+    allDay: true,
+    start: new Date(2024, 7, 29, 14, 0, 0), // August 29, 2024, 2:00 PM
+    end: new Date(2024, 7, 29, 16, 30, 0), // August 29, 2024, 4:30 PM
+  },
+  {
+    id: 2,
+    title: 'Team lead meeting',
+    start: new Date(2024, 7, 29, 8, 30, 0), // August 29, 2024, 8:30 AM
+    end: new Date(2024, 7, 29, 12, 30, 0), // August 29, 2024, 12:30 PM
+  },
+  {
+    id: 11,
+    title: 'Birthday Party',
+    start: new Date(2024, 7, 30, 7, 0, 0), // August 30, 2024, 7:00 AM
+    end: new Date(2024, 7, 30, 10, 30, 0), // August 30, 2024, 10:30 AM
+  }
+];
+
+const styles = {
+  container: {
+    width: '80vw',
+    height: '60vh',
+    margin: '2em'
+  }
 };
 
-export default function TaskCalendar() {
-    const [taskModalOpen, setTaskModalOpen] = useState(false);
-    const [taskDetail, setTaskDetail] = useState({selectedDate: "No Date Selected"});
+const TaskCalendar: React.FC = () => {
+  const [taskModalOpen, setTaskModalOpen] = useState(false);
+  const [taskDetail, setTaskDetail] = useState<{ selectedDate: string }>({ selectedDate: 'No Date Selected' });
 
-    const showModal = (date: Dayjs, selectInfo: SelectInfo) => {
-        console.log(selectInfo);
-        
-        if (selectInfo.source === 'date') {
-            setTaskDetail({ selectedDate: date.toDate().toDateString() });
-            setTaskModalOpen(true);
-        }
-    };
-    
-    const handleOk = () => {
-        setTaskModalOpen(false);
-    };
+  const handleSelectEvent = (event: BigCalendarEvent) => {
+    const calendarEvent = event as CalendarEvent; // Type assertion
+    setTaskDetail({ selectedDate: calendarEvent.title });
+    setTaskModalOpen(true);
+  };
 
-    const handleCancel = () => {
-        setTaskModalOpen(false);
-    };
+  const handleOk = () => {
+    setTaskModalOpen(false);
+  };
 
-    const monthCellRender = (value: Dayjs) => {
-        const num = getMonthData(value);
-        return num ? (
-          <div className="notes-month">
-            <section>{num}</section>
-            <span>Backlog number</span>
-          </div>
-        ) : null;
-      };
-    
-      const dateCellRender = (value: Dayjs) => {
-        const listData = getListData(value);
-        return (
-          <ul className="events">
-            {listData.map((item) => (
-              <li key={item.content}>
-                <Badge status={item.type as BadgeProps['status']} text={item.content} />
-              </li>
-            ))}
-          </ul>
-        );
-      };
-    
-      const cellRender: CalendarProps<Dayjs>['cellRender'] = (current, info) => {
-        if (info.type === 'date') return dateCellRender(current);
-        if (info.type === 'month') return monthCellRender(current);
-        return info.originNode;
-      };
-    
-    return <>
-        <Modal title="Task Detail" open={taskModalOpen} onOk={handleOk} onCancel={handleCancel}>
-            <div>{(taskDetail as any).selectedDate}</div>
-        </Modal>
-        <Calendar onSelect={showModal} cellRender={cellRender} />
-    </>;
-}
+  const handleCancel = () => {
+    setTaskModalOpen(false);
+  };
+
+  return (
+    <>
+      <Modal
+        title="Task Detail"
+        open={taskModalOpen}
+        onOk={handleOk}
+        onCancel={handleCancel}
+      >
+        <div>{taskDetail.selectedDate}</div>
+      </Modal>
+      <div style={styles.container}>
+        <BigCalendar
+          selectable
+          localizer={localizer}
+          events={events}
+          defaultView={Views.WEEK}
+          views={[Views.DAY, Views.WEEK, Views.MONTH]}
+          step={60}
+          defaultDate={new Date(2024, 7, 29)} // Default to August 29, 2024
+          startAccessor="start"
+          endAccessor="end"
+          onSelectEvent={handleSelectEvent}
+        />
+      </div>
+    </>
+  );
+};
+
+export default TaskCalendar;
