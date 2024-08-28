@@ -1,161 +1,147 @@
-'use client'
+'use client';
 
-import type { BadgeProps, CalendarProps } from 'antd';
-import { Badge, Calendar, Modal, Input, Form, Button } from 'antd';
-import { SelectInfo } from 'antd/es/calendar/generateCalendar';
-import type { Dayjs } from 'dayjs';
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { Calendar as BigCalendar, momentLocalizer, Views, Event as BigCalendarEvent } from 'react-big-calendar';
+import moment from 'moment';
+import 'react-big-calendar/lib/css/react-big-calendar.css';
+import { Modal, Input, Button, Form } from 'antd';
 
-const getListData = (value: Dayjs) => {
-    let listData: { type: string; content: string }[] = [];
-    switch (value.date()) {
-      case 8:
-        listData = [
-          { type: 'warning', content: 'This is warning event.' },
-          { type: 'success', content: 'This is usual event.' },
-        ];
-        break;
-      case 10:
-        listData = [
-          { type: 'warning', content: 'This is warning event.' },
-          { type: 'success', content: 'This is usual event.' },
-          { type: 'error', content: 'This is error event.' },
-        ];
-        break;
-      case 15:
-        listData = [
-          { type: 'warning', content: 'This is warning event' },
-          { type: 'success', content: 'This is very long usual event......' },
-          { type: 'error', content: 'This is error event 1.' },
-          { type: 'error', content: 'This is error event 2.' },
-          { type: 'error', content: 'This is error event 3.' },
-          { type: 'error', content: 'This is error event 4.' },
-        ];
-        break;
-      default:
-    }
-    return listData || [];
-  };
+moment.locale('en-GB');
+const localizer = momentLocalizer(moment);
 
-const getMonthData = (value: Dayjs) => {
-    if (value.month() === 8) {
-      return 1394;
-    }
+interface CalendarEvent {
+  id: number;
+  title: string;
+  start: Date;
+  end: Date;
+  allDay?: boolean;
+}
+
+const events: CalendarEvent[] = [
+  {
+    id: 0,
+    title: 'Board meeting',
+    start: new Date(2024, 7, 29, 9, 0, 0),
+    end: new Date(2024, 7, 29, 13, 0, 0),
+  },
+];
+
+const styles = {
+  container: {
+    width: '80vw',
+    height: '60vh',
+    margin: '2em'
+  }
 };
 
-export default function TaskCalendar() {
-    const [taskModalOpen, setTaskModalOpen] = useState(false);
-    const [taskDetail, setTaskDetail] = useState({selectedDate: "No Date Selected"});
-    const [form] = Form.useForm();
-    const [error, setError] = useState<string | null>(null);
-    const [success, setSuccess] = useState<string | null>(null);
+const TaskCalendar: React.FC = () => {
+  const [taskModalOpen, setTaskModalOpen] = useState(false);
+  const [taskDetail, setTaskDetail] = useState<{ selectedDate: string }>({ selectedDate: 'No Date Selected' });
+  const [formData, setFormData] = useState<{ date: string; hours: string; notes: string }>({
+    date: '',
+    hours: '',
+    notes: ''
+  });
 
-    const showModal = (date: Dayjs, selectInfo: SelectInfo) => {
-        if (selectInfo.source === 'date') {
-            setTaskDetail({ selectedDate: date.toDate().toDateString() });
-            setTaskModalOpen(true);
-        }
-    };
+  const handleSelectEvent = (event: BigCalendarEvent) => {
+    const calendarEvent = event as CalendarEvent;
+    setTaskDetail({ selectedDate: calendarEvent.title });
+    setFormData({
+      date: calendarEvent.start.toISOString().split('T')[0],
+      hours: '',
+      notes: ''
+    });
+    setTaskModalOpen(true);
+  };
 
-    const handleOk = async () => {
-        try {
-            const values = await form.validateFields();
-            const { studentId, timeSpent, notes } = values;
-            const date = taskDetail.selectedDate;
+  const handleClose = () => {
+    setTaskModalOpen(false);
+  };
 
-            const response = await fetch('/api/create/create_activity', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ studentId, date, timeSpent, notes }),
-            });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prevData => ({ ...prevData, [name]: value }));
+  };
 
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
+  const handleSubmit = async () => {
+    const response = await fetch('/api/activity', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        date: formData.date,
+        timeSpent: parseFloat(formData.hours),
+        notes: formData.notes,
+        studentId: 'some-student-id'  // Replace with actual student ID
+      }),
+    });
 
-            const result = await response.json();
-            setSuccess('Activity created successfully!');
-            console.log(result);
-            form.resetFields();
-        } catch (error) {
-            setError('Failed to create activity');
-            console.error('Error:', error);
-        } finally {
-            setTaskModalOpen(false);
-        }
-    };
+    if (response.ok) {
+      alert('Activity created successfully!');
+      setTaskModalOpen(false);
+    } else {
+      alert('Failed to create activity');
+    }
+  };
 
-    const handleCancel = () => {
-        setTaskModalOpen(false);
-    };
+  return (
+    <>
+      <Modal
+        title="Task Detail"
+        visible={taskModalOpen}
+        onCancel={handleClose}
+        footer={[
+          <Button key="cancel" onClick={handleClose}>
+            Close
+          </Button>,
+          <Button key="submit" type="primary" onClick={handleSubmit}>
+            OK
+          </Button>
+        ]}
+      >
+        <Form layout="vertical">
+          <Form.Item label="Date">
+            <Input
+              type="date"
+              name="date"
+              value={formData.date}
+              onChange={handleChange}
+            />
+          </Form.Item>
+          <Form.Item label="Working Hours">
+            <Input
+              type="text"
+              name="hours"
+              value={formData.hours}
+              onChange={handleChange}
+            />
+          </Form.Item>
+          <Form.Item label="Notes">
+            <Input.TextArea
+              name="notes"
+              value={formData.notes}
+              onChange={handleChange}
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
+      <div style={styles.container}>
+        <BigCalendar
+          selectable
+          localizer={localizer}
+          events={events}
+          defaultView={Views.WEEK}
+          views={[Views.DAY, Views.WEEK, Views.MONTH]}
+          step={60}
+          defaultDate={new Date(2024, 7, 29)}
+          startAccessor="start"
+          endAccessor="end"
+          onSelectEvent={handleSelectEvent}
+        />
+      </div>
+    </>
+  );
+};
 
-    const monthCellRender = (value: Dayjs) => {
-        const num = getMonthData(value);
-        return num ? (
-          <div className="notes-month">
-            <section>{num}</section>
-            <span>Backlog number</span>
-          </div>
-        ) : null;
-      };
-
-    const dateCellRender = (value: Dayjs) => {
-        const listData = getListData(value);
-        return (
-          <ul className="events">
-            {listData.map((item) => (
-              <li key={item.content}>
-                <Badge status={item.type as BadgeProps['status']} text={item.content} />
-              </li>
-            ))}
-          </ul>
-        );
-      };
-
-    const cellRender: CalendarProps<Dayjs>['cellRender'] = (current, info) => {
-        if (info.type === 'date') return dateCellRender(current);
-        if (info.type === 'month') return monthCellRender(current);
-        return info.originNode;
-    };
-
-    return <>
-        <Modal
-            title="Task Detail"
-            open={taskModalOpen}
-            onOk={handleOk}
-            onCancel={handleCancel}
-        >
-            <div>
-                <div>{taskDetail.selectedDate}</div>
-                <Form form={form} layout="vertical" name="activityForm" initialValues={{}}>
-                    <Form.Item
-                        name="studentId"
-                        label="Student ID"
-                        rules={[{ required: true, message: 'Please input the student ID!' }]}
-                    >
-                        <Input />
-                    </Form.Item>
-                    <Form.Item
-                        name="timeSpent"
-                        label="Time Spent"
-                        rules={[{ required: true, message: 'Please input the time spent!' }]}
-                    >
-                        <Input />
-                    </Form.Item>
-                    <Form.Item
-                        name="notes"
-                        label="Notes"
-                        rules={[{ required: true, message: 'Please input the notes!' }]}
-                    >
-                        <Input.TextArea />
-                    </Form.Item>
-                    {success && <p style={{ color: 'green' }}>{success}</p>}
-                    {error && <p style={{ color: 'red' }}>{error}</p>}
-                </Form>
-            </div>
-        </Modal>
-        <Calendar onSelect={showModal} cellRender={cellRender} />
-    </>;
-}
+export default TaskCalendar;
