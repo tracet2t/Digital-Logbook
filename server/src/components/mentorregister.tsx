@@ -1,20 +1,16 @@
 "use client"; // This tells Next.js that this component is a Client Component
 
-import React, { useState } from 'react';
+import React from 'react';
 
-const MentorDashboard = () => {
-    const [isRegistering, setIsRegistering] = useState(false);
-
-    const handleRegisterClick = () => {
-        setIsRegistering(true);
-    };
-
+const RegistrationForm: React.FC = () => {
     const handleCancelClick = () => {
-        setIsRegistering(false);
+        // Define what should happen when the arrow key is clicked
+        console.log('Cancel clicked');
     };
 
     const handleUserIconClick = () => {
-        alert('User icon clicked!'); // Replace this with the desired action
+        // Define what should happen when the user icon is clicked
+        alert('User icon clicked!');
     };
 
     return (
@@ -32,7 +28,7 @@ const MentorDashboard = () => {
                     <img
                         src="/logo.png" // Update this path if your logo is stored elsewhere
                         alt="Logo"
-                        className="h-32 w-32 object-contain" // Increased size for better visibility
+                        className="h-32 w-32 object-contain" // Adjust size as needed
                     />
                 </div>
 
@@ -47,66 +43,52 @@ const MentorDashboard = () => {
                 </div>
             </div>
 
-            {/* Main Content */}
-            <div className="bg-white shadow-md rounded-md p-6 sm:p-8 max-w-md w-full mt-20">
-                {!isRegistering ? (
-                    <div className="flex flex-col items-center">
-                        <h1 className="text-2xl font-bold mb-4 text-center">This is mentor's mock page</h1>
+            {/* Registration Form */}
+            <div className="bg-white p-4 sm:p-6 rounded-md shadow-md w-full max-w-md mx-auto mt-20">
+                <h2 className="text-xl sm:text-2xl font-semibold mb-4 text-center">Register a New Student</h2>
+                <form>
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700">
+                            First Name
+                        </label>
+                        <input
+                            type="text"
+                            placeholder="Enter student’s first name"
+                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700">
+                            Last Name
+                        </label>
+                        <input
+                            type="text"
+                            placeholder="Enter student’s last name"
+                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700">
+                            Email
+                        </label>
+                        <input
+                            type="email"
+                            placeholder="Enter student’s email"
+                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        />
+                    </div>
+                    <div className="flex justify-center mt-6">
                         <button
-                            onClick={handleRegisterClick}
-                            className="bg-blue-600 text-white py-2 px-4 rounded-md"
+                            type="submit"
+                            className="bg-[#0000FF] text-white py-2 px-8 rounded-md"
                         >
-                            Register Student
+                            Register
                         </button>
                     </div>
-                ) : (
-                    <div className="bg-white p-4 sm:p-6 rounded-md shadow-md w-full mt-8">
-                        <h2 className="text-xl sm:text-2xl font-semibold mb-4 text-center">Register a New Student</h2>
-                        <form>
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700">
-                                    First Name
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="Enter student’s first name"
-                                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700">
-                                    Last Name
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="Enter student’s last name"
-                                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700">
-                                    Email
-                                </label>
-                                <input
-                                    type="email"
-                                    placeholder="Enter student’s email"
-                                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                />
-                            </div>
-                            <div className="flex justify-center mt-6">
-                                <button
-                                    type="submit"
-                                    className="bg-[#0000FF] text-white py-2 px-8 rounded-md"
-                                >
-                                    Register
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                )}
+                </form>
             </div>
         </div>
     );
 };
 
-export default MentorDashboard;
+export default RegistrationForm;
