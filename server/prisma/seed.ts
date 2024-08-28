@@ -5,11 +5,11 @@ const prisma = new PrismaClient();
 
 async function main() {
   // Clear existing data in the reverse order of dependencies
-  await prisma.mentorship.deleteMany({});
-  await prisma.user.deleteMany({});
-  await prisma.activity.deleteMany({});
-  await prisma.mentorFeedback.deleteMany({});
-  await prisma.report.deleteMany({});
+  await prisma.mentorFeedback.deleteMany({}); 
+  await prisma.report.deleteMany({});          
+  await prisma.activity.deleteMany({});        
+  await prisma.mentorship.deleteMany({});     
+  await prisma.user.deleteMany({}); 
   
   // Symmetric key for password hashing
   const saltRounds = 10;
