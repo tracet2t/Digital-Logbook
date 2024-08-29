@@ -14,7 +14,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
 import { Button } from "@/components/ui/button";
 
 moment.locale('en-GB');
@@ -27,6 +26,7 @@ interface CalendarEvent {
   end: Date;
   allDay?: boolean;
   color?: string;
+  comments?: string;  // Comments or feedback field
 }
 
 const events: CalendarEvent[] = [
@@ -35,7 +35,7 @@ const events: CalendarEvent[] = [
     title: 'Board meeting',
     start: new Date(2024, 7, 29, 9, 0, 0),
     end: new Date(2024, 7, 29, 13, 0, 0),
-    color: '#FF5733',
+    color: '#FDC70A',
   },
   {
     id: 1,
@@ -43,28 +43,31 @@ const events: CalendarEvent[] = [
     allDay: true,
     start: new Date(2024, 7, 29, 14, 0, 0),
     end: new Date(2024, 7, 29, 16, 30, 0),
-    color: '#33FF57',
+    color: '#297D3B',
+    comments: 'Mandatory for all employees',  // Dummy comment
   },
   {
     id: 2,
     title: 'Team lead meeting',
     start: new Date(2024, 7, 29, 8, 30, 0),
     end: new Date(2024, 7, 29, 12, 30, 0),
-    color: '#3357FF',
+    color: '#C80505',
+    comments: 'Discuss project updates',  // Dummy comment
   },
   {
     id: 11,
     title: 'Birthday Party',
     start: new Date(2024, 7, 30, 7, 0, 0),
     end: new Date(2024, 7, 30, 10, 30, 0),
-    color: '#FF33A1',
+    color: '#C80505',
+    comments: 'Team building event',  // Dummy comment
   },
 ];
 
 const TaskCalendar: React.FC = () => {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<CalendarEvent | null>(null);
-  const [currentDate, setCurrentDate] = useState(new Date(2024, 7, 29)); 
+  const [currentDate, setCurrentDate] = useState(new Date(2024, 7, 29));
 
   const handleSelectEvent = (event: CalendarEvent) => {
     setSelectedTask(event);
@@ -105,7 +108,7 @@ const TaskCalendar: React.FC = () => {
             <span>{label}</span>
             <div
               style={{
-                maxHeight: '80px', 
+                maxHeight: '80px',
                 overflowY: 'auto',
                 marginTop: '5px',
               }}
@@ -132,6 +135,13 @@ const TaskCalendar: React.FC = () => {
     },
   };
 
+  const calculateDuration = (start: Date, end: Date) => {
+    const duration = moment.duration(moment(end).diff(moment(start)));
+    const hours = Math.floor(duration.asHours());
+    const minutes = duration.minutes();
+    return `${hours}h ${minutes}m`;
+  };
+
   return (
     <>
       <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
@@ -142,21 +152,51 @@ const TaskCalendar: React.FC = () => {
           <AlertDialogDescription>
             {selectedTask ? (
               <div>
-                <h3>{selectedTask.title}</h3>
-                <p>
-                  Start: {moment(selectedTask.start).format('MMMM Do YYYY, h:mm a')}
-                </p>
-                <p>
-                  End: {moment(selectedTask.end).format('MMMM Do YYYY, h:mm a')}
-                </p>
+                <div className="mb-4">
+                  <label className="block font-semibold">Activity:</label>
+                  <input
+                    type="text"
+                    value={selectedTask.title}
+                    readOnly
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block font-semibold">Working Hours:</label>
+                  <input
+                    type="text"
+                    value={calculateDuration(selectedTask.start, selectedTask.end)}
+                    readOnly
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block font-semibold">Mentor Comments:</label>
+                  <textarea
+                    value={selectedTask.comments || ''}
+                    readOnly
+                    rows={3}
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
               </div>
             ) : (
               'No task selected'
             )}
           </AlertDialogDescription>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleClose}>Close</AlertDialogCancel>
-            <AlertDialogAction onClick={handleClose}>OK</AlertDialogAction>
+            <AlertDialogCancel
+              onClick={handleClose}
+              className="bg-[#007BFF] text-white hover:bg-[#0056b3] focus:ring-[#0056b3]"
+            >
+              Close
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleClose}
+              className="bg-[#28A745] text-white hover:bg-[#218838] focus:ring-[#218838]"
+            >
+              OK
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
