@@ -1,15 +1,11 @@
 "use client";
 
 import * as React from "react";
-import {
-  Card,
-  CardHeader,
-  CardFooter,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const RegistrationForm: React.FC = () => {
   const handleCancelClick = () => {
@@ -41,12 +37,10 @@ const RegistrationForm: React.FC = () => {
 
         {/* User Icon */}
         <div>
-          <img
-            src="/user.jpg"
-            alt="User Icon"
-            className="h-12 w-12 rounded-full cursor-pointer"
-            onClick={handleUserIconClick}
-          />
+          <Avatar className="cursor-pointer" onClick={handleUserIconClick}>
+            <AvatarImage src="/user.jpg" alt="User Icon" />
+            <AvatarFallback>U</AvatarFallback>
+          </Avatar>
         </div>
       </div>
 
@@ -61,33 +55,27 @@ const RegistrationForm: React.FC = () => {
         <CardContent>
           <form>
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">
-                First Name
-              </label>
-              <input
+              <Label htmlFor="firstName">First Name</Label>
+              <Input
+                id="firstName"
                 type="text"
                 placeholder="Enter student’s first name"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </div>
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">
-                Last Name
-              </label>
-              <input
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input
+                id="lastName"
                 type="text"
                 placeholder="Enter student’s last name"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </div>
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">
-                Email
-              </label>
-              <input
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
                 type="email"
                 placeholder="Enter student’s email"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </div>
           </form>
