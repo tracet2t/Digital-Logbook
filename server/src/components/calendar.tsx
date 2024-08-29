@@ -37,7 +37,7 @@ const events: CalendarEvent[] = [
     start: new Date(2024, 7, 29, 9, 0, 0),
     end: new Date(2024, 7, 29, 13, 0, 0),
     color: '#FDC70A',
-    workingHours: '4h 0m', 
+    workingHours: '8h 0m', 
   },
   {
     id: 1,
