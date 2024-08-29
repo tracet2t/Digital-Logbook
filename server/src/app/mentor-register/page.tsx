@@ -6,7 +6,7 @@ import bcrypt from 'bcrypt';
 
 export default async function MentorRegStudentPage() {
   const handleSubmit = async (formData: FormData) => {
-    'use server'; // Indicates this function runs on the server side
+    'use server'; //  function runs on the server side
 
     const firstName = formData.get('firstName') as string;
     const lastName = formData.get('lastName') as string;
@@ -15,7 +15,7 @@ export default async function MentorRegStudentPage() {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create a user in the database
+  
     await prisma.user.create({
       data: {
         firstName,
@@ -26,7 +26,8 @@ export default async function MentorRegStudentPage() {
       },
     });
 
-    redirect('/success'); // Redirect after successful registration
+     // Redirect to the success page after registration - demo page for now
+     redirect('/mentor-register/success');
   };
 
   return (

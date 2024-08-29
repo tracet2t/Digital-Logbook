@@ -16,7 +16,6 @@
   },
   "dependencies": {
     "@ant-design/nextjs-registry": "^1.0.1",
-
     "@radix-ui/react-alert-dialog": "^1.1.1",
     "@radix-ui/react-dialog": "^1.1.1",
     "@radix-ui/react-slot": "^1.1.0",
@@ -36,11 +35,11 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
-
     "@babel/core": "^7.25.2",
     "@babel/preset-env": "^7.25.4",
     "@babel/preset-typescript": "^7.24.7",
     "@jest/globals": "^29.7.0",
+    "@types/bcrypt": "^5.0.2",
     "@types/jest": "^29.5.12",
     "@types/node": "^20",
     "@types/react": "^18",
@@ -53,7 +52,6 @@
     "tailwindcss": "^3.4.1",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
-
     "typescript": "^5.5.4"
   }
 }
