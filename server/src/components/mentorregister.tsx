@@ -1,29 +1,22 @@
-"use client"; // This tells Next.js that this component is a Client Component
+"use client";
 
-import React from "react";
+import * as React from "react";
 import {
-  AlertDialog,
-  AlertDialogTrigger,
-  AlertDialogPortal,
-  AlertDialogOverlay,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogFooter,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogAction,
-  AlertDialogCancel,
-} from "@/components/ui/alert-dialog";
+  Card,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 const RegistrationForm: React.FC = () => {
   const handleCancelClick = () => {
-    // Define what should happen when the arrow key is clicked
     console.log("Cancel clicked");
   };
 
   const handleUserIconClick = () => {
-    // Define what should happen when the user icon is clicked
     alert("User icon clicked!");
   };
 
@@ -40,16 +33,16 @@ const RegistrationForm: React.FC = () => {
             &larr; {/* Arrow symbol */}
           </button>
           <img
-            src="/logo.png" // Update this path if your logo is stored elsewhere
+            src="/logo.png"
             alt="Logo"
-            className="h-32 w-32 object-contain" // Adjust size as needed
+            className="h-32 w-32 object-contain"
           />
         </div>
 
         {/* User Icon */}
         <div>
           <img
-            src="/user.jpg" // Update this path if your user image is stored elsewhere
+            src="/user.jpg"
             alt="User Icon"
             className="h-12 w-12 rounded-full cursor-pointer"
             onClick={handleUserIconClick}
@@ -57,49 +50,54 @@ const RegistrationForm: React.FC = () => {
         </div>
       </div>
 
-      {/* Registration Form */}
-      <div className="bg-white p-4 sm:p-6 rounded-md shadow-md w-full max-w-md mx-auto mt-20">
-        <h2 className="text-xl sm:text-2xl font-semibold mb-4 text-center">
-          Register a New Student
-        </h2>
-        <form>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-              First Name
-            </label>
-            <input
-              type="text"
-              placeholder="Enter student’s first name"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Last Name
-            </label>
-            <input
-              type="text"
-              placeholder="Enter student’s last name"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Email
-            </label>
-            <input
-              type="email"
-              placeholder="Enter student’s email"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            />
-          </div>
-          <div className="flex justify-center mt-6">
-            <Button type="submit" variant="blue" size="lg">
-              Register
-            </Button>
-          </div>
-        </form>
-      </div>
+      {/* Registration Form within a Card */}
+      <Card className="w-full max-w-md mx-auto mt-20">
+        <CardHeader>
+          <CardTitle className="text-center">Register a New Student</CardTitle>
+          <CardDescription className="text-center">
+            Fill in the details below to register a new student.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">
+                First Name
+              </label>
+              <input
+                type="text"
+                placeholder="Enter student’s first name"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">
+                Last Name
+              </label>
+              <input
+                type="text"
+                placeholder="Enter student’s last name"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">
+                Email
+              </label>
+              <input
+                type="email"
+                placeholder="Enter student’s email"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              />
+            </div>
+          </form>
+        </CardContent>
+        <CardFooter className="flex justify-center">
+          <Button type="submit" variant="blue" size="lg">
+            Register
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
   );
 };
