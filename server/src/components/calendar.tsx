@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
 import React, { useState } from 'react';
-import { Calendar as BigCalendar, momentLocalizer, Views, Event as BigCalendarEvent } from 'react-big-calendar';
+import { Calendar as BigCalendar, momentLocalizer, Views } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import {
@@ -13,7 +13,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
 import { Button } from "@/components/ui/button";
@@ -27,70 +26,133 @@ interface CalendarEvent {
   start: Date;
   end: Date;
   allDay?: boolean;
+  color?: string;
 }
 
 const events: CalendarEvent[] = [
   {
     id: 0,
     title: 'Board meeting',
-    start: new Date(2024, 7, 29, 9, 0, 0), // August 29, 2024, 9:00 AM
-    end: new Date(2024, 7, 29, 13, 0, 0), // August 29, 2024, 1:00 PM
+    start: new Date(2024, 7, 29, 9, 0, 0),
+    end: new Date(2024, 7, 29, 13, 0, 0),
+    color: '#FF5733',
   },
   {
     id: 1,
     title: 'MS training',
     allDay: true,
-    start: new Date(2024, 7, 29, 14, 0, 0), // August 29, 2024, 2:00 PM
-    end: new Date(2024, 7, 29, 16, 30, 0), // August 29, 2024, 4:30 PM
+    start: new Date(2024, 7, 29, 14, 0, 0),
+    end: new Date(2024, 7, 29, 16, 30, 0),
+    color: '#33FF57',
   },
   {
     id: 2,
     title: 'Team lead meeting',
-    start: new Date(2024, 7, 29, 8, 30, 0), // August 29, 2024, 8:30 AM
-    end: new Date(2024, 7, 29, 12, 30, 0), // August 29, 2024, 12:30 PM
+    start: new Date(2024, 7, 29, 8, 30, 0),
+    end: new Date(2024, 7, 29, 12, 30, 0),
+    color: '#3357FF',
   },
   {
     id: 11,
     title: 'Birthday Party',
-    start: new Date(2024, 7, 30, 7, 0, 0), // August 30, 2024, 7:00 AM
-    end: new Date(2024, 7, 30, 10, 30, 0), // August 30, 2024, 10:30 AM
-  }
+    start: new Date(2024, 7, 30, 7, 0, 0),
+    end: new Date(2024, 7, 30, 10, 30, 0),
+    color: '#FF33A1',
+  },
 ];
-
-const styles = {
-  container: {
-    width: '80vw',
-    height: '60vh',
-    margin: '2em'
-  }
-};
 
 const TaskCalendar: React.FC = () => {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
-  const [taskDetail, setTaskDetail] = useState<{ selectedDate: string }>({ selectedDate: 'No Date Selected' });
+  const [selectedTask, setSelectedTask] = useState<CalendarEvent | null>(null);
+  const [currentDate, setCurrentDate] = useState(new Date(2024, 7, 29)); 
 
-  const handleSelectEvent = (event: BigCalendarEvent) => {
-    const calendarEvent = event as CalendarEvent; // Type assertion
-    setTaskDetail({ selectedDate: calendarEvent.title });
+  const handleSelectEvent = (event: CalendarEvent) => {
+    setSelectedTask(event);
     setTaskModalOpen(true);
   };
 
   const handleClose = () => {
     setTaskModalOpen(false);
+    setSelectedTask(null);
+  };
+
+  const handleNextMonth = () => {
+    setCurrentDate(moment(currentDate).add(1, 'months').toDate());
+  };
+
+  const handlePrevMonth = () => {
+    setCurrentDate(moment(currentDate).subtract(1, 'months').toDate());
+  };
+
+  const eventPropGetter = (event: CalendarEvent) => {
+    return {
+      style: {
+        backgroundColor: event.color || '#3174ad',
+        color: '#fff',
+      },
+    };
+  };
+
+  const components = {
+    month: {
+      dateHeader: ({ date, label }: { date: Date; label: string }) => {
+        const dayEvents = events.filter((event) =>
+          moment(event.start).isSame(date, 'day')
+        );
+
+        return (
+          <div className="rbc-date-cell" style={{ padding: '5px' }}>
+            <span>{label}</span>
+            <div
+              style={{
+                maxHeight: '80px', 
+                overflowY: 'auto',
+                marginTop: '5px',
+              }}
+            >
+              {dayEvents.map((event) => (
+                <div
+                  key={event.id}
+                  className="rbc-event"
+                  style={{
+                    backgroundColor: event.color,
+                    padding: '2px',
+                    margin: '2px 0',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => handleSelectEvent(event)}
+                >
+                  {event.title}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      },
+    },
   };
 
   return (
     <>
       <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
-        <AlertDialogTrigger asChild>
-          <div />
-        </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Task Detail</AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogDescription>
-            <div>{taskDetail.selectedDate}</div>
+            {selectedTask ? (
+              <div>
+                <h3>{selectedTask.title}</h3>
+                <p>
+                  Start: {moment(selectedTask.start).format('MMMM Do YYYY, h:mm a')}
+                </p>
+                <p>
+                  End: {moment(selectedTask.end).format('MMMM Do YYYY, h:mm a')}
+                </p>
+              </div>
+            ) : (
+              'No task selected'
+            )}
           </AlertDialogDescription>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleClose}>Close</AlertDialogCancel>
@@ -98,18 +160,30 @@ const TaskCalendar: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <div style={styles.container}>
+
+      <div className="relative w-[80vw] h-[60vh] my-8 mx-auto">
+        <div className="mb-5 flex justify-between items-center">
+          <Button onClick={handlePrevMonth} className="p-8">
+            Previous
+          </Button>
+          <Button onClick={handleNextMonth} className="p-8">
+            Next
+          </Button>
+        </div>
         <BigCalendar
           selectable
           localizer={localizer}
           events={events}
-          defaultView={Views.WEEK}
-          views={[Views.DAY, Views.WEEK, Views.MONTH]}
-          step={60}
-          defaultDate={new Date(2024, 7, 29)} // Default to August 29, 2024
+          defaultView={Views.MONTH}
+          views={[Views.MONTH]}
+          date={currentDate}
           startAccessor="start"
           endAccessor="end"
           onSelectEvent={handleSelectEvent}
+          className="mt-5"
+          toolbar={false}
+          eventPropGetter={eventPropGetter}
+          components={components}
         />
       </div>
     </>
