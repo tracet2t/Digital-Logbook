@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+// Ssingleton instance for prisma cli
+let prisma: PrismaClient;
+
+if (typeof globalThis.prisma === "undefined") {
+    globalThis.prisma = new PrismaClient();
+}
+
+prisma = globalThis.prisma;
 
 export const GET = async (req: NextRequest) => {
     try {

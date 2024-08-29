@@ -2,12 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 
 export function middleware(request: NextRequest) {
-    // Skip token validation for API routes
-    if (request.nextUrl.pathname.startsWith('/api/')) {
-        return NextResponse.next();
-    }
+    const cookie = request.cookies.get("token");
 
-    let cookie = request.cookies.get("token");
     if (!cookie || !isValidToken(cookie.value)) {
         return NextResponse.redirect(`${process.env.BASE_URL}/login`);
     }
@@ -16,7 +12,8 @@ export function middleware(request: NextRequest) {
 
 const isValidToken = (token: string) => {
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-default-secret');
+        // Verify the token using the JWT_SECRET from the environment variables
+        const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
         return !!decoded;
     } catch (error) {
         return false;
@@ -25,6 +22,7 @@ const isValidToken = (token: string) => {
 
 export const config = {
     matcher: [
-        '/((?!login|auth/login|_next/static|_next/image|favicon.ico).*)',
+        // Apply the middleware to all routes except those listed below
+        '/((?!login|auth/login|_next/static|_next/image|favicon.ico|api/blogs).*)',
     ],
-}
+};

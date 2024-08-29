@@ -1,12 +1,12 @@
-// lib/prisma.ts
 import { PrismaClient } from '@prisma/client';
 
-const globalForPrisma = global as unknown as { prisma: PrismaClient | undefined };
+// Create a singleton instance of PrismaClient
+let prisma: PrismaClient;
 
-export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    log: ['query'], 
-  });
+if (!global.prisma) {
+    global.prisma = new PrismaClient();
+}
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+prisma = global.prisma;
+
+export default prisma;
