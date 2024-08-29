@@ -14,11 +14,6 @@ services:
     volumes:
       - postgres:/var/lib/postgresql/data
 
-volumes:
-  postgres:
-    driver: local
-
-
   pgadmin:
     container_name: pgadmin
     image: dpage/pgadmin4:latest
@@ -33,6 +28,9 @@ volumes:
     depends_on:
       - postgres
 
+volumes:
+  postgres:
+    driver: local
 
 networks:
   mynetwork:
