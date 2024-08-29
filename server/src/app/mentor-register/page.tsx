@@ -21,9 +21,9 @@ export default async function MentorRegStudentPage() {
         firstName,
         lastName,
         email,
-        password: hashedPassword,
-        role: 'STUDENT', 
-      },
+        passwordHash: hashedPassword,
+        role: 'student', 
+      }
     });
 
      // Redirect to the success page after registration - demo page for now
