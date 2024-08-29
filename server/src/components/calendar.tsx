@@ -44,18 +44,6 @@ const events: CalendarEvent[] = [
   },
 ];
 
-const styles = {
-  container: {
-    width: '80vw',
-    height: '60vh',
-    margin: '2em'
-  },
-  header: {
-    margin: '1em 0',
-    textAlign: 'center'
-  }
-};
-
 const TaskCalendar: React.FC = () => {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [overallFeedbackOpen, setOverallFeedbackOpen] = useState(false);
@@ -78,7 +66,7 @@ const TaskCalendar: React.FC = () => {
 
   return (
     <>
-      <div>
+      <div className='my-4 flex justify-center'>
           <Button onClick={handleOverallFeedbackButtonClick}>
             Add Overall Feedback
           </Button>
@@ -107,7 +95,7 @@ const TaskCalendar: React.FC = () => {
         />
       )}
 
-      <div style={styles.container}>
+      <div className='w-[80vm] h-[70vh] ml-4 mr-4 mt-8'>
         <BigCalendar
           selectable
           localizer={localizer}
