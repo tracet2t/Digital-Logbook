@@ -15,7 +15,7 @@ const LoginPage = () => {
                     alt="Login"
                     width={370} 
                     height={50} 
-                    className="object-cover rounded-lg border border-black" // Added border
+                    className="object-cover rounded-lg border border-black" 
                 />
 
                 {/* Text Overlay */}
@@ -31,12 +31,12 @@ const LoginPage = () => {
             {/* Right Column with Login Form */}
             <div className="w-1/2 flex items-center justify-center bg-white">
                 <Card className="shadow-lg rounded-lg p-8 max-w-md w-full border border-black">
-                    {/* Tiny Image above the Title */}
+                    
                     <div className="flex justify-center mb-4">
                         <Image
                             src="/log-file.png" 
-                            width={40} // Width for the tiny image
-                            height={40} // Height for the tiny image
+                            width={40} 
+                            height={40} 
                         />
                     </div>
                     <CardHeader>
