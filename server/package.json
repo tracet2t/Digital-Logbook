@@ -16,39 +16,27 @@
   },
   "dependencies": {
     "@ant-design/nextjs-registry": "^1.0.1",
-
+    "@babel/types": "^7.25.6",
     "@radix-ui/react-alert-dialog": "^1.1.1",
+    "@radix-ui/react-avatar": "^1.1.0",
     "@radix-ui/react-dialog": "^1.1.1",
     "@radix-ui/react-slot": "^1.1.0",
     "@shadcn/ui": "^0.0.4",
     "antd": "^5.20.2",
-<<<<<<< HEAD
-    "bootstrap": "^5.3.3",
-    "dayjs": "^1.11.13",
-    "dotenv-cli": "^7.4.2",
-    "lib_test": "file:",
-=======
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.13",
     "dotenv-cli": "^7.4.2",
     "lucide-react": "^0.436.0",
->>>>>>> development
     "next": "14.2.5",
     "prisma": "^5.18.0",
     "react": "^18",
-<<<<<<< HEAD
-    "react-bootstrap": "^2.10.4",
-    "react-dom": "^18"
-=======
     "react-big-calendar": "^1.13.4",
     "react-dom": "^18",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7"
->>>>>>> development
   },
   "devDependencies": {
-
     "@babel/core": "^7.25.2",
     "@babel/preset-env": "^7.25.4",
     "@babel/preset-typescript": "^7.24.7",
@@ -66,7 +54,6 @@
     "tailwindcss": "^3.4.1",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
-
     "typescript": "^5.5.4"
   }
 }
