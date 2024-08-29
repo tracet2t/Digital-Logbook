@@ -26,7 +26,8 @@ interface CalendarEvent {
   end: Date;
   allDay?: boolean;
   color?: string;
-  comments?: string;  // Comments or feedback field
+  comments?: string;
+  workingHours?: string; 
 }
 
 const events: CalendarEvent[] = [
@@ -36,6 +37,7 @@ const events: CalendarEvent[] = [
     start: new Date(2024, 7, 29, 9, 0, 0),
     end: new Date(2024, 7, 29, 13, 0, 0),
     color: '#FDC70A',
+    workingHours: '4h 0m', 
   },
   {
     id: 1,
@@ -44,7 +46,8 @@ const events: CalendarEvent[] = [
     start: new Date(2024, 7, 29, 14, 0, 0),
     end: new Date(2024, 7, 29, 16, 30, 0),
     color: '#297D3B',
-    comments: 'Mandatory for all employees',  // Dummy comment
+    comments: 'Mandatory for all employees',
+    workingHours: '2h 30m',
   },
   {
     id: 2,
@@ -52,7 +55,8 @@ const events: CalendarEvent[] = [
     start: new Date(2024, 7, 29, 8, 30, 0),
     end: new Date(2024, 7, 29, 12, 30, 0),
     color: '#C80505',
-    comments: 'Discuss project updates',  // Dummy comment
+    comments: 'Discuss project updates',
+    workingHours: '4h 0m',
   },
   {
     id: 11,
@@ -60,7 +64,8 @@ const events: CalendarEvent[] = [
     start: new Date(2024, 7, 30, 7, 0, 0),
     end: new Date(2024, 7, 30, 10, 30, 0),
     color: '#C80505',
-    comments: 'Team building event',  // Dummy comment
+    comments: 'Team building event',
+    workingHours: '3h 30m',
   },
 ];
 
@@ -135,13 +140,6 @@ const TaskCalendar: React.FC = () => {
     },
   };
 
-  const calculateDuration = (start: Date, end: Date) => {
-    const duration = moment.duration(moment(end).diff(moment(start)));
-    const hours = Math.floor(duration.asHours());
-    const minutes = duration.minutes();
-    return `${hours}h ${minutes}m`;
-  };
-
   return (
     <>
       <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
@@ -165,7 +163,7 @@ const TaskCalendar: React.FC = () => {
                   <label className="block font-semibold">Working Hours:</label>
                   <input
                     type="text"
-                    value={calculateDuration(selectedTask.start, selectedTask.end)}
+                    value={selectedTask.workingHours}
                     readOnly
                     className="w-full p-2 border rounded"
                   />
