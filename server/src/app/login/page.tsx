@@ -7,19 +7,18 @@ import { Button } from "@/components/ui/button";
 
 const LoginPage = () => {
     return (
-        <div className="h-screen flex bg-white">
+        <div className="h-screen flex flex-col md:flex-row bg-white">
             {/* Left Column with Image */}
-            <div className="relative w-1/2 flex items-center justify-center bg-white">
+            <div className="relative w-full md:w-1/2 flex items-center justify-center bg-white p-4 md:p-8">
                 <Image
                     src="/login.png" 
                     alt="Login"
                     width={370} 
                     height={50} 
-                    className="object-cover rounded-lg border border-black" 
+                    className="object-cover rounded-lg border border-black"
                 />
-
                 {/* Text Overlay */}
-                <div className="absolute text-center font-bold" style={{ color: '#004AAD', top: '20%', fontSize: '250px' }}>
+                <div className="absolute text-center font-bold" style={{ color: '#004AAD', top: '20%', fontSize: '8vw' }}>
                     <p className="text-lg">
                         Enhance record-keeping <br />
                         with the seamless <br />
@@ -29,8 +28,8 @@ const LoginPage = () => {
             </div>
 
             {/* Right Column with Login Form */}
-            <div className="w-1/2 flex items-center justify-center bg-white">
-                <Card className="shadow-lg rounded-lg p-8 max-w-md w-full border border-black">
+            <div className="w-full md:w-1/2 flex items-center justify-center bg-white p-4 md:p-8">
+                <Card className="shadow-lg rounded-lg p-6 md:p-8 max-w-md w-full border border-black">
                     
                     <div className="flex justify-center mb-4">
                         <Image
