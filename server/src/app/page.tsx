@@ -1,4 +1,5 @@
 import TaskCalendar from "@/components/calendar";
+import MentorDashboard from "@/components/mentorDashboard/mentorDashboard";
 import { Button } from "antd";
 import Title from "antd/es/typography/Title";
 
@@ -11,6 +12,7 @@ export default function Home() {
           <Button htmlType="submit">Logout</Button>
         </form>
       </div>
+      <MentorDashboard />
       <TaskCalendar />
     </div>
   );
