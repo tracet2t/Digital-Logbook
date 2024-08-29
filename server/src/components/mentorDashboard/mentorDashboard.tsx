@@ -1,18 +1,12 @@
 import React from 'react';
 import TaskCalendar from "@/components/calendar";
 import { Button } from "antd";
-// import Title from "antd/es/typography/Title";
 
 const MentorDashboard = () => {
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gradient-to-b from-gray-200 to-blue-300">
+    <div className="min-h-screen flex flex-col items-center bg-white">
       <header className="w-full bg-white shadow-md py-4 flex justify-between items-center px-6">
         <h1 className="text-xl font-semibold">Mentor Homepage</h1>
-        <img 
-          src="/profile-image.jpeg"  // Replace with the actual path to the image
-          alt="Profile" 
-          className="w-12 h-12 rounded-full cursor-pointer"
-        />
       </header>
 
       <div className="mt-8 w-full max-w-4xl">
@@ -36,9 +30,8 @@ const MentorDashboard = () => {
             </Button>
           </div>
         </div>
-
         {/* Render the TaskCalendar component */}
-        <div className="bg-white shadow-md rounded-lg p-6">
+        <div >
           <TaskCalendar />
         </div>
       </div>
