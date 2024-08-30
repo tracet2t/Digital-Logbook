@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { Calendar as BigCalendar, momentLocalizer, Views } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import "@radix-ui/react-scroll-area";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,7 +15,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 moment.locale('en-GB');
 const localizer = momentLocalizer(moment);
@@ -75,6 +73,7 @@ const TaskCalendar: React.FC = () => {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<CalendarEvent | null>(null);
   const [currentDate, setCurrentDate] = useState(new Date(2024, 7, 29));
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleSelectEvent = (event: CalendarEvent) => {
     setSelectedTask(event);
@@ -142,6 +141,11 @@ const TaskCalendar: React.FC = () => {
     },
   };
 
+  // Filter events based on search query
+  const filteredEvents = events.filter(event =>
+    event.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <>
       <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
@@ -150,7 +154,7 @@ const TaskCalendar: React.FC = () => {
             <AlertDialogTitle className="text-lg sm:text-xl">Task Detail</AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogDescription>
-            <ScrollArea className="overflow-auto max-h-[60vh]">
+            <div className="overflow-auto max-h-[60vh]">
               {selectedTask ? (
                 <div>
                   <div className="mb-4">
@@ -184,7 +188,7 @@ const TaskCalendar: React.FC = () => {
               ) : (
                 'No task selected'
               )}
-            </ScrollArea>
+            </div>
           </AlertDialogDescription>
           <AlertDialogFooter>
             <AlertDialogCancel
@@ -212,10 +216,22 @@ const TaskCalendar: React.FC = () => {
             Next
           </Button>
         </div>
+        
+        {/* Search Input Field */}
+        <div className="mb-4">
+          <input
+            type="text"
+            placeholder="Search tasks..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full p-2 border rounded text-sm sm:text-base"
+          />
+        </div>
+
         <BigCalendar
           selectable
           localizer={localizer}
-          events={events}
+          events={filteredEvents}
           defaultView={Views.MONTH}
           views={[Views.MONTH]}
           date={currentDate}
