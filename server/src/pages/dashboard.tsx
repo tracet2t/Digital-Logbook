@@ -1,7 +1,7 @@
 import { GetServerSideProps } from 'next';
 import StudentPage from './student';
 import MentorPage from './mentor';
-import UnauthorizedPage from './unauthorized';
+import UnauthorizedPage from '../components/unauthorized';
 
 interface DashboardProps {
   userRole: string;
