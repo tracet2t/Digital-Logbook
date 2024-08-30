@@ -1,24 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from '@prisma/client';
-
-// Ssingleton instance for prisma cli
-let prisma: PrismaClient;
-
-if (typeof globalThis.prisma === "undefined") {
-    globalThis.prisma = new PrismaClient();
-}
-
-prisma = globalThis.prisma;
+import prisma from "@/lib/prisma";  // Import the singleton Prisma client
 
 export const GET = async (req: NextRequest) => {
     try {
-        console.log("GET REQUEST");
+        const url = new URL(req.url);
+        const date = url.searchParams.get('date');
 
-        // Fetch activities from the database
-        const activities = await prisma.activity.findMany();
-
-        // Return the activities in the response
-        return NextResponse.json(activities);
+        if (date) {
+            const activities = await prisma.activity.findMany({
+                where: {
+                    date: new Date(date),
+                },
+            });
+            return NextResponse.json(activities);
+        } else {
+            const activities = await prisma.activity.findMany();
+            return NextResponse.json(activities);
+        }
     } catch (error) {
         console.error("Error fetching activities:", error);
         return NextResponse.json({ message: "Error fetching activities" }, { status: 500 });
@@ -59,43 +57,21 @@ export const PATCH = async (req: NextRequest) => {
     try {
         console.log("PATCH REQUEST");
 
-        // Parse the request body
         const { id, timeSpent, notes } = await req.json();
 
-        // Validate input data
         if (!id || (typeof timeSpent !== 'number' && notes === undefined)) {
             return NextResponse.json({ message: "Invalid input data" }, { status: 400 });
         }
 
-        // Retrieve the activity from the database
-        const activity = await prisma.activity.findUnique({
-            where: { id },
-            select: { createdAt: true }
-        });
-
-        if (!activity) {
-            return NextResponse.json({ message: "Activity not found" }, { status: 404 });
-        }
-
-        // Check if the activity is older than 2 days
-        const now = new Date();
-        const creationDate = new Date(activity.createdAt);
-        const twoDays = 2 * 24 * 60 * 60 * 1000; // 2 days in milliseconds
-        if (now.getTime() - creationDate.getTime() > twoDays) {
-            return NextResponse.json({ message: "Cannot edit activity after 2 days" }, { status: 403 });
-        }
-
-        // Update the activity in the database
         const updatedActivity = await prisma.activity.update({
             where: { id },
             data: {
-                timeSpent: timeSpent ?? undefined,
-                notes: notes ?? undefined
+                timeSpent: timeSpent || undefined,
+                notes: notes || undefined
             }
         });
 
-        // Return the updated activity
-        return NextResponse.json(updatedActivity);
+        return NextResponse.json(updatedActivity, { status: 200 });
     } catch (error) {
         console.error("Error updating activity:", error);
         return NextResponse.json({ message: "Error updating activity" }, { status: 500 });
@@ -145,3 +121,4 @@ export const DELETE = async (req: NextRequest) => {
         return NextResponse.json({ message: "Error deleting activity" }, { status: 500 });
     }
 };
+

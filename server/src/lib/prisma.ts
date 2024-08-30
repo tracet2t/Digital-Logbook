@@ -1,12 +1,15 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client'
 
-// Create a singleton instance of PrismaClient
-let prisma: PrismaClient;
-
-if (!global.prisma) {
-    global.prisma = new PrismaClient();
+const prismaClientSingleton = () => {
+  return new PrismaClient()
 }
 
-prisma = global.prisma;
+declare const globalThis: {
+  prismaGlobal: ReturnType<typeof prismaClientSingleton>;
+} & typeof global;
 
-export default prisma;
+const prisma = globalThis.prismaGlobal ?? prismaClientSingleton()
+
+export default prisma
+
+if (process.env.NODE_ENV !== 'production') globalThis.prismaGlobal = prisma
