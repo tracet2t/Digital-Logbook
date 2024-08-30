@@ -1,40 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 
 export default function ProfileCard() {
   const [isCardVisible, setIsCardVisible] = useState(false);
-  const router = useRouter();
 
   // Toggle the visibility of the card
   const toggleCardVisibility = () => {
     setIsCardVisible(!isCardVisible);
-  };
-
-  // Handle user logout
-  const handleLogout = async () => {
-    try {
-      // Send a POST request to the logout route
-      const response = await fetch('/auth/logout', {
-        method: 'POST',
-        credentials: 'include', // Ensures cookies are sent with the request
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        // Redirect to the login page or home page after logout
-        router.push('/login'); // Adjust to your login route
-      } else {
-        console.error('Logout failed: ', await response.text());
-      }
-    } catch (error) {
-      console.error('An error occurred during logout:', error);
-    }
   };
 
   return (
@@ -67,9 +42,10 @@ export default function ProfileCard() {
 
             {/* Card footer with the logout button */}
             <CardFooter className="flex justify-center p-2">
+              {/* Remove the logout functionality */}
               <button
                 className="bg-gray-500 text-white py-1 px-3 rounded-md hover:bg-gray-600"
-                onClick={handleLogout}
+                
               >
                 Logout
               </button>
