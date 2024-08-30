@@ -1,5 +1,3 @@
-'use client'; // This enables the component to use client-side functionality
-
 import React from 'react';
 import Image from 'next/image';
 import { Input } from "@/components/ui/input";
