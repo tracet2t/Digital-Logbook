@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Calendar as BigCalendar, momentLocalizer, Views } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
+import "@radix-ui/react-scroll-area";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,6 +16,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 moment.locale('en-GB');
 const localizer = momentLocalizer(moment);
@@ -33,7 +35,7 @@ interface CalendarEvent {
 const events: CalendarEvent[] = [
   {
     id: 0,
-    title: 'Board meeting',
+    title: 'Remove tasks from the list.',
     start: new Date(2024, 7, 29, 9, 0, 0),
     end: new Date(2024, 7, 29, 13, 0, 0),
     color: '#FDC70A',
@@ -41,21 +43,21 @@ const events: CalendarEvent[] = [
   },
   {
     id: 1,
-    title: 'MS training',
+    title: 'Add new tasks to the list.',
     allDay: true,
     start: new Date(2024, 7, 29, 14, 0, 0),
     end: new Date(2024, 7, 29, 16, 30, 0),
     color: '#297D3B',
-    comments: 'Mandatory for all employees',
+    comments: 'Great job! Your application works as intended and is well-organized',
     workingHours: '2h 30m',
   },
   {
     id: 2,
-    title: 'Team lead meeting',
+    title: 'Mark tasks as complete.',
     start: new Date(2024, 7, 29, 8, 30, 0),
     end: new Date(2024, 7, 29, 12, 30, 0),
     color: '#C80505',
-    comments: 'Discuss project updates',
+    comments: 'Your application has some functionality issues.',
     workingHours: '4h 0m',
   },
   {
@@ -143,44 +145,46 @@ const TaskCalendar: React.FC = () => {
   return (
     <>
       <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-full sm:max-w-md p-4">
           <AlertDialogHeader>
-            <AlertDialogTitle>Task Detail</AlertDialogTitle>
+            <AlertDialogTitle className="text-lg sm:text-xl">Task Detail</AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogDescription>
-            {selectedTask ? (
-              <div>
-                <div className="mb-4">
-                  <label className="block font-semibold">Activity:</label>
-                  <input
-                    type="text"
-                    value={selectedTask.title}
-                    readOnly
-                    className="w-full p-2 border rounded"
-                  />
+            <ScrollArea className="overflow-auto max-h-[60vh]">
+              {selectedTask ? (
+                <div>
+                  <div className="mb-4">
+                    <label className="block font-semibold text-sm sm:text-base">Activity:</label>
+                    <input
+                      type="text"
+                      value={selectedTask.title}
+                      readOnly
+                      className="w-full p-2 border rounded text-sm sm:text-base"
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block font-semibold text-sm sm:text-base">Working Hours:</label>
+                    <input
+                      type="text"
+                      value={selectedTask.workingHours}
+                      readOnly
+                      className="w-full p-2 border rounded text-sm sm:text-base"
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block font-semibold text-sm sm:text-base">Mentor Comments:</label>
+                    <textarea
+                      value={selectedTask.comments || ''}
+                      readOnly
+                      rows={3}
+                      className="w-full p-2 border rounded text-sm sm:text-base"
+                    />
+                  </div>
                 </div>
-                <div className="mb-4">
-                  <label className="block font-semibold">Working Hours:</label>
-                  <input
-                    type="text"
-                    value={selectedTask.workingHours}
-                    readOnly
-                    className="w-full p-2 border rounded"
-                  />
-                </div>
-                <div className="mb-4">
-                  <label className="block font-semibold">Mentor Comments:</label>
-                  <textarea
-                    value={selectedTask.comments || ''}
-                    readOnly
-                    rows={3}
-                    className="w-full p-2 border rounded"
-                  />
-                </div>
-              </div>
-            ) : (
-              'No task selected'
-            )}
+              ) : (
+                'No task selected'
+              )}
+            </ScrollArea>
           </AlertDialogDescription>
           <AlertDialogFooter>
             <AlertDialogCancel
@@ -199,12 +203,12 @@ const TaskCalendar: React.FC = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="relative w-[80vw] h-[60vh] my-8 mx-auto">
+      <div className="relative w-full max-w-[80vw] h-[60vh] my-8 mx-auto">
         <div className="mb-5 flex justify-between items-center">
-          <Button onClick={handlePrevMonth} className="p-8">
+          <Button onClick={handlePrevMonth} className="p-4 sm:p-8">
             Previous
           </Button>
-          <Button onClick={handleNextMonth} className="p-8">
+          <Button onClick={handleNextMonth} className="p-4 sm:p-8">
             Next
           </Button>
         </div>
