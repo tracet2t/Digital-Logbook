@@ -1,44 +1,37 @@
-import { NextRequest, NextResponse } from 'next/server';
-
-export function middleware(request: NextRequest) {
-  console.log('Middleware called');
-
-  const token = request.cookies.get('token');
-  const userRole = 'student'; 
-  
+import { NextRequest, NextResponse } from "next/server";
+import * as jose from 'jose'
 
 
-  if (!token || token.value !== 'authenticated') {
-    return NextResponse.redirect(`${process.env.BASE_URL}/login`);
+
+export async function middleware(request: NextRequest) {
+    console.log("Middleware called");
+
+    let token = request.cookies.get("token");
+
+    if (!token) {
+      return NextResponse.redirect(`${process.env.BASE_URL}/login`);
   }
 
-  const { pathname } = request.nextUrl;
 
-  if (userRole === 'student') {
-    if (pathname.startsWith('/mentor')) {
-      return NextResponse.redirect(`${process.env.BASE_URL}/unauthorized`);
-    }
-    if (pathname === '/unauthorized') {
-      return NextResponse.next();
-    }
-    // if (pathname !== '/student') {
-    //   return NextResponse.redirect(`${process.env.BASE_URL}/student`);
-    // }
-  }
+    try {
+            const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+            const {payload, protectedHeader} = await jose.jwtVerify(token.value, secret);
 
-  if (userRole === 'mentor') {
-    if (pathname.startsWith('/student')) {
-      return NextResponse.redirect(`${process.env.BASE_URL}/unauthorized`);
-    }
-    if (pathname === '/unauthorized') {
-      return NextResponse.redirect(`${process.env.BASE_URL}/mentor`);
-    }
-    // if (pathname !== '/mentor') {
-    //   return NextResponse.redirect(`${process.env.BASE_URL}/mentor`);
-    // }
-  }
+        } catch (error) {
+        
+            console.error(error);
+            
+            const headers = new Headers(request.headers);
 
-  return NextResponse.next();
+            if ((error as any).code == "ERR_JWT_EXPIRED") {
+                headers.set("Set-Cookie", "redirect_error=Session expired. Please login again.; Path=/login;");
+            }
+
+            headers.set("Set-Cookie", "redirect_error=An error occurred while logging you in.; Path=/login;");
+            headers.append("Set-Cookie", `token=${token}; expires=Thu, 01 Jan 1970 00:00:00 UTC; Path=/; HttpOnly`);
+            return NextResponse.redirect(`${process.env.BASE_URL}/login`, { status: 303, headers: headers });
+        }
+    return NextResponse.next();
 }
 
 export const config = {
