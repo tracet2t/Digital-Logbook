@@ -1,4 +1,3 @@
-// src/components/ProfileCard.tsx
 "use client";
 
 import { useState } from "react";
@@ -10,43 +9,66 @@ export default function ProfileCard() {
   const [isCardVisible, setIsCardVisible] = useState(false);
   const router = useRouter();
 
+  // Toggle the visibility of the card
   const toggleCardVisibility = () => {
     setIsCardVisible(!isCardVisible);
   };
 
+  // Handle user logout
   const handleLogout = async () => {
-    // Clear authentication tokens (adjust according to your storage method)
-    localStorage.removeItem('authToken');
-    document.cookie = 'authToken=; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+    try {
+      // Send a POST request to the logout route
+      const response = await fetch('/auth/logout', {
+        method: 'POST',
+        credentials: 'include', // Ensures cookies are sent with the request
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-    // Redirect to the login page or home page after logout
-    router.push('/login'); // Adjust to your login route
+      if (response.ok) {
+        // Redirect to the login page or home page after logout
+        router.push('/login'); // Adjust to your login route
+      } else {
+        console.error('Logout failed: ', await response.text());
+      }
+    } catch (error) {
+      console.error('An error occurred during logout:', error);
+    }
   };
 
   return (
-    <div className="absolute top-4 right-4">
-      <button onClick={toggleCardVisibility}>
+    <div className="relative">
+      {/* Button to toggle the visibility of the profile card */}
+      <button onClick={toggleCardVisibility} className="absolute top-4 right-4">
         <Avatar>
           <AvatarImage src="https://github.com/shadcn.png" />
           <AvatarFallback>CN</AvatarFallback>
         </Avatar>
       </button>
+
+      {/* Conditional rendering of the profile card */}
       {isCardVisible && (
-        <div className="absolute top-16 right-0 bg-light-green-100 p-4 border border-gray-200 rounded shadow-lg">
-          <Card>
-            <CardHeader className="flex flex-col items-center bg-light-green-100 p-2">
-              <Avatar>
+        <div className="absolute top-16 right-0 bg-gradient-to-b from-blue-100 to-blue-200 p-3 border border-gray-200 rounded shadow-lg">
+          <Card className="w-56 rounded-lg overflow-hidden shadow-xl">
+            {/* Card header with avatar and green background */}
+            <CardHeader className="relative flex flex-col items-center justify-center bg-green-400 h-28 p-3">
+              <Avatar className="w-20 h-20 border-4 border-white absolute -bottom-10">
                 <AvatarImage src="https://github.com/shadcn.png" />
                 <AvatarFallback>CN</AvatarFallback>
               </Avatar>
-              <CardTitle className="mt-2 text-lg font-semibold">Mohamed Asfik</CardTitle>
             </CardHeader>
-            <CardContent className="bg-light-green-100 p-4">
-              <p className="text-center text-sm text-gray-700">asfikforever@gmail.com</p>
+
+            {/* Card content displaying the user's name and email */}
+            <CardContent className="mt-12 text-center p-2">
+              <CardTitle className="text-md font-semibold">Mohamed Asfik</CardTitle>
+              <p className="text-xs text-gray-700">asfikforever@gmail.com</p>
             </CardContent>
-            <CardFooter className="flex justify-center bg-light-green-100 p-2">
+
+            {/* Card footer with the logout button */}
+            <CardFooter className="flex justify-center p-2">
               <button
-                className="bg-red-500 text-white py-1 px-4 rounded"
+                className="bg-gray-500 text-white py-1 px-3 rounded-md hover:bg-gray-600"
                 onClick={handleLogout}
               >
                 Logout
