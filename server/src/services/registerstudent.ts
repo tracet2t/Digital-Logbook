@@ -1,7 +1,7 @@
 // src/services/registerstudent.ts
 'use server'; // Indicates this is a server action
 
-import { prisma } from '@/services/prisma';
+import  prisma  from '@/lib/prisma';
 import bcrypt from 'bcrypt';
 
 export async function registerStudent(formData: FormData) {
