@@ -1,5 +1,5 @@
 import React from 'react';
-import MentorDashboard from '@/components/mentorregister'; // Adjust the import path if necessary
+import MentorDashboard from '@/components/emailformat'; // Adjust the import path if necessary
 
 const MentorPage = () => {
     return <MentorDashboard />;
