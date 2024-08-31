@@ -10,7 +10,8 @@
     "generate": "prisma generate",
     "seed": "node prisma/seed.ts",
     "test": "dotenv -e .env.test -- jest -i",
-    "migrate:postgres": "dotenv -e .env.test -- npx prisma migrate dev"
+    "migrate:maindb": "npx prisma migrate dev",
+    "migrate:testdb": "dotenv -e .env.test -- npx prisma migrate dev"
   },
   "engines": {
     "node": "22.7.0",
