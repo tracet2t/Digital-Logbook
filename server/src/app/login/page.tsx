@@ -7,8 +7,8 @@ export default function LoginPage() {
         <div className="p-2 w-[500px]">
             <Title level={2}>Login</Title>
             <form className="flex flex-col" action={"/auth/login"} method="post">
-                <FormItem label="Username" name="username" colon={false}>
-                    <Input name="username" required />
+                <FormItem label="email" name="email" colon={false}>
+                    <Input name="email" required />
                 </FormItem>
                 <FormItem label="Password" name="password" colon={false}>
                     <Input name="password" type="password" required />
@@ -17,4 +17,5 @@ export default function LoginPage() {
             </form>
         </div>
     );
+
 }
