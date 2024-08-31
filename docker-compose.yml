@@ -5,10 +5,13 @@ services:
     container_name: pgdb
     image: postgres
     restart: always
+    volumes: 
+      - ./init:/docker-entrypoint-initdb.d
+      - postgres:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
+      POSTGRES_MULTIPLE_DATABASES: test,postgres
     ports:
       - "5432:5432"
     volumes:
