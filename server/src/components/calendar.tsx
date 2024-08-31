@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { Calendar as BigCalendar, momentLocalizer, Views, Event as BigCalendarEvent } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
+import { Button } from "@/components/ui/button";
+import OverallFeedback from './feedback/overallfeeback';  // Import the OverallFeedback component
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,16 +15,13 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-
-import { Button } from "@/components/ui/button";
 
 moment.locale('en-GB');
 const localizer = momentLocalizer(moment);
 
 interface CalendarEvent {
-  id: number;
+  id: string;
   title: string;
   start: Date;
   end: Date;
@@ -31,74 +30,72 @@ interface CalendarEvent {
 
 const events: CalendarEvent[] = [
   {
-    id: 0,
+    id: '1',
     title: 'Board meeting',
-    start: new Date(2024, 7, 29, 9, 0, 0), // August 29, 2024, 9:00 AM
-    end: new Date(2024, 7, 29, 13, 0, 0), // August 29, 2024, 1:00 PM
+    start: new Date(2024, 7, 29, 9, 0, 0),
+    end: new Date(2024, 7, 29, 13, 0, 0),  
   },
   {
-    id: 1,
+    id: '2',
     title: 'MS training',
     allDay: true,
-    start: new Date(2024, 7, 29, 14, 0, 0), // August 29, 2024, 2:00 PM
-    end: new Date(2024, 7, 29, 16, 30, 0), // August 29, 2024, 4:30 PM
+    start: new Date(2024, 7, 29, 14, 0, 0),
+    end: new Date(2024, 7, 29, 16, 30, 0),
   },
-  {
-    id: 2,
-    title: 'Team lead meeting',
-    start: new Date(2024, 7, 29, 8, 30, 0), // August 29, 2024, 8:30 AM
-    end: new Date(2024, 7, 29, 12, 30, 0), // August 29, 2024, 12:30 PM
-  },
-  {
-    id: 11,
-    title: 'Birthday Party',
-    start: new Date(2024, 7, 30, 7, 0, 0), // August 30, 2024, 7:00 AM
-    end: new Date(2024, 7, 30, 10, 30, 0), // August 30, 2024, 10:30 AM
-  }
 ];
-
-const styles = {
-  container: {
-    width: '80vw',
-    height: '60vh',
-    margin: '2em'
-  }
-};
 
 const TaskCalendar: React.FC = () => {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
-  const [taskDetail, setTaskDetail] = useState<{ selectedDate: string }>({ selectedDate: 'No Date Selected' });
+  const [overallFeedbackOpen, setOverallFeedbackOpen] = useState(false);
+  const [taskDetail, setTaskDetail] = useState<{ id: string; title: string; }>({ id: '', title: '' });
+  const [currentStudentId, setCurrentStudentId] = useState<number | null>(null);
 
   const handleSelectEvent = (event: BigCalendarEvent) => {
-    const calendarEvent = event as CalendarEvent; // Type assertion
-    setTaskDetail({ selectedDate: calendarEvent.title });
+    const calendarEvent = event as CalendarEvent;
+    setTaskDetail({ id: calendarEvent.id, title: calendarEvent.title, });
     setTaskModalOpen(true);
   };
 
-  const handleClose = () => {
-    setTaskModalOpen(false);
+  const handleSaveOverallFeedback = (feedback: string) => {
+    setOverallFeedbackOpen(false);
+  };
+
+  const handleOverallFeedbackButtonClick = () => {
+    setOverallFeedbackOpen(true);
   };
 
   return (
     <>
-      <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
-        <AlertDialogTrigger asChild>
-          <div />
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Task Detail</AlertDialogTitle>
-          </AlertDialogHeader>
-          <AlertDialogDescription>
-            <div>{taskDetail.selectedDate}</div>
-          </AlertDialogDescription>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleClose}>Close</AlertDialogCancel>
-            <AlertDialogAction onClick={handleClose}>OK</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-      <div style={styles.container}>
+      <div className='my-4 flex justify-center'>
+          <Button onClick={handleOverallFeedbackButtonClick}>
+            Add Overall Feedback
+          </Button>
+      </div>
+
+      {taskModalOpen && (
+        <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Task Detail</AlertDialogTitle>
+            </AlertDialogHeader>
+            <AlertDialogDescription>
+              <div>{taskDetail.title}</div>
+            </AlertDialogDescription>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setTaskModalOpen(false)}>Close</AlertDialogCancel>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+
+      {overallFeedbackOpen && (
+        <OverallFeedback
+          onClose={() => setOverallFeedbackOpen(false)}
+          onSave={handleSaveOverallFeedback}
+        />
+      )}
+
+      <div className='w-[80vm] h-[70vh] ml-4 mr-4 mt-8'>
         <BigCalendar
           selectable
           localizer={localizer}
@@ -106,7 +103,7 @@ const TaskCalendar: React.FC = () => {
           defaultView={Views.WEEK}
           views={[Views.DAY, Views.WEEK, Views.MONTH]}
           step={60}
-          defaultDate={new Date(2024, 7, 29)} // Default to August 29, 2024
+          defaultDate={new Date(2024, 7, 29)}
           startAccessor="start"
           endAccessor="end"
           onSelectEvent={handleSelectEvent}
