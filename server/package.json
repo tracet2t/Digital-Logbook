@@ -18,12 +18,12 @@
   },
   "dependencies": {
     "@ant-design/nextjs-registry": "^1.0.1",
-
     "@radix-ui/react-alert-dialog": "^1.1.1",
     "@radix-ui/react-dialog": "^1.1.1",
     "@radix-ui/react-slot": "^1.1.0",
     "@shadcn/ui": "^0.0.4",
     "antd": "^5.20.2",
+    "bcrypt": "^5.1.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.13",
@@ -38,7 +38,6 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
-
     "@babel/core": "^7.25.2",
     "@babel/preset-env": "^7.25.4",
     "@babel/preset-typescript": "^7.24.7",
