@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     if (!email || !password) {
         return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
     }
-
+ 
     try {
         const user = await prisma.user.findUnique({
             where: { email },
