@@ -1,4 +1,3 @@
-// utils/getSession.ts
 import { cookies as serverCookies } from "next/headers";
 import { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
 import { Role } from "@/types";
@@ -30,15 +29,14 @@ class JwtPayloadSession {
 export async function getSession(reqCookies: RequestCookies | null = null): Promise<JwtPayloadSession> {
     let payload: string | null = null;
 
-    if (typeof window === "undefined") {
-        const sessionCookie = reqCookies ? reqCookies.get('token') : serverCookies().get('token');
+    if (reqCookies) {
+        const sessionCookie = reqCookies.get('token');
         payload = sessionCookie ? sessionCookie.value.split('.')[1] : null;
     } else {
-        const cookies = document.cookie.split(';').find(c => c.trim().startsWith('token='));
-        const sessionCookie = cookies ? cookies.split('=')[1] : null;
-        payload = sessionCookie ? sessionCookie.split('.')[1] : null;
+        const sessionCookie = serverCookies().get('token');
+        payload = sessionCookie ? sessionCookie.value.split('.')[1] : null;
     }
 
-    const decodedPayload = payload ? JSON.parse(atob(payload)) : null;
+    const decodedPayload = payload ? JSON.parse(Buffer.from(payload, 'base64').toString()) : null;
     return new JwtPayloadSession(decodedPayload);
 }
