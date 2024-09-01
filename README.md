@@ -1,16 +1,27 @@
-# Digital-Logbook
+<div align="center">
+
+![T2T Digital Logbook Logo](server/public/logo-readme.png)
+
+<h3><em>Empowering Growth Through Transparency and Collaboration</em></h3>
+
+</div>
 
 ## Overview
 The **T2T Digital Logbook** is a comprehensive system designed for students and mentors participating in the T2T program. It facilitates This tool facilitates the tracking of daily activities, progress monitoring, and feedback provision. The system was developed to ensure transparency, organization, and efficiency in the mentoring process, helping students grow and succeed.
 
 ## Table of Contents
 - [Overview](#overview)
+- [Table of Contents](#table-of-contents)
 - [Features](#features)
   - [Functional Features](#functional-features)
+    - [Student Features](#student-features)
+    - [Mentor Features](#mentor-features)
   - [Non-Functional Features](#non-functional-features)
 - [Technical Requirements](#technical-requirements)
 - [Installation and Setup Instructions](#installation-and-setup-instructions)
 - [Usage](#usage)
+  - [Students:](#students)
+  - [Mentors:](#mentors)
 - [Contributing Guidelines](#contributing-guidelines)
 - [License](#license)
 
@@ -76,12 +87,11 @@ The **T2T Digital Logbook** provides several key functional features designed to
 - **TypeScript**: v5.5.4
 - **Prisma**: v5.18.0
 - **Next.js**: 14.2.5
-- **Tailwind CSS**
+- **Tailwind CSS**: v3.4.1
 - **ESLint**: v8  
 - **Docker**: 27.1.2
 - **Jest**: v29.7.0 
 - **React**: v18  
-
 
 
 ## Installation and Setup Instructions
