@@ -18,7 +18,6 @@
     "npm": "10.8.2"
   },
   "dependencies": {
-    "@ant-design/nextjs-registry": "^1.0.1",
     "@prisma/client": "^5.18.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
     "@radix-ui/react-avatar": "^1.1.0",
@@ -26,7 +25,6 @@
     "@radix-ui/react-scroll-area": "^1.1.0",
     "@radix-ui/react-slot": "^1.1.0",
     "@shadcn/ui": "^0.0.4",
-    "antd": "^5.20.2",
     "bcrypt": "^5.1.1",
     "bcrypt-ts": "^5.0.2",
     "class-variance-authority": "^0.7.0",
