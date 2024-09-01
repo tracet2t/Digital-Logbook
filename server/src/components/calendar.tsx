@@ -4,8 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { Calendar as BigCalendar, momentLocalizer, Views } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { Button } from "@/components/ui/button";
-import OverallFeedback from './feedback/overallfeeback';  // Import the OverallFeedback component
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,8 +14,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from "@/components/ui/alert-dialog";
-import { Input } from "antd";
-import TextArea from 'antd/es/input/TextArea';
+
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+
 
 moment.locale('en-GB');
 const localizer = momentLocalizer(moment);
@@ -193,6 +194,67 @@ const TaskCalendar: React.FC = () => {
     };
   };
 
+  const handleNextMonth = () => {
+    setCurrentDate(moment(currentDate).add(1, 'months').toDate());
+  };
+
+  const handlePrevMonth = () => {
+    setCurrentDate(moment(currentDate).subtract(1, 'months').toDate());
+  };
+
+  const eventPropGetter = (event: CalendarEvent) => {
+    return {
+      style: {
+        backgroundColor: event.color || '#3174ad',
+        color: '#fff',
+      },
+    };
+  };
+
+  const components = {
+    month: {
+      dateHeader: ({ date, label }: { date: Date; label: string }) => {
+        const dayEvents = events.filter((event) =>
+          moment(event.start).isSame(date, 'day')
+        );
+
+        return (
+          <div className="rbc-date-cell" style={{ padding: '5px' }}>
+            <span>{label}</span>
+            <div
+              style={{
+                maxHeight: '80px',
+                overflowY: 'auto',
+                marginTop: '5px',
+              }}
+            >
+              {dayEvents.map((event) => (
+                <div
+                  key={event.id}
+                  className="rbc-event"
+                  style={{
+                    backgroundColor: event.color,
+                    padding: '2px',
+                    margin: '2px 0',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => handleSelectEvent(event)}
+                >
+                  {event.title}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      },
+    },
+  };
+
+  // Filter events based on search query
+  const filteredEvents = events.filter(event =>
+    event.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <>
       <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
@@ -208,7 +270,7 @@ const TaskCalendar: React.FC = () => {
                   type="date"
                   value={formData.date}
                   disabled
-                  style={{ color: 'black' }}
+                  className="text-black"
                 />
               </div>
               
@@ -220,17 +282,17 @@ const TaskCalendar: React.FC = () => {
                   onChange={(e) => setWorkingHours(Number(e.target.value) || 0)}
                   placeholder="Enter working hours"
                   disabled={!isEditable}
-                  style={{ color: 'black' }}
+                  className="text-black"
                 />
               </div>
               <div className="mb-4">
                 <label>Notes</label>
-                <TextArea 
+                <Textarea 
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Enter notes"
                   disabled={!isEditable}
-                  style={{ color: 'black' }}
+                  className="text-black"
                 />
               </div>
             </form>
