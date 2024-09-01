@@ -139,7 +139,33 @@ The T2T Digital Logbook is a web application designed for students and mentors. 
 - **Review Activities**: Approve or reject student activities, and provide feedback.
 - **Export Reports**: Generate and download activity reports for individual students or all mentees.
 
+
 ## Contributing Guidelines
+We welcome contributions from developers! Here’s how you can contribute:
+
+1. **Fork the Repository**: Click the "Fork" button on GitHub to create a copy of the repository under your account.
+2. **Clone Your Fork**: Clone the forked repository to your local machine:
+    ```bash
+    git clone https://github.com/tracet2t/Digital-Logbook.git
+    cd Digital-Logbook
+    ```
+3. **Create a New Branch**: Always work on a new branch:
+    ```bash
+    git checkout -b feature/your-feature-name
+    ```
+4. **Make Your Changes**: Implement your changes, following the project’s coding standards.
+5. **Commit Your Changes**: Write a clear and descriptive commit message:
+    ```bash
+    git commit -m "Add feature X"
+    ```
+6. **Push to Your Branch**: Push the branch to your GitHub repository:
+    ```bash
+    git push origin feature/your-feature-name
+    ```
+7. **Create a Pull Request**: On GitHub, open a pull request against the main branch of the original repository.
 
 ## License
 
+This project is licensed under the **MIT License**. This means you are free to use, modify, and distribute this software, provided that you include the original copyright notice and license in any copies or substantial portions of the software.
+
+For more details, see the [LICENSE](LICENSE) file.
