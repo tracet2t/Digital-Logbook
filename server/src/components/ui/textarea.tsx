@@ -3,7 +3,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
-const inputVariants = cva(
+const textareaVariants = cva(
   "block w-full rounded-md border shadow-sm transition focus:ring focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed",
   {
     variants: {
@@ -12,7 +12,7 @@ const inputVariants = cva(
         outline: "border border-input bg-transparent hover:border-accent",
         ghost: "border-none bg-transparent focus:ring-0",
       },
-      inputSize: {  // Renamed 'size' to 'inputSize' to avoid collision
+      textareaSize: { // Renamed 'size' to 'textareaSize' to avoid collision
         sm: "px-2 py-1 text-sm",
         default: "px-3 py-2 text-base",
         lg: "px-4 py-3 text-lg",
@@ -20,28 +20,28 @@ const inputVariants = cva(
     },
     defaultVariants: {
       variant: "default",
-      inputSize: "default",
+      textareaSize: "default",
     },
   }
 )
 
-export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement>,
-    VariantProps<typeof inputVariants> {
+export interface TextareaProps
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement>,
+    VariantProps<typeof textareaVariants> {
   // No additional properties needed
 }
 
-const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, variant, inputSize, ...props }, ref) => {  // Use 'inputSize' instead of 'size'
+const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
+  ({ className, variant, textareaSize, ...props }, ref) => {  // Use 'textareaSize' instead of 'size'
     return (
-      <input
-        className={cn(inputVariants({ variant, inputSize, className }))}
+      <textarea
+        className={cn(textareaVariants({ variant, textareaSize, className }))}
         ref={ref}
         {...props}
       />
     )
   }
 )
-Input.displayName = "Input"
+Textarea.displayName = "Textarea"
 
-export { Input, inputVariants }
+export { Textarea, textareaVariants }
