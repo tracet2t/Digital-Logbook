@@ -8,7 +8,7 @@ export default function Home() {
     <div className="h-screen flex flex-col bg-gradient-to-b from-[#B2D8F1] via-[#B2D8F1_25%] to-[#0A5080_67%]">
       {/* Top Bar with Logo, Avatar, and Logout */}
       <div className="flex gap-4 justify-between items-center p-4">
-        {/* Logo Image */}
+        
         <Image
           src="/logo.png"
           alt="Logo"
@@ -26,9 +26,9 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Centered Task Calendar */}
+      
       <div className="flex-grow flex items-center justify-center mt-[-100px]">
-        {/* Center the calendar with rounded corners */}
+        
         <div className="bg-white p-4 rounded-xl shadow-lg">
           <TaskCalendar />
         </div>
