@@ -1,8 +1,10 @@
-import { Button, Input } from "antd";
-import FormItem from "antd/es/form/FormItem";
-import Title from "antd/es/typography/Title";
+import React from 'react';
+import Image from 'next/image';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 
-export default function LoginPage() {
+const LoginPage = () => {
     return (
         <div className="p-2 w-[500px]">
             <Title level={2}>Login</Title>
