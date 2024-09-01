@@ -1,43 +1,44 @@
-'use server'
-import { select } from "@/lib/extras";
-import { cookies } from "next/headers"
+// utils/getSession.ts
+import { cookies as serverCookies } from "next/headers";
 import { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
 import { Role } from "@/types";
 
 class JwtPayloadSession {
-    #payload;
-    constructor(payload: string) {
+    #payload: any;
+
+    constructor(payload: any) {
         this.#payload = payload;
     }
 
     isAuthenticated() {
-        return !!this.#payload && !!(this.#payload as any)["user"] && !!(this.#payload as any)["role"];
+        return !!this.#payload && !!this.#payload.email && !!this.#payload.role;
     }
 
     getUsername() {
-        return this.isAuthenticated() ? (this.#payload as any)["user"] : null;
+        return this.isAuthenticated() ? this.#payload.email : null;
     }
 
-    getRole(): Role {
-        return this.isAuthenticated() ? (this.#payload as any)["role"] : null;
+    getRole(): Role | null {
+        return this.isAuthenticated() ? this.#payload.role : null;
+    }
+
+    getUserId(): string | null {
+        return this.isAuthenticated() ? this.#payload.id : null;
     }
 }
 
-export default async function getSession(reqCookies: RequestCookies | null = null): Promise<JwtPayloadSession> {
-    const sessionCookie = !!reqCookies ? reqCookies.get('token') : cookies().get('token');
-    const [_, payload, __] = sessionCookie ? sessionCookie!.value.split('.') : [null, null, null];
-    return new JwtPayloadSession(!!payload ? JSON.parse(atob(payload)) : null);
-}
+export async function getSession(reqCookies: RequestCookies | null = null): Promise<JwtPayloadSession> {
+    let payload: string | null = null;
 
-/*
-    This has to be used in client components because
-    server action return types has to be serializable,
-    and classes are not supp    orted at the moment.
-*/
-async function getSessionOnClient(): Promise<any> {
-    const sessionCookie = cookies().get('token');
-    const [_, payload, __] = sessionCookie ? sessionCookie.value.split('.') : [null, null, null];
-    return !!payload ? select(JSON.parse(atob(payload)), ['user', 'role']) : null;
-}
+    if (typeof window === "undefined") {
+        const sessionCookie = reqCookies ? reqCookies.get('token') : serverCookies().get('token');
+        payload = sessionCookie ? sessionCookie.value.split('.')[1] : null;
+    } else {
+        const cookies = document.cookie.split(';').find(c => c.trim().startsWith('token='));
+        const sessionCookie = cookies ? cookies.split('=')[1] : null;
+        payload = sessionCookie ? sessionCookie.split('.')[1] : null;
+    }
 
-export { getSessionOnClient }
+    const decodedPayload = payload ? JSON.parse(atob(payload)) : null;
+    return new JwtPayloadSession(decodedPayload);
+}
