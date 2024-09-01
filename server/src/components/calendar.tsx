@@ -183,16 +183,7 @@ const TaskCalendar: React.FC = () => {
     }
   };
 
-  const eventPropGetter = (event: CalendarEvent) => {
-    return {
-      style: {
-        backgroundColor: event.color || '#3174ad',
-        color: '#fff',
-      },
-    };
-  };
-
-  const handleNextMonth = () => {
+    const handleNextMonth = () => {
     setCurrentDate(moment(currentDate).add(1, 'months').toDate());
   };
 
