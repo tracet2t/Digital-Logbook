@@ -44,3 +44,15 @@ Prior to setting up the enviornment, if you are not familiar with Node.js and NP
    ```bash
    npm install
    ```
+   ### Installing database
+   
+   To host the database locally we are going to use docker, please make sure that you have docker desktop installed in your PC.
+
+- Once you do, if you have cloned the repo for the first time then type this command in the root directory of the project
+```
+docker compose up --build
+```
+- If you are trying to run the database for development run
+```
+docker compose up
+```
