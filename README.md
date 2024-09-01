@@ -11,7 +11,7 @@ The **T2T Digital Logbook** is a comprehensive system designed for students and 
 - [Technical Requirements](#technical-requirements)
 - [Installation and Setup Instructions](#installation-and-setup-instructions)
 - [Usage](#usage)
-- [Contributing](#contributing)
+- [Contributing Guidelines](#contributing-guidelines)
 - [License](#license)
 
 ## Features
@@ -70,21 +70,76 @@ The **T2T Digital Logbook** provides several key functional features designed to
 ## Technical Requirements
 
 - **Node.js**: v22.7.0
-- **Docker**: 27.1.2
-- **PostgreSQL**: 16.3
-- **pgAdmin4**
 - **Node Package Manager (npm)**: 10.8.2
-- **TypeScript**: 5.5.4
-- **Prisma**: 5.18.0
+- **PostgreSQL**: v16.3
+- **pgAdmin**
+- **TypeScript**: v5.5.4
+- **Prisma**: v5.18.0
 - **Next.js**: 14.2.5
+- **Tailwind CSS**
+- **ESLint**: v8  
+- **Docker**: 27.1.2
+- **Jest**: v29.7.0 
+- **React**: v18  
+
+
 
 ## Installation and Setup Instructions
+
+Follow these steps to install and set up the T2T Digital Logbook on your local machine:
+
+1. **Clone the repository**:
+    ```bash
+    git clone https://github.com/tracet2t/Digital-Logbook.git
+    cd Digital-Logbook
+    ```
+
+2. **Install dependencies**:
+    ```bash
+    npm install
+    ```
+
+3. **Set up the database**:
+    - Ensure Docker is running.
+    - Start PostgreSQL using Docker:
+      ```bash
+      docker-compose up -d
+      ```
+    - Apply database migrations:
+      ```bash
+      npx prisma migrate dev
+      ```
+
+4. **Run the seed script** to populate the database with initial data:
+    ```bash
+    npm run seed
+    ```
+
+5. **Start the development server**:
+    ```bash
+    npm run dev
+    ```
+
+6. **Access the application**:
+    - Open your browser and go to `http://localhost:3000` to interact with the app.
 
 
 
 ## Usage
+The T2T Digital Logbook is a web application designed for students and mentors. Here’s how to use it:
 
-## Contributing
+### Students:
+- **Login**: Enter your credentials on the login page to access the system.
+- **Log Activities**: Select a date and enter your daily activities, time spent, and additional notes.
+- **View History**: Review past activities through the history section.
+
+### Mentors:
+- **Login**: Enter your credentials to access mentor-specific features.
+- **Manage Students**: Register new students and manage existing student profiles.
+- **Review Activities**: Approve or reject student activities, and provide feedback.
+- **Export Reports**: Generate and download activity reports for individual students or all mentees.
+
+## Contributing Guidelines
 
 ## License
 
