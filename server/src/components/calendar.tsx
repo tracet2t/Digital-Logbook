@@ -174,11 +174,11 @@ const TaskCalendar: React.FC = () => {
     },
   };
 
-  // Filter events based on search query
+  /*// Filter events based on search query
   const filteredEvents = events.filter(event =>
     event.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
+*/
   return (
     <>
       <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
@@ -195,7 +195,7 @@ const TaskCalendar: React.FC = () => {
                 <label>Date</label>
                 <Input 
                   type="date"
-                  value={formData.date}
+                  // value={formData.date}
                   disabled
                   className="text-black"
                 />
@@ -205,20 +205,20 @@ const TaskCalendar: React.FC = () => {
                 <label>Working Hours</label>
                 <Input
                   type="number"
-                  value={workingHours}
+                  // value={workingHours}
                   onChange={(e) => setWorkingHours(Number(e.target.value) || 0)}
                   placeholder="Enter working hours"
-                  disabled={!isEditable}
+                  // disabled={!isEditable}
                   className="text-black"
                 />
               </div>
               <div className="mb-4">
                 <label>Notes</label>
                 <Textarea 
-                  value={notes}
+                  // value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Enter notes"
-                  disabled={!isEditable}
+                  // disabled={!isEditable}
                   className="text-black"
                 />
               </div>

@@ -42,11 +42,11 @@ const LoginPage = () => {
                     <form className="flex flex-col" action="/auth/login" method="post">
                         <div className="mb-4">
                             <Label className="block text-sm font-medium text-gray-700">
-                                Username
+                                Email
                             </Label>
                             <Input
-                                name="username"
-                                placeholder="Enter your username"
+                                name="email"
+                                placeholder="Enter your Email"
                                 required
                                 className="mt-1 block w-full"
                             />
