@@ -15,8 +15,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 moment.locale('en-GB');
 const localizer = momentLocalizer(moment);
@@ -90,7 +91,39 @@ const TaskCalendar: React.FC = () => {
             <AlertDialogTitle>Task Detail</AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogDescription>
-            <div>{taskDetail.selectedDate}</div>
+            <form>
+              <div className="mb-4">
+                <label>Date</label>
+                <Input 
+                  type="date"
+                  value={formData.date}
+                  disabled
+                  className="text-black"
+                />
+              </div>
+              
+              <div className="mb-4">
+                <label>Working Hours</label>
+                <Input
+                  type="number"
+                  value={workingHours}
+                  onChange={(e) => setWorkingHours(Number(e.target.value) || 0)}
+                  placeholder="Enter working hours"
+                  disabled={!isEditable}
+                  className="text-black"
+                />
+              </div>
+              <div className="mb-4">
+                <label>Notes</label>
+                <Textarea 
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Enter notes"
+                  disabled={!isEditable}
+                  className="text-black"
+                />
+              </div>
+            </form>
           </AlertDialogDescription>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleClose}>Close</AlertDialogCancel>
