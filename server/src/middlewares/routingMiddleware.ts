@@ -1,5 +1,6 @@
 import { isUrlAllowed } from "@/lib/extras";
-import getSession from "@/server_actions/getSession";
+import { getSession } from "@/server_actions/getSession";
+
 import { NextFetchEvent, NextMiddleware, NextRequest, NextResponse } from "next/server";
 
 const mentorRoutingBlacklist = ['/admin'];

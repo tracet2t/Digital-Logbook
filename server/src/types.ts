@@ -1,9 +1,9 @@
-type Role = 'student' | 'mentor' | 'admin'
-type UserState = {
-    username: string
-    firstname: string
-    lastname: string
-    role: Role
-}
+type Role = 'student' | 'mentor' | 'admin';
 
-export type { Role, UserState }
+type UserState = {
+    id: string;
+    email: string;
+    role: Role;
+};
+
+export type { Role, UserState };

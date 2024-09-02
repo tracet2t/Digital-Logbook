@@ -46,6 +46,7 @@
     "@babel/preset-env": "^7.25.4",
     "@babel/preset-typescript": "^7.24.7",
     "@jest/globals": "^29.7.0",
+    "@types/bcrypt": "^5.0.2",
     "@types/jest": "^29.5.12",
     "@types/node": "^20",
     "@types/react": "^18",
