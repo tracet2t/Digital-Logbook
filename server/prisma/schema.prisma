@@ -15,6 +15,7 @@ model User {
   lastName       String
   emailConfirmed Boolean  @default(false)
   role           Role
+  isFirstTimeLogin Boolean @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   activities     Activity[]
