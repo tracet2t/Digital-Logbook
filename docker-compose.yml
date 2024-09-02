@@ -14,8 +14,6 @@ services:
       POSTGRES_MULTIPLE_DATABASES: test,postgres
     ports:
       - "5432:5432"
-    volumes:
-      - postgres:/var/lib/postgresql/data
 
   pgadmin:
     container_name: pgadmin
