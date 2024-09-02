@@ -78,7 +78,113 @@ const TaskCalendar: React.FC = () => {
 
   const handleClose = () => {
     setTaskModalOpen(false);
+    setSelectedDate(null);
   };
+
+  const handleSubmit = async () => {
+    try {
+      const newFormData: FormData = {
+        studentId,
+        date: formData.date,
+        timeSpent: workingHours,
+        notes,
+      };
+
+      const response = await fetch('http://localhost:3000/api/blogs', {
+        method: editingEvent ? 'PATCH' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...newFormData,
+          id: editingEvent?.id
+        }),
+      });
+
+      if (response.ok) {
+        const updatedEvent: CalendarEvent = await response.json();
+        // Refetch events to update the calendar
+        const fetchEvents = async () => {
+          try {
+            const response = await fetch(`http://localhost:3000/api/blogs?studentId=${studentId}`);
+            const data = await response.json();
+            setEvents(data);
+          } catch (error) {
+            console.error('Failed to fetch events:', error);
+          }
+        };
+
+        fetchEvents();
+        handleClose();
+      } else {
+        console.error('Failed to save event:', await response.json());
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+    }
+  };
+
+  const eventPropGetter = (event: CalendarEvent) => {
+    return {
+      style: {
+        backgroundColor: event.color || '#3174ad',
+        color: '#fff',
+      },
+    };
+  };
+
+  const handleNextMonth = () => {
+    setCurrentDate(moment(currentDate).add(1, 'months').toDate());
+  };
+
+  const handlePrevMonth = () => {
+    setCurrentDate(moment(currentDate).subtract(1, 'months').toDate());
+  };
+
+
+  const components = {
+    month: {
+      dateHeader: ({ date, label }: { date: Date; label: string }) => {
+        const dayEvents = events.filter((event) =>
+          moment(event.start).isSame(date, 'day')
+        );
+
+        return (
+          <div className="rbc-date-cell" style={{ padding: '5px' }}>
+            <span>{label}</span>
+            <div
+              style={{
+                maxHeight: '80px',
+                overflowY: 'auto',
+                marginTop: '5px',
+              }}
+            >
+              {dayEvents.map((event) => (
+                <div
+                  key={event.id}
+                  className="rbc-event"
+                  style={{
+                    backgroundColor: event.color,
+                    padding: '2px',
+                    margin: '2px 0',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => handleSelectEvent(event)}
+                >
+                  {event.title}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      },
+    },
+  };
+
+  // Filter events based on search query
+  const filteredEvents = events.filter(event =>
+    event.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <>
