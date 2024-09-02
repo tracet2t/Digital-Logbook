@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Calendar as BigCalendar, momentLocalizer, Views, Event as BigCalendarEvent } from 'react-big-calendar';
+import React, { useState, useEffect } from 'react';
+import { Calendar as BigCalendar, momentLocalizer, Views } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import {
@@ -12,78 +12,126 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
+  AlertDialogTitle
 } from "@/components/ui/alert-dialog";
-
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 moment.locale('en-GB');
 const localizer = momentLocalizer(moment);
 
 interface CalendarEvent {
-  id: number;
+  id: string;
   title: string;
   start: Date;
   end: Date;
   allDay?: boolean;
-  feedback?: string; 
-  studentId?: number; 
+  color?: string;
+  createdAt: Date;
+  studentId: string;
+  timeSpent?: number;
+  notes?: string;
 }
 
-const events: CalendarEvent[] = [
-  {
-    id: 0,
-    title: 'Board meeting',
-    start: new Date(2024, 7, 29, 9, 0, 0),
-    end: new Date(2024, 7, 29, 13, 0, 0),
-    studentId: 123,
-    feedback: '',
-  },
-  {
-    id: 1,
-    title: 'MS training',
-    allDay: true,
-    start: new Date(2024, 7, 29, 14, 0, 0),
-    end: new Date(2024, 7, 29, 16, 30, 0),
-    studentId: 124,
-    feedback: '',
-  },
-];
-
-const styles = {
-  container: {
-    width: '80vw',
-    height: '60vh',
-    margin: '2em'
-  },
-  header: {
-    margin: '1em 0',
-    textAlign: 'center'
-  }
-};
+interface FormData {
+  studentId: string;
+  date: string;
+  timeSpent: number;
+  notes: string;
+}
 
 const TaskCalendar: React.FC = () => {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
-  const [taskDetail, setTaskDetail] = useState<{ selectedDate: string; workingHours: string; studentActivity: string; review: string }>({
-    selectedDate: '',
-    workingHours: '',
-    studentActivity: '',
-    review: '',
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [workingHours, setWorkingHours] = useState<number>(0);
+  const [notes, setNotes] = useState<string>('');
+  const [studentId, setStudentId] = useState<string>('');
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [formData, setFormData] = useState<FormData>({
+    studentId: '',
+    date: '',
+    timeSpent: 0,
+    notes: '',
   });
-  const [review, setReview] = useState<string>('');
-  const [currentStudentId, setCurrentStudentId] = useState<number | null>(null);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
+  const [isEditable, setIsEditable] = useState(true);
 
-  const handleSelectEvent = (event: BigCalendarEvent) => {
-    const calendarEvent = event as CalendarEvent;
-    setTaskDetail({
-      selectedDate: moment(calendarEvent.start).format('MMMM D, YYYY'),
-      workingHours: '8:00 AM - 5:00 PM',
-      studentActivity: calendarEvent.title,
-      review: calendarEvent.feedback || '',
-    });
-    setReview(calendarEvent.feedback || '');
-    setCurrentStudentId(calendarEvent.studentId || null);
+  useEffect(() => {
+    // Fetch the logged-in user's student ID
+    const fetchStudentId = async () => {
+      try {
+        const response = await fetch('/api/auth/user'); // user API route
+        const data = await response.json();
+        setStudentId(data.studentId); // Assuming the API response has a `studentId` field
+      } catch (error) {
+        console.error('Failed to fetch student ID:', error);
+      }
+    };
+
+    fetchStudentId();
+  }, []);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch(`http://localhost:3000/api/blogs?studentId=${studentId}`);
+        const data = await response.json();
+        setEvents(data);
+      } catch (error) {
+        console.error('Failed to fetch events:', error);
+      }
+    };
+
+    if (studentId) {
+      fetchEvents();
+    }
+  }, [studentId]);
+
+  const fetchEventForDate = async (formattedDate: string) => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/blogs?date=${formattedDate}&studentId=${studentId}`);
+      const data = await response.json();
+      if (data.length > 0) {
+        const existingEvent = data[0];
+        setFormData({
+          studentId: existingEvent.studentId || '',
+          date: formattedDate,
+          timeSpent: existingEvent.timeSpent || 0,
+          notes: existingEvent.notes || '',
+        });
+        setWorkingHours(existingEvent.timeSpent || 0);
+        setNotes(existingEvent.notes || '');
+        setEditingEvent(existingEvent);
+      } else {
+        setFormData({
+          studentId: '',
+          date: formattedDate,
+          timeSpent: 0,
+          notes: '',
+        });
+        setWorkingHours(0);
+        setNotes('');
+        setEditingEvent(null);
+      }
+    } catch (error) {
+      console.error('Failed to fetch event for date:', error);
+    }
+  };
+
+  const handleDateClick = (date: Date) => {
+    setSelectedDate(date);
+    const formattedDate = moment(date).format('YYYY-MM-DD');
+
+    const dayBeforeYesterday = moment().subtract(2, 'days').startOf('day');
+    if (moment(date).isBefore(dayBeforeYesterday)) {
+      setIsEditable(false);
+    } else {
+      setIsEditable(true);
+    }
+
+    fetchEventForDate(formattedDate);
     setTaskModalOpen(true);
   };
 
@@ -105,70 +153,184 @@ const TaskCalendar: React.FC = () => {
 
   const handleClose = () => {
     setTaskModalOpen(false);
+    setSelectedDate(null);
   };
+
+  const handleSubmit = async () => {
+    try {
+      const newFormData: FormData = {
+        studentId,
+        date: formData.date,
+        timeSpent: workingHours,
+        notes,
+      };
+
+      const response = await fetch('http://localhost:3000/api/blogs', {
+        method: editingEvent ? 'PATCH' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...newFormData,
+          id: editingEvent?.id
+        }),
+      });
+
+      if (response.ok) {
+        const updatedEvent: CalendarEvent = await response.json();
+        // Refetch events to update the calendar
+        const fetchEvents = async () => {
+          try {
+            const response = await fetch(`http://localhost:3000/api/blogs?studentId=${studentId}`);
+            const data = await response.json();
+            setEvents(data);
+          } catch (error) {
+            console.error('Failed to fetch events:', error);
+          }
+        };
+
+        fetchEvents();
+        handleClose();
+      } else {
+        console.error('Failed to save event:', await response.json());
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+    }
+  };
+
+  const eventPropGetter = (event: CalendarEvent) => {
+    return {
+      style: {
+        backgroundColor: event.color || '#3174ad',
+        color: '#fff',
+      },
+    };
+  };
+
+  const handleNextMonth = () => {
+    setCurrentDate(moment(currentDate).add(1, 'months').toDate());
+  };
+
+  const handlePrevMonth = () => {
+    setCurrentDate(moment(currentDate).subtract(1, 'months').toDate());
+  };
+
+
+  const components = {
+    month: {
+      dateHeader: ({ date, label }: { date: Date; label: string }) => {
+        const dayEvents = events.filter((event) =>
+          moment(event.start).isSame(date, 'day')
+        );
+
+        return (
+          <div className="rbc-date-cell" style={{ padding: '5px' }}>
+            <span>{label}</span>
+            <div
+              style={{
+                maxHeight: '80px',
+                overflowY: 'auto',
+                marginTop: '5px',
+              }}
+            >
+              {dayEvents.map((event) => (
+                <div
+                  key={event.id}
+                  className="rbc-event"
+                  style={{
+                    backgroundColor: event.color,
+                    padding: '2px',
+                    margin: '2px 0',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => handleSelectEvent(event)}
+                >
+                  {event.title}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      },
+    },
+  };
+
+  // Filter events based on search query
+  const filteredEvents = events.filter(event =>
+    event.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <>
       {/* Task Detail Modal */}
       <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
-        <AlertDialogTrigger asChild>
-          <div />
-        </AlertDialogTrigger>
-        <AlertDialogContent className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+        <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-2xl font-semibold text-gray-900">Task Detail</AlertDialogTitle>
+            <AlertDialogTitle>Task Details</AlertDialogTitle>
           </AlertDialogHeader>
-          <AlertDialogDescription className="text-gray-700">
-            <div className="flex gap-6 mb-4">
-              <div className="w-1/2">
-                <span className="block text-sm font-medium text-black mb-1">Date</span>
-                <div className="p-3 border border-gray-300 rounded-md bg-gray-50">
-                  <p>{taskDetail.selectedDate}</p>
-                </div>
+          <AlertDialogDescription>
+            <form>
+              <div className="mb-4">
+                <label>Date</label>
+                <Input 
+                  type="date"
+                  value={formData.date}
+                  disabled
+                  className="text-black"
+                />
               </div>
-              <div className="w-1/2">
-                <span className="block text-sm font-medium text-black mb-1">Working Hours</span>
-                <div className="p-3 border border-gray-300 rounded-md bg-gray-50">
-                  <p>{taskDetail.workingHours}</p>
-                </div>
+              
+              <div className="mb-4">
+                <label>Working Hours</label>
+                <Input
+                  type="number"
+                  value={workingHours}
+                  onChange={(e) => setWorkingHours(Number(e.target.value) || 0)}
+                  placeholder="Enter working hours"
+                  disabled={!isEditable}
+                  className="text-black"
+                />
               </div>
-            </div>
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold text-black mb-2">Activity</h3>
-              <div className="p-3 border border-gray-300 rounded-md bg-gray-50 min-h-[120px] overflow-auto">
-                <p>{taskDetail.studentActivity}</p>
+              <div className="mb-4">
+                <label>Notes</label>
+                <Textarea 
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Enter notes"
+                  disabled={!isEditable}
+                  className="text-black"
+                />
               </div>
-            </div>
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold text-black mb-2">Review</h3>
-              <textarea
-                value={review}
-                onChange={handleReviewChange}
-                placeholder="Enter your review here..."
-                className="w-full h-32 p-3 border border-gray-300 rounded-md bg-white"
-              />
-            </div>
+            </form>
           </AlertDialogDescription>
-          <AlertDialogFooter className="flex justify-end gap-3 mt-4">
-            <AlertDialogCancel onClick={handleClose} className="bg-green-500 text-white hover:bg-green-600 px-4 py-2 rounded-md">Close</AlertDialogCancel>
-            <AlertDialogAction onClick={handleAccept} className="bg-blue-500 text-white hover:bg-blue-700 px-4 py-2 rounded-md">Accept</AlertDialogAction>
-            <AlertDialogAction onClick={handleReject} className="bg-red-500 text-white hover:bg-red-700 px-4 py-2 rounded-md">Reject</AlertDialogAction>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleClose}>Cancel</AlertDialogCancel>
+            {isEditable && <AlertDialogAction onClick={handleSubmit}>Save</AlertDialogAction>}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      <div style={styles.container}>
+      <div className="relative w-[80vw] h-[60vh] my-8 mx-auto">
+        <div className="mb-5 flex justify-between items-center">
+          <Button onClick={() => setCurrentDate(moment(currentDate).subtract(1, 'months').toDate())}>
+            Previous
+          </Button>
+          <Button onClick={() => setCurrentDate(moment(currentDate).add(1, 'months').toDate())}>
+            Next
+          </Button>
+        </div>
         <BigCalendar
           selectable
           localizer={localizer}
           events={events}
-          defaultView={Views.WEEK}
-          views={[Views.DAY, Views.WEEK, Views.MONTH]}
-          step={60}
-          defaultDate={new Date(2024, 7, 29)}
+          defaultView={Views.MONTH}
+          views={[Views.MONTH]}
+          date={currentDate}
           startAccessor="start"
           endAccessor="end"
-          onSelectEvent={handleSelectEvent}
+          onSelectSlot={(slotInfo) => handleDateClick(slotInfo.start)}
+          eventPropGetter={eventPropGetter}
         />
       </div>
     </>
