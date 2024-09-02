@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Calendar as BigCalendar, momentLocalizer, Views } from 'react-big-calendar';
+import React, { useState } from 'react';
+import { Calendar as BigCalendar, momentLocalizer, Views, Event as BigCalendarEvent } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import {
@@ -12,7 +12,8 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle
+  AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -22,116 +23,56 @@ moment.locale('en-GB');
 const localizer = momentLocalizer(moment);
 
 interface CalendarEvent {
-  id: string;
+  id: number;
   title: string;
   start: Date;
   end: Date;
   allDay?: boolean;
-  color?: string;
-  createdAt: Date;
-  studentId: string;
-  timeSpent?: number;
-  notes?: string;
 }
 
-interface FormData {
-  studentId: string;
-  date: string;
-  timeSpent: number;
-  notes: string;
-}
+const events: CalendarEvent[] = [
+  {
+    id: 0,
+    title: 'Board meeting',
+    start: new Date(2024, 7, 29, 9, 0, 0), // August 29, 2024, 9:00 AM
+    end: new Date(2024, 7, 29, 13, 0, 0), // August 29, 2024, 1:00 PM
+  },
+  {
+    id: 1,
+    title: 'MS training',
+    allDay: true,
+    start: new Date(2024, 7, 29, 14, 0, 0), // August 29, 2024, 2:00 PM
+    end: new Date(2024, 7, 29, 16, 30, 0), // August 29, 2024, 4:30 PM
+  },
+  {
+    id: 2,
+    title: 'Team lead meeting',
+    start: new Date(2024, 7, 29, 8, 30, 0), // August 29, 2024, 8:30 AM
+    end: new Date(2024, 7, 29, 12, 30, 0), // August 29, 2024, 12:30 PM
+  },
+  {
+    id: 11,
+    title: 'Birthday Party',
+    start: new Date(2024, 7, 30, 7, 0, 0), // August 30, 2024, 7:00 AM
+    end: new Date(2024, 7, 30, 10, 30, 0), // August 30, 2024, 10:30 AM
+  }
+];
+
+const styles = {
+  container: {
+    width: '80vw',
+    height: '60vh',
+    margin: '2em'
+  }
+};
 
 const TaskCalendar: React.FC = () => {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [workingHours, setWorkingHours] = useState<number>(0);
-  const [notes, setNotes] = useState<string>('');
-  const [studentId, setStudentId] = useState<string>('');
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [formData, setFormData] = useState<FormData>({
-    studentId: '',
-    date: '',
-    timeSpent: 0,
-    notes: '',
-  });
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
-  const [isEditable, setIsEditable] = useState(true);
+  const [taskDetail, setTaskDetail] = useState<{ selectedDate: string }>({ selectedDate: 'No Date Selected' });
 
-  useEffect(() => {
-    // Fetch the logged-in user's student ID
-    const fetchStudentId = async () => {
-      try {
-        const response = await fetch('/api/auth/user'); // user API route
-        const data = await response.json();
-        setStudentId(data.studentId); // Assuming the API response has a `studentId` field
-      } catch (error) {
-        console.error('Failed to fetch student ID:', error);
-      }
-    };
-
-    fetchStudentId();
-  }, []);
-
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const response = await fetch(`http://localhost:3000/api/blogs?studentId=${studentId}`);
-        const data = await response.json();
-        setEvents(data);
-      } catch (error) {
-        console.error('Failed to fetch events:', error);
-      }
-    };
-
-    if (studentId) {
-      fetchEvents();
-    }
-  }, [studentId]);
-
-  const fetchEventForDate = async (formattedDate: string) => {
-    try {
-      const response = await fetch(`http://localhost:3000/api/blogs?date=${formattedDate}&studentId=${studentId}`);
-      const data = await response.json();
-      if (data.length > 0) {
-        const existingEvent = data[0];
-        setFormData({
-          studentId: existingEvent.studentId || '',
-          date: formattedDate,
-          timeSpent: existingEvent.timeSpent || 0,
-          notes: existingEvent.notes || '',
-        });
-        setWorkingHours(existingEvent.timeSpent || 0);
-        setNotes(existingEvent.notes || '');
-        setEditingEvent(existingEvent);
-      } else {
-        setFormData({
-          studentId: '',
-          date: formattedDate,
-          timeSpent: 0,
-          notes: '',
-        });
-        setWorkingHours(0);
-        setNotes('');
-        setEditingEvent(null);
-      }
-    } catch (error) {
-      console.error('Failed to fetch event for date:', error);
-    }
-  };
-
-  const handleDateClick = (date: Date) => {
-    setSelectedDate(date);
-    const formattedDate = moment(date).format('YYYY-MM-DD');
-
-    const dayBeforeYesterday = moment().subtract(2, 'days').startOf('day');
-    if (moment(date).isBefore(dayBeforeYesterday)) {
-      setIsEditable(false);
-    } else {
-      setIsEditable(true);
-    }
-
-    fetchEventForDate(formattedDate);
+  const handleSelectEvent = (event: BigCalendarEvent) => {
+    const calendarEvent = event as CalendarEvent; // Type assertion
+    setTaskDetail({ selectedDate: calendarEvent.title });
     setTaskModalOpen(true);
   };
 
@@ -248,9 +189,12 @@ const TaskCalendar: React.FC = () => {
   return (
     <>
       <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
+        <AlertDialogTrigger asChild>
+          <div />
+        </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Task Details</AlertDialogTitle>
+            <AlertDialogTitle>Task Detail</AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogDescription>
             <form>
@@ -288,32 +232,23 @@ const TaskCalendar: React.FC = () => {
             </form>
           </AlertDialogDescription>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleClose}>Cancel</AlertDialogCancel>
-            {isEditable && <AlertDialogAction onClick={handleSubmit}>Save</AlertDialogAction>}
+            <AlertDialogCancel onClick={handleClose}>Close</AlertDialogCancel>
+            <AlertDialogAction onClick={handleClose}>OK</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <div className="relative w-[80vw] h-[60vh] my-8 mx-auto">
-        <div className="mb-5 flex justify-between items-center">
-          <Button onClick={() => setCurrentDate(moment(currentDate).subtract(1, 'months').toDate())}>
-            Previous
-          </Button>
-          <Button onClick={() => setCurrentDate(moment(currentDate).add(1, 'months').toDate())}>
-            Next
-          </Button>
-        </div>
+      <div style={styles.container}>
         <BigCalendar
           selectable
           localizer={localizer}
           events={events}
-          defaultView={Views.MONTH}
-          views={[Views.MONTH]}
-          date={currentDate}
+          defaultView={Views.WEEK}
+          views={[Views.DAY, Views.WEEK, Views.MONTH]}
+          step={60}
+          defaultDate={new Date(2024, 7, 29)} // Default to August 29, 2024
           startAccessor="start"
           endAccessor="end"
-          onSelectSlot={(slotInfo) => handleDateClick(slotInfo.start)}
-          eventPropGetter={eventPropGetter}
+          onSelectEvent={handleSelectEvent}
         />
       </div>
     </>
