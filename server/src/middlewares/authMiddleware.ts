@@ -24,7 +24,7 @@ export function withAuthMiddleware(middleware: NextMiddleware): NextMiddleware {
                 headers.set("Set-Cookie", "redirect_error=Session expired. Please login again.; Path=/login;");
             }
 
-            headers.set("Set-Cookie", "redirect_error=An error occurred while logging you in.; Path=/login;");
+            headers.set("Set-Cookie", "redirect_error=An error occurred while logging you in.; Path=/login;");  
             headers.append("Set-Cookie", `token=${token}; expires=Thu, 01 Jan 1970 00:00:00 UTC; Path=/; HttpOnly`);
             return NextResponse.redirect(`${process.env.BASE_URL}/login`, { status: 303, headers: headers });
         }
