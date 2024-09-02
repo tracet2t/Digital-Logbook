@@ -1,19 +1,18 @@
-'use client';
-
-import { usePathname } from 'next/navigation'; // Import usePathname
+// src/components/ConditionalLayout.tsx
+import { getSession } from '@/server_actions/getSession';
 import ProfileCard from "@/components/ProfileCard";
 
-const ConditionalLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const pathname = usePathname(); // Get the current pathname
 
-  const isLoginPage = pathname === '/login'; // Check if the current page is the login page
+const ConditionalLayout: React.FC<{ children: React.ReactNode }> = async ({ children }) => {
+  const session = await getSession(); // Fetch session directly on the server
+  const authenticated = session.isAuthenticated();
 
   return (
     <>
-      {!isLoginPage && (
+      {authenticated && (
         <>
           {/* Logo in the top-left corner */}
-          <div className="absolute top-4 left-4">
+          <div className="absolute top-4 left-4 mb-15" >
             <img
               src="../t2t logo.png" // Ensure correct file path and name
               alt="T2T Logo"
