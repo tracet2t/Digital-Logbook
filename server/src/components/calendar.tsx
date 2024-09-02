@@ -117,49 +117,9 @@ const TaskCalendar: React.FC = () => {
     }
   }, [studentId]);
 
-  const fetchEventForDate = async (formattedDate: string) => {
-    try {
-      const response = await fetch(`http://localhost:3000/api/blogs?date=${formattedDate}&studentId=${studentId}`);
-      const data = await response.json();
-      if (data.length > 0) {
-        const existingEvent = data[0];
-        setFormData({
-          studentId: existingEvent.studentId || '',
-          date: formattedDate,
-          timeSpent: existingEvent.timeSpent || 0,
-          notes: existingEvent.notes || '',
-        });
-        setWorkingHours(existingEvent.timeSpent || 0);
-        setNotes(existingEvent.notes || '');
-        setEditingEvent(existingEvent);
-      } else {
-        setFormData({
-          studentId: '',
-          date: formattedDate,
-          timeSpent: 0,
-          notes: '',
-        });
-        setWorkingHours(0);
-        setNotes('');
-        setEditingEvent(null);
-      }
-    } catch (error) {
-      console.error('Failed to fetch event for date:', error);
-    }
-  };
-
-  const handleDateClick = (date: Date) => {
-    setSelectedDate(date);
-    const formattedDate = moment(date).format('YYYY-MM-DD');
-
-    const dayBeforeYesterday = moment().subtract(2, 'days').startOf('day');
-    if (moment(date).isBefore(dayBeforeYesterday)) {
-      setIsEditable(false);
-    } else {
-      setIsEditable(true);
-    }
-
-    fetchEventForDate(formattedDate);
+  const handleSelectEvent = (event: BigCalendarEvent) => {
+    const calendarEvent = event as CalendarEvent; // Type assertion
+    setTaskDetail({ selectedDate: calendarEvent.title });
     setTaskModalOpen(true);
   };
 
