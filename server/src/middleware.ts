@@ -4,7 +4,7 @@ import { withRoleBasedRoutingMiddleware } from "./middlewares/routingMiddleware"
 
 export default chain([withAuthMiddleware, withRoleBasedRoutingMiddleware])
 
-export const config = {
+export const config = {                                               
     matcher: [
       '/((?!login|auth/login|_next/static|_next/image|favicon.ico).*)',
     ],
