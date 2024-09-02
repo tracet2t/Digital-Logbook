@@ -4,8 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { Calendar as BigCalendar, momentLocalizer, Views } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { Button } from "@/components/ui/button";
-import OverallFeedback from './feedback/overallfeeback';  // Import the OverallFeedback component
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,9 +14,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from "@/components/ui/alert-dialog";
-import { Input } from "antd";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import TextArea from 'antd/es/input/TextArea';
+import { Textarea } from "@/components/ui/textarea";
 
 moment.locale('en-GB');
 const localizer = momentLocalizer(moment);
@@ -202,14 +200,6 @@ const TaskCalendar: React.FC = () => {
     setCurrentDate(moment(currentDate).subtract(1, 'months').toDate());
   };
 
-  const eventPropGetter = (event: CalendarEvent) => {
-    return {
-      style: {
-        backgroundColor: event.color || '#3174ad',
-        color: '#fff',
-      },
-    };
-  };
 
   const components = {
     month: {
@@ -270,7 +260,7 @@ const TaskCalendar: React.FC = () => {
                   type="date"
                   value={formData.date}
                   disabled
-                  style={{ color: 'black' }}
+                  className="text-black"
                 />
               </div>
               
@@ -282,17 +272,17 @@ const TaskCalendar: React.FC = () => {
                   onChange={(e) => setWorkingHours(Number(e.target.value) || 0)}
                   placeholder="Enter working hours"
                   disabled={!isEditable}
-                  style={{ color: 'black' }}
+                  className="text-black"
                 />
               </div>
               <div className="mb-4">
                 <label>Notes</label>
-                <TextArea 
+                <Textarea 
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Enter notes"
                   disabled={!isEditable}
-                  style={{ color: 'black' }}
+                  className="text-black"
                 />
               </div>
             </form>

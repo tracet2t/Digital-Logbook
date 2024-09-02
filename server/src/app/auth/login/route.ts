@@ -32,7 +32,7 @@ export async function POST(request: Request) {
         const algo = 'HS256';
         
         // Add the user's `id` to the JWT payload
-        const token = await new jose.SignJWT({ id: user.id, user: user.email, role: user.role.toString() })
+        const token = await new jose.SignJWT({ id: user.id, email: user.email, role: user.role.toString() })
             .setProtectedHeader({ alg: algo })
             .setIssuedAt()
             .setIssuer(process.env.ISSUER!)
