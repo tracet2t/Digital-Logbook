@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import MentorPopUp from './MentorPopUp';
 
 moment.locale('en-GB');
 const localizer = momentLocalizer(moment);
@@ -43,6 +44,8 @@ interface FormData {
 
 const TaskCalendar: React.FC = () => {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
+  const [mentorModalOpen, setMentorModalOpen] = useState(false);
+  const [selectedMentorEvent, setSelectedMentorEvent] = useState<CalendarEvent | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [workingHours, setWorkingHours] = useState<number>(0);
   const [notes, setNotes] = useState<string>('');
@@ -216,6 +219,11 @@ const TaskCalendar: React.FC = () => {
     setCurrentDate(moment(currentDate).subtract(1, 'months').toDate());
   };
 
+  const handleMentorSelectEvent = (event: CalendarEvent) => {
+    setSelectedMentorEvent(event);
+    setMentorModalOpen(true);
+  };
+
 
   const components = {
     month: {
@@ -244,7 +252,7 @@ const TaskCalendar: React.FC = () => {
                     margin: '2px 0',
                     cursor: 'pointer',
                   }}
-                  onClick={() => handleSelectEvent(event)}
+                  onClick={() => handleMentorSelectEvent(event)}
                 >
                   {event.title}
                 </div>
@@ -263,6 +271,16 @@ const TaskCalendar: React.FC = () => {
 
   return (
     <>
+      <MentorPopUp 
+        isOpen={mentorModalOpen}
+        onClose={() => setMentorModalOpen(false)}
+        mentorDetails={{
+          selectedDate: selectedMentorEvent?.start.toDateString() || '',
+          workingHours: selectedMentorEvent?.timeSpent?.toString() || '',
+          studentActivity: selectedMentorEvent?.notes || '',
+          review: selectedMentorEvent?.review || '',
+        }}
+      />
       {/* Task Detail Modal */}
       <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
         <AlertDialogContent>
