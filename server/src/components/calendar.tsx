@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Calendar as BigCalendar, momentLocalizer, ToolbarProps } from 'react-big-calendar';
+import React, { useState, useEffect } from 'react';
+import { Calendar as BigCalendar, momentLocalizer, Views } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import {
@@ -12,100 +12,176 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialogTitle
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
 moment.locale('en-GB');
 const localizer = momentLocalizer(moment);
 
 interface CalendarEvent {
-  id: number;
+  id: string;
   title: string;
   start: Date;
   end: Date;
   allDay?: boolean;
   color?: string;
+  createdAt: Date;
+  studentId: string;
+  timeSpent?: number;
+  notes?: string;
 }
 
-const events: CalendarEvent[] = [
-  {
-    id: 0,
-    title: 'Board meeting',
-    start: new Date(2024, 7, 29, 9, 0, 0),
-    end: new Date(2024, 7, 29, 13, 0, 0),
-    color: '#FF5733',
-  },
-  {
-    id: 0,
-    title: 'Board meeting',
-    start: new Date(2024, 7, 29, 9, 0, 0),
-    end: new Date(2024, 7, 29, 13, 0, 0),
-    color: '#FF5733',
-  },
-  {
-    id: 1,
-    title: 'MS training',
-    allDay: true,
-    start: new Date(2024, 7, 29, 14, 0, 0),
-    end: new Date(2024, 7, 29, 16, 30, 0),
-    color: '#33FF57',
-  },
-  {
-    id: 2,
-    title: 'Team lead meeting',
-    start: new Date(2024, 7, 29, 8, 30, 0),
-    end: new Date(2024, 7, 29, 12, 30, 0),
-    color: '#3357FF',
-  },
-  {
-    id: 11,
-    title: 'Birthday Party',
-    start: new Date(2024, 8, 30, 7, 0, 0),
-    end: new Date(2024, 8, 30, 10, 30, 0),
-    color: '#FF33A1',
-  },
-
-  {
-    id: 11,
-    title: 'Birthday Party',
-    start: new Date(2024, 9, 30, 7, 0, 0),
-    end: new Date(2024, 9, 30, 10, 30, 0),
-    color: '#FF33A1',
-  },
-];
-
-const CustomToolbar: React.FC<ToolbarProps> = ({ onNavigate, label }) => {
-  return (
-    <div className="flex justify-between items-center mb-4">
-      <Button onClick={() => onNavigate('PREV')}>Previous</Button>
-      <span className="text-lg font-semibold">{label}</span>
-      <Button onClick={() => onNavigate('NEXT')}>Next</Button>
-    </div>
-  );
-};
+interface FormData {
+  studentId: string;
+  date: string;
+  timeSpent: number;
+  notes: string;
+}
 
 const TaskCalendar: React.FC = () => {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
-  const [formOpen, setFormOpen] = useState(false);
-  const [formData, setFormData] = useState({
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [workingHours, setWorkingHours] = useState<number>(0);
+  const [notes, setNotes] = useState<string>('');
+  const [studentId, setStudentId] = useState<string>('');
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [formData, setFormData] = useState<FormData>({
+    studentId: '',
     date: '',
-    workingHours: '',
-    notes: ''
+    timeSpent: 0,
+    notes: '',
   });
-  const [selectedTask, setSelectedTask] = useState<CalendarEvent | null>(null);
-  const [dateError, setDateError] = useState<string | null>(null);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
+  const [isEditable, setIsEditable] = useState(true);
 
-  const handleSelectEvent = (event: CalendarEvent) => {
-    setSelectedTask(event);
-    setTaskModalOpen(true);
+  useEffect(() => {
+    const fetchStudentId = async () => {
+      try {
+        const response = await fetch('/api/auth/user');
+        const data = await response.json();
+        setStudentId(data.studentId);
+      } catch (error) {
+        console.error('Failed to fetch student ID:', error);
+      }
+    };
+
+    fetchStudentId();
+  }, []);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch(`http://localhost:3000/api/blogs?studentId=${studentId}`);
+        const data = await response.json();
+        setEvents(data);
+      } catch (error) {
+        console.error('Failed to fetch events:', error);
+      }
+    };
+
+    if (studentId) {
+      fetchEvents();
+    }
+  }, [studentId]);
+
+  const fetchEventForDate = async (formattedDate: string) => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/blogs?date=${formattedDate}&studentId=${studentId}`);
+      console.log(response);
+      const data = await response.json();
+      if (data.length > 0) {
+        const existingEvent = data[0];
+        setFormData({
+          studentId: existingEvent.studentId || '',
+          date: formattedDate,
+          timeSpent: existingEvent.timeSpent || 0,
+          notes: existingEvent.notes || '',
+        });
+        setWorkingHours(existingEvent.timeSpent || 0);
+        setNotes(existingEvent.notes || '');
+        setEditingEvent(existingEvent);
+      } else {
+        setFormData({
+          studentId: '',
+          date: formattedDate,
+          timeSpent: 0,
+          notes: '',
+        });
+        setWorkingHours(0);
+        setNotes('');
+        setEditingEvent(null);
+      }
+    } catch (error) {
+      console.error('Failed to fetch event for date:', error);
+    }
   };
+
+  const handleDateClick = (date: Date) => {
+    setSelectedDate(date);
+    const formattedDate = moment(date).format('YYYY-MM-DD');
+
+    const today = moment().startOf('day');
+    const dayBeforeYesterday = moment().subtract(2, 'days').startOf('day');
+
+    if (moment(date).isBefore(dayBeforeYesterday) || moment(date).isAfter(today)) {
+        setIsEditable(false);
+    } else {
+        setIsEditable(true);
+    }
+
+    fetchEventForDate(formattedDate);
+    setTaskModalOpen(true);
+};
 
   const handleClose = () => {
     setTaskModalOpen(false);
-    setSelectedTask(null);
+    setSelectedDate(null);
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const newFormData: FormData = {
+        studentId,
+        date: formData.date,
+        timeSpent: workingHours,
+        notes,
+      };
+
+      const response = await fetch('http://localhost:3000/api/blogs', {
+        method: editingEvent ? 'PATCH' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...newFormData,
+          id: editingEvent?.id
+        }),
+      });
+
+      if (response.ok) {
+        const updatedEvent: CalendarEvent = await response.json();
+        const fetchEvents = async () => {
+          try {
+            const response = await fetch(`http://localhost:3000/api/blogs?studentId=${studentId}`);
+            const data = await response.json();
+            setEvents(data);
+          } catch (error) {
+            console.error('Failed to fetch events:', error);
+          }
+        };
+
+        fetchEvents();
+        handleClose();
+      } else {
+        console.error('Failed to save event:', await response.json());
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+    }
   };
 
   const eventPropGetter = (event: CalendarEvent) => {
@@ -117,159 +193,96 @@ const TaskCalendar: React.FC = () => {
     };
   };
 
-  const handleSelectSlot = (slotInfo: { start: Date; end: Date; }) => {
-    const today = moment().startOf('day');
-    const selectedDate = moment(slotInfo.start).startOf('day');
-    const twoDaysAgo = moment().subtract(2, 'days').startOf('day');
-    
-    if (selectedDate.isBefore(twoDaysAgo) || selectedDate.isAfter(today)) {
-      setDateError('You cannot add tasks for dates before two days ago or after today.');
-      return;
-    }
+  const CustomToolbar = (toolbar: any) => {
+    const goToBack = () => {
+      toolbar.onNavigate('PREV');
+    };
 
-    setFormData({
-      date: moment(slotInfo.start).format('YYYY-MM-DD'),
-      workingHours: '',
-      notes: ''
-    });
-    setFormOpen(true);
-    setDateError(null);
-  };
+    const goToNext = () => {
+      toolbar.onNavigate('NEXT');
+    };
 
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value
-    }));
-  };
-
-  const handleFormSubmit = async () => {
-    try {
-      const response = await fetch('/api/blogs', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          date: formData.date,
-          timeSpent: parseInt(formData.workingHours, 10),
-          notes: formData.notes,
-        }),
-      });
-
-      if (response.ok) {
-        console.log('Activity created successfully');
-        // Update the calendar with the new activity if needed
-      } else {
-        console.error('Failed to create activity');
-      }
-    } catch (error) {
-      console.error('Error creating activity:', error);
-    }
-
-    setFormOpen(false);
-  };
-
-  const handleFormCancel = () => {
-    setFormOpen(false);
-  };
-
-  const components = {
-    toolbar: CustomToolbar,
-    month: {
-      dateHeader: ({ date, label }: { date: Date; label: string }) => {
-        const dayEvents = events.filter((event) =>
-          moment(event.start).isSame(date, 'day')
-        );
-
-        return (
-          <div className="rbc-date-cell p-2">
-            {label}
-            {dayEvents.length > 0 && (
-              <div className="max-h-24 overflow-y-auto mt-2 bg-gray-100 p-2 border border-gray-300 rounded">
-                {dayEvents.map((event, idx) => (
-                  <div key={idx} className="bg-blue-500 text-white p-1 rounded mb-1">
-                    {event.title}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        );
-      },
-    },
+    return (
+      <div className="flex justify-between items-center mb-4">
+        <Button onClick={() => setCurrentDate(moment(currentDate).subtract(1, 'months').toDate())} className="text-xl">{"<"}</Button>
+        <span className="text-2xl font-bold">
+          {moment(toolbar.date).format('MMMM YYYY')}
+        </span>
+        <Button onClick={() => setCurrentDate(moment(currentDate).add(1, 'months').toDate())} className="text-xl">{">"}</Button>
+      </div>
+    );
   };
 
   return (
-    <div className="flex flex-col items-center">
-      <div className="relative w-[90vw] h-[70vh] my-8">
-        <BigCalendar
-          localizer={localizer}
-          events={events}
-          startAccessor="start"
-          endAccessor="end"
-          style={{ height: '100%' }}
-          eventPropGetter={eventPropGetter}
-          components={components}
-          onSelectEvent={handleSelectEvent}
-          onSelectSlot={handleSelectSlot}
-          selectable
-        />
-      </div>
-      <AlertDialog open={formOpen} onOpenChange={setFormOpen}>
+    <>
+      <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Task Detail</AlertDialogTitle>
+            <AlertDialogTitle>Task Details</AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogDescription>
-            {dateError && <p className="text-red-500">{dateError}</p>}
-            <Input
-              type="date"
-              name="date"
-              value={formData.date}
-              onChange={handleFormChange}
-              disabled
-              className="mb-2"
-            />
-            <Input
-              type="number"
-              name="workingHours"
-              placeholder="Working Hours"
-              value={formData.workingHours}
-              onChange={handleFormChange}
-              className="mb-2"
-            />
-            <Textarea
-              name="notes"
-              placeholder="Notes"
-              value={formData.notes}
-              onChange={handleFormChange}
-              className="mb-2"
-            />
+            <form>
+              <div className="mb-4">
+                <label>Date</label>
+                <Input 
+                  type="date"
+                  value={formData.date}
+                  disabled
+                  className="text-black"
+                />
+              </div>
+              
+              <div className="mb-4">
+                <label>Working Hours</label>
+                <Input
+                  type="number"
+                  value={workingHours}
+                  onChange={(e) => setWorkingHours(Number(e.target.value) || 0)}
+                  placeholder="Enter working hours"
+                  disabled={!isEditable}
+                  className="text-black"
+                />
+              </div>
+              <div className="mb-4">
+                <label>Notes</label>
+                <Textarea 
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Enter notes"
+                  disabled={!isEditable}
+                  className="text-black"
+                />
+              </div>
+            </form>
           </AlertDialogDescription>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleFormCancel}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleFormSubmit}>OK</AlertDialogAction>
+            <AlertDialogCancel onClick={handleClose}>Cancel</AlertDialogCancel>
+            {isEditable && <AlertDialogAction onClick={handleSubmit}>Save</AlertDialogAction>}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <AlertDialog open={taskModalOpen} onOpenChange={handleClose}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Task Detail</AlertDialogTitle>
-            <AlertDialogDescription>
-              <p>Task Title: {selectedTask?.title}</p>
-              <p>Start Time: {moment(selectedTask?.start).format('YYYY-MM-DD HH:mm')}</p>
-              <p>End Time: {moment(selectedTask?.end).format('YYYY-MM-DD HH:mm')}</p>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction onClick={handleClose}>OK</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+
+      <div className="relative w-[80vw] h-[60vh] my-8 mx-auto">
+        <BigCalendar
+          selectable
+          localizer={localizer}
+          events={events}
+          defaultView={Views.MONTH}
+          views={[Views.MONTH]}
+          date={currentDate}
+          components={{
+            toolbar: CustomToolbar,
+          }}
+          onSelectSlot={(slotInfo) => handleDateClick(slotInfo.start)}
+          eventPropGetter={(event) => ({
+            style: {
+              backgroundColor: event.timeSpent ? '#3174ad' : 'transparent',
+              color: '#fff',
+            },
+          })}
+        />
+      </div>
+    </>
   );
 };
 
