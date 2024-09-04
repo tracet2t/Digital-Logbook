@@ -28,6 +28,7 @@
     "@radix-ui/react-scroll-area": "^1.1.0",
     "@radix-ui/react-slot": "^1.1.0",
     "@shadcn/ui": "^0.0.4",
+    "antd": "^5.20.4",
     "bcrypt": "^5.1.1",
     "bcrypt-ts": "^5.0.2",
     "class-variance-authority": "^0.7.0",

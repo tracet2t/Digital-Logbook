@@ -184,15 +184,6 @@ const TaskCalendar: React.FC = () => {
     }
   };
 
-  const eventPropGetter = (event: CalendarEvent) => {
-    return {
-      style: {
-        backgroundColor: event.color || '#3174ad',
-        color: '#fff',
-      },
-    };
-  };
-
   const CustomToolbar = (toolbar: any) => {
     const goToBack = () => {
       toolbar.onNavigate('PREV');
