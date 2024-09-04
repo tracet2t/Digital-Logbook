@@ -18,6 +18,10 @@ class JwtPayloadSession {
         return this.isAuthenticated() ? (this.#payload as any)["email"] : null;
     }
 
+    getId() {
+        return this.isAuthenticated() ? (this.#payload as any)['id'] : null;
+    }
+
     getRole(): Role {
         console.log(this.#payload as any);
         console.log(!!this.#payload && !!(this.#payload as any)["email"] && !!(this.#payload as any)["role"]);

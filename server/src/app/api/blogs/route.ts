@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";  
-import { getSession } from "@/server_actions/getSession";
+import getSession from "@/server_actions/getSession";
 
 export const GET = async (req: NextRequest) => {
     try {
@@ -8,7 +8,7 @@ export const GET = async (req: NextRequest) => {
         if (!session) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
-        const userId = session.getUserId();
+        const userId = session.getId();
         if (!userId) {
             return NextResponse.json({ message: "User ID not found" }, { status: 401 });
         }
@@ -36,7 +36,8 @@ export const POST = async (req: NextRequest) => {
         if (!session) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
-        const userId = session.getUserId();
+        const userId = session.getId();
+        console.log(userId)
         if (!userId) {
             return NextResponse.json({ message: "User ID not found" }, { status: 401 });
         }
@@ -69,7 +70,8 @@ export const PATCH = async (req: NextRequest) => {
         if (!session) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
-        const userId = session.getUserId();
+        const userId = session.getId();
+
         if (!userId) {
             return NextResponse.json({ message: "User ID not found" }, { status: 401 });
         }
@@ -104,7 +106,7 @@ export const DELETE = async (req: NextRequest) => {
         if (!session) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
-        const userId = session.getUserId();
+        const userId = session.getId();
         if (!userId) {
             return NextResponse.json({ message: "User ID not found" }, { status: 401 });
         }
