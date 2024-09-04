@@ -11,6 +11,7 @@ export default async function Home() {
 //   const [role, setRole] = useState(null);
 
   const role = (await getSession()).getRole();
+  console.log(role);
 
 
 //   useEffect(() => {

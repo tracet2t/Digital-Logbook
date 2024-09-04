@@ -31,7 +31,6 @@ export async function POST(request: Request) {
         const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
         const algo = 'HS256';
         
-        // Add the user's `id` to the JWT payload
         const token = await new jose.SignJWT({ id: user.id, email: user.email, role: user.role.toString() })
             .setProtectedHeader({ alg: algo })
             .setIssuedAt()
@@ -42,8 +41,15 @@ export async function POST(request: Request) {
         
         const headers = new Headers(request.headers);
         headers.set("Set-Cookie", `token=${token}; Path=/; HttpOnly`);
-        
-        return NextResponse.redirect(baseUrl!, { status: 303, headers: headers });
+ 
+        let redirectUrl = `${baseUrl}/unauthorized`; 
+        if (user.role === 'student') {
+            redirectUrl = `${baseUrl}/student`; 
+        } else if (user.role === 'mentor') {
+            redirectUrl = `${baseUrl}/mentor`; 
+        }
+
+        return NextResponse.redirect(redirectUrl, { status: 303, headers: headers });
     
     } catch (error) {
         console.error("Error during authentication", error);

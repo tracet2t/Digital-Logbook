@@ -11,14 +11,16 @@ class JwtPayloadSession {
     }
 
     isAuthenticated() {
-        return !!this.#payload && !!(this.#payload as any)["user"] && !!(this.#payload as any)["role"];
+        return !!this.#payload && !!(this.#payload as any)["email"] && !!(this.#payload as any)["role"];
     }
 
     getUsername() {
-        return this.isAuthenticated() ? (this.#payload as any)["user"] : null;
+        return this.isAuthenticated() ? (this.#payload as any)["email"] : null;
     }
 
     getRole(): Role {
+        console.log(this.#payload as any);
+        console.log(!!this.#payload && !!(this.#payload as any)["email"] && !!(this.#payload as any)["role"]);
         return this.isAuthenticated() ? (this.#payload as any)["role"] : null;
     }
 }
@@ -37,7 +39,7 @@ export default async function getSession(reqCookies: RequestCookies | null = nul
 async function getSessionOnClient(): Promise<any> {
     const sessionCookie = cookies().get('token');
     const [_, payload, __] = sessionCookie ? sessionCookie.value.split('.') : [null, null, null];
-    return !!payload ? select(JSON.parse(atob(payload)), ['user', 'role']) : null;
+    return !!payload ? select(JSON.parse(atob(payload)), ['email', 'id', 'role']) : null;
 }
 
 export { getSessionOnClient }
