@@ -1,14 +1,30 @@
-`use client`
+"use server"
 
+// import { useState, useEffect } from 'react';
 import TaskCalendar from "@/components/calendar";
-import { getSession } from "@/server_actions/getSession";
+// import { getSessionOnClient } from "@/server_actions/getSession";
+import getSession from '@/server_actions/getSession';
+
 
 export default async function Home() {
-    const session = await getSession();
-  
-    const role = session?.getRole();
-  
-    return (
+//   const [session, setSession] = useState(null);
+//   const [role, setRole] = useState(null);
+
+  const role = (await getSession()).getRole();
+
+
+//   useEffect(() => {
+//     getSessionOnClient()
+//       .then((data) => {
+//         setSession(data);
+//         setRole(data.role);
+//       })
+//       .catch((error) => {
+//         console.error('Error fetching session:', error);
+//       });
+//   }, []);
+
+  return (
       <div className="p-2">
         <div className="flex gap-2 justify-between">
           <h1>Dashboard</h1>
