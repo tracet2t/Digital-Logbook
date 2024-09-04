@@ -1,16 +1,29 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import TaskCalendar from "@/components/calendar";
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
+import MentorRegStudentForm from '@/components/mentorregstudentform';
 
 const MentorDashboard = () => {
+  const [showForm, setShowForm] = useState(false);
+
+  const handleOpenForm = () => {
+    setShowForm(true); // Show the form when the button is clicked
+  };
+
+  const handleCloseForm = () => {
+    setShowForm(false); // Hide the form when closing action is triggered
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center bg-white">
-    <div className="flex gap-2 justify-between">
-      <h1>Dashboard</h1>
-      <form action="/auth/logout" method="post">
-        <button type="submit">Logout</button>
-      </form>
-    </div>
+      <div className="flex gap-2 justify-between">
+        <h1>Dashboard</h1>
+        <form action="/auth/logout" method="post">
+          <button type="submit">Logout</button>
+        </form>
+      </div>
       <div className="mt-8 w-full max-w-4xl">
         <div className="flex justify-between items-center mb-4 px-4">
           <select className="border border-gray-300 p-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -27,9 +40,13 @@ const MentorDashboard = () => {
             <Button className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600">
               Bulk Report
             </Button>
-            <Button className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
+            <Button 
+              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+              onClick={handleOpenForm}
+            >
               Register Student
             </Button>
+            {showForm && <MentorRegStudentForm onClose={handleCloseForm} />}
           </div>
         </div>
         {/* Center the TaskCalendar component */}

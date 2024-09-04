@@ -1,13 +1,16 @@
-// src/services/registerstudent.ts
-'use server'; // Indicates this is a server action
+'use server';
 
-import  prisma  from '@/lib/prisma';
+import prisma from '@/lib/prisma';
 import bcrypt from 'bcrypt';
 
-export async function registerStudent(formData: FormData) {
-  const firstName = formData.get('firstName') as string;
-  const lastName = formData.get('lastName') as string;
-  const email = formData.get('email') as string;
+interface RegisterStudentData {
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
+export async function registerStudent(data: RegisterStudentData) {
+  const { firstName, lastName, email } = data;
   const password = Math.random().toString(36).slice(-8); // Generate a random password
 
   const hashedPassword = await bcrypt.hash(password, 10);
