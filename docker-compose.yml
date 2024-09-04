@@ -1,4 +1,4 @@
-version: '3.8' 
+version: '3.8'
 
 services:
   postgres:
@@ -11,13 +11,6 @@ services:
       POSTGRES_DB: postgres
     ports:
       - "5432:5432"
-    volumes:
-      - postgres:/var/lib/postgresql/data
-
-volumes:
-  postgres:
-    driver: local
-
 
   pgadmin:
     container_name: pgadmin
@@ -33,6 +26,9 @@ volumes:
     depends_on:
       - postgres
 
+volumes:
+  postgres:
+    driver: local
 
 networks:
   mynetwork:

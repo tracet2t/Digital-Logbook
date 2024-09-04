@@ -1,19 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { chain } from "./middlewares/chain";
+import { withAuthMiddleware } from "./middlewares/authMiddleware";
+import { withRoleBasedRoutingMiddleware } from "./middlewares/routingMiddleware";
 
-export function middleware(request: NextRequest) {
-    console.log("Middleware called");
+export default chain([withAuthMiddleware, withRoleBasedRoutingMiddleware])
 
-    // verify authentication cookie here (JWT or any other method)
-    
-    // let cookie = request.cookies.get("token");
-    // if (!cookie || cookie.value != 'authenticated') {
-    //     return NextResponse.redirect(`${process.env.BASE_URL}/login`);
-    // }
-    return NextResponse.next();
-}
-
-export const config = {
+export const config = {                                               
     matcher: [
       '/((?!login|auth/login|_next/static|_next/image|favicon.ico).*)',
     ],
-  }
+}
