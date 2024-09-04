@@ -17,6 +17,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { getSessionOnClient } from "@/server_actions/getSession";
+
 
 moment.locale('en-GB');
 const localizer = momentLocalizer(moment);
@@ -41,10 +43,26 @@ interface FormData {
   notes: string;
 }
 
+const convertToCalendarEvents = (data: any[]): CalendarEvent[] => {
+  return data.map((item, index) => {
+    const startDate = new Date(item.date);
+    const endDate = new Date(item.date); // Calculate end time
+
+    return {
+      id: index,
+      title: item.notes || 'No Title',
+      start: startDate,
+      end: endDate,
+      color: '#3174ad', 
+    };
+  });
+};
+
 const TaskCalendar: React.FC = () => {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [workingHours, setWorkingHours] = useState<number>(0);
+  const [session, setSession] = useState(null);
   const [notes, setNotes] = useState<string>('');
   const [studentId, setStudentId] = useState<string>('');
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -59,17 +77,14 @@ const TaskCalendar: React.FC = () => {
   const [isEditable, setIsEditable] = useState(true);
 
   useEffect(() => {
-    const fetchStudentId = async () => {
-      try {
-        const response = await fetch('/api/auth/user');
-        const data = await response.json();
-        setStudentId(data.studentId);
-      } catch (error) {
-        console.error('Failed to fetch student ID:', error);
-      }
-    };
-
-    fetchStudentId();
+    getSessionOnClient()
+      .then((data) => {
+        setSession(data);
+        setStudentId(data.id);
+      })
+      .catch((error) => {
+        console.error('Error fetching session:', error);
+      });
   }, []);
 
   useEffect(() => {
@@ -77,7 +92,8 @@ const TaskCalendar: React.FC = () => {
       try {
         const response = await fetch(`http://localhost:3000/api/blogs?studentId=${studentId}`);
         const data = await response.json();
-        setEvents(data);
+        const parsedEvents = convertToCalendarEvents(data);
+        setEvents(parsedEvents);
       } catch (error) {
         console.error('Failed to fetch events:', error);
       }
@@ -265,12 +281,6 @@ const TaskCalendar: React.FC = () => {
             toolbar: CustomToolbar,
           }}
           onSelectSlot={(slotInfo) => handleDateClick(slotInfo.start)}
-          eventPropGetter={(event) => ({
-            style: {
-              backgroundColor: event.timeSpent ? '#3174ad' : 'transparent',
-              color: '#fff',
-            },
-          })}
         />
       </div>
     </>
