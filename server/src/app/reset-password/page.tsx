@@ -4,14 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
-const LoginPage = () => {
+const ResetPasswordPage = () => {
     return (
         <div className="h-screen flex flex-col md:flex-row">
             {/* Left Column with Full-Screen Image */}
             <div className="relative w-full md:w-1/2 h-1/2 md:h-full">
                 <Image
                     src="/login.png"
-                    alt="Login"
+                    alt="Reset Password"
                     layout="fill" 
                     objectFit="cover" 
                     className="rounded-none"
@@ -26,38 +26,44 @@ const LoginPage = () => {
                 </div>
             </div>
 
-            {/* Right Column with Login Form */}
+            {/* Right Column with Reset Password Form */}
             <div className="w-full md:w-1/2 h-1/2 md:h-full bg-white flex items-center justify-center p-6 md:p-8">
                 <div className="w-full max-w-md">
-                    <div className="flex justify-center mb-4">
-                        <Image
-                            src="/log-file.png"
-                            width={40}
-                            height={40}
-                        />
-                    </div>
                     <h2 className="text-2xl md:text-3xl font-semibold text-center mb-6">
-                        T2T Digital Logbook
+                        Reset Password
                     </h2>
-                    <form className="flex flex-col" action="/auth/login" method="post">
+                    <form className="flex flex-col" action="/auth/reset-password" method="post">
                         <div className="mb-4">
                             <Label className="block text-sm font-medium text-gray-700">
-                                Username
+                                Current Password
                             </Label>
                             <Input
-                                name="username"
-                                placeholder="Enter your username"
+                                name="currentPassword"
+                                placeholder="Enter your current password"
+                                type="password"
                                 required
                                 className="mt-1 block w-full"
                             />
                         </div>
                         <div className="mb-4">
                             <Label className="block text-sm font-medium text-gray-700">
-                                Password
+                                New Password
                             </Label>
                             <Input
-                                name="password"
-                                placeholder="Enter your password"
+                                name="newPassword"
+                                placeholder="Enter your new password"
+                                type="password"
+                                required
+                                className="mt-1 block w-full"
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <Label className="block text-sm font-medium text-gray-700">
+                                Confirm New Password
+                            </Label>
+                            <Input
+                                name="confirmNewPassword"
+                                placeholder="Confirm your new password"
                                 type="password"
                                 required
                                 className="mt-1 block w-full"
@@ -68,7 +74,7 @@ const LoginPage = () => {
                                 type="submit"
                                 className="w-full py-2 rounded-md bg-[#0000FF] text-white hover:bg-[#0000CC]"
                             >
-                                Login
+                                Reset Password
                             </Button>
                         </div>
                     </form>
@@ -78,4 +84,4 @@ const LoginPage = () => {
     );
 };
 
-export default LoginPage;
+export default ResetPasswordPage;
