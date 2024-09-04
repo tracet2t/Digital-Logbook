@@ -30,11 +30,13 @@ const LoginPage = () => {
             <div className="w-full md:w-1/2 h-1/2 md:h-full bg-white flex items-center justify-center p-6 md:p-8">
                 <div className="w-full max-w-md">
                     <div className="flex justify-center mb-4">
-                        <Image
-                            src="/log-file.png"
+                        {/* <Image
+                            src="/logo.jpg"
+                            alt='aasd'
+                            objectFit='cover'
                             width={40}
                             height={40}
-                        />
+                        /> */}
                     </div>
                     <h2 className="text-2xl md:text-3xl font-semibold text-center mb-6">
                         T2T Digital Logbook
@@ -42,11 +44,11 @@ const LoginPage = () => {
                     <form className="flex flex-col" action="/auth/login" method="post">
                         <div className="mb-4">
                             <Label className="block text-sm font-medium text-gray-700">
-                                Username
+                                Email
                             </Label>
                             <Input
-                                name="username"
-                                placeholder="Enter your username"
+                                name="email"
+                                placeholder="Enter your email"
                                 required
                                 className="mt-1 block w-full"
                             />
