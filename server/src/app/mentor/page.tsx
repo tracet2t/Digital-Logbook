@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import MentorRegStudentForm from '@/components/mentorregstudentform';
+import { Button } from '@/components/ui/button';
 
 export default function MentorPage() {
   const [showForm, setShowForm] = useState(false);
@@ -16,12 +17,17 @@ export default function MentorPage() {
   };
 
   return (
-    <div>
-      <h1>Mentor Dashboard</h1>
-      <button onClick={handleOpenForm}>Register Student</button>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Mentor Dashboard</h1>
+      <button 
+        onClick={handleOpenForm} 
+        className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
+      >
+        Register Student
+      </button>
 
       {/* Render the form conditionally based on showForm state */}
-      {showForm && <MentorRegStudentForm/>}
+      {showForm && <MentorRegStudentForm />}
     </div>
   );
 }
