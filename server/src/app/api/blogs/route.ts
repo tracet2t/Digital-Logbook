@@ -8,6 +8,7 @@ export const GET = async (req: NextRequest) => {
         if (!session) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
+        
         const userId = session.getId();
         if (!userId) {
             return NextResponse.json({ message: "User ID not found" }, { status: 401 });
@@ -33,6 +34,7 @@ export const GET = async (req: NextRequest) => {
 export const POST = async (req: NextRequest) => {
     try {
         const session = await getSession();
+        
         if (!session) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
