@@ -22,6 +22,13 @@ import { getSessionOnClient } from "@/server_actions/getSession";
 moment.locale("en-GB");
 const localizer = momentLocalizer(moment);
 
+interface FormData {
+  studentId: string;
+  date: string;
+  timeSpent: number;
+  notes: string;
+}
+
 interface CalendarEvent {
   id: string;
   title: string;
@@ -33,26 +40,21 @@ interface CalendarEvent {
   studentId: string;
   timeSpent?: number;
   notes?: string;
-}
-
-interface FormData {
-  studentId: string;
-  date: string;
-  timeSpent: number;
-  notes: string;
+  status: "pending" | "approved" | "rejected"; // New field for status
 }
 
 const convertToCalendarEvents = (data: any[]): CalendarEvent[] => {
   return data.map((item, index) => {
     const startDate = new Date(item.date);
     const endDate = new Date(item.date); // Calculate end time
+    console.log(item.feedback[0]?.status);
 
     return {
       id: index,
       title: item.notes || "No Title",
       start: startDate,
       end: endDate,
-      color: "#3174ad",
+      status: item.feedback[0]?.status, // Add the status field
     };
   });
 };
@@ -188,6 +190,7 @@ const TaskCalendar: React.FC = () => {
     }
   };
 
+  // Custom Toolbar
   const CustomToolbar = (toolbar: any) => {
     const goToBack = () => {
       toolbar.onNavigate("PREV");
@@ -214,6 +217,32 @@ const TaskCalendar: React.FC = () => {
         </Button>
       </div>
     );
+  };
+
+  // Event Prop Getter to set custom styles
+  const eventPropGetter = (event: CalendarEvent) => {
+    let backgroundColor = "#ffff00"; // Default background color
+    let textColor = "#000000"; // Default text color (white)
+    console.log(event);
+  
+    // Customize based on event status
+    if (event.status === "pending") {
+      backgroundColor = "#ffff00"; // Yellow background for pending
+      textColor = "#000000"; // Black text for better contrast
+    } else if (event.status === "approved") {
+      backgroundColor = "#008000"; // Green background for accepted
+      textColor = "#ffffff"; // White text for contrast
+    } else if (event.status === "rejected") {
+      backgroundColor = "#ff0000"; // Red background for rejected
+      textColor = "#ffffff"; // White text for contrast
+    }
+  
+    return {
+      style: {
+        backgroundColor,
+        color: textColor, // Apply text color based on status
+      },
+    };
   };
 
   return (
@@ -260,18 +289,22 @@ const TaskCalendar: React.FC = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="relative w-[80vw] h-[60vh] my-8 mx-auto">
+      <div className="relative w-[80vw] h-[60vh]">
         <BigCalendar
-          selectable
-          localizer={localizer}
           events={events}
+          localizer={localizer}
           defaultView={Views.MONTH}
-          views={[Views.MONTH]}
-          date={currentDate}
+          view={Views.MONTH}
+          startAccessor="start"
+          endAccessor="end"
+          onSelectSlot={(slotInfo) => handleDateClick(slotInfo.start)}
+          onSelectEvent={(event) => handleDateClick(event.start)}
+          selectable
           components={{
             toolbar: CustomToolbar,
           }}
-          onSelectSlot={(slotInfo) => handleDateClick(slotInfo.start)}
+          eventPropGetter={eventPropGetter} // Apply custom styles based on event status
+          style={{ height: "100%" }}
         />
       </div>
     </>

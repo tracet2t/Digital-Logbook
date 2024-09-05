@@ -8,7 +8,7 @@ export const GET = async (req: NextRequest) => {
         if (!session) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
-        
+
         const userId = session.getId();
         if (!userId) {
             return NextResponse.json({ message: "User ID not found" }, { status: 401 });
@@ -20,9 +20,19 @@ export const GET = async (req: NextRequest) => {
         const activities = await prisma.activity.findMany({
             where: {
                 studentId: userId,
-                ...(date && { date: new Date(date) })
+                ...(date && { date: new Date(date) }),
+            },
+            include: {
+                feedback: {
+                    select: {
+                        status: true, // Fetch the feedback status
+                        feedbackNotes: true, // Optionally fetch feedback notes if needed
+                    },
+                },
             },
         });
+
+        console.log(activities);
 
         return NextResponse.json(activities);
     } catch (error) {
