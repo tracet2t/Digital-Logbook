@@ -39,6 +39,7 @@
     "jose": "^5.8.0",
     "lucide-react": "^0.436.0",
     "next": "14.2.5",
+    "nodemailer": "^6.9.15",
     "react": "^18",
     "react-big-calendar": "^1.13.4",
     "react-dom": "^18",
