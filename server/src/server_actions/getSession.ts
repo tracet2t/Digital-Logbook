@@ -1,4 +1,7 @@
 'use server'
+/* 
+Credit for this entire method goes to B. Saranga
+*/
 import { select } from "@/lib/extras";
 import { cookies } from "next/headers"
 import { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
@@ -29,6 +32,7 @@ class JwtPayloadSession {
     }
 }
 
+
 export default async function getSession(reqCookies: RequestCookies | null = null): Promise<JwtPayloadSession> {
     const sessionCookie = !!reqCookies ? reqCookies.get('token') : cookies().get('token');
     const [_, payload, __] = sessionCookie ? sessionCookie!.value.split('.') : [null, null, null];
@@ -39,6 +43,7 @@ export default async function getSession(reqCookies: RequestCookies | null = nul
     This has to be used in client components because
     server action return types has to be serializable,
     and classes are not supported at the moment.
+
 */
 async function getSessionOnClient(): Promise<any> {
     const sessionCookie = cookies().get('token');
