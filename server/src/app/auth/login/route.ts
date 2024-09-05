@@ -30,6 +30,7 @@ export async function POST(request: Request) {
 
         const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
         const algo = 'HS256';
+
         
         const token = await new jose.SignJWT({ id: user.id, email: user.email, role: user.role.toString() })
             .setProtectedHeader({ alg: algo })
@@ -44,7 +45,11 @@ export async function POST(request: Request) {
  
         let redirectUrl = `${baseUrl}/unauthorized`; 
         if (user.role === 'student') {
-            redirectUrl = `${baseUrl}/student`; 
+            if (!user.emailConfirmed) {
+                redirectUrl = `${baseUrl}/reset-password`
+            } else {
+                redirectUrl = `${baseUrl}/student`
+            }
         } else if (user.role === 'mentor') {
             redirectUrl = `${baseUrl}/mentor`; 
         }
