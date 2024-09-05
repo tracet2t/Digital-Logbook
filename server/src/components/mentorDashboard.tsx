@@ -5,10 +5,11 @@ import TaskCalendar from "@/components/calendar";
 import { Button } from "@/components/ui/button";
 import MentorRegStudentForm from '@/components/mentorregstudentform';
 import Image from "next/image";
-import  { Avatar, AvatarFallback, AvatarImage }  from "@/components/ui/avatar"
+import  { Avatar, AvatarFallback, AvatarImage }  from "@/components/ui/avatar";
 
 const MentorDashboard = () => {
   const [showForm, setShowForm] = useState(false);
+  const userid = '';
 
   const handleOpenForm = () => {
     setShowForm(true); // Show the form when the button is clicked
