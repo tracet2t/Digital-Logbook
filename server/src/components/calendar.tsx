@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import MentorPopUp from './MentorPopUp';
 
 moment.locale('en-GB');
 const localizer = momentLocalizer(moment);
@@ -68,12 +69,74 @@ const styles = {
 
 const TaskCalendar: React.FC = () => {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
-  const [taskDetail, setTaskDetail] = useState<{ selectedDate: string }>({ selectedDate: 'No Date Selected' });
+  const [mentorModalOpen, setMentorModalOpen] = useState(false);
+  const [selectedMentorEvent, setSelectedMentorEvent] = useState<CalendarEvent | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [workingHours, setWorkingHours] = useState<number>(0);
+  const [notes, setNotes] = useState<string>('');
+  const [studentId, setStudentId] = useState<string>('');
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [formData, setFormData] = useState<FormData>({
+    studentId: '',
+    date: '',
+    timeSpent: 0,
+    notes: '',
+  });
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
+  const [isEditable, setIsEditable] = useState(true);
+
+  useEffect(() => {
+    // Fetch the logged-in user's student ID
+    const fetchStudentId = async () => {
+      try {
+        const response = await fetch('/api/auth/user'); // user API route
+        const data = await response.json();
+        setStudentId(data.studentId); // Assuming the API response has a `studentId` field
+      } catch (error) {
+        console.error('Failed to fetch student ID:', error);
+      }
+    };
+
+    fetchStudentId();
+  }, []);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch(`http://localhost:3000/api/blogs?studentId=${studentId}`);
+        const data = await response.json();
+        setEvents(data);
+      } catch (error) {
+        console.error('Failed to fetch events:', error);
+      }
+    };
+
+    if (studentId) {
+      fetchEvents();
+    }
+  }, [studentId]);
 
   const handleSelectEvent = (event: BigCalendarEvent) => {
     const calendarEvent = event as CalendarEvent; // Type assertion
     setTaskDetail({ selectedDate: calendarEvent.title });
     setTaskModalOpen(true);
+  };
+
+  const handleReviewChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setReview(e.target.value);
+  };
+
+  const handleAccept = () => {
+    console.log("Task Accepted");
+    // Implement further logic here, e.g., update task status, send feedback
+    setTaskModalOpen(false);
+  };
+
+  const handleReject = () => {
+    console.log("Task Rejected");
+    // Implement further logic here, e.g., update task status, send feedback
+    setTaskModalOpen(false);
   };
 
   const handleClose = () => {
@@ -141,6 +204,11 @@ const TaskCalendar: React.FC = () => {
     setCurrentDate(moment(currentDate).subtract(1, 'months').toDate());
   };
 
+  const handleMentorSelectEvent = (event: CalendarEvent) => {
+    setSelectedMentorEvent(event);
+    setMentorModalOpen(true);
+  };
+
 
   const components = {
     month: {
@@ -169,7 +237,7 @@ const TaskCalendar: React.FC = () => {
                     margin: '2px 0',
                     cursor: 'pointer',
                   }}
-                  onClick={() => handleSelectEvent(event)}
+                  onClick={() => handleMentorSelectEvent(event)}
                 >
                   {event.title}
                 </div>
@@ -188,6 +256,17 @@ const TaskCalendar: React.FC = () => {
 
   return (
     <>
+      <MentorPopUp 
+        isOpen={mentorModalOpen}
+        onClose={() => setMentorModalOpen(false)}
+        mentorDetails={{
+          selectedDate: selectedMentorEvent?.start.toDateString() || '',
+          workingHours: selectedMentorEvent?.timeSpent?.toString() || '',
+          studentActivity: selectedMentorEvent?.notes || '',
+          review: selectedMentorEvent?.review || '',
+        }}
+      />
+      {/* Task Detail Modal */}
       <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
         <AlertDialogTrigger asChild>
           <div />
