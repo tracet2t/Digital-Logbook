@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";  
-import { getSession } from "@/server_actions/getSession";
+import getSession from "@/server_actions/getSession";
 
 export const GET = async (req: NextRequest) => {
     try {
@@ -8,7 +8,8 @@ export const GET = async (req: NextRequest) => {
         if (!session) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
-        const userId = session.getUserId();
+
+        const userId = session.getId();
         if (!userId) {
             return NextResponse.json({ message: "User ID not found" }, { status: 401 });
         }
@@ -19,9 +20,19 @@ export const GET = async (req: NextRequest) => {
         const activities = await prisma.activity.findMany({
             where: {
                 studentId: userId,
-                ...(date && { date: new Date(date) })
+                ...(date && { date: new Date(date) }),
+            },
+            include: {
+                feedback: {
+                    select: {
+                        status: true, // Fetch the feedback status
+                        feedbackNotes: true, // Optionally fetch feedback notes if needed
+                    },
+                },
             },
         });
+
+        console.log(activities);
 
         return NextResponse.json(activities);
     } catch (error) {
@@ -33,10 +44,12 @@ export const GET = async (req: NextRequest) => {
 export const POST = async (req: NextRequest) => {
     try {
         const session = await getSession();
+        
         if (!session) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
-        const userId = session.getUserId();
+        const userId = session.getId();
+        console.log(userId)
         if (!userId) {
             return NextResponse.json({ message: "User ID not found" }, { status: 401 });
         }
@@ -69,7 +82,8 @@ export const PATCH = async (req: NextRequest) => {
         if (!session) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
-        const userId = session.getUserId();
+        const userId = session.getId();
+
         if (!userId) {
             return NextResponse.json({ message: "User ID not found" }, { status: 401 });
         }
@@ -104,7 +118,7 @@ export const DELETE = async (req: NextRequest) => {
         if (!session) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
-        const userId = session.getUserId();
+        const userId = session.getId();
         if (!userId) {
             return NextResponse.json({ message: "User ID not found" }, { status: 401 });
         }
