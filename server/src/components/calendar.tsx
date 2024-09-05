@@ -221,20 +221,20 @@ const TaskCalendar: React.FC = () => {
 
   // Event Prop Getter to set custom styles
   const eventPropGetter = (event: CalendarEvent) => {
-    let backgroundColor = "#ffff00"; // Default background color
+    let backgroundColor = "#6BCB77"; // Default background color
     let textColor = "#000000"; // Default text color (white)
     console.log(event);
   
     // Customize based on event status
     if (event.status === "pending") {
-      backgroundColor = "#ffff00"; // Yellow background for pending
+      backgroundColor = "#6BCB77"; // Yellow background for pending
       textColor = "#000000"; // Black text for better contrast
     } else if (event.status === "approved") {
-      backgroundColor = "#008000"; // Green background for accepted
-      textColor = "#ffffff"; // White text for contrast
+      backgroundColor = "#FFD93D"; // Green background for accepted
+      textColor = "#000000"; // White text for contrast
     } else if (event.status === "rejected") {
-      backgroundColor = "#ff0000"; // Red background for rejected
-      textColor = "#ffffff"; // White text for contrast
+      backgroundColor = "#F25C54"; // Red background for rejected
+      textColor = "#000000"; // White text for contrast
     }
   
     return {
