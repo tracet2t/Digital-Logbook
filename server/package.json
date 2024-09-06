@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@popperjs/core": "^2.11.8",
-    "@prisma/client": "^5.18.0",
+    "@prisma/client": "^5.19.1",
     "@radix-ui/react-alert-dialog": "^1.1.1",
     "@radix-ui/react-avatar": "^1.1.0",
     "@radix-ui/react-dialog": "^1.1.1",
@@ -64,7 +64,7 @@
     "eslint-config-next": "14.2.5",
     "jest": "^29.7.0",
     "postcss": "^8",
-    "prisma": "^5.18.0",
+    "prisma": "^5.19.1",
     "tailwindcss": "^3.4.1",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
