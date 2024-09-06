@@ -2,33 +2,35 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";  
 import { getSession } from "@/server_actions/getSession";
 
+
 export const GET = async (req: NextRequest) => {
     try {
         const session = await getSession();
         if (!session) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
-        const userId = session.getUserId();
-        if (!userId) {
+        const mentorId = session.getUserId(); 
+        if (!mentorId) {
             return NextResponse.json({ message: "User ID not found" }, { status: 401 });
         }
 
         const url = new URL(req.url);
         const date = url.searchParams.get('date');
 
-        const activities = await prisma.activity.findMany({
+        const activities = await prisma.mentorActivity.findMany({
             where: {
-                studentId: userId,
+                mentorId,
                 ...(date && { date: new Date(date) })
             },
         });
 
         return NextResponse.json(activities);
     } catch (error) {
-        console.error("Error fetching activities:", error);
-        return NextResponse.json({ message: "Error fetching activities" }, { status: 500 });
+        console.error("Error fetching mentor activities:", error);
+        return NextResponse.json({ message: "Error fetching mentor activities" }, { status: 500 });
     }
 };
+
 
 export const POST = async (req: NextRequest) => {
     try {
@@ -36,32 +38,33 @@ export const POST = async (req: NextRequest) => {
         if (!session) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
-        const userId = session.getUserId();
-        if (!userId) {
+        const mentorId = session.getUserId();
+        if (!mentorId) {
             return NextResponse.json({ message: "User ID not found" }, { status: 401 });
         }
 
-        const { date, timeSpent, notes } = await req.json();
+        const { date, workingHours, activities } = await req.json();
 
-        if (!date || typeof timeSpent !== 'number' || !notes) {
+        if (!date || typeof workingHours !== 'number' || !activities) {
             return NextResponse.json({ message: "Invalid input data" }, { status: 400 });
         }
 
-        const newActivity = await prisma.activity.create({
+        const newMentorActivity = await prisma.mentorActivity.create({
             data: {
-                studentId: userId,
+                mentorId,
                 date: new Date(date),
-                timeSpent,
-                notes,
+                workingHours,
+                activities,
             },
         });
 
-        return NextResponse.json(newActivity, { status: 201 });
+        return NextResponse.json(newMentorActivity, { status: 201 });
     } catch (error) {
-        console.error("Error creating activity:", error);
-        return NextResponse.json({ message: "Error creating activity" }, { status: 500 });
+        console.error("Error creating mentor activity:", error);
+        return NextResponse.json({ message: "Error creating mentor activity" }, { status: 500 });
     }
 };
+
 
 export const PATCH = async (req: NextRequest) => {
     try {
@@ -69,34 +72,34 @@ export const PATCH = async (req: NextRequest) => {
         if (!session) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
-        const userId = session.getUserId();
-        if (!userId) {
+        const mentorId = session.getUserId(); 
+        if (!mentorId) {
             return NextResponse.json({ message: "User ID not found" }, { status: 401 });
         }
 
-        const { id, timeSpent, notes } = await req.json();
+        const { id, workingHours, activities } = await req.json();
 
-        if (!id || (timeSpent === undefined && notes === undefined)) {
+        if (!id || (workingHours === undefined && activities === undefined)) {
             return NextResponse.json({ message: "Invalid input data" }, { status: 400 });
         }
 
-        const updatedActivity = await prisma.activity.update({
+        const updatedMentorActivity = await prisma.mentorActivity.update({
             where: {
                 id,
-                studentId: userId,
             },
             data: {
-                timeSpent: timeSpent !== undefined ? timeSpent : undefined,
-                notes: notes !== undefined ? notes : undefined
+                workingHours: workingHours !== undefined ? workingHours : undefined,
+                activities: activities !== undefined ? activities : undefined
             }
         });
 
-        return NextResponse.json(updatedActivity, { status: 200 });
+        return NextResponse.json(updatedMentorActivity, { status: 200 });
     } catch (error) {
-        console.error("Error updating activity:", error);
-        return NextResponse.json({ message: "Error updating activity" }, { status: 500 });
+        console.error("Error updating mentor activity:", error);
+        return NextResponse.json({ message: "Error updating mentor activity" }, { status: 500 });
     }
 };
+
 
 export const DELETE = async (req: NextRequest) => {
     try {
@@ -104,8 +107,8 @@ export const DELETE = async (req: NextRequest) => {
         if (!session) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
-        const userId = session.getUserId();
-        if (!userId) {
+        const mentorId = session.getUserId(); 
+        if (!mentorId) {
             return NextResponse.json({ message: "User ID not found" }, { status: 401 });
         }
 
@@ -116,34 +119,34 @@ export const DELETE = async (req: NextRequest) => {
             return NextResponse.json({ message: "Missing activity ID" }, { status: 400 });
         }
 
-        const activity = await prisma.activity.findUnique({
+        const mentorActivity = await prisma.mentorActivity.findUnique({
             where: { id },
-            select: { createdAt: true, studentId: true }
+            select: { createdAt: true, mentorId: true }
         });
 
-        if (!activity) {
+        if (!mentorActivity) {
             return NextResponse.json({ message: "Activity not found" }, { status: 404 });
         }
 
-        if (activity.studentId !== userId) {
+        if (mentorActivity.mentorId !== mentorId) {
             return NextResponse.json({ message: "Not authorized to delete this activity" }, { status: 403 });
         }
 
         const now = new Date();
-        const creationDate = new Date(activity.createdAt);
+        const creationDate = new Date(mentorActivity.createdAt);
         const twoDays = 2 * 24 * 60 * 60 * 1000;
 
         if (now.getTime() - creationDate.getTime() > twoDays) {
             return NextResponse.json({ message: "Cannot delete activity after 2 days" }, { status: 403 });
         }
 
-        await prisma.activity.delete({
+        await prisma.mentorActivity.delete({
             where: { id }
         });
 
         return NextResponse.json({ message: "Activity deleted successfully" }, { status: 200 });
     } catch (error) {
-        console.error("Error deleting activity:", error);
-        return NextResponse.json({ message: "Error deleting activity" }, { status: 500 });
+        console.error("Error deleting mentor activity:", error);
+        return NextResponse.json({ message: "Error deleting mentor activity" }, { status: 500 });
     }
 };
