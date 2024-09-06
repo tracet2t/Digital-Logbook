@@ -8,50 +8,51 @@ datasource db {
 }
 
 model User {
-  id             String   @id @default(uuid())
-  email          String   @unique
-  passwordHash   String
-  firstName      String
-  lastName       String
-  emailConfirmed Boolean  @default(false)
-  role           Role
-  isFirstTimeLogin Boolean @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  activities     Activity[]
-  mentorFeedback MentorFeedback[]
-  mentorReports  Report[] @relation(name: "mentorReports")
-  studentReports Report[] @relation(name: "studentReports")
-  mentorRoles    Mentorship[] @relation(name: "mentorRole")
-  studentRoles   Mentorship[] @relation(name: "studentRole")
+  id               String           @id @default(uuid())
+  email            String           @unique
+  passwordHash     String
+  firstName        String
+  lastName         String
+  emailConfirmed   Boolean          @default(false)
+  role             Role
+  isFirstTimeLogin Boolean          @default(true)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  activities       Activity[]
+  mentorFeedback   MentorFeedback[]
+  mentorReports    Report[]         @relation(name: "mentorReports")
+  studentReports   Report[]         @relation(name: "studentReports")
+  mentorRoles      Mentorship[]     @relation(name: "mentorRole")
+  studentRoles     Mentorship[]     @relation(name: "studentRole")
+  mentorActivities MentorActivity[] @relation(name: "UserMentorActivities")
 
   @@map("users")
 }
 
 model Activity {
-  id        String    @id @default(uuid())
+  id        String           @id @default(uuid())
   studentId String
   date      DateTime
   timeSpent Int
   notes     String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  student   User      @relation(fields: [studentId], references: [id])
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  student   User             @relation(fields: [studentId], references: [id])
   feedback  MentorFeedback[]
 
   @@map("activities")
 }
 
 model MentorFeedback {
-  id            String    @id @default(uuid())
+  id            String         @id @default(uuid())
   activityId    String
   mentorId      String
   status        FeedbackStatus
   feedbackNotes String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  activity      Activity  @relation(fields: [activityId], references: [id])
-  mentor        User      @relation(fields: [mentorId], references: [id])
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  activity      Activity       @relation(fields: [activityId], references: [id])
+  mentor        User           @relation(fields: [mentorId], references: [id])
 
   @@map("mentorfeedback")
 }
@@ -76,6 +77,19 @@ model Mentorship {
   student   User   @relation(fields: [studentId], references: [id], name: "studentRole")
 
   @@map("mentorship")
+}
+
+model MentorActivity {
+  id           String   @id @default(cuid())
+  mentorId     String
+  date         DateTime
+  workingHours Int
+  activities   String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  mentor       User     @relation(fields: [mentorId], references: [id], name: "UserMentorActivities")
+
+  @@map("mentoractivities")
 }
 
 enum Role {
