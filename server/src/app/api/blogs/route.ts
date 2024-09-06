@@ -32,8 +32,6 @@ export const GET = async (req: NextRequest) => {
             },
         });
 
-        console.log(activities);
-
         return NextResponse.json(activities);
     } catch (error) {
         console.error("Error fetching activities:", error);

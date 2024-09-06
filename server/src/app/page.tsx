@@ -4,6 +4,7 @@
 import TaskCalendar from "@/components/calendar";
 // import { getSessionOnClient } from "@/server_actions/getSession";
 import getSession from '@/server_actions/getSession';
+import OverallFeedback from "@/components/feedback/overallfeeback";
 
 
 export default async function Home() {
@@ -32,6 +33,7 @@ export default async function Home() {
             <button type="submit">Logout</button>
           </form>
         </div>
+        <OverallFeedback></OverallFeedback>
         <div className="flex flex-col h-full">
           {role === 'student' && <div className="text-sm text-green-700">Student</div>}
           {role === 'mentor' && <div className="text-sm text-green-700">Mentor</div>}
