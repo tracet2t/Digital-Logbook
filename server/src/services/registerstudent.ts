@@ -29,6 +29,7 @@ export async function registerStudent(data: RegisterStudentData) {
 
     await sendEmail({
       email,
+      password,
       name: `${firstName} ${lastName}`,
       message: `Your registration was successful. Your temporary password is: ${password}`,
     });

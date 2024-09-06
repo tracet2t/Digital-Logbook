@@ -1,23 +1,18 @@
 type EmailTemplateProps = {
-  firstName: string;
+  name: string;
   password: string;
   loginUrl: string;
-  logoUrl: string;
 };
 
 export const EmailTemplate = ({
-  firstName,
+  name,
   password,
-  loginUrl,
-  logoUrl,
+  loginUrl
 }: EmailTemplateProps) => {
   return `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
-        <div style="text-align: center; margin-bottom: 20px;">
-          <img src="${logoUrl}" alt="Your Logo" style="max-width: 150px;" />
-        </div>
         <h2 style="font-size: 24px; font-weight: bold; margin-bottom: 20px;">Welcome to Our Digital Logbook!</h2>
-        <p style="margin-bottom: 20px;">Dear ${firstName},</p>
+        <p style="margin-bottom: 20px;">Dear ${name},</p>
         <p style="margin-bottom: 20px;">Thank you for joining us! We're excited to have you on board and look forward to working together.</p>
         <p style="margin-bottom: 20px;">Your temporary password is:</p>
         <div style="background-color: #f7f7f7; padding: 10px; border-radius: 4px; margin-bottom: 20px;">
