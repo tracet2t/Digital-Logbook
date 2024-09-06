@@ -49,7 +49,6 @@ export const POST = async (req: NextRequest) => {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
         const userId = session.getId();
-        console.log(userId)
         if (!userId) {
             return NextResponse.json({ message: "User ID not found" }, { status: 401 });
         }

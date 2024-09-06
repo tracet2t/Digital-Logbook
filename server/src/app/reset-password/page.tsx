@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { useRouter } from 'next/navigation'; // Use from next/navigation
 
 const ResetPasswordPage = () => {
     const [currentPassword, setCurrentPassword] = useState('');
@@ -12,6 +13,7 @@ const ResetPasswordPage = () => {
     const [confirmNewPassword, setConfirmNewPassword] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+    const router = useRouter(); // Initialize useRouter from next/navigation
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -39,6 +41,7 @@ const ResetPasswordPage = () => {
                 setErrorMessage(data.error || "An error occurred");
             } else {
                 setSuccessMessage("Password updated successfully");
+                router.push('/student'); // Redirect to the student page
             }
         } catch (error) {
             setErrorMessage("Failed to reset password");
