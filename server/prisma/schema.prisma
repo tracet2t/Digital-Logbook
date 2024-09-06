@@ -8,22 +8,23 @@ datasource db {
 }
 
 model User {
-  id              String           @id @default(uuid())
-  email           String           @unique
-  passwordHash    String
-  firstName       String
-  lastName        String
-  emailConfirmed  Boolean          @default(false)
-  role            Role
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  activities      Activity[]
-  mentorFeedback  MentorFeedback[]
-  mentorReports   Report[]         @relation("mentorReports")
-  studentReports  Report[]         @relation("studentReports")
-  mentorRoles     Mentorship[]     @relation("mentorRole")
-  studentRoles    Mentorship[]     @relation("studentRole")
-  mentorActivities MentorActivity[] @relation("MentorActivities") 
+  id               String           @id @default(uuid())
+  email            String           @unique
+  passwordHash     String
+  firstName        String
+  lastName         String
+  emailConfirmed   Boolean          @default(false)
+  role             Role
+  isFirstTimeLogin Boolean          @default(true)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  activities       Activity[]
+  mentorFeedback   MentorFeedback[]
+  mentorReports    Report[]         @relation("mentorReports")
+  studentReports   Report[]         @relation("studentReports")
+  mentorRoles      Mentorship[]     @relation("mentorRole")
+  studentRoles     Mentorship[]     @relation("studentRole")
+  mentorActivities MentorActivity[] @relation("MentorActivities")
 
   @@map("users")
 }
@@ -86,10 +87,9 @@ model MentorActivity {
   activities   String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-
   mentor       User     @relation(fields: [mentorId], references: [id], name: "MentorActivities")
 
-  @@map("mentor_activities") 
+  @@map("mentor_activities")
 }
 
 enum Role {
