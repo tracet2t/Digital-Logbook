@@ -65,7 +65,7 @@ const MentorDashboard = () => {
         <div className="bg-white p-4 rounded-xl shadow-lg h-128 w-full max-w-5xl">
           <div className="flex justify-between items-center mb-4 px-4">
             <select className="border border-gray-300 p-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="">Select Student</option>
+              <option value="">My Calendar</option>
               {/* Map through the users to create dropdown options */}
               {users.map((user) => (
                 <option key={user.id} value={user.id}>
