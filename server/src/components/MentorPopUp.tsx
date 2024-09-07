@@ -131,30 +131,6 @@ const MentorPopUp: React.FC<MentorPopUpProps> = ({ isOpen, onClose, mentorDetail
   );
 };
 
-const sampleMentorDetails = {
-  id: "dev_123", 
-  selectedDate: "2024-08-05",
-  workingHours: "3 hours",
-  studentActivity: "Completed all things",
-  review: ""
-};
 
-const App: React.FC = () => {
-  const [isModalOpen, setIsModalOpen] = useState(true);
 
-  const handleClose = () => {
-    setIsModalOpen(false);
-  };
-
-  return (
-    <div>
-      <MentorPopUp
-        isOpen={isModalOpen}
-        onClose={handleClose}
-        mentorDetails={sampleMentorDetails}
-      />
-    </div>
-  );
-};
-
-export default App;
+export default MentorPopUp;
