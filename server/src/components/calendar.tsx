@@ -155,6 +155,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
       if (role === 'student') {
         const response = await fetch(`http://localhost:3000/api/blogs?date=${formattedDate}`);
         const data = await response.json();
+        console.log(data)
         if (data.length > 0) {
           console.log(data[0]);
           const existingEvent = data[0];
@@ -297,7 +298,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     } else if (role === 'mentor') {
 
       const newFormData: FormData = {
-        studentId,
+        // studentId,
         date: formData.date,
         workingHours: workingHours,
         activities: notes,
@@ -362,7 +363,6 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   const eventPropGetter = (event: CalendarEvent) => {
     let backgroundColor = "#FFD93D"; // Default background color
     let textColor = "#000000"; // Default text color (white)
-    console.log(event);
   
     // Customize based on event status
     if (event.status === "pending") {

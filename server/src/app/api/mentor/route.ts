@@ -44,9 +44,9 @@ export const POST = async (req: NextRequest) => {
             return NextResponse.json({ message: "User ID not found" }, { status: 401 });
         }
 
-        const { date, timeSpent, notes } = await req.json();
+        const { date, workingHours, activities } = await req.json();
 
-        if (!date || typeof timeSpent !== 'number' || !notes) {
+        if (!date || typeof workingHours !== 'number' || !activities) {
             return NextResponse.json({ message: "Invalid input data" }, { status: 400 });
         }
 
@@ -54,8 +54,8 @@ export const POST = async (req: NextRequest) => {
             data: {
                 mentorId: userId,
                 date: new Date(date),
-                workingHours: timeSpent,
-                activities: notes,
+                workingHours: workingHours,
+                activities: activities,
             },
         });
 
