@@ -81,7 +81,6 @@ interface TaskCalendarProps {
 }
 
 const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
-  console.log(selectedUser);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [workingHours, setWorkingHours] = useState<number>(0);
@@ -115,26 +114,29 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
 
   const fetchEvents = async () => {
     try {
-      if (role === 'mentor') {
-        if (studentId === selectedUser) {
-          
-          const response = await fetch(`http://localhost:3000/api/mentor?studentId=${selectedUser}`);
-          const data = await response.json();
-          const parsedEvents = convertToCalendarEventsMentor(data);
-          setEvents(parsedEvents);
+      console.log(role);
+      if (role === 'student') {
+        const response = await fetch(`http://localhost:3000/api/blogs?studentId=${studentId}`);
+        const data = await response.json();
+        const parsedEvents = convertToCalendarEvents(data);
+        setEvents(parsedEvents);        
+      } else if (role === 'mentor') {
 
-        } else {
-      const response = await fetch(`http://localhost:3000/api/student?studentId=${selectedUser}`);
-      const data = await response.json();
-      const parsedEvents = convertToCalendarEvents(data);
-      setEvents(parsedEvents);
-        }
-      } else if (role === 'student') {
-      const response = await fetch(`http://localhost:3000/api/blogs?studentId=${selectedUser}`);
-      const data = await response.json();
-      const parsedEvents = convertToCalendarEvents(data);
-      setEvents(parsedEvents);
+
+      if (studentId === selectedUser) {
+        const response = await fetch(`http://localhost:3000/api/mentor?studentId=${selectedUser}`);
+        const data = await response.json();
+        const parsedEvents = convertToCalendarEventsMentor(data);
+        setEvents(parsedEvents);
+
+      } else {
+    const response = await fetch(`http://localhost:3000/api/student?studentId=${selectedUser}`);
+    const data = await response.json();
+    const parsedEvents = convertToCalendarEvents(data);
+    setEvents(parsedEvents);
       }
+
+    }
     } catch (error) {
       console.error("Failed to fetch events:", error);
     }
@@ -142,6 +144,8 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
 
   useEffect(() => {
     if (selectedUser) {
+      // console.log(selectedUser);
+      // console.log(role);
       fetchEvents();
     }
   }, [selectedUser]);
@@ -152,6 +156,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
         const response = await fetch(`http://localhost:3000/api/blogs?date=${formattedDate}`);
         const data = await response.json();
         if (data.length > 0) {
+          console.log(data[0]);
           const existingEvent = data[0];
           setFormData({
             studentId: existingEvent.studentId || "",
@@ -380,6 +385,10 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   };
 
   return (
+
+    // role = mentor
+    // selecteduser != usersessionid
+
     <>
       <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
         <AlertDialogContent>
