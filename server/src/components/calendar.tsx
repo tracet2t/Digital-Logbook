@@ -48,7 +48,6 @@ const convertToCalendarEvents = (data: any[]): CalendarEvent[] => {
   return data.map((item, index) => {
     const startDate = new Date(item.date);
     const endDate = new Date(item.date); // Calculate end time
-    console.log(item.feedback[0]?.status);
 
     return {
       id: index,
@@ -87,14 +86,19 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   const [workingHours, setWorkingHours] = useState<number>(0);
   const [session, setSession] = useState(null);
   const [notes, setNotes] = useState<string>("");
+  const [review, setReview] = useState<string>("");
+  const [status, setStatus] = useState<string>("");
   const [studentId, setStudentId] = useState<string>("");
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [role, setRole] = useState<string>("")
+  const [role, setRole] = useState<string>("");
+  const [feedbackActivityId,setFeedbackActivityId] = useState<string>(""); 
   const [formData, setFormData] = useState<FormData>({
     studentId: "",
     date: "",
     timeSpent: 0,
     notes: "",
+    status: "",
+    review: "",
   });
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
@@ -119,7 +123,9 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
       if (role === 'student') {
         const response = await fetch(`http://localhost:3000/api/blogs?studentId=${studentId}`);
         const data = await response.json();
+        console.log(data);
         const parsedEvents = convertToCalendarEvents(data);
+        console.log(parsedEvents);
         setEvents(parsedEvents);        
       } else if (role === 'mentor') {
 
@@ -145,8 +151,6 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
 
   useEffect(() => {
     if (selectedUser) {
-      // console.log(selectedUser);
-      // console.log(role);
       fetchEvents();
     }
   }, [selectedUser]);
@@ -156,9 +160,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
       if (role === 'student') {
         const response = await fetch(`http://localhost:3000/api/blogs?date=${formattedDate}`);
         const data = await response.json();
-        console.log(data)
         if (data.length > 0) {
-          console.log(data[0]);
           const existingEvent = data[0];
           setFormData({
             studentId: existingEvent.studentId || "",
@@ -213,27 +215,55 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
         } else {
         const response = await fetch(`http://localhost:3000/api/student?date=${formattedDate}&studentId=${selectedUser}`);
         const data = await response.json();
-        if (data.length > 0) {
+        console.log('--------------------------------------',data[0].id);
+        const feedbackResponse = await fetch(`http://localhost:3000/api/mentorFeedback?date=${formattedDate}&activityId=${data[0].id}`);
+        setFeedbackActivityId(data[0].id);
+        const feedbackData = await feedbackResponse.json();
+        if (data.length > 0 && feedbackData ) {
           const existingEvent = data[0];
           setFormData({
             studentId: existingEvent.studentId || "",
             date: formattedDate,
             timeSpent: existingEvent.timeSpent || 0,
             notes: existingEvent.notes || "",
+            review: feedbackData.feedbackNotes || "",
+            status: feedbackData.status || "",
           });
           setWorkingHours(existingEvent.timeSpent || 0);
           setNotes(existingEvent.notes || "");
           setEditingEvent(existingEvent);
+          setReview(feedbackData.feedbackNotes);
+          // setStatus(feedbackData.status);
+        } else if (data.length > 0) {
+          const existingEvent = data[0];
+          setFormData({
+            studentId: existingEvent.studentId || "",
+            date: formattedDate,
+            timeSpent: existingEvent.timeSpent || 0,
+            notes: existingEvent.notes || "",
+            review: "",
+            // status: ""
+          });
+          setWorkingHours(existingEvent.timeSpent || 0);
+          setNotes(existingEvent.notes || "");
+          setEditingEvent(existingEvent);
+          setReview("");
+          // setStatus("");
         } else {
           setFormData({
             studentId: "",
             date: formattedDate,
             timeSpent: 0,
             notes: "",
+            review: "",
+            // status: ""
           });
           setWorkingHours(0);
           setNotes("");
           setEditingEvent(null);
+          setReview("");
+          // setStatus("");
+          setFeedbackActivityId("");
         }
       }
       }
@@ -263,6 +293,14 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     setTaskModalOpen(false);
     setSelectedDate(null);
   };
+
+  useEffect(() => {
+    if (status === "approved") {
+      handleSubmit();
+    } else if (status === 'rejected') {
+      handleSubmit();
+    }
+  }, [status]);
 
   const handleSubmit = async () => {
     try {
@@ -298,6 +336,8 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
 
     } else if (role === 'mentor') {
 
+      if (selectedUser===studentId) {
+
       const newFormData: FormData = {
         // studentId,
         date: formData.date,
@@ -323,6 +363,33 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
       } else {
         console.error("Failed to save event:", await response.json());
       }
+    } else {
+
+      const newFormFeedbackData: FormData = {
+        review: review,
+        status: status,
+        mentor: studentId
+      }
+
+      const Feedbackresponse = await fetch(`http://localhost:3000/api/mentorFeedback?activityId=${feedbackActivityId}`, {
+        method:   "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...newFormFeedbackData,
+          id: editingEvent?.id,
+        }),
+      });    
+
+      if ( Feedbackresponse.ok) {
+        fetchEvents();
+        handleClose();
+      } else {
+        console.error("Failed to save event:", await Feedbackresponse.json());
+      }
+      
+    }
       
     }
 
@@ -431,7 +498,8 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-black mb-2">Review</h3>
                 <textarea
-                  value={'asdasdasd'}
+                  value={review}
+                  onChange={(e) => setReview(e.target.value)}
                   placeholder="Enter your review here..."
                   className="w-full h-32 p-3 border border-gray-300 rounded-md bg-white"
                 />
@@ -439,8 +507,8 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
             </AlertDialogDescription>
             <AlertDialogFooter className="flex justify-end gap-3 mt-4">
               <AlertDialogCancel onClick={setTaskModalOpen} className="bg-green-500 text-white hover:bg-green-600 px-4 py-2 rounded-md">Close</AlertDialogCancel>
-              <AlertDialogAction  className="bg-blue-500 text-white hover:bg-blue-700 px-4 py-2 rounded-md">Accept</AlertDialogAction>
-              <AlertDialogAction  className="bg-red-500 text-white hover:bg-red-700 px-4 py-2 rounded-md">Reject</AlertDialogAction>
+              <AlertDialogAction onClick={() => {setStatus('approved');}} className="bg-blue-500 text-white hover:bg-blue-700 px-4 py-2 rounded-md">Accept</AlertDialogAction>
+              <AlertDialogAction  onClick={() => {setStatus('rejected');}}className="bg-red-500 text-white hover:bg-red-700 px-4 py-2 rounded-md">Reject</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
@@ -448,7 +516,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
 
 
 
-    {role==='mentor' && selectedUser === studentId && (
+    {(role==='mentor' && selectedUser === studentId)   || role==='student' && (
       <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
