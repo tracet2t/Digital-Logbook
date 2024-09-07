@@ -6,31 +6,54 @@ import { Button } from "@/components/ui/button";
 import MentorRegStudentForm from '@/components/mentorregstudentform';
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getSessionOnClient } from "@/server_actions/getSession";
 
 const MentorDashboard = () => {
   const [showForm, setShowForm] = useState(false);
   const [users, setUsers] = useState<{ id: string; firstName: string; lastName: string; }[]>([]);
-  
+  const [session, setSession] = useState(null);
+  const [mentorName, setMentorName] = useState<string | null>(null);
+  const [mentorId, setMentorId] = useState<string | null>(null);
+  const [selectedMentor, setSelectedMentor] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true); // Loading state for users
+
+  useEffect(() => {
+    getSessionOnClient()
+      .then((data) => {
+        setSession(data);
+        setMentorName(data.fname + ' ' + data.lname);
+        setMentorId(data.id);
+        setSelectedMentor(data.id);
+      })
+      .catch((error) => {
+        console.error('Error fetching session:', error);
+      });
+  }, []);
+
   const handleOpenForm = () => {
-    setShowForm(true); // Show the form when the button is clicked
+    setShowForm(true); 
   };
 
   const handleCloseForm = () => {
-    setShowForm(false); // Hide the form when closing action is triggered
+    setShowForm(false); 
   };
 
-  // Fetch users function
+  const handleMentorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedMentor(e.target.value); 
+  };
+
   const fetchUsers = async () => {
     try {
       const response = await fetch('http://localhost:3000/api/users');
       const data = await response.json();
-      setUsers(data); // Set fetched users to the state
+      setUsers(data);
+      setIsLoading(false); // Stop loading once users are fetched
     } catch (error) {
       console.error("Failed to fetch users:", error);
+      setIsLoading(false); // Stop loading even if there's an error
     }
   };
 
-  // Fetch users on component mount
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -64,14 +87,24 @@ const MentorDashboard = () => {
       <div className="flex-grow flex flex-col items-center justify-center mt-[-100px]">
         <div className="bg-white p-4 rounded-xl shadow-lg h-128 w-full max-w-5xl">
           <div className="flex justify-between items-center mb-4 px-4">
-            <select className="border border-gray-300 p-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="">My Calendar</option>
-              {/* Map through the users to create dropdown options */}
-              {users.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.firstName} {user.lastName}
-                </option>
-              ))}
+            <select
+              className="border border-gray-300 p-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={selectedMentor}
+              onChange={handleMentorChange}
+              disabled={isLoading} // Disable dropdown while loading
+            >
+              {isLoading ? (
+                <option>Loading...</option> // Show a loading option
+              ) : (
+                <>
+                  <option value={mentorId}>{mentorName}</option>
+                  {users.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.firstName} {user.lastName}
+                    </option>
+                  ))}
+                </>
+              )}
             </select>
 
             <div className="flex space-x-4">

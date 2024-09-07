@@ -32,7 +32,7 @@ export async function POST(request: Request) {
         const algo = 'HS256';
 
         
-        const token = await new jose.SignJWT({ id: user.id, email: user.email, role: user.role.toString() })
+        const token = await new jose.SignJWT({ id: user.id, email: user.email, role: user.role.toString(), fname: user.firstName, lname: user.lastName })
             .setProtectedHeader({ alg: algo })
             .setIssuedAt()
             .setIssuer(process.env.ISSUER!)
