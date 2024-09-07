@@ -411,14 +411,14 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     return (
       <div className="flex justify-between items-center mb-4">
         <Button
-          onClick={() => setCurrentDate(moment(currentDate).subtract(1, "months").toDate())}
+          onClick={() => {setCurrentDate(moment(currentDate).subtract(1, "months").toDate());goToBack()}}
           className="text-xl"
-        >
+          >
           {"<"}
         </Button>
         <span className="text-2xl font-bold">{moment(toolbar.date).format("MMMM YYYY")}</span>
         <Button
-          onClick={() => setCurrentDate(moment(currentDate).add(1, "months").toDate())}
+          onClick={() => {setCurrentDate(moment(currentDate).subtract(1, "months").toDate());goToNext()}}
           className="text-xl"
         >
           {">"}
