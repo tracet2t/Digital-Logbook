@@ -22,6 +22,7 @@ export const GET = async (req: NextRequest) => {
                 mentorId: userId,
                 ...(date && { date: new Date(date) }),
             },
+            
         });
 
         return NextResponse.json(mentorActivities);
