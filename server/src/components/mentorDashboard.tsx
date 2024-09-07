@@ -1,7 +1,5 @@
-'use client';
-
 import React, { useState, useEffect } from 'react';
-import TaskCalendar from "@/components/calendar";
+import TaskCalendar from "@/components/calendar"; // Import TaskCalendar
 import { Button } from "@/components/ui/button";
 import MentorRegStudentForm from '@/components/mentorregstudentform';
 import Image from "next/image";
@@ -14,16 +12,18 @@ const MentorDashboard = () => {
   const [session, setSession] = useState(null);
   const [mentorName, setMentorName] = useState<string | null>(null);
   const [mentorId, setMentorId] = useState<string | null>(null);
-  const [selectedMentor, setSelectedMentor] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // Loading state for users
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true); 
 
   useEffect(() => {
     getSessionOnClient()
       .then((data) => {
-        setSession(data);
-        setMentorName(data.fname + ' ' + data.lname);
-        setMentorId(data.id);
-        setSelectedMentor(data.id);
+        if (data) {
+          setSession(data);
+          setMentorName(`${data.fname} ${data.lname}`);
+          setMentorId(data.id);
+          setSelectedUser(data.id); // Setting the selected user based on session
+        }
       })
       .catch((error) => {
         console.error('Error fetching session:', error);
@@ -39,7 +39,7 @@ const MentorDashboard = () => {
   };
 
   const handleMentorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedMentor(e.target.value); 
+    setSelectedUser(e.target.value); 
   };
 
   const fetchUsers = async () => {
@@ -87,25 +87,22 @@ const MentorDashboard = () => {
       <div className="flex-grow flex flex-col items-center justify-center mt-[-100px]">
         <div className="bg-white p-4 rounded-xl shadow-lg h-128 w-full max-w-5xl">
           <div className="flex justify-between items-center mb-4 px-4">
-            <select
-              className="border border-gray-300 p-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={selectedMentor}
-              onChange={handleMentorChange}
-              disabled={isLoading} // Disable dropdown while loading
-            >
-              {isLoading ? (
-                <option>Loading...</option> // Show a loading option
-              ) : (
-                <>
-                  <option value={mentorId}>{mentorName}</option>
-                  {users.map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.firstName} {user.lastName}
-                    </option>
-                  ))}
-                </>
-              )}
-            </select>
+            {!isLoading && session ? (
+              <select
+                className="border border-gray-300 p-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={selectedUser || mentorId} // Set selectedUser or mentorId if it's not yet available
+                onChange={handleMentorChange}
+              >
+                <option value={mentorId}>{mentorName}</option>
+                {users.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.firstName} {user.lastName}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <p>Loading...</p> // Show loading while fetching
+            )}
 
             <div className="flex space-x-4">
               <Button className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600">
@@ -124,9 +121,9 @@ const MentorDashboard = () => {
             </div>
           </div>
 
-          {/* Center the TaskCalendar component */}
+          {/* Pass the selectedUser as a prop to TaskCalendar */}
           <div className="flex justify-center items-center">
-            <TaskCalendar />
+            <TaskCalendar selectedUser={selectedUser} />
           </div>
         </div>
       </div>

@@ -59,7 +59,12 @@ const convertToCalendarEvents = (data: any[]): CalendarEvent[] => {
   });
 };
 
-const TaskCalendar: React.FC = () => {
+interface TaskCalendarProps {
+  selectedUser: string | null; // New prop for selectedUser
+}
+
+const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
+  console.log(selectedUser);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [workingHours, setWorkingHours] = useState<number>(0);
@@ -93,46 +98,80 @@ const TaskCalendar: React.FC = () => {
 
   const fetchEvents = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/api/blogs?studentId=${studentId}`);
+      if (role === 'mentor') {
+      const response = await fetch(`http://localhost:3000/api/student?studentId=${selectedUser}`);
       const data = await response.json();
       const parsedEvents = convertToCalendarEvents(data);
       setEvents(parsedEvents);
+      } else if (role === 'student') {
+      const response = await fetch(`http://localhost:3000/api/blogs?studentId=${selectedUser}`);
+      const data = await response.json();
+      const parsedEvents = convertToCalendarEvents(data);
+      setEvents(parsedEvents);
+      }
     } catch (error) {
       console.error("Failed to fetch events:", error);
     }
   };
 
   useEffect(() => {
-    if (studentId) {
+    if (selectedUser) {
       fetchEvents();
     }
-  }, [studentId]);
+  }, [selectedUser]);
 
   const fetchEventForDate = async (formattedDate: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/blogs?date=${formattedDate}&studentId=${studentId}`);
-      const data = await response.json();
-      if (data.length > 0) {
-        const existingEvent = data[0];
-        setFormData({
-          studentId: existingEvent.studentId || "",
-          date: formattedDate,
-          timeSpent: existingEvent.timeSpent || 0,
-          notes: existingEvent.notes || "",
-        });
-        setWorkingHours(existingEvent.timeSpent || 0);
-        setNotes(existingEvent.notes || "");
-        setEditingEvent(existingEvent);
-      } else {
-        setFormData({
-          studentId: "",
-          date: formattedDate,
-          timeSpent: 0,
-          notes: "",
-        });
-        setWorkingHours(0);
-        setNotes("");
-        setEditingEvent(null);
+      if (role === 'student') {
+        const response = await fetch(`http://localhost:3000/api/blogs?date=${formattedDate}`);
+        const data = await response.json();
+        if (data.length > 0) {
+          const existingEvent = data[0];
+          setFormData({
+            studentId: existingEvent.studentId || "",
+            date: formattedDate,
+            timeSpent: existingEvent.timeSpent || 0,
+            notes: existingEvent.notes || "",
+          });
+          setWorkingHours(existingEvent.timeSpent || 0);
+          setNotes(existingEvent.notes || "");
+          setEditingEvent(existingEvent);
+        } else {
+          setFormData({
+            studentId: "",
+            date: formattedDate,
+            timeSpent: 0,
+            notes: "",
+          });
+          setWorkingHours(0);
+          setNotes("");
+          setEditingEvent(null);
+        }
+      } else if (role === 'mentor') {
+        const response = await fetch(`http://localhost:3000/api/student?date=${formattedDate}&studentId=${selectedUser}`);
+        const data = await response.json();
+        if (data.length > 0) {
+          const existingEvent = data[0];
+          setFormData({
+            studentId: existingEvent.studentId || "",
+            date: formattedDate,
+            timeSpent: existingEvent.timeSpent || 0,
+            notes: existingEvent.notes || "",
+          });
+          setWorkingHours(existingEvent.timeSpent || 0);
+          setNotes(existingEvent.notes || "");
+          setEditingEvent(existingEvent);
+        } else {
+          setFormData({
+            studentId: "",
+            date: formattedDate,
+            timeSpent: 0,
+            notes: "",
+          });
+          setWorkingHours(0);
+          setNotes("");
+          setEditingEvent(null);
+        }
       }
     } catch (error) {
       console.error("Failed to fetch event for date:", error);
