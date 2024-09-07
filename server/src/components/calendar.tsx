@@ -67,6 +67,7 @@ const TaskCalendar: React.FC = () => {
   const [notes, setNotes] = useState<string>("");
   const [studentId, setStudentId] = useState<string>("");
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [role, setRole] = useState<string>("")
   const [formData, setFormData] = useState<FormData>({
     studentId: "",
     date: "",
@@ -82,6 +83,8 @@ const TaskCalendar: React.FC = () => {
       .then((data) => {
         setSession(data);
         setStudentId(data.id);
+        setRole(data.role);
+
       })
       .catch((error) => {
         console.error("Error fetching session:", error);
@@ -166,6 +169,9 @@ const TaskCalendar: React.FC = () => {
         timeSpent: workingHours,
         notes,
       };
+      console.log(newFormData);
+
+      if (role === 'student') {
 
       const response = await fetch("http://localhost:3000/api/blogs", {
         method: editingEvent ? "PATCH" : "POST",
@@ -185,6 +191,30 @@ const TaskCalendar: React.FC = () => {
       } else {
         console.error("Failed to save event:", await response.json());
       }
+
+    } else if (role === 'mentor') {
+
+      const response = await fetch("http://localhost:3000/api/mentor", {
+        method: editingEvent ? "PATCH" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...newFormData,
+          id: editingEvent?.id,
+        }),
+      });
+
+      if (response.ok) {
+        // Update events without refreshing
+        fetchEvents();
+        handleClose();
+      } else {
+        console.error("Failed to save event:", await response.json());
+      }
+      
+    }
+
     } catch (error) {
       console.error("Error submitting form:", error);
     }

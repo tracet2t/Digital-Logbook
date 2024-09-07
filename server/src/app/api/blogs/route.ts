@@ -61,8 +61,8 @@ export const POST = async (req: NextRequest) => {
             data: {
                 studentId: userId,
                 date: new Date(date),
-                timeSpent,
-                notes,
+                timeSpent: timeSpent,
+                notes: notes,
             },
         });
 
