@@ -58,6 +58,30 @@ const MentorDashboard = () => {
     fetchUsers();
   }, []);
 
+  const handleReport = async () => {
+    try {
+      const response = await fetch(`/api/report?studentId=${selectedUser}`);
+      if (!response.ok) {
+      throw new Error("Failed to generate report");
+      }
+      const contentDisposition = response.headers.get('Content-Disposition');
+      const filenameMatch = contentDisposition && contentDisposition.match(/filename="(.+)"/);
+      const filename = filenameMatch ? filenameMatch[1] : 'student_activity_report.csv';
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename; 
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (error) {
+      console.error('Failed to download report:', error);
+    }
+  };
+
+  
   return (
     <div className="h-screen flex flex-col bg-gradient-to-b from-[#B2D8F1] via-[#B2D8F1_25%] to-[#0A5080_67%]">
       {/* Top Bar with Logo, Avatar, and Logout */}
@@ -105,7 +129,8 @@ const MentorDashboard = () => {
             )}
 
             <div className="flex space-x-4">
-              <Button className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600">
+              <Button className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600"
+              onClick={handleReport}>
                 Generate Report
               </Button>
               <Button className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600">

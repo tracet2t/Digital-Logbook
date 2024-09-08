@@ -431,7 +431,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-black mb-2">Review</h3>
                 <textarea
-                  value={'asdasdasd'}
+                  //value={''}
                   placeholder="Enter your review here..."
                   className="w-full h-32 p-3 border border-gray-300 rounded-md bg-white"
                 />
