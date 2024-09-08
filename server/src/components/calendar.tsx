@@ -516,7 +516,52 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
 
 
 
-    {(role==='mentor' && selectedUser === studentId)   || role==='student' && (
+    {(role==='mentor' && selectedUser === studentId)    && (
+      <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Task Details</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogDescription>
+            <form>
+              <div className="mb-4">
+                <label>Date</label>
+                <Input type="date" value={formData.date} disabled className="text-black" />
+              </div>
+
+              <div className="mb-4">
+                <label>Working Hours</label>
+                <Input
+                  type="number"
+                  value={workingHours}
+                  onChange={(e) => setWorkingHours(Number(e.target.value) || 0)}
+                  placeholder="Enter working hours"
+                  disabled={!isEditable}
+                  className="text-black"
+                />
+              </div>
+              <div className="mb-4">
+                <label>Notes</label>
+                <Textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Enter notes"
+                  disabled={!isEditable}
+                  className="text-black"
+                />
+              </div>
+            </form>
+          </AlertDialogDescription>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleClose}>Cancel</AlertDialogCancel>
+            {isEditable && <AlertDialogAction onClick={handleSubmit}>Save</AlertDialogAction>}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    )}
+
+
+{ role==='student' && (
       <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
