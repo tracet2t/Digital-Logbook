@@ -21,7 +21,6 @@ model User {
   activities       Activity[]
   mentorFeedback   MentorFeedback[]
   mentorReports    Report[]         @relation(name: "mentorReports")
-  studentReports   Report[]         @relation(name: "studentReports")
   mentorRoles      Mentorship[]     @relation(name: "mentorRole")
   studentRoles     Mentorship[]     @relation(name: "studentRole")
   mentorActivities MentorActivity[] @relation(name: "UserMentorActivities")
@@ -60,11 +59,10 @@ model MentorFeedback {
 model Report {
   id          String   @id @default(uuid())
   mentorId    String
-  studentId   String?
   reportData  Json
+  status      ProcessStatus @default(pending)
   generatedAt DateTime @default(now())
   mentor      User     @relation(fields: [mentorId], references: [id], name: "mentorReports")
-  student     User?    @relation(fields: [studentId], references: [id], name: "studentReports")
 
   @@map("reports")
 }
@@ -102,4 +100,11 @@ enum FeedbackStatus {
   approved
   rejected
   pending
+}
+
+enum ProcessStatus {
+  pending
+  error
+  completed
+  wip
 }
