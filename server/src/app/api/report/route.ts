@@ -46,7 +46,7 @@ export const GET = async (req: NextRequest) => {
                 },
             },
         });
-        console.log(userWithActivities?.activities[0].feedback);
+        console.log(userWithActivities);
 
         if (!userWithActivities) {
             return NextResponse.json({ message: "User not found" }, { status: 404 });
@@ -57,8 +57,8 @@ export const GET = async (req: NextRequest) => {
             date: activity.date.toISOString().split('T')[0],
             timeSpent: activity.timeSpent,
             activity: activity.notes || 'No Activity',
-            feedbackStatus: activity.feedback[0].status|| "N/A",
-            feedbackNotes: activity.feedback[0].feedbackNotes || "No Feedback"
+            feedbackStatus: activity.feedback[0]?.status|| "N/A",
+            feedbackNotes: activity.feedback[0]?.feedbackNotes || "No Feedback"
         }));
  
         const fields = ['studentName', 'date', 'timeSpent', 'activity', 'feedbackStatus', 'feedbackNotes'];
