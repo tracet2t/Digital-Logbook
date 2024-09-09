@@ -5,58 +5,84 @@ import { useRouter } from 'next/navigation';
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 
+import { Button } from '@/components/ui/button';
+import { list } from 'postcss';
+
 interface Report {
   id: string;
   generatedAt: string;
   status: string;
-  link: string | null;
+  reportData: [] | null;
 }
+
 
 const BulkReports: React.FC = () => {
   const router = useRouter(); 
-  
-  const dummyReports: Report[] = [
-    {
-      id: 'report-001',
-      generatedAt: '2024-09-05T10:00:00Z',
-      status: 'DONE',
-      link: '/downloads/report-001.csv',
-    },
-    {
-      id: 'report-002',
-      generatedAt: '2024-09-06T15:30:00Z',
-      status: 'IN-PROGRESS',
-      link: null,
-    },
-    {
-      id: 'report-003',
-      generatedAt: '2024-09-04T09:15:00Z',
-      status: 'ERROR',
-      link: null,
-    },
-  ];
 
-  const [reports, setReports] = useState<Report[]>(dummyReports); // Use dummy data
-  const [loading, setLoading] = useState(false); // Disable loading for dummy data
+  const [reports, setReports] = useState<Report[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  //const mentorId = 'c33596bf-b3a4-43a3-ae2f-0bf9b7c881be';
-  
-  /*useEffect(() => {
+
+  // Function to convert JSON to CSV
+const jsonToCsv = (jsonData) => {
+  // Get the headers from the object keys
+  const headers = Object.keys(jsonData[0]);
+  const csvRows = [];
+
+  // Add headers as the first row
+  csvRows.push(headers.join(','));
+
+  // Add each row of data
+  jsonData.forEach(row => {
+      const values = headers.map(header => row[header]);
+      csvRows.push(values.join(','));
+  });
+
+  // Join rows with new line character
+  return csvRows.join('\n');
+};
+
+// Function to trigger CSV download
+const handleReport = async (reportData) => {
+  try {
+      if (reportData.length === 0) {
+          console.error("No data available");
+          return;
+      }
+
+      // Convert the JSON data to CSV format
+      const csvContent = 'data:text/csv;charset=utf-8,' + encodeURIComponent(jsonToCsv(reportData));
+
+      // Create a download link and trigger the download
+      const a = document.createElement('a');
+      a.href = csvContent;
+      a.download = 'student_bulk_activity_report.csv'; // Customize the filename
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+  } catch (error) {
+      console.error('Error generating report:', error);
+  }
+};
+
+
+
+  useEffect(() => {
     const fetchReports = async () => {
       try {
-        const response = await fetch(`/api/bulkReport?mentorId=${mentorId}`);
+        const response = await fetch(`/api/generateReport`);
         if (!response.ok) {
           throw new Error(`Failed to fetch reports: ${response.statusText}`);
         }
         const data = await response.json();
-        setReports(data.reports || []);
+        console.log(data);
+        setReports(data || []);
       } catch (error) {
         console.error("Error fetching reports:", error);
         setError("Error fetching reports");
@@ -66,8 +92,7 @@ const BulkReports: React.FC = () => {
     };
   
     fetchReports();
-  }, [mentorId]);*/
-  
+  }, []);
 
   return (
     <div className="p-8 bg-gradient-to-r from-blue-200 via-blue-300 to-blue-400 min-h-screen flex flex-col items-center">
@@ -104,8 +129,9 @@ const BulkReports: React.FC = () => {
                     <TableCell className="p-4">
                       <span
                         className={`inline-block px-2 py-1 rounded-full text-white ${
-                          report.status === 'DONE' ? 'bg-green-500' :
-                          report.status === 'IN-PROGRESS' ? 'bg-yellow-500' :
+                          report.status === 'pending' ? 'bg-yellow-500' :
+                          report.status === 'completed' ? 'bg-green-500' :
+                          report.status === 'wip' ? 'bg-blue-500' :
                           'bg-red-500'
                         }`}
                       >
@@ -113,10 +139,8 @@ const BulkReports: React.FC = () => {
                       </span>
                     </TableCell>
                     <TableCell className="p-4">
-                      {report.status === 'DONE' && report.link ? (
-                        <a href={report.link} className="text-blue-600 hover:underline">
-                          Download
-                        </a>
+                      {report.reportData ? (
+                        <Button onClick={()=> {handleReport(report.reportData)}} > Download </Button>
                       ) : (
                         <span className="text-gray-500">N/A</span>
                       )}

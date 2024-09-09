@@ -63,8 +63,25 @@ const MentorDashboard = () => {
     fetchUsers();
   }, []);
 
-  const handleBulkReportClick = () => {
-    router.push('/mentor/bulkreport'); // Navigate to bulk reports page
+  const handleBulkReportClick = async () => {
+    try {
+      const response = await fetch("/api/generateReport", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Report Generation Job ID:", data.jobId);
+        router.push("/mentor/bulkreport"); // Redirect to bulk report page
+      } else {
+        console.error("Failed to generate report.");
+      }
+    } catch (error) {
+      console.error("Error generating bulk report:", error);
+    }
   };
 
   return (
