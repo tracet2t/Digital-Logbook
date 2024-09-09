@@ -17,6 +17,7 @@ const MentorDashboard = () => {
   const [mentorId, setMentorId] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true); 
+  const [role,setRole] = useState<string | null>(null);
 
   const router = useRouter(); // Initialize router
 
@@ -27,6 +28,7 @@ const MentorDashboard = () => {
           setSession(data);
           setMentorName(`${data.fname} ${data.lname}`);
           setMentorId(data.id);
+          setRole(data.role);
           setSelectedUser(data.id); // Setting the selected user based on session
         }
       })
@@ -156,7 +158,7 @@ const MentorDashboard = () => {
 
             <div className="flex space-x-4">
               <Button className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600"
-              onClick={handleReport}>
+              onClick={handleReport} disabled={mentorId===selectedUser}>
                 Generate Report
               </Button>
               <Button
