@@ -24,10 +24,34 @@ export const reportWorker = new Worker(
   'reportQueue',
   async (job) => {
     // Generate report data
-    // console.log(job.data.mentorId)
+    console.log(job.data.mentorId)
     const reportData = await prisma.mentorship.findMany({
+      where: { mentorId: job.data.mentorId },
+      include: {
+        student: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            activities: {
+              select: {
+                id: true,
+                date: true,
+                timeSpent: true,
+                notes: true,
+                feedback: {
+                  select: {
+                    status: true,
+                    feedbackNotes: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     });
-    // console.log(reportData)
+    console.log(reportData)
 
     // Save generated report data
     await prisma.report.update({

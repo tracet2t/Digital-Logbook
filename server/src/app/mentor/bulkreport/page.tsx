@@ -13,13 +13,10 @@ import {
 
 import { Button } from '@/components/ui/button';
 import { list } from 'postcss';
+import { Parser } from 'json2csv';
 
-interface Report {
-  id: string;
-  generatedAt: string;
-  status: string;
-  reportData: [] | null;
-}
+
+
 
 
 const BulkReports: React.FC = () => {
@@ -29,47 +26,93 @@ const BulkReports: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Function to convert JSON to CSV
-const jsonToCsv = (jsonData) => {
-  // Get the headers from the object keys
-  const headers = Object.keys(jsonData[0]);
-  const csvRows = [];
+interface Activity {
+  id: string;
+  date: string;
+  notes: string;
+  timeSpent: number;
+  feedback: any[]; // You can type this according to your feedback structure if needed
+}
 
-  // Add headers as the first row
-  csvRows.push(headers.join(','));
+interface Student {
+  id: string;
+  firstName: string;
+  lastName: string;
+  activities: Activity[];
+}
 
-  // Add each row of data
-  jsonData.forEach(row => {
-      const values = headers.map(header => row[header]);
-      csvRows.push(values.join(','));
-  });
+interface ReportData {
+  id: string;
+  student: Student;
+  mentorId: string;
+  studentId: string;
+}
 
-  // Join rows with new line character
-  return csvRows.join('\n');
-};
+interface Report {
+  id: string;
+  mentorId: string;
+  reportData: ReportData[];
+  status: string;
+  generatedAt: string;
+}
 
-// Function to trigger CSV download
-const handleReport = async (reportData) => {
+// Function to handle report generation using json2csv
+const handleReport = async (report: Report): Promise<void> => {
   try {
-      if (reportData.length === 0) {
-          console.error("No data available");
-          return;
-      }
+    if (!report || report.reportData.length === 0) {
+      console.error("No data available");
+      return;
+    }
 
-      // Convert the JSON data to CSV format
-      const csvContent = 'data:text/csv;charset=utf-8,' + encodeURIComponent(jsonToCsv(reportData));
+    // Extract data and structure it for CSV generation
+    const formattedData: any[] = [];
+    
+    report.reportData.forEach((reportItem: ReportData) => {
+      const { student } = reportItem;
+      const { firstName, lastName, activities } = student;
 
-      // Create a download link and trigger the download
-      const a = document.createElement('a');
-      a.href = csvContent;
-      a.download = 'student_bulk_activity_report.csv'; // Customize the filename
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      activities.forEach((activity: Activity) => {
+        formattedData.push({
+          reportId: report.id,
+          mentorId: report.mentorId,
+          status: report.status,
+          generatedAt: report.generatedAt,
+          reportDataId: reportItem.id,
+          studentId: student.id,
+          studentFirstName: firstName,
+          studentLastName: lastName,
+          activityId: activity.id,
+          activityDate: activity.date,
+          activityNotes: activity.notes,
+          timeSpent: activity.timeSpent,
+        });
+      });
+    });
+
+    // Define the fields for the CSV
+    const fields = [
+      'reportId', 'mentorId', 'status', 'generatedAt',
+      'reportDataId', 'studentId', 'studentFirstName', 'studentLastName',
+      'activityId', 'activityDate', 'activityNotes', 'timeSpent'
+    ];
+    
+    const json2csvParser = new Parser({ fields });
+    const csv = json2csvParser.parse(formattedData);
+
+    // Trigger download of the CSV
+    const csvContent = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    const a = document.createElement('a');
+    a.href = csvContent;
+    a.download = 'student_bulk_activity_report.csv'; // Customize the filename
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
   } catch (error) {
-      console.error('Error generating report:', error);
+    console.error('Error generating report:', error);
   }
 };
+
 
 
 
@@ -140,7 +183,7 @@ const handleReport = async (reportData) => {
                     </TableCell>
                     <TableCell className="p-4">
                       {report.reportData ? (
-                        <Button onClick={()=> {handleReport(report.reportData)}} > Download </Button>
+                        <Button onClick={()=> {handleReport(report)}} > Download </Button>
                       ) : (
                         <span className="text-gray-500">N/A</span>
                       )}

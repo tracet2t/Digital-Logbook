@@ -5,9 +5,10 @@ const prisma = new PrismaClient();
 
 async function main() {
   // Clear existing data in the reverse order of dependencies
+  await prisma.activity.deleteMany({});
+  await prisma.mentorActivity.deleteMany({});        
   await prisma.mentorFeedback.deleteMany({}); 
   await prisma.report.deleteMany({});          
-  await prisma.activity.deleteMany({});        
   await prisma.mentorship.deleteMany({});     
   await prisma.user.deleteMany({}); 
   

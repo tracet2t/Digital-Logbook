@@ -38,6 +38,7 @@
     "dotenv-cli": "^7.4.2",
     "ioredis": "^5.4.1",
     "jose": "^5.8.0",
+    "json2csv": "^6.0.0-alpha.2",
     "lucide-react": "^0.436.0",
     "next": "14.2.5",
     "nodemailer": "^6.9.15",
@@ -47,6 +48,7 @@
     "react-toastify": "^10.0.5",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
+    "tsx": "^4.19.0",
     "uuid": "^10.0.0"
   },
   "devDependencies": {
