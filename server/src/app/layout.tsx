@@ -2,15 +2,9 @@ import './index.css';
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import ConditionalLayout from "@/components/ConditionalLayout";
-<<<<<<< HEAD
-import { AntdRegistry } from '@ant-design/nextjs-registry';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css'; 
-=======
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; 
 
->>>>>>> 6a536cf2f05d166c40d0e51f50f7e731c6cc78b8
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,21 +20,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-<<<<<<< HEAD
-      <body className={`${inter.className} relative`}>
-        <ConditionalLayout>
-          {children}
-        </ConditionalLayout>
-      <body className={inter.className}>
-        <AntdRegistry>{children}</AntdRegistry>
-        <ToastContainer
-=======
 
       <body className={`${inter.className} relative`}>
         <ConditionalLayout>
           {children}
            <ToastContainer
->>>>>>> 6a536cf2f05d166c40d0e51f50f7e731c6cc78b8
           position="top-right"
           autoClose={5000}
           hideProgressBar={false}
@@ -51,12 +35,9 @@ export default function RootLayout({
           draggable
           pauseOnHover
         />
-<<<<<<< HEAD
-=======
         </ConditionalLayout>
        
 
->>>>>>> 6a536cf2f05d166c40d0e51f50f7e731c6cc78b8
       </body>
     </html>
   );
