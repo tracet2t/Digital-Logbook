@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import TaskCalendar from "@/components/calendar"; // Import TaskCalendar
 import { Button } from "@/components/ui/button";
@@ -5,6 +7,7 @@ import MentorRegStudentForm from '@/components/mentorregstudentform';
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getSessionOnClient } from "@/server_actions/getSession";
+import { useRouter } from 'next/navigation'; // Import useRouter hook
 
 const MentorDashboard = () => {
   const [showForm, setShowForm] = useState(false);
@@ -14,6 +17,8 @@ const MentorDashboard = () => {
   const [mentorId, setMentorId] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true); 
+
+  const router = useRouter(); // Initialize router
 
   useEffect(() => {
     getSessionOnClient()
@@ -57,6 +62,10 @@ const MentorDashboard = () => {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  const handleBulkReportClick = () => {
+    router.push('/mentor/bulkreport'); // Navigate to bulk reports page
+  };
 
   return (
     <div className="h-screen flex flex-col bg-gradient-to-b from-[#B2D8F1] via-[#B2D8F1_25%] to-[#0A5080_67%]">
@@ -108,7 +117,10 @@ const MentorDashboard = () => {
               <Button className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600">
                 Generate Report
               </Button>
-              <Button className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600">
+              <Button
+                className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600"
+                onClick={handleBulkReportClick} // Handle Bulk Report click
+              >
                 Bulk Report
               </Button>
               <Button
