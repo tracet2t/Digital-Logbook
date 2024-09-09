@@ -61,7 +61,6 @@ const MentorDashboard = () => {
   const handleReport = async () => {
     try {
       const response = await fetch(`/api/report?studentId=${selectedUser}`);
-      .
       if (!response.ok) {
       throw new Error("Failed to generate report");
       }
