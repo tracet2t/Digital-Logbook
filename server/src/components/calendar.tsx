@@ -121,7 +121,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     try {
       console.log(role);
       if (role === 'student') {
-        const response = await fetch(`http://localhost:3000/api/blogs?studentId=${studentId}`);
+        const response = await fetch(`http://localhost:3000/api/activity?studentId=${studentId}`);
         const data = await response.json();
         console.log(data);
         const parsedEvents = convertToCalendarEvents(data);
@@ -158,7 +158,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   const fetchEventForDate = async (formattedDate: string) => {
     try {
       if (role === 'student') {
-        const response = await fetch(`http://localhost:3000/api/blogs?date=${formattedDate}`);
+        const response = await fetch(`http://localhost:3000/api/activity?date=${formattedDate}`);
         const data = await response.json();
         if (data.length > 0) {
           const existingEvent = data[0];
@@ -315,7 +315,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
         };
         console.log(newFormData);
 
-      const response = await fetch("http://localhost:3000/api/blogs", {
+      const response = await fetch("http://localhost:3000/api/activity", {
         method: editingEvent ? "PATCH" : "POST",
         headers: {
           "Content-Type": "application/json",
