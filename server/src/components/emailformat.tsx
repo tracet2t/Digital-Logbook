@@ -1,54 +1,77 @@
 import React from 'react';
-import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'; 
 
-const WelcomeEmail: React.FC = () => {
-    const studentName = "[Student's Name]"; // Replace with actual student's name
-    const temporaryPassword = "[Temporary Password]"; // Replace with actual temporary password
-    const applicationLink = "[Application Link]"; // Replace with actual application link
-
-    return (
-        <div className="relative bg-gray-100 min-h-screen flex items-center justify-center p-4">
-            <div className="w-full max-w-lg px-2">
-                <Card>
-                    <CardHeader className="flex items-center space-x-4">
-                        <img
-                            src="/logo.png"
-                            alt="Logo"
-                            className="h-24 w-auto object-contain"
-                        />
-                    </CardHeader>
-                    <CardContent>
-                        <CardTitle className="text-gray-800">Welcome to Our Digital Logbook!</CardTitle>
-                        <CardDescription className="text-gray-700 mb-4">
-                            Dear {studentName},
-                        </CardDescription>
-                        <p className="text-gray-700 mb-4">
-                            Thank you for joining us! We're excited to have you on board and look forward to working together.
-                        </p>
-                        <p className="text-gray-700 mb-2">Your temporary password is:</p>
-                        <p className="bg-gray-200 text-red-600 font-mono text-lg p-2 rounded mb-4">
-                            {temporaryPassword}
-                        </p>
-                        <p className="text-gray-700 mb-4">
-                            Use this password to log in to your account. We recommend changing it once you have successfully logged in.
-                        </p>
-                        <p className="text-gray-700 mb-4">
-                            To access the application, please use the following link:
-                        </p>
-                        <a
-                            href={applicationLink}
-                            className="text-blue-500 hover:underline"
-                        >
-                            Go to Application
-                        </a>
-                    </CardContent>
-                    <CardFooter className="text-gray-500 mt-4 text-sm">
-                        If you have any questions, feel free to contact our support team.
-                    </CardFooter>
-                </Card>
-            </div>
-        </div>
-    );
+type EmailTemplateProps = {
+  name: string;
+  password: string;
+  loginUrl: string;
 };
 
-export default WelcomeEmail;
+export const WelcomeEmail = ({ name, password, loginUrl }: EmailTemplateProps) => {
+  return (
+    <div
+      style={{
+        backgroundColor: '#f3f4f6',
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '1rem',
+      }}
+    >
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '640px',
+          padding: '1rem',
+          backgroundColor: '#fff',
+          borderRadius: '8px',
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
+          <img
+            src="/logo.png"
+            alt="Logo"
+            style={{ height: '96px', width: 'auto', objectFit: 'contain' }}
+          />
+        </div>
+        <div>
+          <h1 style={{ color: '#1f2937', marginBottom: '1rem' }}>Welcome to Our Digital Logbook!</h1>
+          <p style={{ color: '#4b5563', marginBottom: '1rem' }}>Dear {name},</p>
+          <p style={{ color: '#4b5563', marginBottom: '1rem' }}>
+            Thank you for joining us! We're excited to have you on board and look forward to working together.
+          </p>
+          <p style={{ color: '#4b5563', marginBottom: '0.5rem' }}>Your temporary password is:</p>
+          <p
+            style={{
+              backgroundColor: '#e5e7eb',
+              color: '#dc2626',
+              fontFamily: 'monospace',
+              fontSize: '1.125rem',
+              padding: '0.5rem',
+              borderRadius: '4px',
+              marginBottom: '1rem',
+            }}
+          >
+            {password}
+          </p>
+          <p style={{ color: '#4b5563', marginBottom: '1rem' }}>
+            Use this password to log in to your account. We recommend changing it once you have successfully logged in.
+          </p>
+          <p style={{ color: '#4b5563', marginBottom: '1rem' }}>
+            To access the application, please use the following link:
+          </p>
+          <a
+            href={loginUrl}
+            style={{ color: '#3b82f6', textDecoration: 'underline' }}
+          >
+            Go to Application
+          </a>
+        </div>
+        <div style={{ color: '#6b7280', marginTop: '1rem', fontSize: '0.875rem' }}>
+          If you have any questions, feel free to contact our support team.
+        </div>
+      </div>
+    </div>
+  );
+};

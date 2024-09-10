@@ -1,6 +1,5 @@
 import { isUrlAllowed } from "@/lib/extras";
-import { getSession } from "@/server_actions/getSession";
-
+import getSession from "@/server_actions/getSession";
 import { NextFetchEvent, NextMiddleware, NextRequest, NextResponse } from "next/server";
 
 const mentorRoutingBlacklist = ['/admin'];
@@ -12,10 +11,6 @@ export function withRoleBasedRoutingMiddleware(middleware: NextMiddleware): Next
         const session = (await getSession(request.cookies));
 
         const role = session.getRole();
-        console.log(role)
-        console.log(request.nextUrl.pathname);
-
-        console.log(!isUrlAllowed(request.nextUrl.pathname, studentRoutingBlacklist))
 
         if (role === 'student' && !isUrlAllowed(request.nextUrl.pathname, studentRoutingBlacklist)) {
             return NextResponse.redirect(`${process.env.BASE_URL}/unauthorized`);

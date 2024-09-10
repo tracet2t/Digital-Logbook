@@ -1,7 +1,6 @@
 import './index.css';
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; 
 
@@ -20,7 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <AntdRegistry>{children}</AntdRegistry>
+        {children}
         <ToastContainer
           position="top-right"
           autoClose={5000}
