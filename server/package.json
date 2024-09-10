@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "generate": "prisma generate",
-    "seed": "node prisma/seed.ts",
+    "seed": "node prisma/seed.mjs",
     "test": "dotenv -e .env.test -- jest -i",
     "migrate:maindb": "npx prisma migrate dev",
     "migrate:testdb": "dotenv -e .env.test -- npx prisma migrate dev"

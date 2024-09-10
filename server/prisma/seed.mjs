@@ -1,16 +1,17 @@
-const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcrypt');
+import { PrismaClient } from "@prisma/client";
+import bcrypt from 'bcrypt';
+
 
 const prisma = new PrismaClient();
 
 async function main() {
   // Clear existing data in the reverse order of dependencies
-  await prisma.activity.deleteMany({});
-  await prisma.mentorActivity.deleteMany({});        
-  await prisma.mentorFeedback.deleteMany({}); 
-  await prisma.report.deleteMany({});          
-  await prisma.mentorship.deleteMany({});     
-  await prisma.user.deleteMany({}); 
+  await prisma.activity.deleteMany();
+  await prisma.mentorActivity.deleteMany();        
+  await prisma.mentorFeedback.deleteMany(); 
+  await prisma.report.deleteMany();          
+  await prisma.mentorship.deleteMany();     
+  await prisma.user.deleteMany(); 
   
   // Symmetric key for password hashing
   const saltRounds = 10;
