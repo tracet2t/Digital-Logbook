@@ -6,18 +6,32 @@ import getSession from "@/server_actions/getSession";
 
 const prisma = new PrismaClient();
 
+// Helper function to validate password requirements
+function validatePassword(password: string) {
+  const hasUpperCase = /[A-Z]/.test(password);
+  const hasLowerCase = /[a-z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const minLength = password.length >= 8; 
+
+  return hasUpperCase && hasLowerCase && hasNumber && minLength;
+}
+
 export async function PUT(req: NextRequest) {
   try {
-
     const email = (await getSession()).getUsername();
-
     const { currentPassword, newPassword } = await req.json();
-
-    const role = (await getSession()).getUsername();
 
     if (!email || !currentPassword || !newPassword) {
       return NextResponse.json(
         { error: "Current password, email, and new password are required" },
+        { status: 400 }
+      );
+    }
+
+    // Validate the new password
+    if (!validatePassword(newPassword)) {
+      return NextResponse.json(
+        { error: "Password must include at least one uppercase letter, one lowercase letter, one number, and be at least 8 characters long" },
         { status: 400 }
       );
     }
