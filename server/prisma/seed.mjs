@@ -40,7 +40,7 @@ async function main() {
     }
   });
 
-  
+
   // console.log({ mentor1, mentor2, student1, student2, student3, feedback1, feedback2, report1, report2 });
 } catch (error) {
   console.error('Error seeding data:', error);
