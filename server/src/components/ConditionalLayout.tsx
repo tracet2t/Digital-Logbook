@@ -1,5 +1,5 @@
 // src/components/ConditionalLayout.tsx
-import { getSession } from '@/server_actions/getSession';
+import getSession from "@/server_actions/getSession";
 import ProfileCard from "@/components/ProfileCard";
 
 
