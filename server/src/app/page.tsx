@@ -1,27 +1,42 @@
-// src/app/page.tsx
+"use server"
+
+// import { useState, useEffect } from 'react';
 import TaskCalendar from "@/components/calendar";
-import { Button } from "antd";
-import Title from "antd/es/typography/Title";
-import { getSession } from "@/server_actions/getSession";
+// import { getSessionOnClient } from "@/server_actions/getSession";
+import getSession from '@/server_actions/getSession';
+
 
 export default async function Home() {
-  const session = await getSession();
-  const role = session?.getRole();
+//   const [session, setSession] = useState(null);
+//   const [role, setRole] = useState(null);
+
+  const role = (await getSession()).getRole();
+
+
+//   useEffect(() => {
+//     getSessionOnClient()
+//       .then((data) => {
+//         setSession(data);
+//         setRole(data.role);
+//       })
+//       .catch((error) => {
+//         console.error('Error fetching session:', error);
+//       });
+//   }, []);
 
   return (
-    <div className="p-6 h-[80vh] gap-4"> {/* Increased padding and set height to 80% of viewport height */}
-      <div className="flex flex-col gap-8"> {/* Increased gap for more spacing */}
-        <Title level={3} className="mb-8">Dashboard</Title> {/* Increased margin-bottom */}
-        {/* <form action="/auth/logout" method="post">
-          <Button htmlType="submit">Logout</Button>
-        </form> */}
-        <div className="flex flex-col flex-grow"> {/* Used flex-grow to take up available space */}
-          {role === 'student' && <div className="text-sm text-green-700 mb-2">Student</div>}
-          {role === 'mentor' && <div className="text-sm text-green-700 mb-2">Mentor</div>}
-          {role === 'admin' && <div className="text-sm text-green-700 mb-2">Super Admin</div>}
+      <div className="p-2">
+        <div className="flex gap-2 justify-between">
+          <h1>Dashboard</h1>
+          <form action="/auth/logout" method="post">
+            <button type="submit">Logout</button>
+          </form>
         </div>
-        <TaskCalendar />
+        <div className="flex flex-col h-full">
+          {role === 'student' && <div className="text-sm text-green-700">Student</div>}
+          {role === 'mentor' && <div className="text-sm text-green-700">Mentor</div>}
+          {role === 'admin' && <div className="text-sm text-green-700">Super Admin</div>}
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }

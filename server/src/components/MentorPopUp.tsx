@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,23 +17,61 @@ interface MentorPopUpProps {
   isOpen: boolean;
   onClose: () => void;
   mentorDetails: {
+    id: string; 
     selectedDate: string;
     workingHours: string;
     studentActivity: string;
     review: string;
+    ismentor: boolean;
   };
 }
 
 const MentorPopUp: React.FC<MentorPopUpProps> = ({ isOpen, onClose, mentorDetails }) => {
   const [review, setReview] = useState<string>(mentorDetails.review || '');
 
+  useEffect(() => {
+    const fetchMentorActivity = async () => {
+      try {
+        const response = await fetch(`/api/mentor-activity/${mentorDetails.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setReview(data.activities || '');
+        } else {
+          console.error('Failed to fetch ');
+        }
+      } catch (error) {
+        console.error('Error fetching ', error);
+      }
+    };
+
+    if (mentorDetails.id) {
+      fetchMentorActivity();
+    }
+  }, [mentorDetails.id]);
+
   const handleReviewChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setReview(e.target.value);
   };
 
-  const handleAccept = () => {
-    console.log("Task Accepted");
-    console.log("Review:", review); 
+  const handleAccept = async () => {
+    try {
+      const response = await fetch(`/api/mentor-activity/${mentorDetails.id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ review }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Review updated successfully", data);
+      } else {
+        console.error('Failed to update review');
+      }
+    } catch (error) {
+      console.error('Error updating review:', error);
+    }
   };
 
   const handleReject = () => {
@@ -42,6 +80,8 @@ const MentorPopUp: React.FC<MentorPopUpProps> = ({ isOpen, onClose, mentorDetail
   };
 
   return (
+
+
     <AlertDialog open={isOpen} onOpenChange={onClose}>
       <AlertDialogTrigger asChild>
         <div />
@@ -91,29 +131,6 @@ const MentorPopUp: React.FC<MentorPopUpProps> = ({ isOpen, onClose, mentorDetail
   );
 };
 
-const sampleMentorDetails = {
-  selectedDate: "2024-09-05",
-  workingHours: "3 hours",
-  studentActivity: "Completed the project proposal and submitted it for review.",
-  review: ""
-};
 
-const App: React.FC = () => {
-  const [isModalOpen, setIsModalOpen] = useState(true);
 
-  const handleClose = () => {
-    setIsModalOpen(false);
-  };
-
-  return (
-    <div>
-      <MentorPopUp
-        isOpen={isModalOpen}
-        onClose={handleClose}
-        mentorDetails={sampleMentorDetails}
-      />
-    </div>
-  );
-};
-
-export default App;
+export default MentorPopUp;

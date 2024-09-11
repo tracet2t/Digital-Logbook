@@ -1,59 +1,92 @@
-// components/MentorRegStudentForm.tsx
-'use client'; // This component is a client component
+'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { registerStudent } from '@/services/registerstudent';
 
-export default function MentorRegStudentForm() {
-  const [isVisible, setIsVisible] = useState(true); // Manage visibility state internally
+export default function MentorRegStudentForm({ onClose }) {
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+  });
 
-  const handleSubmit = async (formData: FormData) => {
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      await registerStudent(formData); // Call the server action to register the student
-      alert('Student registered successfully!'); // Show success message
-      setIsVisible(false); // Hide the form on successful registration
+      await registerStudent(formData); // Pass the plain object instead of FormData
+      alert('Student registered successfully!');
+      onClose(); // Close the form on successful registration
     } catch (error) {
-      alert('Error registering student. Please try again.'); // Show error message
+      alert('Error registering student. Please try again.');
     }
   };
 
-  const handleClose = () => {
-    setIsVisible(false); // Hide the form on cancel
-  };
-
-  if (!isVisible) return null; // Don't render the form if it's not visible
-
   return (
-    <div className="modal">
-      <div className="modal-content">
-        <h2>Register Student</h2>
-        <form action={handleSubmit}>
-          <div>
-            <label>
-              First Name
-              <input type="text" name="firstName" placeholder="First Name" required />
-            </label>
-          </div>
-          <div>
-            <label>
-              Last Name
-              <input type="text" name="lastName" placeholder="Last Name" required />
-            </label>
-          </div>
-          <div>
-            <label>
-              Email
-              <input type="email" name="email" placeholder="Email" required />
-            </label>
-          </div>
-          <div>
-            <button type="submit">Register</button>
-            <button type="button" onClick={handleClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <Card className="w-full max-w-lg p-4 z-60">
+        <CardHeader>
+          <h2>Register Student</h2>
+        </CardHeader>
+        <form onSubmit={handleSubmit}>
+          <CardContent>
+            <div className="mb-4">
+              <label>
+                First Name
+                <Input 
+                  type="text" 
+                  name="firstName" 
+                  value={formData.firstName} 
+                  onChange={handleChange} 
+                  placeholder="First Name" 
+                  required 
+                />
+              </label>
+            </div>
+            <div className="mb-4">
+              <label>
+                Last Name
+                <Input 
+                  type="text" 
+                  name="lastName" 
+                  value={formData.lastName} 
+                  onChange={handleChange} 
+                  placeholder="Last Name" 
+                  required 
+                />
+              </label>
+            </div>
+            <div className="mb-4">
+              <label>
+                Email
+                <Input 
+                  type="email" 
+                  name="email" 
+                  value={formData.email} 
+                  onChange={handleChange} 
+                  placeholder="Email" 
+                  required 
+                />
+              </label>
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-between">
+            <Button type="submit" className="bg-green-500 hover:bg-green-600">Register</Button>
+            <Button type="button" className="bg-red-500 hover:bg-red-600" onClick={onClose}>
               Cancel
-            </button>
-          </div>
+            </Button>
+          </CardFooter>
         </form>
-      </div>
+      </Card>
     </div>
   );
 }
