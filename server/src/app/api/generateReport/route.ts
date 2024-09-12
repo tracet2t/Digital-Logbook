@@ -1,7 +1,10 @@
+// src/api/reports.ts
 import { NextRequest, NextResponse } from "next/server";
 import { reportQueue } from "@/lib/queue";
-import prisma from "@/lib/prisma";
+import { ReportRepository } from "@/repositories/repositories";
 import getSession from "@/server_actions/getSession";
+
+const reportRepository = new ReportRepository();
 
 export const POST = async (req: NextRequest) => {
   try {
@@ -16,27 +19,18 @@ export const POST = async (req: NextRequest) => {
       return NextResponse.json({ message: "User ID not found" }, { status: 401 });
     }
 
-
-
-
-    // Create a new report entry in the database with default values
-    const newReport = await prisma.report.create({
-      data: {
-        mentorId: userId,
-        reportData: {}, 
-        status: 'wip'
-      },
+    const newReport = await reportRepository.create({
+      mentorId: userId,
+      reportData: {}, 
+      status: 'wip'
     });
 
     console.log("Creating job with data:", { mentorId: userId, reportId: newReport.id });
-
 
     await reportQueue.add('reportJob', {
       mentorId: userId,
       reportId: newReport.id,
     });
-
-
 
     // Respond with the new report data
     return NextResponse.json({ reportId: newReport.id });
@@ -59,18 +53,17 @@ export const GET = async (req: NextRequest) => {
       return NextResponse.json({ message: "User ID not found" }, { status: 401 });
     }
 
-    // Create a new report entry in the database with default values
-    const newReport = await prisma.report.findMany({
+    // Retrieve all reports for the mentor using the repository
+    const reports = await reportRepository.getAll({
       where: {
-        mentorId: session.getId(), // Assuming getUserId() returns the mentor's ID
-      },
+        mentorId: userId
+      }
     });
 
-
-    // Respond with the new report data
-    return NextResponse.json(newReport);
+    // Respond with the report data
+    return NextResponse.json(reports);
   } catch (error) {
-    console.error("Error starting report generation:", error);
-    return NextResponse.json({ message: "Error starting report generation" }, { status: 500 });
+    console.error("Error fetching reports:", error);
+    return NextResponse.json({ message: "Error fetching reports" }, { status: 500 });
   }
 };

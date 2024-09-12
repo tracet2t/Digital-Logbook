@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 import { compare } from "bcrypt-ts";
 import * as jose from 'jose';
+import { UserRepository } from '@/repositories/repositories';  // Import the repository
 
 export async function POST(request: Request) {
     const baseUrl = request.headers.get('origin');
     const formData = await request.formData();
-    
+
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
 
@@ -15,9 +15,9 @@ export async function POST(request: Request) {
     }
 
     try {
-        const user = await prisma.user.findUnique({
-            where: { email },
-        });
+        // Use getByEmail method to find user by email
+        const userRepository = new UserRepository();
+        const user = await userRepository.getByEmail(email);
 
         if (!user) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -31,31 +31,36 @@ export async function POST(request: Request) {
         const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
         const algo = 'HS256';
 
-        
-        const token = await new jose.SignJWT({ id: user.id, email: user.email, role: user.role.toString(), fname: user.firstName, lname: user.lastName })
+        const token = await new jose.SignJWT({ 
+            id: user.id, 
+            email: user.email, 
+            role: user.role.toString(), 
+            fname: user.firstName, 
+            lname: user.lastName 
+        })
             .setProtectedHeader({ alg: algo })
             .setIssuedAt()
             .setIssuer(process.env.ISSUER!)
             .setAudience(process.env.AUDIENCE!)
             .setExpirationTime(process.env.JWT_EXPIRY!)
             .sign(secret);
-        
+
         const headers = new Headers(request.headers);
         headers.set("Set-Cookie", `token=${token}; Path=/; HttpOnly`);
- 
+
         let redirectUrl = `${baseUrl}/unauthorized`; 
         if (user.role === 'student') {
             if (!user.emailConfirmed) {
-                redirectUrl = `${baseUrl}/reset-password`
+                redirectUrl = `${baseUrl}/reset-password`;
             } else {
-                redirectUrl = `${baseUrl}/student`
+                redirectUrl = `${baseUrl}/student`;
             }
         } else if (user.role === 'mentor') {
             redirectUrl = `${baseUrl}/mentor`; 
         }
 
         return NextResponse.redirect(redirectUrl, { status: 303, headers: headers });
-    
+
     } catch (error) {
         console.error("Error during authentication", error);
         return NextResponse.json({ error: "An error occurred during authentication" }, { status: 500 });

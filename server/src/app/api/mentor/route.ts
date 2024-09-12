@@ -1,6 +1,9 @@
+// src/api/mentorActivities.ts
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";  
+import { MentorRepository } from "@/repositories/repositories";
 import getSession from "@/server_actions/getSession";
+
+const mentorRepository = new MentorRepository();
 
 export const GET = async (req: NextRequest) => {
     try {
@@ -16,14 +19,9 @@ export const GET = async (req: NextRequest) => {
 
         const url = new URL(req.url);
         const date = url.searchParams.get('date');
+        const dateObj = date ? new Date(date) : undefined;
 
-        const mentorActivities = await prisma.mentorActivity.findMany({
-            where: {
-                mentorId: userId,
-                ...(date && { date: new Date(date) }),
-            },
-            
-        });
+        const mentorActivities = await mentorRepository.getMentorActivities(userId, dateObj);
 
         return NextResponse.json(mentorActivities);
     } catch (error) {
@@ -50,13 +48,11 @@ export const POST = async (req: NextRequest) => {
             return NextResponse.json({ message: "Invalid input data" }, { status: 400 });
         }
 
-        const newMentorActivity = await prisma.mentorActivity.create({
-            data: {
-                mentorId: userId,
-                date: new Date(date),
-                workingHours: workingHours,
-                activities: activities,
-            },
+        const newMentorActivity = await mentorRepository.createMentorActivity({
+            mentorId: userId,
+            date: new Date(date),
+            workingHours,
+            activities,
         });
 
         return NextResponse.json(newMentorActivity, { status: 201 });
@@ -84,15 +80,9 @@ export const PATCH = async (req: NextRequest) => {
             return NextResponse.json({ message: "Invalid input data" }, { status: 400 });
         }
 
-        const updatedMentorActivity = await prisma.mentorActivity.update({
-            where: {
-                id,
-                mentorId: userId,
-            },
-            data: {
-                workingHours: workingHours !== undefined ? workingHours : undefined,
-                activities: activities !== undefined ? activities : undefined
-            }
+        const updatedMentorActivity = await mentorRepository.updateMentorActivity(id, userId, {
+            workingHours,
+            activities
         });
 
         return NextResponse.json(updatedMentorActivity, { status: 200 });
@@ -101,4 +91,3 @@ export const PATCH = async (req: NextRequest) => {
         return NextResponse.json({ message: "Error updating mentor activity" }, { status: 500 });
     }
 };
-

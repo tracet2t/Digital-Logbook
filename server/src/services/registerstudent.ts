@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma';
 import bcrypt from 'bcrypt';
 import { sendEmail } from '@/app/api/email/route';
 import getSession from '@/server_actions/getSession';
-import { UserRepository } from '@/repositories/repositories';
+import { UserRepository, MentorshipRepository } from '@/repositories/repositories';
 
 
 interface RegisterStudentData {
@@ -22,6 +22,7 @@ export async function registerStudent(data: RegisterStudentData) {
   // Retrieve the mentor's ID from the session
   const mentorId = (await getSession()).getId();
   const userRepository = new UserRepository();
+  const mentorRepository = new MentorshipRepository();
   try {
     // Create a new student in the database
     const student = await userRepository.create({
@@ -33,11 +34,9 @@ export async function registerStudent(data: RegisterStudentData) {
     });
 
     // Create a mentorship relationship between the mentor and the student
-    await prisma.mentorship.create({
-      data: {
-        mentorId,      // Mentor's ID from the session
+    await mentorRepository.create({
+        mentorId: mentorId,      // Mentor's ID from the session
         studentId: student.id,  // Newly created student's ID
-      },
     });
 
     // Send an email to the student with the temporary password
