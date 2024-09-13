@@ -104,6 +104,19 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   const [isEditable, setIsEditable] = useState(true);
 
+  const handleNotesChange = (e) => {
+    const inputText = e.target.value;
+    const wordCount = inputText.trim().split(/\s+/).length;
+  
+    // Check if the word count exceeds 300
+    if (wordCount <= 300) {
+      setNotes(inputText);
+    } else {
+      alert("Note length should not exceed 300 words.");
+    }
+  };
+
+
   useEffect(() => {
     getSessionOnClient()
       .then((data) => {
@@ -589,9 +602,9 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
                 <label>Notes</label>
                 <Textarea
                   value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
+                  onChange={handleNotesChange}
                   placeholder="Enter notes"
-                  disabled={!isEditable}
+                  disabled={false}
                   className="text-black"
                 />
               </div>
