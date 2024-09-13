@@ -612,7 +612,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
 
 
 
-      <div className="relative w-[80vw] h-[60vh]">
+      <div className="relative w-[95vw] h-[70vh]">
         <BigCalendar
           events={events}
           localizer={localizer}

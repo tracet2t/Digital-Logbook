@@ -111,7 +111,7 @@ const MentorDashboard = () => {
 
   
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-b from-[#B2D8F1] via-[#B2D8F1_25%] to-[#0A5080_67%]">
+    <div className="h-screen flex flex-col bg-gradient-to-b from-[#B2D8F1] via-[#B2D8F1_25%] to-[#0A5080_67%] gap-5">
       {/* Top Bar with Logo, Avatar, and Logout */}
       <div className="flex gap-4 justify-between items-center p-4">
         <Image
@@ -137,7 +137,7 @@ const MentorDashboard = () => {
 
       {/* Main Content */}
       <div className="flex-grow flex flex-col items-center justify-center mt-[-100px]">
-        <div className="bg-white p-4 rounded-xl shadow-lg h-128 w-full max-w-5xl">
+        <div className="bg-white p-4 rounded-xl shadow-lg w-[98vw] h-[88vh]">
           <div className="flex justify-between items-center mb-4 px-4">
             {!isLoading && session ? (
               <select
