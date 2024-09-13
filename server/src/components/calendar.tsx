@@ -579,7 +579,10 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
                 <Input
                   type="number"
                   value={workingHours}
-                  onChange={(e) => setWorkingHours(Number(e.target.value) || 0)}
+                  onChange={(e) => {
+                    const Hours = Number(e.target.value) || 0;
+                    setWorkingHours(Math.max(0, Math.min(12, Hours)));
+                  }} 
                   placeholder="Enter working hours"
                   disabled={!isEditable}
                   className="text-black"
