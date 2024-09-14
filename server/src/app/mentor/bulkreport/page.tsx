@@ -138,11 +138,11 @@ const handleReport = async (report: Report): Promise<void> => {
   }, []);
 
   return (
-    <div className="p-8 bg-gradient-to-r from-blue-200 via-blue-300 to-blue-400 min-h-screen flex flex-col items-center">
+    <div className="p-8 bg-[#f2f2f3] min-h-screen flex flex-col items-center">
       <div className="w-full max-w-6xl flex items-center mb-6">
         <button
           onClick={() => router.back()}
-          className="bg-blue-500 text-white px-4 py-2 rounded-md flex items-center hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="border-2 border-blue-500 text-blue-500 px-4 py-2 bg-[#F0F8FF] rounded-md hover:border-blue-600 hover:bg-blue-100"
         >
           <span className="mr-2 font-bold">&larr;</span> 
         </button>
@@ -183,7 +183,9 @@ const handleReport = async (report: Report): Promise<void> => {
                     </TableCell>
                     <TableCell className="p-4">
                       {report.reportData ? (
-                        <Button onClick={()=> {handleReport(report)}} > Download </Button>
+                        <Button onClick={()=> {handleReport(report)}} 
+                        className='border-2 border-blue-500 text-blue-500 px-4 py-2 bg-[#F0F8FF] rounded-md hover:border-blue-600 hover:bg-blue-100'
+                        > Download </Button>
                       ) : (
                         <span className="text-gray-500">N/A</span>
                       )}

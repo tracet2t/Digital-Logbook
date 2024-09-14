@@ -111,17 +111,17 @@ const MentorDashboard = () => {
 
   
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-b from-[#B2D8F1] via-[#B2D8F1_25%] to-[#0A5080_67%]">
+    <div className="gap-5 flex flex-col bg-[#dee2e6]">
       {/* Top Bar with Logo, Avatar, and Logout */}
-      <div className="flex gap-4 justify-between items-center p-4">
+      <div className="flex gap-1 justify-between items-center p-4 bg-[#F0F8FF] shadow-md h-[8vh]">
         <Image
           src="/logo.png"
           alt="Logo"
           width={200}
           height={40}
-          className="mt-[-70px]"
+          className="mt-[0px]"
         />
-        <div className="flex items-center gap-4 mt-[-70px]">
+        <div className="flex items-center gap-4 mt-[0px]">
           {/* Avatar */}
           <Avatar>
             <AvatarImage src="https://github.com/shadcn.png" />
@@ -130,18 +130,18 @@ const MentorDashboard = () => {
 
           {/* Logout Button */}
           <form action="/auth/logout" method="post">
-            <Button>Logout</Button>
+            <Button variant="blue">Logout</Button>
           </form>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-grow flex flex-col items-center justify-center mt-[-100px]">
-        <div className="bg-white p-4 rounded-xl shadow-lg h-128 w-full max-w-5xl">
+      <div className="flex-grow flex flex-col items-center justify-center mt-[-4px]">
+        <div className="bg-white p-4 rounded-xl shadow-lg w-[98vw] h-[90vh]">
           <div className="flex justify-between items-center mb-4 px-4">
             {!isLoading && session ? (
               <select
-                className="border border-gray-300 p-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border-2 border-blue-500 text-black-500 px-4 py-2 bg-white rounded-md hover:border-blue-600 hover:bg-blue-100" 
                 value={selectedUser || mentorId} // Set selectedUser or mentorId if it's not yet available
                 onChange={handleMentorChange}
               >
@@ -157,18 +157,18 @@ const MentorDashboard = () => {
             )}
 
             <div className="flex space-x-4">
-              <Button className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600"
-              onClick={handleReport} disabled={mentorId===selectedUser}>
-                Generate Report
-              </Button>
-              <Button
-                className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600"
+            <Button className="border-2 border-orange-500 text-black-500 px-4 py-2 bg-white rounded-md hover:border-orange-600 hover:bg-orange-100" 
+                onClick={handleReport} disabled={mentorId === selectedUser}>
+              Generate Report
+            </Button>
+
+              <Button className="border-2 border-orange-500 text-black-500 px-4 py-2 bg-white rounded-md hover:border-orange-600 hover:bg-orange-100"
                 onClick={handleBulkReportClick} // Handle Bulk Report click
               >
                 Bulk Report
               </Button>
               <Button
-                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+              className="border-2 border-blue-500 text-black-500 px-4 py-2 bg-white rounded-md hover:border-blue-600 hover:bg-blue-100"
                 onClick={handleOpenForm}
               >
                 Register Student

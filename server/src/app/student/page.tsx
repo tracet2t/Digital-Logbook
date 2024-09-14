@@ -30,18 +30,18 @@ const StudentPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-b from-[#B2D8F1] via-[#B2D8F1_25%] to-[#0A5080_67%]">
+    <div className="gap-5 flex flex-col bg-[#dee2e6]">
       {/* Top Bar with Logo, Avatar, and Logout */}
-      <div className="flex gap-4 justify-between items-center p-4">
+      <div className="flex gap-1 justify-between items-center p-4 bg-[#F0F8FF] shadow-md h-[10vh]  mt-[0px]">
         
         <Image
           src="/logo.png"
           alt="Logo"
           width={200}
           height={40}
-          className="mt-[-70px]"
+          className="mt-[-0px]"
         />
-        <div className="flex items-center gap-4 mt-[-70px]">
+        <div className="flex items-center gap-4 mt-[0px]">
           {/* Avatar */}
             <Avatar>
     <AvatarImage src="https://github.com/shadcn.png" />
@@ -50,15 +50,16 @@ const StudentPage: React.FC = () => {
 
           {/* Logout Button */}
           <form action="/auth/logout" method="post">
-            <Button >Logout</Button>
+            <Button variant="blue" className='border-black'>Logout</Button>
           </form>
         </div>
       </div>
 
       
-      <div className="flex-grow flex items-center justify-center mt-[-100px]">
+      <div className="flex-grow flex items-center justify-center mt-[0px]">
         {/* Center the calendar with rounded corners */}
-        <div className="bg-white p-4 rounded-xl shadow-lg h-128">
+       <div className="bg-white p-4 rounded-xl shadow-lg h-[830px]">
+
           <TaskCalendar selectedUser={selectedUser}/>
         </div>
       </div>
