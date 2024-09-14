@@ -33,7 +33,7 @@ export const POST = async (req: NextRequest) => {
     const userId = session.getId();
     const { date, timeSpent, notes } = await req.json();
 
-    if (!date || typeof timeSpent !== 'number' || !notes) {
+    if (!date || typeof timeSpent !== 'number' || timeSpent < 0 || !notes) {
       return NextResponse.json({ message: "Invalid input data" }, { status: 400 });
     }
 
@@ -57,6 +57,10 @@ export const PATCH = async (req: NextRequest) => {
 
     if (!id || (timeSpent === undefined && notes === undefined)) {
       return NextResponse.json({ message: "Invalid input data" }, { status: 400 });
+    }
+
+    if (timeSpent !== undefined && (typeof timeSpent !== 'number' || timeSpent < 0)) {
+      return NextResponse.json({ message: "Invalid time spent" }, { status: 400 });
     }
 
     const updatedActivity = await activityRepository.updateActivity(id, userId, {
