@@ -8,6 +8,7 @@ import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getSessionOnClient } from "@/server_actions/getSession";
 import { useRouter } from 'next/navigation'; // Import useRouter hook
+import { ToastProvider, ToastViewport, Toast, ToastTitle, ToastDescription, ToastClose } from "@/components/ui/toast"; // Adjust import path if necessary
 
 const MentorDashboard = () => {
   const [showForm, setShowForm] = useState(false);
@@ -18,6 +19,7 @@ const MentorDashboard = () => {
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true); 
   const [role,setRole] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ title: string; description: string } | null>(null); // State for toast notifications
 
   const router = useRouter(); // Initialize router
 
@@ -90,7 +92,7 @@ const MentorDashboard = () => {
     try {
       const response = await fetch(`/api/report?studentId=${selectedUser}`);
       if (!response.ok) {
-      throw new Error("Failed to generate report");
+        throw new Error("Failed to generate report");
       }
       const contentDisposition = response.headers.get('Content-Disposition');
       const filenameMatch = contentDisposition && contentDisposition.match(/filename="(.+)"/);
@@ -104,86 +106,112 @@ const MentorDashboard = () => {
       document.body.appendChild(a);
       a.click();
       a.remove();
+
+      // Show toast on successful report download
+      setToast({
+        title: 'Report Generated',
+        description: 'Student report has been downloaded successfully!',
+      });
+      setTimeout(() => setToast(null), 3000); // Hide toast after 3 seconds
     } catch (error) {
       console.error('Failed to download report:', error);
+      setToast({
+        title: 'Error',
+        description: 'Failed to download the report. Please try again.',
+      });
+      setTimeout(() => setToast(null), 3000); // Hide toast after 3 seconds
     }
   };
 
-  
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-b from-[#B2D8F1] via-[#B2D8F1_25%] to-[#0A5080_67%]">
-      {/* Top Bar with Logo, Avatar, and Logout */}
-      <div className="flex gap-4 justify-between items-center p-4">
-        <Image
-          src="/logo.png"
-          alt="Logo"
-          width={200}
-          height={40}
-          className="mt-[-70px]"
-        />
-        <div className="flex items-center gap-4 mt-[-70px]">
-          {/* Avatar */}
-          <Avatar>
-            <AvatarImage src="https://github.com/shadcn.png" />
-            <AvatarFallback>CN</AvatarFallback>
-          </Avatar>
+    <ToastProvider>
+      <div className="h-screen flex flex-col bg-gradient-to-b from-[#B2D8F1] via-[#B2D8F1_25%] to-[#0A5080_67%]">
+        {/* Top Bar with Logo, Avatar, and Logout */}
+        <div className="flex gap-4 justify-between items-center p-4">
+          <Image
+            src="/logo.png"
+            alt="Logo"
+            width={200}
+            height={40}
+            className="mt-[-70px]"
+          />
+          <div className="flex items-center gap-4 mt-[-70px]">
+            {/* Avatar */}
+            <Avatar>
+              <AvatarImage src="https://github.com/shadcn.png" />
+              <AvatarFallback>CN</AvatarFallback>
+            </Avatar>
 
-          {/* Logout Button */}
-          <form action="/auth/logout" method="post">
-            <Button>Logout</Button>
-          </form>
+            {/* Logout Button */}
+            <form action="/auth/logout" method="post">
+              <Button>Logout</Button>
+            </form>
+          </div>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="flex-grow flex flex-col items-center justify-center mt-[-100px]">
-        <div className="bg-white p-4 rounded-xl shadow-lg h-128 w-full max-w-5xl">
-          <div className="flex justify-between items-center mb-4 px-4">
-            {!isLoading && session ? (
-              <select
-                className="border border-gray-300 p-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={selectedUser || mentorId} // Set selectedUser or mentorId if it's not yet available
-                onChange={handleMentorChange}
-              >
-                <option value={mentorId}>{mentorName}</option>
-                {users.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.firstName} {user.lastName}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <p>Loading...</p> // Show loading while fetching
-            )}
+        {/* Main Content */}
+        <div className="flex-grow flex flex-col items-center justify-center mt-[-100px]">
+          <div className="bg-white p-4 rounded-xl shadow-lg h-128 w-full max-w-5xl">
+            <div className="flex justify-between items-center mb-4 px-4">
+              {!isLoading && session ? (
+                <select
+                  className="border border-gray-300 p-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={selectedUser || mentorId} // Set selectedUser or mentorId if it's not yet available
+                  onChange={handleMentorChange}
+                >
+                  <option value={mentorId}>{mentorName}</option>
+                  {users.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.firstName} {user.lastName}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <p>Loading...</p> // Show loading while fetching
+              )}
 
-            <div className="flex space-x-4">
-              <Button className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600"
-              onClick={handleReport} disabled={mentorId===selectedUser}>
-                Generate Report
-              </Button>
-              <Button
-                className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600"
-                onClick={handleBulkReportClick} // Handle Bulk Report click
-              >
-                Bulk Report
-              </Button>
-              <Button
-                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-                onClick={handleOpenForm}
-              >
-                Register Student
-              </Button>
-              {showForm && <MentorRegStudentForm onClose={handleCloseForm} />}
+              <div className="flex space-x-4">
+                <Button
+                  className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600"
+                  onClick={handleReport} 
+                  disabled={mentorId===selectedUser}
+                >
+                  Generate Report
+                </Button>
+                <Button
+                  className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600"
+                  onClick={handleBulkReportClick} // Handle Bulk Report click
+                >
+                  Bulk Report
+                </Button>
+                <Button
+                  className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                  onClick={handleOpenForm}
+                >
+                  Register Student
+                </Button>
+                {showForm && <MentorRegStudentForm onClose={handleCloseForm} />}
+              </div>
+            </div>
+
+            {/* Pass the selectedUser as a prop to TaskCalendar */}
+            <div className="flex justify-center items-center">
+              <TaskCalendar selectedUser={selectedUser} />
             </div>
           </div>
-
-          {/* Pass the selectedUser as a prop to TaskCalendar */}
-          <div className="flex justify-center items-center">
-            <TaskCalendar selectedUser={selectedUser} />
-          </div>
         </div>
       </div>
-    </div>
+
+      {/* Toast Component */}
+      {toast && (
+        <Toast>
+          <ToastTitle>{toast.title}</ToastTitle>
+          <ToastDescription>{toast.description}</ToastDescription>
+          <ToastClose />
+        </Toast>
+      )}
+      <ToastViewport />
+    </ToastProvider>
   );
 };
 

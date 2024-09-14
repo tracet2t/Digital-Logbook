@@ -15,6 +15,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  ToastProvider,
+  ToastViewport,
+  Toast,
+  ToastTitle,
+  ToastDescription,
+  ToastClose,
+} from "@/components/ui/toast"; // Adjust the import path according to your project structure
+
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -103,6 +112,8 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   const [isEditable, setIsEditable] = useState(true);
+  const [toast, setToast] = useState<{ title: string; description: string } | null>(null);
+
 
   useEffect(() => {
     getSessionOnClient()
@@ -313,7 +324,6 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
           timeSpent: workingHours,
           notes,
         };
-        console.log(newFormData);
 
       const response = await fetch("http://localhost:3000/api/activity", {
         method: editingEvent ? "PATCH" : "POST",
@@ -328,10 +338,25 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
 
       if (response.ok) {
         // Update events without refreshing
+        setToast({
+          title: editingEvent ? "Activity Updated" : "Activity Added",
+          description: editingEvent ? "Your activity has been updated successfully." : "Your activity has been added successfully.",
+        });
         fetchEvents();
         handleClose();
+        setTimeout(() => {
+          setToast(null);
+        }, 3000); // Adjust delay as needed
       } else {
-        console.error("Failed to save event:", await response.json());
+
+
+        setToast({
+          title: 'Error',
+          description: 'Error saving activity. Please try again.',
+        });
+        setTimeout(() => setToast(null), 3000); // Hide toast after 3 seconds
+
+
       }
 
     } else if (role === 'mentor') {
@@ -358,11 +383,24 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
       });
 
       if (response.ok) {
+        setToast({
+          title: editingEvent ? "Activity Updated" : "Activity Added",
+          description: editingEvent ? "Your activity has been updated successfully." : "Your activity has been added successfully.",
+        });
         fetchEvents();
         handleClose();
+        setTimeout(() => {
+          setToast(null);
+        }, 3000); // Adjust delay as needed
       } else {
-        console.error("Failed to save event:", await response.json());
-      }
+
+        setToast({
+          title: 'Error',
+          description: 'Error saving activity. Please try again.',
+        });
+        setTimeout(() => setToast(null), 3000); // Hide toast after 3 seconds
+
+            }
     } else {
 
       const newFormFeedbackData: FormData = {
@@ -383,10 +421,21 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
       });    
 
       if ( Feedbackresponse.ok) {
+        setToast({
+          title: editingEvent ? "Feedback Updated" : "Feedback Added",
+          description: editingEvent ? "Feedback has been updated." : "Feedback has been added successfully.",
+        });
         fetchEvents();
         handleClose();
+        setTimeout(() => {
+          setToast(null);
+        }, 3000); // Adjust delay as needed
       } else {
-        console.error("Failed to save event:", await Feedbackresponse.json());
+        setToast({
+          title: 'Error',
+          description: 'Error saving feedback. Please try again.',
+        });
+        setTimeout(() => setToast(null), 3000); // Hide toast after 3 seconds
       }
       
     }
@@ -394,7 +443,11 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     }
 
     } catch (error) {
-      console.error("Error submitting form:", error);
+      setToast({
+        title: 'Error',
+        description: 'Error saving activity. Please try again.',
+      });
+      setTimeout(() => setToast(null), 3000); // Hide toast after 3 seconds
     }
   };
 
@@ -458,6 +511,8 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     // selecteduser === usersessionid
 
     <>
+        <ToastProvider>
+
 
     {role==='mentor' && selectedUser !== studentId && (
           <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
@@ -603,6 +658,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      
     )}
 
 
@@ -630,6 +686,17 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
           style={{ height: "100%" }}
         />
       </div>
+
+      {toast && (
+          <Toast>
+            <ToastTitle>{toast.title}</ToastTitle>
+            <ToastDescription>{toast.description}</ToastDescription>
+            <ToastClose />
+          </Toast>
+        )}
+        <ToastViewport />
+    </ToastProvider>
+      
     </>
   );
 };
