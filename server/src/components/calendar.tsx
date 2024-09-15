@@ -434,14 +434,14 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
       <div className="flex justify-between items-center mb-4">
         <Button
           onClick={() => {setCurrentDate(moment(currentDate).subtract(1, "months").toDate());goToBack()}}
-          className="text-xl"
+           className="text-xl border-2 border-blue-500 text-blue-500 px-4 py-2 bg-white rounded-md hover:border-blue-600 hover:bg-blue-100"
           >
           {"<"}
         </Button>
         <span className="text-2xl font-bold">{moment(toolbar.date).format("MMMM YYYY")}</span>
         <Button
           onClick={() => {setCurrentDate(moment(currentDate).subtract(1, "months").toDate());goToNext()}}
-          className="text-xl"
+         className="text-xl border-2 border-blue-500 text-blue-500 px-4 py-2 bg-#F0F8FF rounded-md hover:border-blue-600 hover:bg-blue-100"
         >
           {">"}
         </Button>
@@ -451,19 +451,19 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
 
   // Event Prop Getter to set custom styles
   const eventPropGetter = (event: CalendarEvent) => {
-    let backgroundColor = "#FFD93D"; // Default background color
-    let textColor = "#000000"; // Default text color (white)
+    let backgroundColor = "tealContrast"; // Default background color
+    let textColor = "white"; // Default text color (white)
   
     // Customize based on event status
     if (event.status === "pending") {
-      backgroundColor = "#FFD93D"; // Yellow background for pending
-      textColor = "#000000"; // Black text for better contrast
+      backgroundColor = "tealContrast"; // Yellow background for pending
+      textColor = "white"; // Black text for better contrast
     } else if (event.status === "approved") {
-      backgroundColor = "#6BCB77"; // Green background for accepted
-      textColor = "#000000"; // White text for contrast
+      backgroundColor = "#25bd6a"; // Green background for accepted
+      textColor = "white"; // White text for contrast
     } else if (event.status === "rejected") {
       backgroundColor = "#F25C54"; // Red background for rejected
-      textColor = "#000000"; // White text for contrast
+      textColor = "white"; // White text for contrast
     }
   
     return {
@@ -634,7 +634,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
 
 
 
-      <div className="relative w-[80vw] h-[60vh]">
+<div className="relative w-[90vw] h-[80vh] ">
         <BigCalendar
           events={events}
           localizer={localizer}
@@ -649,7 +649,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
             toolbar: CustomToolbar,
           }}
           eventPropGetter={eventPropGetter} // Apply custom styles based on event status
-          style={{ height: "100%" }}
+          style={{height: "100%"}}
         />
       </div>
 
