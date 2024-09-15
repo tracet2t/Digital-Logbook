@@ -28,7 +28,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { getSessionOnClient } from "@/server_actions/getSession";
-import { convertToCalendarEvents, convertToCalendarEventsMentor } from "@/lib/eventConverters";
+import { convertToCalendarEvents, convertToCalendarEventsMentor, eventPropGetter } from "@/lib/calenderUtils";
+import MentorStudentTaskDetailDialog from "./mentorStudentTaskDetailDialog";
+import MentorTaskDetailDialog from "./mentorTaskDetailDialog";
+import StudentTaskDetailDialog from "./studentTaskDetailDialog";
 
 moment.locale("en-GB");
 const localizer = momentLocalizer(moment);
@@ -252,6 +255,12 @@ const resetFormData = (formattedDate: string) => {
     }
   }, [status]);
 
+
+/* 
+
+        Submit activity or feedback on-press 
+
+*/
   const handleSubmit = async () => {
   try {
     const isStudent = role === 'student';
@@ -369,190 +378,54 @@ const showToast = (title: string, description: string) => {
     );
   };
 
-  // Event Prop Getter to set custom styles
-  const eventPropGetter = (event: CalendarEvent) => {
-    let backgroundColor = "tealContrast"; // Default background color
-    let textColor = "white"; // Default text color (white)
-  
-    // Customize based on event status
-    if (event.status === "pending") {
-      backgroundColor = "tealContrast"; // Yellow background for pending
-      textColor = "white"; // Black text for better contrast
-    } else if (event.status === "approved") {
-      backgroundColor = "#25bd6a"; // Green background for accepted
-      textColor = "white"; // White text for contrast
-    } else if (event.status === "rejected") {
-      backgroundColor = "#F25C54"; // Red background for rejected
-      textColor = "white"; // White text for contrast
-    }
-  
-    return {
-      style: {
-        backgroundColor,
-        color: textColor, // Apply text color based on status
-      },
-    };
-  };
-
   return (
 
     <>
         <ToastProvider>
-
-
-    {role==='mentor' && selectedUser !== studentId && (
-          <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
-          <AlertDialogTrigger asChild>
-            <div />
-          </AlertDialogTrigger>
-          <AlertDialogContent className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-lg">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-2xl font-semibold text-gray-900">Mentor Task Detail</AlertDialogTitle>
-            </AlertDialogHeader>
-            <AlertDialogDescription className="text-gray-700">
-              <div className="flex gap-6 mb-4">
-                <div className="w-1/2">
-                  <span className="block text-sm font-medium text-black mb-1">Date</span>
-                <Input type="date" value={formData.date} disabled className="text-black" />
-                </div>
-                <div className="w-1/2">
-                  <span className="block text-sm font-medium text-black mb-1">Working Hours</span>
-                  <Input
-                  type="number"
-                  value={workingHours}
-                  disabled={true}
-                  onChange={(e) => setWorkingHours(Number(e.target.value) || 0)}
-                  placeholder="Enter working hours"
-                />
-                </div>
-              </div>
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-black mb-2">Activity</h3>
-                <Textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Enter notes"
-                  disabled={!false}
-                  className="text-black"
-                />
-              </div>
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-black mb-2">Review</h3>
-                <textarea
-                  value={review}
-                  onChange={(e) => setReview(e.target.value)}
-                  placeholder="Enter your review here..."
-                  className="w-full h-32 p-3 border border-gray-300 rounded-md bg-white"
-                />
-              </div>
-            </AlertDialogDescription>
-            <AlertDialogFooter className="flex justify-end gap-3 mt-4">
-              <AlertDialogCancel onClick={setTaskModalOpen} className="bg-green-500 text-white hover:bg-green-600 px-4 py-2 rounded-md">Close</AlertDialogCancel>
-              <AlertDialogAction onClick={() => {setStatus('approved');}} className="bg-blue-500 text-white hover:bg-blue-700 px-4 py-2 rounded-md">Accept</AlertDialogAction>
-              <AlertDialogAction  onClick={() => {setStatus('rejected');}}className="bg-red-500 text-white hover:bg-red-700 px-4 py-2 rounded-md">Reject</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-    )}
-
-
-
-    {(role==='mentor' && selectedUser === studentId)    && (
-      <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Task Details</AlertDialogTitle>
-          </AlertDialogHeader>
-          <AlertDialogDescription>
-            <form>
-              <div className="mb-4">
-                <label>Date</label>
-                <Input type="date" value={formData.date} disabled className="text-black" />
-              </div>
-
-              <div className="mb-4">
-                <label>Working Hours</label>
-                <Input
-                  type="number"
-                  value={workingHours}
-                  onChange={(e) => setWorkingHours(Number(e.target.value) || 0)}
-                  placeholder="Enter working hours"
-                  disabled={!isEditable}
-                  className="text-black"
-                />
-              </div>
-              <div className="mb-4">
-                <label>Notes</label>
-                <Textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Enter notes"
-                  disabled={!isEditable}
-                  className="text-black"
-                />
-              </div>
-            </form>
-          </AlertDialogDescription>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleClose}>Cancel</AlertDialogCancel>
-            {isEditable && <AlertDialogAction onClick={handleSubmit}>Save</AlertDialogAction>}
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    )}
-
-
-{ role==='student' && (
-      <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Task Details</AlertDialogTitle>
-          </AlertDialogHeader>
-          <AlertDialogDescription>
-            <form>
-              <div className="mb-4">
-                <label>Date</label>
-                <Input type="date" value={formData.date} disabled className="text-black" />
-              </div>
-
-              <div className="mb-4">
-                <label>Working Hours</label>
-                <Input
-                  type="number"
-                  value={workingHours}
-                  onChange={(e) => setWorkingHours(Number(e.target.value) || 0)}
-                  placeholder="Enter working hours"
-                  disabled={!isEditable}
-                  className="text-black"
-                />
-              </div>
-              <div className="mb-4">
-                <label>Notes</label>
-                <Textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Enter notes"
-                  disabled={!isEditable}
-                  className="text-black"
-                />
-              </div>
-            </form>
-          </AlertDialogDescription>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleClose}>Cancel</AlertDialogCancel>
-            {isEditable && <AlertDialogAction onClick={handleSubmit}>Save</AlertDialogAction>}
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-      
-    )}
-
-
-
-
-
-
-
+        <MentorTaskDetailDialog
+        taskModalOpen={taskModalOpen}
+        setTaskModalOpen={setTaskModalOpen}
+        role={role}
+        selectedUser={selectedUser}
+        studentId={studentId}
+        formData={formData}
+        workingHours={workingHours}
+        setWorkingHours={setWorkingHours}
+        notes={notes}
+        setNotes={setNotes}
+        review={review}
+        setReview={setReview}
+        setStatus={setStatus}
+        handleClose={handleClose}
+      />
+      <MentorStudentTaskDetailDialog
+        taskModalOpen={taskModalOpen}
+        setTaskModalOpen={setTaskModalOpen}
+        role={role}
+        selectedUser={selectedUser}
+        studentId={studentId}
+        formData={formData}
+        workingHours={workingHours}
+        setWorkingHours={setWorkingHours}
+        notes={notes}
+        setNotes={setNotes}
+        isEditable={isEditable}
+        handleClose={handleClose}
+        handleSubmit={handleSubmit}
+      />
+      <StudentTaskDetailDialog
+        taskModalOpen={taskModalOpen}
+        setTaskModalOpen={setTaskModalOpen}
+        role={role}
+        formData={formData}
+        workingHours={workingHours}
+        setWorkingHours={setWorkingHours}
+        notes={notes}
+        setNotes={setNotes}
+        isEditable={isEditable}
+        handleClose={handleClose}
+        handleSubmit={handleSubmit}
+      />
 
 <div className="relative w-[90vw] h-[80vh] ">
         <BigCalendar
