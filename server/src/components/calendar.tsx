@@ -253,142 +253,92 @@ const resetFormData = (formattedDate: string) => {
   }, [status]);
 
   const handleSubmit = async () => {
-    try {
+  try {
+    const isStudent = role === 'student';
+    const isMentor = role === 'mentor';
 
-
-      if (role === 'student') {
-        const newFormData: FormData = {
-          studentId,
-          date: formData.date,
-          timeSpent: workingHours,
-          notes,
-        };
-
-      const response = await fetch("http://localhost:3000/api/activity", {
-        method: editingEvent ? "PATCH" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...newFormData,
-          id: editingEvent?.id,
-        }),
-      });
-
-      if (response.ok) {
-        // Update events without refreshing
-        setToast({
-          title: editingEvent ? "Activity Updated" : "Activity Added",
-          description: editingEvent ? "Your activity has been updated successfully." : "Your activity has been added successfully.",
-        });
-        fetchEvents();
-        handleClose();
-        setTimeout(() => {
-          setToast(null);
-        }, 3000); // Adjust delay as needed
-      } else {
-
-
-        setToast({
-          title: 'Error',
-          description: 'Error saving activity. Please try again.',
-        });
-        setTimeout(() => setToast(null), 3000); // Hide toast after 3 seconds
-
-
-      }
-
-    } else if (role === 'mentor') {
-
-      if (selectedUser===studentId) {
-
-      const newFormData: FormData = {
-        // studentId,
-        date: formData.date,
-        workingHours: workingHours,
-        activities: notes,
-      };
-      console.log(newFormData);
-
-      const response = await fetch("http://localhost:3000/api/mentor", {
-        method: editingEvent ? "PATCH" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...newFormData,
-          id: editingEvent?.id,
-        }),
-      });
-
-      if (response.ok) {
-        setToast({
-          title: editingEvent ? "Activity Updated" : "Activity Added",
-          description: editingEvent ? "Your activity has been updated successfully." : "Your activity has been added successfully.",
-        });
-        fetchEvents();
-        handleClose();
-        setTimeout(() => {
-          setToast(null);
-        }, 3000); // Adjust delay as needed
-      } else {
-
-        setToast({
-          title: 'Error',
-          description: 'Error saving activity. Please try again.',
-        });
-        setTimeout(() => setToast(null), 3000); // Hide toast after 3 seconds
-
-            }
+    if (isStudent) {
+      await submitActivity();
+    } else if (isMentor && selectedUser === studentId) {
+      await submitMentorActivity();
     } else {
-
-      const newFormFeedbackData: FormData = {
-        review: review,
-        status: status,
-        mentor: studentId
-      }
-
-      const Feedbackresponse = await fetch(`http://localhost:3000/api/mentorFeedback?activityId=${feedbackActivityId}`, {
-        method:   "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...newFormFeedbackData,
-          id: editingEvent?.id,
-        }),
-      });    
-
-      if ( Feedbackresponse.ok) {
-        setToast({
-          title: editingEvent ? "Feedback Updated" : "Feedback Added",
-          description: editingEvent ? "Feedback has been updated." : "Feedback has been added successfully.",
-        });
-        fetchEvents();
-        handleClose();
-        setTimeout(() => {
-          setToast(null);
-        }, 3000); // Adjust delay as needed
-      } else {
-        setToast({
-          title: 'Error',
-          description: 'Error saving feedback. Please try again.',
-        });
-        setTimeout(() => setToast(null), 3000); // Hide toast after 3 seconds
-      }
-      
+      await submitFeedback();
     }
-      
-    }
+  } catch (error) {
+    showToast('Error', 'Error saving data. Please try again.');
+  }
+};
 
-    } catch (error) {
-      setToast({
-        title: 'Error',
-        description: 'Error saving activity. Please try again.',
-      });
-      setTimeout(() => setToast(null), 3000); // Hide toast after 3 seconds
-    }
+const submitActivity = async () => {
+  const newFormData: FormData = {
+    studentId,
+    date: formData.date,
+    timeSpent: workingHours,
+    notes,
   };
+
+  const response = await fetch("http://localhost:3000/api/activity", {
+    method: editingEvent ? "PATCH" : "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ ...newFormData, id: editingEvent?.id }),
+  });
+
+  handleResponse(response, editingEvent ? "Activity Updated" : "Activity Added");
+};
+
+const submitMentorActivity = async () => {
+  const newFormData: FormData = {
+    date: formData.date,
+    workingHours,
+    activities: notes,
+  };
+
+  const response = await fetch("http://localhost:3000/api/mentor", {
+    method: editingEvent ? "PATCH" : "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ ...newFormData, id: editingEvent?.id }),
+  });
+
+  handleResponse(response, editingEvent ? "Activity Updated" : "Activity Added");
+};
+
+const submitFeedback = async () => {
+  const newFormFeedbackData: FormData = {
+    review,
+    status,
+    mentor: studentId,
+  };
+
+  const response = await fetch(`http://localhost:3000/api/mentorFeedback?activityId=${feedbackActivityId}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ ...newFormFeedbackData, id: editingEvent?.id }),
+  });
+
+  handleResponse(response, editingEvent ? "Feedback Updated" : "Feedback Added");
+};
+
+const handleResponse = async (response: Response, successMessage: string) => {
+  if (response.ok) {
+    showToast(successMessage, response.ok ? `${successMessage} successfully.` : 'An error occurred.');
+    fetchEvents();
+    handleClose();
+  } else {
+    showToast('Error', 'Error saving data. Please try again.');
+  }
+};
+
+const showToast = (title: string, description: string) => {
+  setToast({ title, description });
+  setTimeout(() => setToast(null), 3000);
+};
+
 
   // Custom Toolbar
   const CustomToolbar = (toolbar: any) => {
