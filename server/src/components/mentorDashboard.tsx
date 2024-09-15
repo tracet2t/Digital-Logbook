@@ -230,6 +230,16 @@ const MentorDashboard = () => {
         </div>
       </div>
     </div>
+      {/* Toast Component */}
+      {toast && (
+        <Toast>
+          <ToastTitle>{toast.title}</ToastTitle>
+          <ToastDescription>{toast.description}</ToastDescription>
+          <ToastClose />
+        </Toast>
+      )}
+      <ToastViewport />
+    </ToastProvider>
   );
 };
 
