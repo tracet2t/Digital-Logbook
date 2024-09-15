@@ -56,8 +56,10 @@ const MentorStudentTaskDetailDialog: React.FC<MentorStudentTaskDetailDialogProps
                 <Input
                   type="number"
                   value={workingHours}
-                  onChange={(e) => setWorkingHours(Number(e.target.value) || 0)}
-                  placeholder="Enter working hours"
+                  onChange={(e) => {
+                    const Hours = Number(e.target.value) || 0;
+                    setWorkingHours(Math.max(0, Math.min(12, Hours)));
+                  }}                   placeholder="Enter working hours"
                   disabled={!isEditable}
                   className="text-black"
                 />
