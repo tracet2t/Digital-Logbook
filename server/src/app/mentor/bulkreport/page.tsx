@@ -1,4 +1,4 @@
-'use client';
+'use client'; 
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -12,12 +12,7 @@ import {
 } from "@/components/ui/table";
 
 import { Button } from '@/components/ui/button';
-import { list } from 'postcss';
 import { Parser } from 'json2csv';
-
-
-
-
 
 const BulkReports: React.FC = () => {
   const router = useRouter(); 
@@ -113,9 +108,6 @@ const handleReport = async (report: Report): Promise<void> => {
   }
 };
 
-
-
-
   useEffect(() => {
     const fetchReports = async () => {
       try {
@@ -140,12 +132,15 @@ const handleReport = async (report: Report): Promise<void> => {
   return (
     <div className="p-8 bg-[#f2f2f3] min-h-screen flex flex-col items-center">
       <div className="w-full max-w-6xl flex items-center mb-6">
+        {/* Back button to navigate to the previous page */}
         <button
           onClick={() => router.back()}
           className="border-2 border-blue-500 text-blue-500 px-4 py-2 bg-[#F0F8FF] rounded-md hover:border-blue-600 hover:bg-blue-100"
         >
-          <span className="mr-2 font-bold">&larr;</span> 
+          <span className="mr-2 font-bold">&larr;</span> Back
         </button>
+
+        
       </div>
       <h1 className="text-3xl font-bold text-gray-800 mb-10 mt-1 text-center">Bulk Reports</h1>
       {loading && <p className="text-blue-500">Loading reports...</p>}
