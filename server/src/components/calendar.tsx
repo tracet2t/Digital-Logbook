@@ -97,35 +97,33 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
       });
   }, []);
 
-  const fetchEvents = async () => {
+  const fetchEventData = async (url: string) => {
     try {
-      console.log(role);
-      if (role === 'student') {
-        const response = await fetch(`http://localhost:3000/api/activity?studentId=${studentId}`);
-        const data = await response.json();
-        console.log(data);
-        const parsedEvents = convertToCalendarEvents(data);
-        console.log(parsedEvents);
-        setEvents(parsedEvents);        
-      } else if (role === 'mentor') {
-
-
-      if (studentId === selectedUser) {
-        const response = await fetch(`http://localhost:3000/api/mentor?studentId=${selectedUser}`);
-        const data = await response.json();
-        const parsedEvents = convertToCalendarEventsMentor(data);
-        setEvents(parsedEvents);
-
-      } else {
-    const response = await fetch(`http://localhost:3000/api/student?studentId=${selectedUser}`);
-    const data = await response.json();
-    const parsedEvents = convertToCalendarEvents(data);
-    setEvents(parsedEvents);
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error("Failed to fetch event data");
       }
-
-    }
+      return await response.json();
     } catch (error) {
-      console.error("Failed to fetch events:", error);
+      console.error(error);
+      return null;
+    }
+  };
+
+  const fetchEvents = async () => {
+    let url = `http://localhost:3000/api/activity?studentId=${studentId}`;
+    
+    if (role === 'mentor') {
+      url = studentId === selectedUser 
+        ? `http://localhost:3000/api/mentor?studentId=${selectedUser}` 
+        : `http://localhost:3000/api/student?studentId=${selectedUser}`;
+    }
+  
+    const data = await fetchEventData(url);
+    if (data) {
+      const parsedEvents = role === 'mentor' && studentId === selectedUser ? convertToCalendarEventsMentor(data) : convertToCalendarEvents(data);
+      console.log(parsedEvents);
+      setEvents(parsedEvents);
     }
   };
 
@@ -195,7 +193,6 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
         } else {
         const response = await fetch(`http://localhost:3000/api/student?date=${formattedDate}&studentId=${selectedUser}`);
         const data = await response.json();
-        console.log('--------------------------------------',data[0].id);
         const feedbackResponse = await fetch(`http://localhost:3000/api/mentorFeedback?date=${formattedDate}&activityId=${data[0].id}`);
         setFeedbackActivityId(data[0].id);
         const feedbackData = await feedbackResponse.json();
