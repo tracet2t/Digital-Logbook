@@ -97,6 +97,12 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
       });
   }, []);
 
+  /* 
+
+        Fetch all information related to past activities 
+
+  */
+
   const fetchEventData = async (url: string) => {
     try {
       const response = await fetch(url);
@@ -133,121 +139,88 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     }
   }, [selectedUser]);
 
-  const fetchEventForDate = async (formattedDate: string) => {
-    try {
-      if (role === 'student') {
-        const response = await fetch(`http://localhost:3000/api/activity?date=${formattedDate}`);
-        const data = await response.json();
-        if (data.length > 0) {
-          const existingEvent = data[0];
-          setFormData({
-            studentId: existingEvent.studentId || "",
-            date: formattedDate,
-            timeSpent: existingEvent.timeSpent || 0,
-            notes: existingEvent.notes || "",
-          });
-          setWorkingHours(existingEvent.timeSpent || 0);
-          setNotes(existingEvent.notes || "");
-          setEditingEvent(existingEvent);
-        } else {
-          setFormData({
-            studentId: "",
-            date: formattedDate,
-            timeSpent: 0,
-            notes: "",
-          });
-          setWorkingHours(0);
-          setNotes("");
-          setEditingEvent(null);
-        }
-      } else if (role === 'mentor') {
 
-        if (studentId===selectedUser) { 
-          const response = await fetch(`http://localhost:3000/api/mentor?date=${formattedDate}&studentId=${selectedUser}`);
-          const data = await response.json();
-          console.log(data)
-          if (data.length > 0) {
-            const existingEvent = data[0];
-            setFormData({
-              studentId: existingEvent.studentId || "",
-              date: formattedDate,
-              timeSpent: existingEvent.workingHours || 0,
-              notes: existingEvent.activities || "",
-            });
-            setWorkingHours(existingEvent.workingHours || 0);
-            setNotes(existingEvent.activities || "");
-            setEditingEvent(existingEvent);
-          } else {
-            setFormData({
-              studentId: "",
-              date: formattedDate,
-              timeSpent: 0,
-              notes: "",
-            });
-            setWorkingHours(0);
-            setNotes("");
-            setEditingEvent(null);
-          }
+/* 
 
+        Fetch all information related to past activity particularly for a date 
 
-        } else {
-        const response = await fetch(`http://localhost:3000/api/student?date=${formattedDate}&studentId=${selectedUser}`);
-        const data = await response.json();
-        const feedbackResponse = await fetch(`http://localhost:3000/api/mentorFeedback?date=${formattedDate}&activityId=${data[0].id}`);
-        setFeedbackActivityId(data[0].id);
-        const feedbackData = await feedbackResponse.json();
-        if (data.length > 0 && feedbackData ) {
-          const existingEvent = data[0];
-          setFormData({
-            studentId: existingEvent.studentId || "",
-            date: formattedDate,
-            timeSpent: existingEvent.timeSpent || 0,
-            notes: existingEvent.notes || "",
-            review: feedbackData.feedbackNotes || "",
-            status: feedbackData.status || "",
-          });
-          setWorkingHours(existingEvent.timeSpent || 0);
-          setNotes(existingEvent.notes || "");
-          setEditingEvent(existingEvent);
-          setReview(feedbackData.feedbackNotes);
-          // setStatus(feedbackData.status);
-        } else if (data.length > 0) {
-          const existingEvent = data[0];
-          setFormData({
-            studentId: existingEvent.studentId || "",
-            date: formattedDate,
-            timeSpent: existingEvent.timeSpent || 0,
-            notes: existingEvent.notes || "",
-            review: "",
-            // status: ""
-          });
-          setWorkingHours(existingEvent.timeSpent || 0);
-          setNotes(existingEvent.notes || "");
-          setEditingEvent(existingEvent);
-          setReview("");
-          // setStatus("");
-        } else {
-          setFormData({
-            studentId: "",
-            date: formattedDate,
-            timeSpent: 0,
-            notes: "",
-            review: "",
-            // status: ""
-          });
-          setWorkingHours(0);
-          setNotes("");
-          setEditingEvent(null);
-          setReview("");
-          // setStatus("");
-          setFeedbackActivityId("");
-        }
-      }
-      }
-    } catch (error) {
-      console.error("Failed to fetch event for date:", error);
+*/
+
+const fetchEventForDate = async (formattedDate: string) => {
+  try {
+    const url = buildUrlForRole(formattedDate);
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.length > 0) {
+      console.log(data[0].id,'--------------')
+      await processResponse(data[0], formattedDate);
+    } else {
+      resetFormData(formattedDate);
     }
-  };
+  } catch (error) {
+    console.error("Failed to fetch event for date:", error);
+  }
+};
+
+
+const buildUrlForRole = (formattedDate: string) => {
+  if (role === 'student') {
+    return `http://localhost:3000/api/activity?date=${formattedDate}`;
+  }
+  if (studentId === selectedUser) {
+    return `http://localhost:3000/api/mentor?date=${formattedDate}&studentId=${selectedUser}`;
+  }
+  return `http://localhost:3000/api/student?date=${formattedDate}&studentId=${selectedUser}`;
+};
+
+const processResponse = async (existingEvent: any, formattedDate: string) => {
+  if (role === 'mentor' && studentId !== selectedUser) {
+    const feedbackData = await fetchFeedback(existingEvent.id, formattedDate);
+    updateFormData(existingEvent, feedbackData, formattedDate);
+  } else {
+    updateFormData(existingEvent, null, formattedDate);
+  }
+};
+
+const fetchFeedback = async (activityId: string, formattedDate: string) => {
+  const feedbackResponse = await fetch(`http://localhost:3000/api/mentorFeedback?date=${formattedDate}&activityId=${activityId}`);
+  return await feedbackResponse.json();
+};
+
+const updateFormData = (event: any, feedbackData: any, formattedDate: string) => {
+  setFormData({
+    studentId: event.studentId || "",
+    date: formattedDate,
+    timeSpent: event.timeSpent || event.workingHours || 0,
+    notes: event.notes || event.activities || "",
+    review: feedbackData?.feedbackNotes || "",
+    status: feedbackData?.status || "",
+    
+  });
+  setWorkingHours(event.timeSpent || event.workingHours || 0);
+  setNotes(event.notes || event.activities || "");
+  setEditingEvent(event);
+  setReview(feedbackData?.feedbackNotes || "");
+  setFeedbackActivityId(event?.id|| "");
+};
+
+const resetFormData = (formattedDate: string) => {
+  setFormData({
+    studentId: "",
+    date: formattedDate,
+    timeSpent: 0,
+    notes: "",
+    review: "",
+    status: "",
+  });
+  setWorkingHours(0);
+  setNotes("");
+  setEditingEvent(null);
+  setReview("");
+  setFeedbackActivityId("");
+};
+
 
   const handleDateClick = (date: Date) => {
     setSelectedDate(date);
