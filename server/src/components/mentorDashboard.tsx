@@ -109,11 +109,16 @@ const MentorDashboard = () => {
     }
   };
 
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const togglePopup = () => {
+    setIsPopupOpen(!isPopupOpen);
+  };
+
   
   return (
-    <div className="gap-5 flex flex-col bg-[#dee2e6]">
+    <div className="gap-5 flex flex-col bg-[#f1f1f9] min-h-screen">
       {/* Top Bar with Logo, Avatar, and Logout */}
-      <div className="flex gap-1 justify-between items-center p-4 bg-[#F0F8FF] shadow-md h-[8vh]">
+      <div className="flex gap-1 justify-between items-center p-4 bg-gradient-to-t from-blue-50 via-blue-75 to-blue-100 shadow-md h-[8vh] w-full max-w-[95vw] mx-auto mt-[10px] rounded-lg">
         <Image
           src="/logo.png"
           alt="Logo"
@@ -121,31 +126,57 @@ const MentorDashboard = () => {
           height={40}
           className="mt-[0px]"
         />
-        <div className="flex items-center gap-4 mt-[0px]">
-          {/* Avatar */}
-          <Avatar>
-            <AvatarImage src="https://github.com/shadcn.png" />
-            <AvatarFallback>CN</AvatarFallback>
-          </Avatar>
+        
+       <div className="flex items-center gap-4 mt-[0px] relative mr-[15px]">
+      {/* Avatar */}
+      <div onClick={togglePopup} className="cursor-pointer">
+        <Avatar>
+          <AvatarImage src="https://github.com/shadcn.png" />
+          <AvatarFallback>CN</AvatarFallback>
+        </Avatar>
+      </div>
 
-          {/* Logout Button */}
-          <form action="/auth/logout" method="post">
-            <Button variant="blue">Logout</Button>
-          </form>
+      {/* Popup Screen */}
+      {isPopupOpen && (
+            <div className="absolute top-[100%] right-0 mt-2 bg-gradient-to-t from-blue-100 via-blue-200 to-blue-300 shadow-md shadow-lg p-6 rounded-lg z-50 w-[250px]">
+              {/* Large Avatar */}
+              <div className="flex justify-center mb-4">
+                <Avatar className="w-24 h-24">
+                  <AvatarImage src="https://github.com/shadcn.png" />
+                  <AvatarFallback>CN</AvatarFallback>
+                </Avatar>
+              </div>
+
+              {/* Student Name and Email */}
+              <div className="text-center">
+                <h3 className="text-lg font-semibold">
+                  {session ? `${session.fname} ${session.lname}` : 'Loading...'}
+                </h3>
+                <p className="text-xs text-gray-500">
+                  {session ? session.email : 'Loading...'}
+                </p>
+              </div>
+
+              {/* Logout Button */}
+              <form action="/auth/logout" method="post" className="mt-4">
+                <Button variant="blue" className="w-full border-black">Logout</Button>
+              </form>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-grow flex flex-col items-center justify-center mt-[-4px]">
-        <div className="bg-white p-4 rounded-xl shadow-lg w-[98vw] h-[90vh]">
-          <div className="flex justify-between items-center mb-4 px-4">
+      <div className="flex-grow flex flex-col items-center justify-center mt-[-7px] w-full max-w-[95vw] mx-auto">
+        <div className="bg-white p-4 rounded-xl shadow-lg w-full max-w-[95vw] min-h-[60vh]">
+          <div className="flex flex-wrap justify-between items-center mb-4 px-4">
             {!isLoading && session ? (
               <select
-              className="border-2 border-blue-500 text-black-500 px-4 py-2 bg-white rounded-md hover:border-blue-600 hover:bg-blue-100" 
+              className="border-2 border-blue-500 text-black-500 px-4 py-2 bg-white rounded-md hover:border-blue-600 hover:bg-blue-100 w-full max-w-xs" 
                 value={selectedUser || mentorId} // Set selectedUser or mentorId if it's not yet available
                 onChange={handleMentorChange}
               >
-                <option value={mentorId}>{mentorName}</option>
+                <option value={mentorId}>{mentorName}</option> 
                 {users.map((user) => (
                   <option key={user.id} value={user.id}>
                     {user.firstName} {user.lastName}
@@ -156,7 +187,7 @@ const MentorDashboard = () => {
               <p>Loading...</p> // Show loading while fetching
             )}
 
-            <div className="flex space-x-4">
+            <div className="flex flex-wrap gap-4 mt-4 sm:mt-0">
             <Button className="border-2 border-orange-500 text-black-500 px-4 py-2 bg-white rounded-md hover:border-orange-600 hover:bg-orange-100" 
                 onClick={handleReport} disabled={mentorId === selectedUser}>
               Generate Report
@@ -168,7 +199,7 @@ const MentorDashboard = () => {
                 Bulk Report
               </Button>
               <Button
-              className="border-2 border-blue-500 text-black-500 px-4 py-2 bg-white rounded-md hover:border-blue-600 hover:bg-blue-100"
+              className="border-2 border-blue-500 text-black-500 px-4 py-2 bg-white rounded-md hover:border-blue-600 hover:bg-blue-100 "
                 onClick={handleOpenForm}
               >
                 Register Student
@@ -178,7 +209,7 @@ const MentorDashboard = () => {
           </div>
 
           {/* Pass the selectedUser as a prop to TaskCalendar */}
-          <div className="flex justify-center items-center">
+          <div className="flex justify-center items-center w-full">
             <TaskCalendar selectedUser={selectedUser} />
           </div>
         </div>
