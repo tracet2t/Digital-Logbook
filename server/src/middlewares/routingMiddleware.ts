@@ -18,13 +18,10 @@ export function withRoleBasedRoutingMiddleware(middleware: NextMiddleware): Next
         
         if (role === 'student' && request.nextUrl.pathname === '/'){
             return NextResponse.redirect(`${process.env.BASE_URL}/student`);
-
         }
-
 
         if (role === 'mentor' && request.nextUrl.pathname === '/'){
             return NextResponse.redirect(`${process.env.BASE_URL}/mentor`);
-
         }
 
         if (role === 'mentor' && !isUrlAllowed(request.nextUrl.pathname, mentorRoutingBlacklist)) {

@@ -28,6 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { getSessionOnClient } from "@/server_actions/getSession";
+import { convertToCalendarEvents, convertToCalendarEventsMentor } from "@/lib/eventConverters";
 
 moment.locale("en-GB");
 const localizer = momentLocalizer(moment);
@@ -52,38 +53,6 @@ interface CalendarEvent {
   notes?: string;
   status: "pending" | "approved" | "rejected"; // New field for status
 }
-
-const convertToCalendarEvents = (data: any[]): CalendarEvent[] => {
-  return data.map((item, index) => {
-    const startDate = new Date(item.date);
-    const endDate = new Date(item.date); // Calculate end time
-
-    return {
-      id: index,
-      title: item.notes || "No Title",
-      start: startDate,
-      end: endDate,
-      status: item.feedback[0]?.status, // Add the status field
-    };
-  });
-};
-
-const convertToCalendarEventsMentor = (data: any[]): CalendarEvent[] => {
-  return data.map((item, index) => {
-    const startDate = new Date(item.date);
-    const endDate = new Date(item.date); // Calculate end time
-    // console.log(item.feedback[0]?.status);
-    console.log(item);
-
-    return {
-      id: index,
-      title: item.activities || "No Title",
-      start: startDate,
-      end: endDate,
-      // status: item.feedback[0]?.status, // Add the status field
-    };
-  });
-};
 
 interface TaskCalendarProps {
   selectedUser: string | null; // New prop for selectedUser
@@ -506,9 +475,6 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   };
 
   return (
-
-    // role = mentor
-    // selecteduser === usersessionid
 
     <>
         <ToastProvider>
