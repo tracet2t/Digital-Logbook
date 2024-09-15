@@ -1,10 +1,10 @@
 // src/components/MentorStudentTaskDetailDialog.tsx
-
-import React from 'react';
+'use client';
+import React, { useState } from 'react';
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input'; 
 import { Textarea } from '@/components/ui/textarea'; 
-
+import { Toast, ToastProvider, ToastViewport, ToastTitle, ToastDescription, ToastClose } from '@/components/ui/toast';
 
 interface MentorStudentTaskDetailDialogProps {
   taskModalOpen: boolean;
@@ -37,52 +37,78 @@ const MentorStudentTaskDetailDialog: React.FC<MentorStudentTaskDetailDialogProps
   handleClose,
   handleSubmit
 }) => {
-  return (
-    role === 'mentor' && selectedUser === studentId && (
-      <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Task Details</AlertDialogTitle>
-          </AlertDialogHeader>
-          <AlertDialogDescription>
-            <form>
-              <div className="mb-4">
-                <label>Date</label>
-                <Input type="date" value={formData.date} disabled className="text-black" />
-              </div>
+  const [showToast, setShowToast] = useState(false);
 
-              <div className="mb-4">
-                <label>Working Hours</label>
-                <Input
-                  type="number"
-                  value={workingHours}
-                  onChange={(e) => {
-                    const Hours = Number(e.target.value) || 0;
-                    setWorkingHours(Math.max(0, Math.min(12, Hours)));
-                  }}                   placeholder="Enter working hours"
-                  disabled={!isEditable}
-                  className="text-black"
-                />
-              </div>
-              <div className="mb-4">
-                <label>Notes</label>
-                <Textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Enter notes"
-                  disabled={!isEditable}
-                  className="text-black"
-                />
-              </div>
-            </form>
-          </AlertDialogDescription>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleClose}>Cancel</AlertDialogCancel>
-            {isEditable && <AlertDialogAction onClick={handleSubmit}>Save</AlertDialogAction>}
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    )
+  const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newNotes = e.target.value;
+    if (newNotes.length > 300) {
+      setShowToast(true);
+      setNotes('');
+    }
+    setNotes(newNotes.substring(0, 300)); // Limit to 300 characters
+  };
+
+  return (
+    <>
+      {role === 'mentor' && selectedUser === studentId && (
+        <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Task Details</AlertDialogTitle>
+            </AlertDialogHeader>
+            <AlertDialogDescription>
+              <form>
+                <div className="mb-4">
+                  <label>Date</label>
+                  <Input type="date" value={formData.date} disabled className="text-black" />
+                </div>
+
+                <div className="mb-4">
+                  <label>Working Hours</label>
+                  <Input
+                    type="number"
+                    value={workingHours}
+                    onChange={(e) => {
+                      const hours = Number(e.target.value) || 0;
+                      setWorkingHours(Math.max(0, Math.min(12, hours)));
+                    }}
+                    placeholder="Enter working hours"
+                    disabled={!isEditable}
+                    className="text-black"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label>Notes</label>
+                  <Textarea
+                    value={notes}
+                    onChange={handleNotesChange}
+                    placeholder="Enter notes"
+                    disabled={!isEditable}
+                    className="text-black"
+                  />
+                </div>
+              </form>
+            </AlertDialogDescription>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={handleClose}>Cancel</AlertDialogCancel>
+              {isEditable && <AlertDialogAction onClick={handleSubmit}>Save</AlertDialogAction>}
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+
+      {/* Toast Notification */}
+      <ToastProvider>
+        <ToastViewport />
+        {showToast && (
+          <Toast>
+            <ToastTitle>Note Length Exceeded</ToastTitle>
+            <ToastDescription>The notes cannot exceed 300 characters.</ToastDescription>
+            <ToastClose onClick={() => setShowToast(false)} />
+          </Toast>
+        )}
+      </ToastProvider>
+    </>
   );
 };
 

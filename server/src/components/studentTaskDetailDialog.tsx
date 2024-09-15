@@ -1,11 +1,9 @@
-// src/components/StudentTaskDetailDialog.tsx
-
-
-import React from 'react';
+'use client';
+import React, { useState } from 'react';
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input'; 
 import { Textarea } from '@/components/ui/textarea'; 
-
+import { Toast, ToastProvider, ToastViewport, ToastTitle, ToastDescription, ToastClose } from '@/components/ui/toast';
 
 interface StudentTaskDetailDialogProps {
   taskModalOpen: boolean;
@@ -34,8 +32,19 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
   handleClose,
   handleSubmit
 }) => {
+  const [showToast, setShowToast] = useState(false);
+
+  const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newNotes = e.target.value;
+    if (newNotes.length > 300) {
+      setShowToast(true);
+    }
+    setNotes(newNotes.substring(0, 300)); // Limit to 300 characters
+  };
+
   return (
     role === 'student' && (
+    <>
       <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -54,9 +63,9 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
                   type="number"
                   value={workingHours}
                   onChange={(e) => {
-                    const Hours = Number(e.target.value) || 0;
-                    setWorkingHours(Math.max(0, Math.min(12, Hours)));
-                  }} 
+                    const hours = Number(e.target.value) || 0;
+                    setWorkingHours(Math.max(0, Math.min(12, hours)));
+                  }}
                   placeholder="Enter working hours"
                   disabled={!isEditable}
                   className="text-black"
@@ -66,7 +75,7 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
                 <label>Notes</label>
                 <Textarea
                   value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
+                  onChange={handleNotesChange}
                   placeholder="Enter notes"
                   disabled={!isEditable}
                   className="text-black"
@@ -80,6 +89,19 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Toast Notification */}
+      <ToastProvider>
+        <ToastViewport />
+        {showToast && (
+          <Toast>
+            <ToastTitle>Note Length Exceeded</ToastTitle>
+            <ToastDescription>The notes cannot exceed 300 characters.</ToastDescription>
+            <ToastClose onClick={() => setShowToast(false)} />
+          </Toast>
+        )}
+      </ToastProvider>
+    </>
     )
   );
 };
