@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import getSession from "@/server_actions/getSession";
 import { parse } from 'json2csv';
-import { ReportRepository } from "@/repositories/repositories";
+import { UserRepository } from "@/repositories/repositories";
 
-const reportRepository = new ReportRepository();
+const userRepository = new UserRepository();
 
 export const GET = async (req: NextRequest) => {
     try {
@@ -28,7 +28,7 @@ export const GET = async (req: NextRequest) => {
         }
 
         // Fetch user activities using the repository
-        const userWithActivities = await reportRepository.getUserWithActivities(studentId);
+        const userWithActivities = await userRepository.getUserWithActivities(studentId);
 
         if (!userWithActivities) {
             return NextResponse.json({ message: "User not found" }, { status: 404 });

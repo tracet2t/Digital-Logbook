@@ -5,17 +5,6 @@ import { Calendar as BigCalendar, momentLocalizer, Views } from "react-big-calen
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import {
   ToastProvider,
   ToastViewport,
   Toast,
@@ -24,9 +13,7 @@ import {
   ToastClose,
 } from "@/components/ui/toast"; // Adjust the import path according to your project structure
 
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { getSessionOnClient } from "@/server_actions/getSession";
 import { convertToCalendarEvents, convertToCalendarEventsMentor, eventPropGetter } from "@/lib/calenderUtils";
 import MentorStudentTaskDetailDialog from "./mentorStudentTaskDetailDialog";
