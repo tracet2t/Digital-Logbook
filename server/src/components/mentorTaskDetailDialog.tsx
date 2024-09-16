@@ -22,7 +22,6 @@ interface MentorTaskDetailDialogProps {
   setStatus: (status: string) => void;
   handleClose: () => void;
 }
-
 const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
   taskModalOpen,
   setTaskModalOpen,
@@ -49,6 +48,16 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
     } else {
       setter(value);
     }
+  };
+
+  const handleValidationAndAction = (action: string) => {
+    if (!notes || !workingHours) {
+      setShowToast(true);
+      setToastMessage("Notes and Working Hours must be provided before accepting or rejecting.");
+      return;
+    }
+    setStatus(action);
+    setTaskModalOpen(false); // Close modal after setting the status
   };
 
   return (
@@ -103,9 +112,19 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
               </div>
             </AlertDialogDescription>
             <AlertDialogFooter className="flex justify-end gap-3 mt-4">
-              <AlertDialogCancel onClick={setTaskModalOpen} className="bg-green-500 text-white hover:bg-green-600 px-4 py-2 rounded-md">Close</AlertDialogCancel>
-              <AlertDialogAction onClick={() => { setStatus('approved'); }} className="bg-blue-500 text-white hover:bg-blue-700 px-4 py-2 rounded-md">Accept</AlertDialogAction>
-              <AlertDialogAction onClick={() => { setStatus('rejected'); }} className="bg-red-500 text-white hover:bg-red-700 px-4 py-2 rounded-md">Reject</AlertDialogAction>
+              <AlertDialogCancel onClick={() => setTaskModalOpen(false)} className="bg-green-500 text-white hover:bg-green-600 px-4 py-2 rounded-md">Close</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => handleValidationAndAction('approved')}
+                className="bg-blue-500 text-white hover:bg-blue-700 px-4 py-2 rounded-md"
+              >
+                Accept
+              </AlertDialogAction>
+              <AlertDialogAction
+                onClick={() => handleValidationAndAction('rejected')}
+                className="bg-red-500 text-white hover:bg-red-700 px-4 py-2 rounded-md"
+              >
+                Reject
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
@@ -124,3 +143,4 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
 };
 
 export default MentorTaskDetailDialog;
+
