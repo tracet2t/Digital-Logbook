@@ -14,7 +14,7 @@ interface CalendarEvent {
     status: "pending" | "approved" | "rejected"; // New field for status
   }
 
-export const eventPropGetter = (event: CalendarEvent) => {
+export const eventPropGetter = (event: CalendarEvent, selectedUser: string) => {
   let backgroundColor = "tealContrast"; // Default background color
   let textColor = "white"; // Default text color (white)
 
@@ -29,6 +29,7 @@ export const eventPropGetter = (event: CalendarEvent) => {
     backgroundColor = "#F25C54"; // Red background for rejected
     textColor = "white"; // White text for contrast
   }
+
 
   return {
     style: {

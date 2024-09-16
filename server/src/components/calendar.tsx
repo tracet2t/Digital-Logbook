@@ -117,8 +117,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   
     const data = await fetchEventData(url);
     if (data) {
-      const parsedEvents = role === 'mentor' && studentId === selectedUser ? convertToCalendarEventsMentor(data) : convertToCalendarEvents(data);
-      console.log(parsedEvents);
+      const parsedEvents =  role === 'mentor' && studentId === selectedUser ? convertToCalendarEventsMentor(data) : convertToCalendarEvents(data);
       setEvents(parsedEvents);
     }
   };
@@ -427,7 +426,7 @@ const showToast = (title: string, description: string) => {
           components={{
             toolbar: CustomToolbar,
           }}
-          eventPropGetter={eventPropGetter} // Apply custom styles based on event status
+          eventPropGetter={(event) => eventPropGetter(event, selectedUser)} // Pass selectedUser here
           style={{height: "100%"}}
         />
       </div>
