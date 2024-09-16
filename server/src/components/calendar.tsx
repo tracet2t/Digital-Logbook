@@ -422,7 +422,7 @@ const showToast = (title: string, description: string) => {
           startAccessor="start"
           endAccessor="end"
           onSelectSlot={(slotInfo) => handleDateClick(slotInfo.start)}
-          onSelectEvent={(event) => handleDateClick(event.start)}
+          //onSelectEvent={(event) => handleDateClick(event.start)}
           selectable
           components={{
             toolbar: CustomToolbar,
