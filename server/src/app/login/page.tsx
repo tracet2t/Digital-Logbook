@@ -14,6 +14,7 @@ import {
     ToastClose
 } from "@/components/ui/toast"; // Import your custom toast components
 
+
 const LoginPage = () => {
     const router = useRouter();  // Initialize useRouter
     const [toastData, setToastData] = useState({
@@ -23,9 +24,16 @@ const LoginPage = () => {
         variant: 'default'
     });
 
-    const handleSubmit = async (e) => {
+    // Properly type the handleSubmit function
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const formData = new FormData(e.target);
+        const formData = new FormData(e.currentTarget);
+
+        // Reset the toast state before a new login attempt
+        setToastData((prev) => ({
+            ...prev,
+            open: false,
+        }));
 
         try {
             const res = await fetch('/auth/login', {
@@ -43,11 +51,10 @@ const LoginPage = () => {
                     variant: 'default',
                 });
 
-                // Redirect to the respective page after showing the toast
                 if (data.redirectUrl) {
                     setTimeout(() => {
-                        router.push(data.redirectUrl);  // Use router.push for redirection
-                    }, 2000);  // Short delay to show the toast
+                        router.push(data.redirectUrl);
+                    }, 1000);
                 }
             } else {
                 setToastData({

@@ -36,6 +36,13 @@ const ResetPasswordPage = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+
+        // Reset the toast state before a new login attempt
+        setToastData((prev) => ({
+            ...prev,
+            open: false,
+        }));
+
         if (newPassword !== confirmNewPassword) {
             setToastData({
                 open: true,
@@ -101,7 +108,7 @@ const ResetPasswordPage = () => {
             // Automatically close toast after a short delay
             const timer = setTimeout(() => {
                 setToastData(prev => ({ ...prev, open: false }));
-            }, 3000); // Adjust the duration as needed
+            }, 1000); // Adjust the duration as needed
 
             return () => clearTimeout(timer);
         }

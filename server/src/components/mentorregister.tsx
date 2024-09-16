@@ -45,7 +45,7 @@ const RegistrationForm: React.FC = () => {
     // Clear toast after a short delay
     setTimeout(() => {
       setToast(null);
-    }, 3000); // Adjust delay as needed
+    }, 1000); // Adjust delay as needed
   };
 
   return (

@@ -332,7 +332,7 @@ const handleResponse = async (response: Response, successMessage: string) => {
 
 const showToast = (title: string, description: string) => {
   setToast({ title, description });
-  setTimeout(() => setToast(null), 3000);
+  setTimeout(() => setToast(null), 1000);
 };
 
 

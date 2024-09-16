@@ -31,7 +31,7 @@ export default function MentorRegStudentForm({ onClose }) {
         title: 'Success',
         description: 'Student registered successfully!',
       });
-      setTimeout(() => setToast(null), 3000); // Hide toast after 3 seconds
+      setTimeout(() => setToast(null), 1000); // Hide toast after 3 seconds
       setFormData({
         firstName: '',
         lastName: '',
@@ -43,7 +43,7 @@ export default function MentorRegStudentForm({ onClose }) {
         title: 'Error',
         description: 'Error registering student. Please try again.',
       });
-      setTimeout(() => setToast(null), 3000); // Hide toast after 3 seconds
+      setTimeout(() => setToast(null), 1000); // Hide toast after 3 seconds
     }
   };
 
