@@ -143,7 +143,6 @@ const fetchEventForDate = async (formattedDate: string) => {
     const data = await response.json();
 
     if (data.length > 0) {
-      console.log(data[0].id,'--------------')
       await processResponse(data[0], formattedDate);
     } else {
       resetFormData(formattedDate);

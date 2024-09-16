@@ -133,4 +133,4 @@ const MentorPopUp: React.FC<MentorPopUpProps> = ({ isOpen, onClose, mentorDetail
 
 
 
-export default MentorPopUp;
+export default MentorPopUp

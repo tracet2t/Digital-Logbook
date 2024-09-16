@@ -75,8 +75,8 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
                     value={workingHours}
                     disabled={true}
                     onChange={(e) => {
-                      const Hours = Number(e.target.value) || 0;
-                      setWorkingHours(Math.max(0, Math.min(12, Hours)));
+                      const Hours = Number(e.target.value) || 1;
+                      setWorkingHours(Math.max(1, Math.min(12, Hours)));
                     }}
                     placeholder="Enter working hours"
                   />
