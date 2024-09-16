@@ -3,7 +3,7 @@ import getSession from "@/server_actions/getSession";
 import { NextFetchEvent, NextMiddleware, NextRequest, NextResponse } from "next/server";
 
 const mentorRoutingBlacklist = ['/admin'];
-const studentRoutingBlacklist = [...mentorRoutingBlacklist,'/mentor'];
+const studentRoutingBlacklist = [...mentorRoutingBlacklist,'/mentor','/mentor/bulkreport'];
 
 export function withRoleBasedRoutingMiddleware(middleware: NextMiddleware): NextMiddleware {
     return async (request: NextRequest, event: NextFetchEvent) => {
