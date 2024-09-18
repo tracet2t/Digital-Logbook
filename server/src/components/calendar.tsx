@@ -128,9 +128,9 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     const data = await fetchEventData(url);
     if (data) {
       const parsedEvents =
-        role === "mentor" && studentId === selectedUser
-          ? convertToCalendarEventsMentor(data)
-          : convertToCalendarEvents(data);
+        role === "mentor"
+        ? studentId === selectedUser ?convertToCalendarEventsMentor(data)
+          :  convertToCalendarEvents(data): convertToCalendarEvents(data);
       setEvents(parsedEvents);
     }
   };
