@@ -14,6 +14,8 @@ interface StudentTaskDetailDialogProps {
   setWorkingHours: (hours: number) => void;
   notes: string;
   setNotes: (notes: string) => void;
+  review: string;
+  setReview: (review: string) => void;
   isEditable: boolean;
   handleClose: () => void;
   handleSubmit: () => void;
@@ -26,6 +28,7 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
   workingHours,
   setWorkingHours,
   notes,
+  review,
   role,
   setNotes,
   isEditable,
@@ -84,11 +87,10 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
               <div className="mb-4">
                 <label>Feedback</label>
                 <Textarea
-                  value={notes}
-                  //onChange={}
+                  value={review}
                   placeholder="Mentors Feedback"
                   className="text-black bg-[#d5d5ec] border border-[#d8d8d8]"
-                  readOnly
+                  disabled={true}
                 />
               </div>
             </form>

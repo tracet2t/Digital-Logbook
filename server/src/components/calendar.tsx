@@ -174,7 +174,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   };
 
   const processResponse = async (existingEvent: any, formattedDate: string) => {
-    if (role === "mentor" && studentId !== selectedUser) {
+    if ((role === "mentor" && studentId !== selectedUser) || (role === "student")) {
       const feedbackData = await fetchFeedback(existingEvent.id, formattedDate);
       updateFormData(existingEvent, feedbackData, formattedDate);
     } else {
@@ -416,6 +416,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
           setWorkingHours={setWorkingHours}
           notes={notes}
           setNotes={setNotes}
+          /* look down here */
           review={review}
           setReview={setReview}
           setStatus={setStatus}
@@ -444,6 +445,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
           workingHours={workingHours}
           setWorkingHours={setWorkingHours}
           notes={notes}
+          review={review}
           setNotes={setNotes}
           isEditable={isEditable}
           handleClose={handleClose}
