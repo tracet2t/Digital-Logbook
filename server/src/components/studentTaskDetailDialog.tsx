@@ -81,6 +81,16 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
                   className="text-black"
                 />
               </div>
+              <div className="mb-4">
+                <label>Feedback</label>
+                <Textarea
+                  value={notes}
+                  //onChange={}
+                  placeholder="Mentors Feedback"
+                  className="text-black bg-[#d5d5ec] border border-[#d8d8d8]"
+                  readOnly
+                />
+              </div>
             </form>
           </AlertDialogDescription>
           <AlertDialogFooter>
