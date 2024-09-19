@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input'; 
+import { Button } from '@/components/ui/button'; 
 import { Textarea } from '@/components/ui/textarea'; 
 import { ToastProvider, Toast, ToastTitle, ToastDescription, ToastClose, ToastViewport } from '@/components/ui/toast'; 
 
@@ -112,19 +113,19 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
               </div>
             </AlertDialogDescription>
             <AlertDialogFooter className="flex justify-end gap-3 mt-4">
-              <AlertDialogCancel onClick={() => setTaskModalOpen(false)} className="bg-green-500 text-white hover:bg-green-600 px-4 py-2 rounded-md">Close</AlertDialogCancel>
-              <AlertDialogAction
+              <Button onClick={() => setTaskModalOpen(false)} className=" text-white  bg[#666668] px-4 py-2 rounded-md">Close</Button>
+              <Button
                 onClick={() => handleValidationAndAction('approved')}
-                className="bg-blue-500 text-white hover:bg-blue-700 px-4 py-2 rounded-md"
+                className="bg-green-500 text-white hover:bg-green-700 px-4 py-2 rounded-md"
               >
                 Accept
-              </AlertDialogAction>
-              <AlertDialogAction
+              </Button>
+              <Button
                 onClick={() => handleValidationAndAction('rejected')}
                 className="bg-red-500 text-white hover:bg-red-700 px-4 py-2 rounded-md"
               >
                 Reject
-              </AlertDialogAction>
+              </Button>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
