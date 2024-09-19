@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import getSession from '@/server_actions/getSession'; 
-import { MentorShipRepository } from '@/repositories/repositories';
+import { MentorshipRepository } from '@/repositories/repositories';
 
 export const GET = async (req: NextRequest) => {
   try {
@@ -18,7 +18,7 @@ export const GET = async (req: NextRequest) => {
     const url = new URL(req.url);
     const mentorId = url.searchParams.get('mentorId') || userId;
 
-    const mentorshipRepository = new MentorShipRepository()
+    const mentorshipRepository = new MentorshipRepository()
 
     const mentorWithStudents = await mentorshipRepository.getMentorWithStudents(mentorId);
 

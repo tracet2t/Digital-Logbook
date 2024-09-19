@@ -2,7 +2,7 @@
 
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcrypt';
-import { sendEmail } from '@/app/api/email/route';
+import { sendEmail } from '@/lib/email'; 
 import getSession from '@/server_actions/getSession';
 import { UserRepository, MentorshipRepository } from '@/repositories/repositories';
 
