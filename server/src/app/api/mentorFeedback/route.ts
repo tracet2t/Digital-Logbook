@@ -1,7 +1,9 @@
+// src/api/mentorFeedback.ts
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";  
 import getSession from "@/server_actions/getSession";
-import { act } from "react";
+import { MentorFeedbackRepository } from "@/repositories/repositories";
+
+const mentorFeedbackRepository = new MentorFeedbackRepository();
 
 // GET request handler
 export const GET = async (req: NextRequest) => {
@@ -20,31 +22,22 @@ export const GET = async (req: NextRequest) => {
     const url = new URL(req.url);
     const activityId = url.searchParams.get('activityId');
     const date = url.searchParams.get('date');
-    console.log('---------------------------',activityId);
 
     if (!activityId) {
       return NextResponse.json({ message: "Activity ID is required" }, { status: 400 });
     }
 
-    // Fetch the mentor activity by activityId
-    const mentorActivity = await prisma.mentorFeedback.findFirst({
-      where: { 
-        activityId: String(activityId),
-        // Filter by date in the related Activity model
-        activity: {
-          date: date ? new Date(date) : undefined,
-        },
-      },
-    });
+    // Fetch the mentor feedback by activityId
+    const mentorFeedback = await mentorFeedbackRepository.getFeedbackByActivityId(activityId, date);
 
-    if (!mentorActivity) {
+    if (!mentorFeedback) {
       return NextResponse.json(null);
     }
 
-    return NextResponse.json(mentorActivity);
+    return NextResponse.json(mentorFeedback);
   } catch (error) {
-    console.error("Error fetching mentor activity:", error);
-    return NextResponse.json({ message: "Error fetching mentor activity" }, { status: 500 });
+    console.error("Error fetching mentor feedback:", error);
+    return NextResponse.json({ message: "Error fetching mentor feedback" }, { status: 500 });
   }
 };
 
@@ -71,37 +64,8 @@ export const POST = async (req: NextRequest) => {
 
     const { review, status, mentor } = await req.json();
 
-    // Check if the feedback already exists
-    const existingFeedback = await prisma.mentorFeedback.findFirst({
-      where: {
-        activityId: activityId,
-        mentorId: mentor,
-      },
-    });
-
-    let feedback;
-    if (existingFeedback) {
-      // Update the existing feedback
-      feedback = await prisma.mentorFeedback.update({
-        where: {
-          id: existingFeedback.id,  // Find by the existing feedback ID
-        },
-        data: {
-          feedbackNotes: review,
-          status: status,
-        },
-      });
-    } else {
-      // Create new feedback
-      feedback = await prisma.mentorFeedback.create({
-        data: {
-          activityId: activityId,
-          mentorId: mentor,
-          feedbackNotes: review,
-          status: status,
-        },
-      });
-    }
+    // Upsert feedback using the repository
+    const feedback = await mentorFeedbackRepository.upsertFeedback(activityId, mentor, review, status);
 
     return NextResponse.json(feedback);
   } catch (error) {

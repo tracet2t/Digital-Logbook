@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma'; 
 import getSession from '@/server_actions/getSession'; 
+import { MentorShipRepository } from '@/repositories/repositories';
 
 export const GET = async (req: NextRequest) => {
   try {
@@ -18,34 +18,9 @@ export const GET = async (req: NextRequest) => {
     const url = new URL(req.url);
     const mentorId = url.searchParams.get('mentorId') || userId;
 
-    const mentorWithStudents = await prisma.mentorship.findMany({
-      where: {
-        mentorId: mentorId,
-      },
-      include: {
-        student: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            activities: {
-              select: {
-                id: true,
-                date: true,
-                timeSpent: true,
-                notes: true,
-                feedback: {
-                  select: {
-                    status: true,
-                    feedbackNotes: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    });
+    const mentorshipRepository = new MentorShipRepository()
+
+    const mentorWithStudents = await mentorshipRepository.getMentorWithStudents(mentorId);
 
     if (!mentorWithStudents.length) {
       return NextResponse.json({ message: "No students found for this mentor" }, { status: 404 });

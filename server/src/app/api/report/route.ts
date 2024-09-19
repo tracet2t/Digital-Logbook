@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 import getSession from "@/server_actions/getSession";
 import { parse } from 'json2csv';
+import { ReportRepository } from "@/repositories/repositories";
+
+const reportRepository = new ReportRepository();
 
 export const GET = async (req: NextRequest) => {
     try {
+        // Get the user session
         const session = await getSession();
 
         if (!session) {
@@ -24,29 +27,8 @@ export const GET = async (req: NextRequest) => {
             return NextResponse.json({ message: "Student ID is required" }, { status: 400 });
         }
 
-        const userWithActivities = await prisma.user.findUnique({
-            where: {
-                id: studentId,
-            },
-            select: {
-                firstName: true,
-                lastName: true,
-                activities: {
-                    select: {
-                        date: true,
-                        timeSpent: true,
-                        notes: true,
-                        feedback: {
-                            select: {
-                                status: true,
-                                feedbackNotes: true,
-                            },
-                        },
-                    },
-                },
-            },
-        });
-        console.log(userWithActivities);
+        // Fetch user activities using the repository
+        const userWithActivities = await reportRepository.getUserWithActivities(studentId);
 
         if (!userWithActivities) {
             return NextResponse.json({ message: "User not found" }, { status: 404 });
@@ -57,7 +39,7 @@ export const GET = async (req: NextRequest) => {
             date: activity.date.toISOString().split('T')[0],
             timeSpent: activity.timeSpent,
             activity: activity.notes || 'No Activity',
-            feedbackStatus: activity.feedback[0]?.status|| "N/A",
+            feedbackStatus: activity.feedback[0]?.status || "N/A",
             feedbackNotes: activity.feedback[0]?.feedbackNotes || "No Feedback"
         }));
  
