@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, { useState } from 'react';
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
@@ -23,27 +23,41 @@ export default function MentorRegStudentForm({ onClose }) {
     });
   };
 
+  const validateTextOnly = (value) => /^[a-zA-Z]+$/.test(value);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const { firstName, lastName } = formData;
+
+    if (!validateTextOnly(firstName) || !validateTextOnly(lastName)) {
+      setToast({
+        title: 'Validation Error',
+        description: 'First Name and Last Name must contain only letters.',
+      });
+      setTimeout(() => setToast(null), 3000); // Hide toast after 3 seconds
+      return;
+    }
+
     try {
       await registerStudent(formData);
       setToast({
         title: 'Success',
         description: 'Student registered successfully!',
       });
-      setTimeout(() => setToast(null), 1000); // Hide toast after 3 seconds
+      setTimeout(() => setToast(null), 3000); // Hide toast after 3 seconds
       setFormData({
         firstName: '',
         lastName: '',
         email: '',
-      })
+      });
       // onClose();
     } catch (error) {
       setToast({
         title: 'Error',
         description: 'Error registering student. Please try again.',
       });
-      setTimeout(() => setToast(null), 1000); // Hide toast after 3 seconds
+      setTimeout(() => setToast(null), 3000); // Hide toast after 3 seconds
     }
   };
 

@@ -452,24 +452,24 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
           handleSubmit={handleSubmit}
         />
 
-        <div className="relative w-[90vw] h-[80vh] ">
-          <BigCalendar
-            events={events}
-            localizer={localizer}
-            defaultView={Views.MONTH}
-            view={Views.MONTH}
-            startAccessor="start"
-            endAccessor="end"
-            onSelectSlot={(slotInfo) => handleDateClick(slotInfo.start)}
-            onSelectEvent={(event) => handleDateClick(event.start)}
-            selectable
-            components={{
-              toolbar: CustomToolbar,
-            }}
-            eventPropGetter={(event) => eventPropGetter(event, selectedUser)} // Pass selectedUser here
-            style={{ height: "100%" }}
-          />
-        </div>
+<div className="relative w-[90vw] h-[80vh] ">
+        <BigCalendar
+          events={events}
+          localizer={localizer}
+          defaultView={Views.MONTH}
+          view={Views.MONTH}
+          startAccessor="start"
+          endAccessor="end"
+          onSelectSlot={(slotInfo) => handleDateClick(slotInfo.start)}
+          //onSelectEvent={(event) => handleDateClick(event.start)}
+          selectable
+          components={{
+            toolbar: CustomToolbar,
+          }}
+          eventPropGetter={(event) => eventPropGetter(event, selectedUser)} // Pass selectedUser here
+          style={{height: "100%"}}
+        />
+      </div>
 
         {toast && (
           <Toast>
