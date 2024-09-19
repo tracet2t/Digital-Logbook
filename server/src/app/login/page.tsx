@@ -1,11 +1,10 @@
-// src/app/login/page.tsx
-'use client'
+'use client';
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useRouter } from 'next/navigation';  // Import useRouter
+import { useRouter } from 'next/navigation'; 
 import {
     ToastProvider,
     ToastViewport,
@@ -13,24 +12,23 @@ import {
     ToastTitle,
     ToastDescription,
     ToastClose
-} from "@/components/ui/toast"; // Import your custom toast components
+} from "@/components/ui/toast";
 
+type ToastVariant = 'default' | 'destructive';
 
 const LoginPage = () => {
-    const router = useRouter();  // Initialize useRouter
+    const router = useRouter();
     const [toastData, setToastData] = useState({
         open: false,
         title: '',
         description: '',
-        variant: 'default'
+        variant: 'default' as ToastVariant, // Ensure correct type
     });
 
-    // Properly type the handleSubmit function
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
 
-        // Reset the toast state before a new login attempt
         setToastData((prev) => ({
             ...prev,
             open: false,
@@ -78,7 +76,6 @@ const LoginPage = () => {
     return (
         <ToastProvider>
             <div className="min-h-screen flex flex-col md:flex-row">
-                {/* Left Column with Full-Screen Image */}
                 <div className="relative w-full md:w-1/2 h-64 md:h-screen">
                     <Image
                         src="/login.png"
@@ -96,7 +93,6 @@ const LoginPage = () => {
                     </div>
                 </div>
 
-                {/* Right Column with Login Form */}
                 <div className="w-full md:w-1/2 h-auto md:h-screen bg-white flex items-center justify-center p-6 md:p-8">
                     <div className="w-full max-w-md">
                         <div className="flex justify-center mb-4">
@@ -147,7 +143,6 @@ const LoginPage = () => {
                 </div>
             </div>
 
-            {/* Toast Notification */}
             {toastData.open && (
                 <Toast variant={toastData.variant}>
                     <ToastTitle>{toastData.title}</ToastTitle>
@@ -156,7 +151,6 @@ const LoginPage = () => {
                 </Toast>
             )}
 
-            {/* Toast Viewport for stacking multiple toasts */}
             <ToastViewport />
         </ToastProvider>
     );

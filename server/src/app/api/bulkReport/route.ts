@@ -3,6 +3,9 @@ import getSession from '@/server_actions/getSession';
 import { MentorshipRepository } from '@/repositories/repositories';
 import { Activity, MentorFeedback } from '@prisma/client'; // Importing types from Prisma
 
+export const dynamic = 'force-dynamic';
+
+
 export const GET = async (req: NextRequest) => {
   try {
     const session = await getSession();

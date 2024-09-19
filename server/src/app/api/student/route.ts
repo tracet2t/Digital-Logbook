@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import getSession from "@/server_actions/getSession";
 import { ActivityRepository } from "@/repositories/repositories";
 
+export const dynamic = 'force-dynamic';
+
 const activityRepository = new ActivityRepository();
 
 export const GET = async (req: NextRequest) => {

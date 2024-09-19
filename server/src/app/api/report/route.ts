@@ -2,8 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import getSession from "@/server_actions/getSession";
 import { parse } from 'json2csv';
 import { UserRepository } from "@/repositories/repositories";
+import { Activity, MentorFeedback } from '@prisma/client'; 
+
+
 
 const userRepository = new UserRepository();
+
+export const dynamic = 'force-dynamic';
+
 
 export const GET = async (req: NextRequest) => {
     try {
@@ -34,7 +40,9 @@ export const GET = async (req: NextRequest) => {
             return NextResponse.json({ message: "User not found" }, { status: 404 });
         }
 
-        const activities = userWithActivities.activities.map(activity => ({
+
+        
+        const activities = userWithActivities.activities.map((activity: Activity & { feedback: MentorFeedback[] }) => ({
             studentName: `${userWithActivities.firstName} ${userWithActivities.lastName}`,
             date: activity.date.toISOString().split('T')[0],
             timeSpent: activity.timeSpent,
@@ -42,7 +50,7 @@ export const GET = async (req: NextRequest) => {
             feedbackStatus: activity.feedback[0]?.status || "N/A",
             feedbackNotes: activity.feedback[0]?.feedbackNotes || "No Feedback"
         }));
- 
+
         const fields = ['studentName', 'date', 'timeSpent', 'activity', 'feedbackStatus', 'feedbackNotes'];
 
         const csv = parse(activities, { fields });

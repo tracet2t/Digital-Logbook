@@ -15,7 +15,6 @@ interface StudentTaskDetailDialogProps {
   notes: string;
   setNotes: (notes: string) => void;
   review: string;
-  setReview: (review: string) => void;
   isEditable: boolean;
   handleClose: () => void;
   handleSubmit: () => void;

@@ -15,6 +15,9 @@ import {
     ToastViewport
 } from "@/components/ui/toast";  // Import toast components
 
+type ToastVariant = 'default' | 'destructive';
+
+
 const ResetPasswordPage = () => {
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -23,7 +26,7 @@ const ResetPasswordPage = () => {
         open: false,
         title: '',
         description: '',
-        variant: 'default'
+        variant: 'default' as ToastVariant
     });
     const router = useRouter();
 

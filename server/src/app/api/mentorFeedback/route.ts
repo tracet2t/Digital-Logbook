@@ -21,11 +21,14 @@ export const GET = async (req: NextRequest) => {
 
     const url = new URL(req.url);
     const activityId = url.searchParams.get('activityId');
-    const date = url.searchParams.get('date');
+    const dateParam = url.searchParams.get('date');
 
     if (!activityId) {
       return NextResponse.json({ message: "Activity ID is required" }, { status: 400 });
     }
+
+    // Convert dateParam from string | null to Date | undefined
+    const date = dateParam ? new Date(dateParam) : undefined;
 
     // Fetch the mentor feedback by activityId
     const mentorFeedback = await mentorFeedbackRepository.getFeedbackByActivityId(activityId, date);
@@ -62,10 +65,10 @@ export const POST = async (req: NextRequest) => {
       return NextResponse.json({ message: "Activity ID is required" }, { status: 400 });
     }
 
-    const { review, status, mentor } = await req.json();
+    const { review, status, mentorId } = await req.json();
 
     // Upsert feedback using the repository
-    const feedback = await mentorFeedbackRepository.upsertFeedback(activityId, mentor, review, status);
+    const feedback = await mentorFeedbackRepository.upsertFeedback(activityId, mentorId, review, status);
 
     return NextResponse.json(feedback);
   } catch (error) {

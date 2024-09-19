@@ -7,7 +7,12 @@ import { Input } from "@/components/ui/input";
 import { registerStudent } from '@/services/registerstudent';
 import { ToastProvider, ToastViewport, Toast, ToastTitle, ToastDescription, ToastClose } from "@/components/ui/toast"; // Adjust import path if necessary
 
-export default function MentorRegStudentForm({ onClose }) {
+// Define the props interface
+interface MentorRegStudentFormProps {
+  onClose: () => void;
+}
+
+export default function MentorRegStudentForm({ onClose }: MentorRegStudentFormProps) {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -16,16 +21,16 @@ export default function MentorRegStudentForm({ onClose }) {
 
   const [toast, setToast] = useState<{ title: string; description: string } | null>(null);
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
   };
 
-  const validateTextOnly = (value) => /^[a-zA-Z]+$/.test(value);
+  const validateTextOnly = (value: string) => /^[a-zA-Z]+$/.test(value);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const { firstName, lastName } = formData;

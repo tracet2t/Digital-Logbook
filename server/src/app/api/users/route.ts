@@ -2,8 +2,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import getSession from "@/server_actions/getSession";
 import { MentorshipRepository } from "@/repositories/repositories";
+import { Mentorship, User } from '@prisma/client';
 
 const mentorshipRepository = new MentorshipRepository();
+
+export const dynamic = 'force-dynamic';
+
 
 export const GET = async (req: NextRequest) => {
   try {
@@ -20,8 +24,8 @@ export const GET = async (req: NextRequest) => {
     // Fetch mentorships using the repository
     const mentorships = await mentorshipRepository.getMentorshipsByMentorId(mentorId);
 
-    // Extract students from the mentorship relations
-    const students = mentorships.map((mentorship) => mentorship.student);
+    // Ensure type for mentorships and student
+    const students = mentorships.map((mentorship: Mentorship & { student: User }) => mentorship.student);
 
     return NextResponse.json(students);
   } catch (error) {

@@ -19,11 +19,13 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { getSessionOnClient } from "@/server_actions/getSession";
+
 import {
   convertToCalendarEvents,
   convertToCalendarEventsMentor,
   eventPropGetter,
 } from "@/lib/calenderUtils";
+
 import MentorStudentTaskDetailDialog from "./mentorStudentTaskDetailDialog";
 import MentorTaskDetailDialog from "./mentorTaskDetailDialog";
 import StudentTaskDetailDialog from "./studentTaskDetailDialog";
@@ -35,7 +37,21 @@ interface FormData {
   studentId: string;
   date: string;
   timeSpent: number;
-  notes: string;
+  notes?: string;
+  status?: string;
+  review?: string;
+}
+
+interface FeedbackData {
+  review: string,
+  status: string,
+  mentorId: string
+}
+
+interface MentorFormData {
+  date: string,
+  workingHours: number,
+  activities: string
 }
 
 interface CalendarEvent {
@@ -53,7 +69,7 @@ interface CalendarEvent {
 }
 
 interface TaskCalendarProps {
-  selectedUser: string | null; // New prop for selectedUser
+  selectedUser: string; // New prop for selectedUser
 }
 
 const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
@@ -303,9 +319,9 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   };
 
   const submitMentorActivity = async () => {
-    const newFormData: FormData = {
+    const newFormData: MentorFormData = {
       date: formData.date,
-      workingHours,
+      workingHours: workingHours,
       activities: notes,
     };
 
@@ -324,10 +340,10 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   };
 
   const submitFeedback = async () => {
-    const newFormFeedbackData: FormData = {
+    const newFormFeedbackData: FeedbackData = {
       review,
       status,
-      mentor: studentId,
+      mentorId: studentId,
     };
 
     const response = await fetch(
@@ -409,7 +425,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
           taskModalOpen={taskModalOpen}
           setTaskModalOpen={setTaskModalOpen}
           role={role}
-          selectedUser={selectedUser}
+          selectedUser={selectedUser || ''}
           studentId={studentId}
           formData={formData}
           workingHours={workingHours}
@@ -426,7 +442,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
           taskModalOpen={taskModalOpen}
           setTaskModalOpen={setTaskModalOpen}
           role={role}
-          selectedUser={selectedUser}
+          selectedUser={selectedUser || ''}
           studentId={studentId}
           formData={formData}
           workingHours={workingHours}
@@ -466,7 +482,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
           components={{
             toolbar: CustomToolbar,
           }}
-          eventPropGetter={(event) => eventPropGetter(event, selectedUser)} // Pass selectedUser here
+          eventPropGetter={(event) => eventPropGetter(event, selectedUser || "")} // Pass selectedUser here
           style={{height: "100%"}}
         />
       </div>

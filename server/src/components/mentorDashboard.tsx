@@ -10,10 +10,18 @@ import { getSessionOnClient } from "@/server_actions/getSession";
 import { useRouter } from 'next/navigation'; // Import useRouter hook
 import { ToastProvider, ToastViewport, Toast, ToastTitle, ToastDescription, ToastClose } from "@/components/ui/toast"; // Adjust import path if necessary
 
+interface Session {
+  fname: string;
+  lname: string;
+  email: string;
+  id: string;
+  role: string;
+}
+
 const MentorDashboard = () => {
   const [showForm, setShowForm] = useState(false);
   const [users, setUsers] = useState<{ id: string; firstName: string; lastName: string; }[]>([]);
-  const [session, setSession] = useState(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [mentorName, setMentorName] = useState<string | null>(null);
   const [mentorId, setMentorId] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
@@ -188,10 +196,10 @@ const MentorDashboard = () => {
             {!isLoading && session ? (
               <select
               className="border-2 border-blue-500 text-black-500 px-4 py-2 bg-white rounded-md hover:border-blue-600 hover:bg-blue-100 w-full max-w-xs" 
-                value={selectedUser || mentorId} // Set selectedUser or mentorId if it's not yet available
+                value={selectedUser || mentorId || ''} // Set selectedUser or mentorId if it's not yet available
                 onChange={handleMentorChange}
               >
-                <option value={mentorId}>{mentorName}</option> 
+                <option value={mentorId || ""}>{mentorName}</option> 
                 {users.map((user) => (
                   <option key={user.id} value={user.id}>
                     {user.firstName} {user.lastName}
@@ -225,7 +233,7 @@ const MentorDashboard = () => {
 
           {/* Pass the selectedUser as a prop to TaskCalendar */}
           <div className="flex justify-center items-center w-full">
-            <TaskCalendar selectedUser={selectedUser} />
+            <TaskCalendar selectedUser={selectedUser || ""} />
           </div>
         </div>
       </div>

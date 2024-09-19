@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "react-toastify";
+// import { toast } from "react-toastify";
 
 export default function PasswordResetPage() {
   const [email, setEmail] = useState<string>("");
@@ -25,7 +25,7 @@ export default function PasswordResetPage() {
 
     if (newPassword !== confirmPassword) {
       setError("Passwords do not match");
-      toast.error("Passwords do not match");
+      // toast.error("Passwords do not match");
       return;
     }
 
@@ -37,7 +37,7 @@ export default function PasswordResetPage() {
       });
       if (!response.ok) throw new Error("Password reset failed");
 
-      toast.success("Password has been reset");
+      // toast.success("Password has been reset");
 
       // Clear the text boxes
       setNewPassword("");
@@ -46,7 +46,7 @@ export default function PasswordResetPage() {
       router.push("/auth/login");
     } catch (err) {
       setError("An error occurred");
-      toast.error("An error occurred");
+      // toast.error("An error occurred");
     }
   };
 

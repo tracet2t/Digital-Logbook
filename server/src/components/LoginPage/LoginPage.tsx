@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "react-toastify";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -30,7 +29,7 @@ const LoginPage = () => {
         throw new Error(result.message || "Login failed");
       }
 
-      toast.success("Login successful!");
+      // toast.success("Login successful!");
 
       setTimeout(() => {
         setLoading(false);
@@ -41,9 +40,11 @@ const LoginPage = () => {
     } catch (error) {
       setLoading(false); // Ensure loading is turned off in case of error
       if (error instanceof Error) {
-        toast.error(error.message);
+        console.log('signedin')
+        // toast.error(error.message);
       } else {
-        toast.error("An unexpected error occurred.");
+        console.log('logged out')
+        // toast.error("An unexpected error occurred.");
       }
     }
   };

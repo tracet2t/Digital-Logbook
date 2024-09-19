@@ -8,29 +8,30 @@ import { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
 import { Role } from "@/types";
 
 class JwtPayloadSession {
-    #payload;
+    public payload: any;
+
     constructor(payload: string) {
-        this.#payload = payload;
+        this.payload = payload;
     }
 
     isAuthenticated() {
-        return !!this.#payload && !!(this.#payload as any)["email"] && !!(this.#payload as any)["role"];
+        return !!this.payload && !!this.payload["email"] && !!this.payload["role"];
     }
 
     getUsername() {
-        return this.isAuthenticated() ? (this.#payload as any)["email"] : null;
+        return this.isAuthenticated() ? this.payload["email"] : null;
     }
 
     getId() {
-        return this.isAuthenticated() ? (this.#payload as any)['id'] : null;
+        return this.isAuthenticated() ? this.payload['id'] : null;
     }
 
     getRole(): Role {
-        return this.isAuthenticated() ? (this.#payload as any)["role"] : null;
+        return this.isAuthenticated() ? this.payload["role"] : null;
     }
 
     getName() {
-        return this.isAuthenticated() ? (this.#payload as any)["fname"] + ' ' + (this.#payload as any)["lname"] : null;
+        return this.isAuthenticated() ? this.payload["fname"] + ' ' + this.payload["lname"] : null;
     }
 }
 
@@ -45,7 +46,6 @@ export default async function getSession(reqCookies: RequestCookies | null = nul
     This has to be used in client components because
     server action return types has to be serializable,
     and classes are not supported at the moment.
-
 */
 async function getSessionOnClient(): Promise<any> {
     const sessionCookie = cookies().get('token');
