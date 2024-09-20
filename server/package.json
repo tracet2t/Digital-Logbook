@@ -14,8 +14,8 @@
     "migrate:testdb": "dotenv -e .env.test -- npx prisma migrate dev"
   },
   "engines": {
-    "node": "22.7.0",
-    "npm": "10.8.2"
+    "node": "20.0.0",
+    "npm": "9.8.1"
   },
   "dependencies": {
     "@popperjs/core": "^2.11.8",
