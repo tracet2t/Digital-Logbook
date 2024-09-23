@@ -234,7 +234,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
       review: "",
       status: "",
     });
-    setWorkingHours(0);
+    setWorkingHours(1);
     setNotes("");
     setEditingEvent(null);
     setReview("");
@@ -248,13 +248,10 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     const today = moment().startOf("day");
     const dayBeforeYesterday = moment().subtract(2, "days").startOf("day");
 
-    if (
-      moment(date).isBefore(dayBeforeYesterday) ||
-      moment(date).isAfter(today)
-    ) {
-      setIsEditable(false);
-    } else {
+    if (moment(date).isSame(today, 'day') || moment(date).isBetween(dayBeforeYesterday, today, 'day', '[]')) {
       setIsEditable(true);
+    } else {
+      setIsEditable(false);
     }
 
     fetchEventForDate(formattedDate);
@@ -477,7 +474,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
           startAccessor="start"
           endAccessor="end"
           onSelectSlot={(slotInfo) => handleDateClick(slotInfo.start)}
-          //onSelectEvent={(event) => handleDateClick(event.start)}
+          onSelectEvent={(event) => handleDateClick(event.start)}
           selectable
           components={{
             toolbar: CustomToolbar,

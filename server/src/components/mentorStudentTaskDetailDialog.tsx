@@ -38,6 +38,7 @@ const MentorStudentTaskDetailDialog: React.FC<MentorStudentTaskDetailDialogProps
   handleSubmit
 }) => {
   const [showToast, setShowToast] = useState(false);
+  const [showHoursToast, setShowHoursToast] = useState(false);
 
   const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newNotes = e.target.value;
@@ -46,6 +47,13 @@ const MentorStudentTaskDetailDialog: React.FC<MentorStudentTaskDetailDialogProps
       setNotes('');
     }
     setNotes(newNotes.substring(0, 300)); // Limit to 300 characters
+  };
+
+  const handleWorkingHoursBlur = () => {
+    if (workingHours === 0) {
+      setShowHoursToast(true);
+      setWorkingHours(1);
+    }
   };
 
   return (
@@ -69,13 +77,24 @@ const MentorStudentTaskDetailDialog: React.FC<MentorStudentTaskDetailDialogProps
                     type="number"
                     value={workingHours}
                     onChange={(e) => {
-                      const hours = Number(e.target.value) || 1;
-                      setWorkingHours(Math.max(1, Math.min(12, hours)));
-                    }}
-                    placeholder="Enter working hours"
-                    disabled={!isEditable}
-                    className="text-black"
-                  />
+                    const value = e.target.value;
+                  
+                    if (value === '') {
+                      setWorkingHours(0);
+                    } else {
+                      const hours = Number(value);
+                      if (!isNaN(hours)) {
+                        setWorkingHours(Math.max(1, Math.min(12, hours)));
+                      } else {
+                        setWorkingHours(1);
+                      }
+                    }
+                  }}
+                  onBlur={handleWorkingHoursBlur}
+                  placeholder="Enter working hours"
+                  disabled={!isEditable}
+                  className="text-black"
+                />
                 </div>
                 <div className="mb-4">
                   <label>Notes</label>
@@ -107,6 +126,13 @@ const MentorStudentTaskDetailDialog: React.FC<MentorStudentTaskDetailDialogProps
             <ToastClose onClick={() => setShowToast(false)} />
           </Toast>
         )}
+        {showHoursToast && (
+          <Toast>
+            <ToastTitle>Invalid Working Hours</ToastTitle>
+            <ToastDescription>Please enter a number between 1 and 12 for working hours.</ToastDescription>
+            <ToastClose onClick={() => setShowHoursToast(false)} />
+            </Toast>
+          )}
       </ToastProvider>
     </>
   );
