@@ -37,6 +37,25 @@ services:
     networks:
       - mynetwork
 
+  nextjs-app:
+    container_name: nextjs-app
+    build:
+      context: ./server 
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_POSTGRES_HOST: pgdb
+      NEXT_PUBLIC_POSTGRES_USER: postgres
+      NEXT_PUBLIC_POSTGRES_PASSWORD: postgres
+      NEXT_PUBLIC_REDIS_HOST: redis
+      NEXT_PUBLIC_REDIS_PORT: 6379
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - mynetwork
+
 volumes:
   postgres:
     driver: local
