@@ -55,6 +55,9 @@ services:
       - redis
     networks:
       - mynetwork
+    dns:
+      - 8.8.8.8   # Google's public DNS
+      - 1.1.1.1   # Cloudflare's public DNS
 
 volumes:
   postgres:
