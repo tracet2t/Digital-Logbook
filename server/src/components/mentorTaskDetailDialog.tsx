@@ -41,6 +41,7 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
 }) => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [showHoursToast, setShowHoursToast] = useState(false);
 
   const handleTextChange = (value: string, setter: (value: string) => void) => {
     if (value.length > 300) {
@@ -59,6 +60,13 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
     }
     setStatus(action);
     setTaskModalOpen(false); // Close modal after setting the status
+  };
+
+  const handleWorkingHoursBlur = () => {
+    if (workingHours === 0) {
+      setShowHoursToast(true);
+      setWorkingHours(1);
+    }
   };
 
   return (
@@ -85,9 +93,20 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
                     value={workingHours}
                     disabled={true}
                     onChange={(e) => {
-                      const Hours = Number(e.target.value) || 1;
-                      setWorkingHours(Math.max(1, Math.min(12, Hours)));
+                      const value = e.target.value;
+                    
+                      if (value === '') {
+                        setWorkingHours(0);
+                      } else {
+                        const hours = Number(value);
+                        if (!isNaN(hours)) {
+                          setWorkingHours(Math.max(1, Math.min(12, hours)));
+                        } else {
+                          setWorkingHours(1);
+                        }
+                      }
                     }}
+                    onBlur={handleWorkingHoursBlur}
                     placeholder="Enter working hours"
                   />
                 </div>
@@ -137,6 +156,13 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
             <ToastClose />
           </Toast>
         )}
+        {showHoursToast && (
+          <Toast>
+            <ToastTitle>Invalid Working Hours</ToastTitle>
+            <ToastDescription>Please enter a number between 1 and 12 for working hours.</ToastDescription>
+            <ToastClose onClick={() => setShowHoursToast(false)} />
+            </Toast>
+          )}
         <ToastViewport />
       </ToastProvider>
     )
