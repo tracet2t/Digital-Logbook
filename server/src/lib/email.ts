@@ -1,9 +1,6 @@
-// src/api/email.route.tsx
-
-
-
-import { EmailTemplate } from "@/components/EmailTemplate/EmailTemplate";
+// src/lib/email.ts
 import nodemailer from "nodemailer";
+import { EmailTemplate } from "@/components/EmailTemplate/EmailTemplate";
 
 interface EmailData {
   email: string;
@@ -28,7 +25,7 @@ export async function sendEmail({ email, password, name, message }: EmailData): 
     to: email,
     subject: `Hello ${name}, here is your message!`,
     text: message,
-    html:EmailTemplate({ name, password, loginUrl }),
+    html: EmailTemplate({ name, password, loginUrl }),
   };
 
   await transporter.sendMail(mailOptions);

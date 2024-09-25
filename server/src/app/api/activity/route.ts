@@ -21,7 +21,7 @@ export const GET = async (req: NextRequest) => {
     console.error("Error fetching activities:", error);
     return NextResponse.json({ message: "Error fetching activities" }, { status: 500 });
   }
-};
+};  
 
 export const POST = async (req: NextRequest) => {
   try {

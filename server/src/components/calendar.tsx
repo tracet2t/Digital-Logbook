@@ -1,24 +1,34 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Calendar as BigCalendar, momentLocalizer, Views } from "react-big-calendar";
+import {
+  Calendar as BigCalendar,
+  momentLocalizer,
+  Views,
+} from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Input } from "@/components/ui/input";
+  ToastProvider,
+  ToastViewport,
+  Toast,
+  ToastTitle,
+  ToastDescription,
+  ToastClose,
+} from "@/components/ui/toast"; // Adjust the import path according to your project structure
+
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { getSessionOnClient } from "@/server_actions/getSession";
+
+import {
+  convertToCalendarEvents,
+  convertToCalendarEventsMentor,
+  eventPropGetter,
+} from "@/lib/calenderUtils";
+
+import MentorStudentTaskDetailDialog from "./mentorStudentTaskDetailDialog";
+import MentorTaskDetailDialog from "./mentorTaskDetailDialog";
+import StudentTaskDetailDialog from "./studentTaskDetailDialog";
 
 moment.locale("en-GB");
 const localizer = momentLocalizer(moment);
@@ -27,7 +37,21 @@ interface FormData {
   studentId: string;
   date: string;
   timeSpent: number;
-  notes: string;
+  notes?: string;
+  status?: string;
+  review?: string;
+}
+
+interface FeedbackData {
+  review: string,
+  status: string,
+  mentorId: string
+}
+
+interface MentorFormData {
+  date: string,
+  workingHours: number,
+  activities: string
 }
 
 interface CalendarEvent {
@@ -44,40 +68,8 @@ interface CalendarEvent {
   status: "pending" | "approved" | "rejected"; // New field for status
 }
 
-const convertToCalendarEvents = (data: any[]): CalendarEvent[] => {
-  return data.map((item, index) => {
-    const startDate = new Date(item.date);
-    const endDate = new Date(item.date); // Calculate end time
-
-    return {
-      id: index,
-      title: item.notes || "No Title",
-      start: startDate,
-      end: endDate,
-      status: item.feedback[0]?.status, // Add the status field
-    };
-  });
-};
-
-const convertToCalendarEventsMentor = (data: any[]): CalendarEvent[] => {
-  return data.map((item, index) => {
-    const startDate = new Date(item.date);
-    const endDate = new Date(item.date); // Calculate end time
-    // console.log(item.feedback[0]?.status);
-    console.log(item);
-
-    return {
-      id: index,
-      title: item.activities || "No Title",
-      start: startDate,
-      end: endDate,
-      // status: item.feedback[0]?.status, // Add the status field
-    };
-  });
-};
-
 interface TaskCalendarProps {
-  selectedUser: string | null; // New prop for selectedUser
+  selectedUser: string; // New prop for selectedUser
 }
 
 const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
@@ -91,7 +83,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   const [studentId, setStudentId] = useState<string>("");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [role, setRole] = useState<string>("");
-  const [feedbackActivityId,setFeedbackActivityId] = useState<string>(""); 
+  const [feedbackActivityId, setFeedbackActivityId] = useState<string>("");
   const [formData, setFormData] = useState<FormData>({
     studentId: "",
     date: "",
@@ -103,6 +95,10 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   const [isEditable, setIsEditable] = useState(true);
+  const [toast, setToast] = useState<{
+    title: string;
+    description: string;
+  } | null>(null);
 
   useEffect(() => {
     getSessionOnClient()
@@ -110,42 +106,48 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
         setSession(data);
         setStudentId(data.id);
         setRole(data.role);
-
       })
       .catch((error) => {
         console.error("Error fetching session:", error);
       });
   }, []);
 
-  const fetchEvents = async () => {
+  /* 
+
+        Fetch all information related to past activities 
+
+  */
+
+  const fetchEventData = async (url: string) => {
     try {
-      console.log(role);
-      if (role === 'student') {
-        const response = await fetch(`http://localhost:3000/api/activity?studentId=${studentId}`);
-        const data = await response.json();
-        console.log(data);
-        const parsedEvents = convertToCalendarEvents(data);
-        console.log(parsedEvents);
-        setEvents(parsedEvents);        
-      } else if (role === 'mentor') {
-
-
-      if (studentId === selectedUser) {
-        const response = await fetch(`http://localhost:3000/api/mentor?studentId=${selectedUser}`);
-        const data = await response.json();
-        const parsedEvents = convertToCalendarEventsMentor(data);
-        setEvents(parsedEvents);
-
-      } else {
-    const response = await fetch(`http://localhost:3000/api/student?studentId=${selectedUser}`);
-    const data = await response.json();
-    const parsedEvents = convertToCalendarEvents(data);
-    setEvents(parsedEvents);
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error("Failed to fetch event data");
       }
-
-    }
+      return await response.json();
     } catch (error) {
-      console.error("Failed to fetch events:", error);
+      console.error(error);
+      return null;
+    }
+  };
+
+  const fetchEvents = async () => {
+    let url = `http://localhost:3000/api/activity?studentId=${studentId}`;
+
+    if (role === "mentor") {
+      url =
+        studentId === selectedUser
+          ? `http://localhost:3000/api/mentor?studentId=${selectedUser}`
+          : `http://localhost:3000/api/student?studentId=${selectedUser}`;
+    }
+
+    const data = await fetchEventData(url);
+    if (data) {
+      const parsedEvents =
+        role === "mentor"
+        ? studentId === selectedUser ?convertToCalendarEventsMentor(data)
+          :  convertToCalendarEvents(data): convertToCalendarEvents(data);
+      setEvents(parsedEvents);
     }
   };
 
@@ -155,121 +157,88 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     }
   }, [selectedUser]);
 
+  /* 
+
+        Fetch all information related to past activity particularly for a date 
+
+*/
+
   const fetchEventForDate = async (formattedDate: string) => {
     try {
-      if (role === 'student') {
-        const response = await fetch(`http://localhost:3000/api/activity?date=${formattedDate}`);
-        const data = await response.json();
-        if (data.length > 0) {
-          const existingEvent = data[0];
-          setFormData({
-            studentId: existingEvent.studentId || "",
-            date: formattedDate,
-            timeSpent: existingEvent.timeSpent || 0,
-            notes: existingEvent.notes || "",
-          });
-          setWorkingHours(existingEvent.timeSpent || 0);
-          setNotes(existingEvent.notes || "");
-          setEditingEvent(existingEvent);
-        } else {
-          setFormData({
-            studentId: "",
-            date: formattedDate,
-            timeSpent: 0,
-            notes: "",
-          });
-          setWorkingHours(0);
-          setNotes("");
-          setEditingEvent(null);
-        }
-      } else if (role === 'mentor') {
+      const url = buildUrlForRole(formattedDate);
+      const response = await fetch(url);
+      const data = await response.json();
 
-        if (studentId===selectedUser) { 
-          const response = await fetch(`http://localhost:3000/api/mentor?date=${formattedDate}&studentId=${selectedUser}`);
-          const data = await response.json();
-          console.log(data)
-          if (data.length > 0) {
-            const existingEvent = data[0];
-            setFormData({
-              studentId: existingEvent.studentId || "",
-              date: formattedDate,
-              timeSpent: existingEvent.workingHours || 0,
-              notes: existingEvent.activities || "",
-            });
-            setWorkingHours(existingEvent.workingHours || 0);
-            setNotes(existingEvent.activities || "");
-            setEditingEvent(existingEvent);
-          } else {
-            setFormData({
-              studentId: "",
-              date: formattedDate,
-              timeSpent: 0,
-              notes: "",
-            });
-            setWorkingHours(0);
-            setNotes("");
-            setEditingEvent(null);
-          }
-
-
-        } else {
-        const response = await fetch(`http://localhost:3000/api/student?date=${formattedDate}&studentId=${selectedUser}`);
-        const data = await response.json();
-        console.log('--------------------------------------',data[0].id);
-        const feedbackResponse = await fetch(`http://localhost:3000/api/mentorFeedback?date=${formattedDate}&activityId=${data[0].id}`);
-        setFeedbackActivityId(data[0].id);
-        const feedbackData = await feedbackResponse.json();
-        if (data.length > 0 && feedbackData ) {
-          const existingEvent = data[0];
-          setFormData({
-            studentId: existingEvent.studentId || "",
-            date: formattedDate,
-            timeSpent: existingEvent.timeSpent || 0,
-            notes: existingEvent.notes || "",
-            review: feedbackData.feedbackNotes || "",
-            status: feedbackData.status || "",
-          });
-          setWorkingHours(existingEvent.timeSpent || 0);
-          setNotes(existingEvent.notes || "");
-          setEditingEvent(existingEvent);
-          setReview(feedbackData.feedbackNotes);
-          // setStatus(feedbackData.status);
-        } else if (data.length > 0) {
-          const existingEvent = data[0];
-          setFormData({
-            studentId: existingEvent.studentId || "",
-            date: formattedDate,
-            timeSpent: existingEvent.timeSpent || 0,
-            notes: existingEvent.notes || "",
-            review: "",
-            // status: ""
-          });
-          setWorkingHours(existingEvent.timeSpent || 0);
-          setNotes(existingEvent.notes || "");
-          setEditingEvent(existingEvent);
-          setReview("");
-          // setStatus("");
-        } else {
-          setFormData({
-            studentId: "",
-            date: formattedDate,
-            timeSpent: 0,
-            notes: "",
-            review: "",
-            // status: ""
-          });
-          setWorkingHours(0);
-          setNotes("");
-          setEditingEvent(null);
-          setReview("");
-          // setStatus("");
-          setFeedbackActivityId("");
-        }
-      }
+      if (data.length > 0) {
+        await processResponse(data[0], formattedDate);
+      } else {
+        resetFormData(formattedDate);
       }
     } catch (error) {
       console.error("Failed to fetch event for date:", error);
     }
+  };
+
+  const buildUrlForRole = (formattedDate: string) => {
+    if (role === "student") {
+      return `http://localhost:3000/api/activity?date=${formattedDate}`;
+    }
+    if (studentId === selectedUser) {
+      return `http://localhost:3000/api/mentor?date=${formattedDate}&studentId=${selectedUser}`;
+    }
+    return `http://localhost:3000/api/student?date=${formattedDate}&studentId=${selectedUser}`;
+  };
+
+  const processResponse = async (existingEvent: any, formattedDate: string) => {
+    if ((role === "mentor" && studentId !== selectedUser) || (role === "student")) {
+      const feedbackData = await fetchFeedback(existingEvent.id, formattedDate);
+      updateFormData(existingEvent, feedbackData, formattedDate);
+    } else {
+      updateFormData(existingEvent, null, formattedDate);
+    }
+  };
+
+  const fetchFeedback = async (activityId: string, formattedDate: string) => {
+    const feedbackResponse = await fetch(
+      `http://localhost:3000/api/mentorFeedback?date=${formattedDate}&activityId=${activityId}`
+    );
+    return await feedbackResponse.json();
+  };
+
+  const updateFormData = (
+    event: any,
+    feedbackData: any,
+    formattedDate: string
+  ) => {
+    setFormData({
+      studentId: event.studentId || "",
+      date: formattedDate,
+      timeSpent: event.timeSpent || event.workingHours || 0,
+      notes: event.notes || event.activities || "",
+      review: feedbackData?.feedbackNotes || "",
+      status: feedbackData?.status || "",
+    });
+    setWorkingHours(event.timeSpent || event.workingHours || 0);
+    setNotes(event.notes || event.activities || "");
+    setEditingEvent(event);
+    setReview(feedbackData?.feedbackNotes || "");
+    setFeedbackActivityId(event?.id || "");
+  };
+
+  const resetFormData = (formattedDate: string) => {
+    setFormData({
+      studentId: "",
+      date: formattedDate,
+      timeSpent: 0,
+      notes: "",
+      review: "",
+      status: "",
+    });
+    setWorkingHours(1);
+    setNotes("");
+    setEditingEvent(null);
+    setReview("");
+    setFeedbackActivityId("");
   };
 
   const handleDateClick = (date: Date) => {
@@ -279,10 +248,10 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     const today = moment().startOf("day");
     const dayBeforeYesterday = moment().subtract(2, "days").startOf("day");
 
-    if (moment(date).isBefore(dayBeforeYesterday) || moment(date).isAfter(today)) {
-      setIsEditable(false);
-    } else {
+    if (moment(date).isSame(today, 'day') || moment(date).isBetween(dayBeforeYesterday, today, 'day', '[]')) {
       setIsEditable(true);
+    } else {
+      setIsEditable(false);
     }
 
     fetchEventForDate(formattedDate);
@@ -297,105 +266,116 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   useEffect(() => {
     if (status === "approved") {
       handleSubmit();
-    } else if (status === 'rejected') {
+    } else if (status === "rejected") {
       handleSubmit();
     }
   }, [status]);
 
+  /* 
+
+        Submit activity or feedback on-press 
+
+*/
   const handleSubmit = async () => {
     try {
+      const isStudent = role === "student";
+      const isMentor = role === "mentor";
 
-
-      if (role === 'student') {
-        const newFormData: FormData = {
-          studentId,
-          date: formData.date,
-          timeSpent: workingHours,
-          notes,
-        };
-        console.log(newFormData);
-
-      const response = await fetch("http://localhost:3000/api/activity", {
-        method: editingEvent ? "PATCH" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...newFormData,
-          id: editingEvent?.id,
-        }),
-      });
-
-      if (response.ok) {
-        // Update events without refreshing
-        fetchEvents();
-        handleClose();
+      if (isStudent) {
+        await submitActivity();
+      } else if (isMentor && selectedUser === studentId) {
+        await submitMentorActivity();
       } else {
-        console.error("Failed to save event:", await response.json());
+        await submitFeedback();
       }
-
-    } else if (role === 'mentor') {
-
-      if (selectedUser===studentId) {
-
-      const newFormData: FormData = {
-        // studentId,
-        date: formData.date,
-        workingHours: workingHours,
-        activities: notes,
-      };
-      console.log(newFormData);
-
-      const response = await fetch("http://localhost:3000/api/mentor", {
-        method: editingEvent ? "PATCH" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...newFormData,
-          id: editingEvent?.id,
-        }),
-      });
-
-      if (response.ok) {
-        fetchEvents();
-        handleClose();
-      } else {
-        console.error("Failed to save event:", await response.json());
-      }
-    } else {
-
-      const newFormFeedbackData: FormData = {
-        review: review,
-        status: status,
-        mentor: studentId
-      }
-
-      const Feedbackresponse = await fetch(`http://localhost:3000/api/mentorFeedback?activityId=${feedbackActivityId}`, {
-        method:   "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...newFormFeedbackData,
-          id: editingEvent?.id,
-        }),
-      });    
-
-      if ( Feedbackresponse.ok) {
-        fetchEvents();
-        handleClose();
-      } else {
-        console.error("Failed to save event:", await Feedbackresponse.json());
-      }
-      
-    }
-      
-    }
-
     } catch (error) {
-      console.error("Error submitting form:", error);
+      showToast("Error", "Error saving data. Please try again.");
     }
+  };
+
+  const submitActivity = async () => {
+    const newFormData: FormData = {
+      studentId,
+      date: formData.date,
+      timeSpent: workingHours,
+      notes,
+    };
+
+    const response = await fetch("http://localhost:3000/api/activity", {
+      method: editingEvent ? "PATCH" : "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ ...newFormData, id: editingEvent?.id }),
+    });
+
+    handleResponse(
+      response,
+      editingEvent ? "Activity Updated" : "Activity Added"
+    );
+  };
+
+  const submitMentorActivity = async () => {
+    const newFormData: MentorFormData = {
+      date: formData.date,
+      workingHours: workingHours,
+      activities: notes,
+    };
+
+    const response = await fetch("http://localhost:3000/api/mentor", {
+      method: editingEvent ? "PATCH" : "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ ...newFormData, id: editingEvent?.id }),
+    });
+
+    handleResponse(
+      response,
+      editingEvent ? "Activity Updated" : "Activity Added"
+    );
+  };
+
+  const submitFeedback = async () => {
+    const newFormFeedbackData: FeedbackData = {
+      review,
+      status,
+      mentorId: studentId,
+    };
+
+    const response = await fetch(
+      `http://localhost:3000/api/mentorFeedback?activityId=${feedbackActivityId}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ...newFormFeedbackData, id: editingEvent?.id }),
+      }
+    );
+
+    handleResponse(
+      response,
+      editingEvent ? "Feedback Updated" : "Feedback Added"
+    );
+  };
+
+  const handleResponse = async (response: Response, successMessage: string) => {
+    if (response.ok) {
+      showToast(
+        successMessage,
+        response.ok ? `${successMessage} successfully.` : "An error occurred."
+      );
+      fetchEvents();
+      handleClose();
+    } else {
+      showToast("Error", "Error saving data. Please try again.");
+    }
+  };
+
+  const showToast = (title: string, description: string) => {
+    setToast({ title, description });
+    setTimeout(() => setToast(null), 1000);
   };
 
   // Custom Toolbar
@@ -411,15 +391,23 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     return (
       <div className="flex justify-between items-center mb-4">
         <Button
-          onClick={() => {setCurrentDate(moment(currentDate).subtract(1, "months").toDate());goToBack()}}
-          className="text-xl"
-          >
+          onClick={() => {
+            setCurrentDate(moment(currentDate).subtract(1, "months").toDate());
+            goToBack();
+          }}
+          className="text-xl border-2 border-blue-500 text-blue-500 px-4 py-2 bg-white rounded-md hover:border-blue-600 hover:bg-blue-100"
+        >
           {"<"}
         </Button>
-        <span className="text-2xl font-bold">{moment(toolbar.date).format("MMMM YYYY")}</span>
+        <span className="text-2xl font-bold">
+          {moment(toolbar.date).format("MMMM YYYY")}
+        </span>
         <Button
-          onClick={() => {setCurrentDate(moment(currentDate).subtract(1, "months").toDate());goToNext()}}
-          className="text-xl"
+          onClick={() => {
+            setCurrentDate(moment(currentDate).subtract(1, "months").toDate());
+            goToNext();
+          }}
+          className="text-xl border-2 border-blue-500 text-blue-500 px-4 py-2 bg-#F0F8FF rounded-md hover:border-blue-600 hover:bg-blue-100"
         >
           {">"}
         </Button>
@@ -427,192 +415,57 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     );
   };
 
-  // Event Prop Getter to set custom styles
-  const eventPropGetter = (event: CalendarEvent) => {
-    let backgroundColor = "#FFD93D"; // Default background color
-    let textColor = "#000000"; // Default text color (white)
-  
-    // Customize based on event status
-    if (event.status === "pending") {
-      backgroundColor = "#FFD93D"; // Yellow background for pending
-      textColor = "#000000"; // Black text for better contrast
-    } else if (event.status === "approved") {
-      backgroundColor = "#6BCB77"; // Green background for accepted
-      textColor = "#000000"; // White text for contrast
-    } else if (event.status === "rejected") {
-      backgroundColor = "#F25C54"; // Red background for rejected
-      textColor = "#000000"; // White text for contrast
-    }
-  
-    return {
-      style: {
-        backgroundColor,
-        color: textColor, // Apply text color based on status
-      },
-    };
-  };
-
   return (
-
-    // role = mentor
-    // selecteduser === usersessionid
-
     <>
+      <ToastProvider>
+        <MentorTaskDetailDialog
+          taskModalOpen={taskModalOpen}
+          setTaskModalOpen={setTaskModalOpen}
+          role={role}
+          selectedUser={selectedUser || ''}
+          studentId={studentId}
+          formData={formData}
+          workingHours={workingHours}
+          setWorkingHours={setWorkingHours}
+          notes={notes}
+          setNotes={setNotes}
+          /* look down here */
+          review={review}
+          setReview={setReview}
+          setStatus={setStatus}
+          handleClose={handleClose}
+        />
+        <MentorStudentTaskDetailDialog
+          taskModalOpen={taskModalOpen}
+          setTaskModalOpen={setTaskModalOpen}
+          role={role}
+          selectedUser={selectedUser || ''}
+          studentId={studentId}
+          formData={formData}
+          workingHours={workingHours}
+          setWorkingHours={setWorkingHours}
+          notes={notes}
+          setNotes={setNotes}
+          isEditable={isEditable}
+          handleClose={handleClose}
+          handleSubmit={handleSubmit}
+        />
+        <StudentTaskDetailDialog
+          taskModalOpen={taskModalOpen}
+          setTaskModalOpen={setTaskModalOpen}
+          role={role}
+          formData={formData}
+          workingHours={workingHours}
+          setWorkingHours={setWorkingHours}
+          notes={notes}
+          review={review}
+          setNotes={setNotes}
+          isEditable={isEditable}
+          handleClose={handleClose}
+          handleSubmit={handleSubmit}
+        />
 
-    {role==='mentor' && selectedUser !== studentId && (
-          <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
-          <AlertDialogTrigger asChild>
-            <div />
-          </AlertDialogTrigger>
-          <AlertDialogContent className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-lg">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-2xl font-semibold text-gray-900">Mentor Task Detail</AlertDialogTitle>
-            </AlertDialogHeader>
-            <AlertDialogDescription className="text-gray-700">
-              <div className="flex gap-6 mb-4">
-                <div className="w-1/2">
-                  <span className="block text-sm font-medium text-black mb-1">Date</span>
-                <Input type="date" value={formData.date} disabled className="text-black" />
-                </div>
-                <div className="w-1/2">
-                  <span className="block text-sm font-medium text-black mb-1">Working Hours</span>
-                  <Input
-                  type="number"
-                  value={workingHours}
-                  disabled={true}
-                  onChange={(e) => setWorkingHours(Number(e.target.value) || 0)}
-                  placeholder="Enter working hours"
-                />
-                </div>
-              </div>
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-black mb-2">Activity</h3>
-                <Textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Enter notes"
-                  disabled={!false}
-                  className="text-black"
-                />
-              </div>
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-black mb-2">Review</h3>
-                <textarea
-                  value={review}
-                  onChange={(e) => setReview(e.target.value)}
-                  placeholder="Enter your review here..."
-                  className="w-full h-32 p-3 border border-gray-300 rounded-md bg-white"
-                />
-              </div>
-            </AlertDialogDescription>
-            <AlertDialogFooter className="flex justify-end gap-3 mt-4">
-              <AlertDialogCancel onClick={setTaskModalOpen} className="bg-green-500 text-white hover:bg-green-600 px-4 py-2 rounded-md">Close</AlertDialogCancel>
-              <AlertDialogAction onClick={() => {setStatus('approved');}} className="bg-blue-500 text-white hover:bg-blue-700 px-4 py-2 rounded-md">Accept</AlertDialogAction>
-              <AlertDialogAction  onClick={() => {setStatus('rejected');}}className="bg-red-500 text-white hover:bg-red-700 px-4 py-2 rounded-md">Reject</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-    )}
-
-
-
-    {(role==='mentor' && selectedUser === studentId)    && (
-      <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Task Details</AlertDialogTitle>
-          </AlertDialogHeader>
-          <AlertDialogDescription>
-            <form>
-              <div className="mb-4">
-                <label>Date</label>
-                <Input type="date" value={formData.date} disabled className="text-black" />
-              </div>
-
-              <div className="mb-4">
-                <label>Working Hours</label>
-                <Input
-                  type="number"
-                  value={workingHours}
-                  onChange={(e) => setWorkingHours(Number(e.target.value) || 0)}
-                  placeholder="Enter working hours"
-                  disabled={!isEditable}
-                  className="text-black"
-                />
-              </div>
-              <div className="mb-4">
-                <label>Notes</label>
-                <Textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Enter notes"
-                  disabled={!isEditable}
-                  className="text-black"
-                />
-              </div>
-            </form>
-          </AlertDialogDescription>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleClose}>Cancel</AlertDialogCancel>
-            {isEditable && <AlertDialogAction onClick={handleSubmit}>Save</AlertDialogAction>}
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    )}
-
-
-{ role==='student' && (
-      <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Task Details</AlertDialogTitle>
-          </AlertDialogHeader>
-          <AlertDialogDescription>
-            <form>
-              <div className="mb-4">
-                <label>Date</label>
-                <Input type="date" value={formData.date} disabled className="text-black" />
-              </div>
-
-              <div className="mb-4">
-                <label>Working Hours</label>
-                <Input
-                  type="number"
-                  value={workingHours}
-                  onChange={(e) => setWorkingHours(Number(e.target.value) || 0)}
-                  placeholder="Enter working hours"
-                  disabled={!isEditable}
-                  className="text-black"
-                />
-              </div>
-              <div className="mb-4">
-                <label>Notes</label>
-                <Textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Enter notes"
-                  disabled={!isEditable}
-                  className="text-black"
-                />
-              </div>
-            </form>
-          </AlertDialogDescription>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleClose}>Cancel</AlertDialogCancel>
-            {isEditable && <AlertDialogAction onClick={handleSubmit}>Save</AlertDialogAction>}
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    )}
-
-
-
-
-
-
-
-
-      <div className="relative w-[80vw] h-[60vh]">
+<div className="relative w-[90vw] h-[80vh] ">
         <BigCalendar
           events={events}
           localizer={localizer}
@@ -626,10 +479,20 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
           components={{
             toolbar: CustomToolbar,
           }}
-          eventPropGetter={eventPropGetter} // Apply custom styles based on event status
-          style={{ height: "100%" }}
+          eventPropGetter={(event) => eventPropGetter(event, selectedUser || "")} // Pass selectedUser here
+          style={{height: "100%"}}
         />
       </div>
+
+        {toast && (
+          <Toast>
+            <ToastTitle>{toast.title}</ToastTitle>
+            <ToastDescription>{toast.description}</ToastDescription>
+            <ToastClose />
+          </Toast>
+        )}
+        <ToastViewport />
+      </ToastProvider>
     </>
   );
 };

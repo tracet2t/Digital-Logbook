@@ -20,6 +20,31 @@ export class UserRepository extends BaseRepository<User> {
     });
   }
 
+  async getUserWithActivities(studentId: string) {
+    return this.modelClient.findUnique({
+      where: {
+        id: studentId,
+      },
+      select: {
+        firstName: true,
+        lastName: true,
+        activities: {
+          select: {
+            date: true,
+            timeSpent: true,
+            notes: true,
+            feedback: {
+              select: {
+                status: true,
+                feedbackNotes: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
 }
 
 /*
@@ -215,31 +240,6 @@ export class ReportRepository extends BaseRepository<Report> {
 
   constructor() {
     super(prisma.report);
-  }
-
-  async getUserWithActivities(studentId: string) {
-    return this.modelClient.findUnique({
-      where: {
-        id: studentId,
-      },
-      select: {
-        firstName: true,
-        lastName: true,
-        activities: {
-          select: {
-            date: true,
-            timeSpent: true,
-            notes: true,
-            feedback: {
-              select: {
-                status: true,
-                feedbackNotes: true,
-              },
-            },
-          },
-        },
-      },
-    });
   }
   
 }

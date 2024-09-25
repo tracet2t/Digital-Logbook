@@ -5,7 +5,7 @@ import Redis from 'ioredis';
 import prisma from './prisma';
 
 const redis = new Redis({
-  host: 'localhost',
+  host: 'redis',
   port: 6379,
   maxRetriesPerRequest: null, // Explicitly set to null
 });

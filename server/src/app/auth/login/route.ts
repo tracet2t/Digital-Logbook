@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { compare } from "bcrypt-ts";
 import * as jose from 'jose';
 import { UserRepository } from '@/repositories/repositories';  // Import the repository
-
 export async function POST(request: Request) {
     const baseUrl = request.headers.get('origin');
     const formData = await request.formData();
@@ -15,7 +14,6 @@ export async function POST(request: Request) {
     }
 
     try {
-        // Use getByEmail method to find user by email
         const userRepository = new UserRepository();
         const user = await userRepository.getByEmail(email);
 
@@ -31,12 +29,12 @@ export async function POST(request: Request) {
         const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
         const algo = 'HS256';
 
-        const token = await new jose.SignJWT({ 
-            id: user.id, 
-            email: user.email, 
-            role: user.role.toString(), 
-            fname: user.firstName, 
-            lname: user.lastName 
+        const token = await new jose.SignJWT({
+            id: user.id,
+            email: user.email,
+            role: user.role.toString(),
+            fname: user.firstName,
+            lname: user.lastName
         })
             .setProtectedHeader({ alg: algo })
             .setIssuedAt()
@@ -45,21 +43,20 @@ export async function POST(request: Request) {
             .setExpirationTime(process.env.JWT_EXPIRY!)
             .sign(secret);
 
-        const headers = new Headers(request.headers);
-        headers.set("Set-Cookie", `token=${token}; Path=/; HttpOnly`);
 
-        let redirectUrl = `${baseUrl}/unauthorized`; 
+        let redirectUrl = `${baseUrl}/unauthorized`;
         if (user.role === 'student') {
-            if (!user.emailConfirmed) {
-                redirectUrl = `${baseUrl}/reset-password`;
-            } else {
-                redirectUrl = `${baseUrl}/student`;
-            }
+            redirectUrl = !user.emailConfirmed ? `${baseUrl}/reset-password` : `${baseUrl}/student`;
         } else if (user.role === 'mentor') {
-            redirectUrl = `${baseUrl}/mentor`; 
+            redirectUrl = `${baseUrl}/mentor`;
         }
 
-        return NextResponse.redirect(redirectUrl, { status: 303, headers: headers });
+        const response =  NextResponse.json({
+            message: "Login successful",
+            redirectUrl: redirectUrl,
+        });
+        response.headers.set("Set-Cookie", `token=${token}; Path=/; HttpOnly`);
+        return response;
 
     } catch (error) {
         console.error("Error during authentication", error);

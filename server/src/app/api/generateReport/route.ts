@@ -22,7 +22,8 @@ export const POST = async (req: NextRequest) => {
     const newReport = await reportRepository.create({
       mentorId: userId,
       reportData: {}, 
-      status: 'wip'
+      status: 'wip',
+      generatedAt: new Date(), // Add the generatedAt field here
     });
 
     console.log("Creating job with data:", { mentorId: userId, reportId: newReport.id });
