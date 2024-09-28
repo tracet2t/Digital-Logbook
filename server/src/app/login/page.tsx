@@ -96,12 +96,12 @@ const LoginPage = () => {
                 <div className="w-full md:w-1/2 h-auto md:h-screen bg-white flex items-center justify-center p-6 md:p-8">
                     <div className="w-full max-w-md">
                         <div className="flex justify-center mb-4">
-                            <Image
+                            {/* <Image
                                 src="/log-file.png"
                                 width={40}
                                 height={40}
                                 alt="Logo"
-                            />
+                            /> */}
                         </div>
                         <h2 className="text-2xl md:text-3xl font-semibold text-center mb-6">
                             T2T Digital Logbook

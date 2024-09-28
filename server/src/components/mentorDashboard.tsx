@@ -9,7 +9,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getSessionOnClient } from "@/server_actions/getSession";
 import { useRouter } from 'next/navigation'; // Import useRouter hook
 import { ToastProvider, ToastViewport, Toast, ToastTitle, ToastDescription, ToastClose } from "@/components/ui/toast"; // Adjust import path if necessary
-
 interface Session {
   fname: string;
   lname: string;
@@ -61,7 +60,7 @@ const MentorDashboard = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/users');
+      const response = await fetch('/api/users');
       const data = await response.json();
       setUsers(data);
       setIsLoading(false); // Stop loading once users are fetched

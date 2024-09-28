@@ -132,13 +132,13 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   };
 
   const fetchEvents = async () => {
-    let url = `http://localhost:3000/api/activity?studentId=${studentId}`;
+    let url = `/api/activity?studentId=${studentId}`;
 
     if (role === "mentor") {
       url =
         studentId === selectedUser
-          ? `http://localhost:3000/api/mentor?studentId=${selectedUser}`
-          : `http://localhost:3000/api/student?studentId=${selectedUser}`;
+          ? `/api/mentor?studentId=${selectedUser}`
+          : `/api/student?studentId=${selectedUser}`;
     }
 
     const data = await fetchEventData(url);
@@ -181,12 +181,12 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
 
   const buildUrlForRole = (formattedDate: string) => {
     if (role === "student") {
-      return `http://localhost:3000/api/activity?date=${formattedDate}`;
+      return `/api/activity?date=${formattedDate}`;
     }
     if (studentId === selectedUser) {
-      return `http://localhost:3000/api/mentor?date=${formattedDate}&studentId=${selectedUser}`;
+      return `/api/mentor?date=${formattedDate}&studentId=${selectedUser}`;
     }
-    return `http://localhost:3000/api/student?date=${formattedDate}&studentId=${selectedUser}`;
+    return `/api/student?date=${formattedDate}&studentId=${selectedUser}`;
   };
 
   const processResponse = async (existingEvent: any, formattedDate: string) => {
@@ -200,7 +200,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
 
   const fetchFeedback = async (activityId: string, formattedDate: string) => {
     const feedbackResponse = await fetch(
-      `http://localhost:3000/api/mentorFeedback?date=${formattedDate}&activityId=${activityId}`
+      `/api/mentorFeedback?date=${formattedDate}&activityId=${activityId}`
     );
     return await feedbackResponse.json();
   };
@@ -301,7 +301,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
       notes,
     };
 
-    const response = await fetch("http://localhost:3000/api/activity", {
+    const response = await fetch(`/api/activity`, {
       method: editingEvent ? "PATCH" : "POST",
       headers: {
         "Content-Type": "application/json",
@@ -322,7 +322,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
       activities: notes,
     };
 
-    const response = await fetch("http://localhost:3000/api/mentor", {
+    const response = await fetch(`/api/mentor`, {
       method: editingEvent ? "PATCH" : "POST",
       headers: {
         "Content-Type": "application/json",
@@ -344,7 +344,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     };
 
     const response = await fetch(
-      `http://localhost:3000/api/mentorFeedback?activityId=${feedbackActivityId}`,
+      `/api/mentorFeedback?activityId=${feedbackActivityId}`,
       {
         method: "POST",
         headers: {
