@@ -193,13 +193,14 @@ const MentorDashboard = () => {
       <div className="flex-grow flex flex-col items-center justify-center mt-[-7px] w-full max-w-[95vw] mx-auto">
         <div className="bg-white p-4 rounded-xl shadow-lg w-full max-w-[95vw] min-h-[60vh]">
           <div className="flex flex-wrap justify-between items-center mb-4 px-4">
+          <p className="hover:bg-green-100"><b>{mentorName}'</b> <a href=''>Dashboard</a></p>
             {!isLoading && session ? (
               <select
               className="border-2 border-blue-500 text-black-500 px-4 py-2 bg-white rounded-md hover:border-blue-600 hover:bg-blue-100 w-full max-w-xs" 
                 value={selectedUser || mentorId || ''} // Set selectedUser or mentorId if it's not yet available
                 onChange={handleMentorChange}
               >
-                <option value={mentorId || ""}>{mentorName}</option> 
+                <option value={mentorId || ""}>{"---Select Student---"}</option> 
                 {users.map((user) => (
                   <option key={user.id} value={user.id}>
                     {user.firstName} {user.lastName}
