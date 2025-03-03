@@ -35,12 +35,6 @@ yarn-error.log*
 .env.production
 .env.*.local
 
-# Ignore Docker files
-Dockerfile
-docker-compose.yml
-.dockerignore
-*.dockerfile
-
 # vercel
 .vercel
 
