@@ -193,7 +193,6 @@ const MentorDashboard = () => {
       <div className="flex-grow flex flex-col items-center justify-center mt-[-7px] w-full max-w-[95vw] mx-auto">
         <div className="bg-white p-4 rounded-xl shadow-lg w-full max-w-[95vw] min-h-[60vh]">
           <div className="flex flex-wrap justify-between items-center mb-4 px-4">
-          <p className="hover:bg-green-100"><b>{mentorName}'</b> <a href=''>Dashboard</a></p>
             {!isLoading && session ? (
               <select
               className="border-2 border-blue-500 text-black-500 px-4 py-2 bg-white rounded-md hover:border-blue-600 hover:bg-blue-100 w-full max-w-xs" 
@@ -212,6 +211,12 @@ const MentorDashboard = () => {
             )}
 
             <div className="flex flex-wrap gap-4 mt-4 sm:mt-0">
+
+            <Button className="border-2 border-purple-500 text-black-500 px-4 py-2 bg-white rounded-md hover:border-purple-600 hover:bg-purple-100" 
+                onClick={() => window.location.href = ''} >
+              <p> <b>{session ? `${session.fname} ` : '...'} </b> Dashboard </p>
+            </Button>
+
             <Button className="border-2 border-orange-500 text-black-500 px-4 py-2 bg-white rounded-md hover:border-orange-600 hover:bg-orange-100" 
                 onClick={handleReport} disabled={mentorId === selectedUser}>
               Generate Report
