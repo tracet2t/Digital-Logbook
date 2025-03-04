@@ -22,6 +22,11 @@ const ResetPasswordPage = () => {
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmNewPassword, setConfirmNewPassword] = useState('');
+    const [passwordStrength, setPasswordStrength] = useState("Weak");
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+
     const [toastData, setToastData] = useState({
         open: false,
         title: '',
@@ -30,10 +35,11 @@ const ResetPasswordPage = () => {
     });
     const router = useRouter();
 
-    // Password validation regex: At least 1 uppercase, 1 lowercase, 1 number, and 8+ characters
-    const passwordValidation = (password: string) => {
-        const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
-        return regex.test(password);
+    // function to evaluate the password strength based on security rules
+    const evaluatePasswordStrength = (password: string) => {    
+        if (password.length < 6) return "Weak"; 
+        if (/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(password)) return "Strong";
+        return "Moderate"; 
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -56,7 +62,8 @@ const ResetPasswordPage = () => {
             return;
         }
 
-        if (!passwordValidation(newPassword)) {
+        if (!evaluatePasswordStrength(newPassword)) { 
+
             setToastData({
                 open: true,
                 title: 'Error',
@@ -107,15 +114,17 @@ const ResetPasswordPage = () => {
     };
 
     useEffect(() => {
+        setPasswordStrength(evaluatePasswordStrength(newPassword));
         if (toastData.open) {
             // Automatically close toast after a short delay
             const timer = setTimeout(() => {
                 setToastData(prev => ({ ...prev, open: false }));
-            }, 1000); // Adjust the duration as needed
+            }, 10000); // Adjust the duration as needed
 
             return () => clearTimeout(timer);
         }
-    }, [toastData]);
+    }, [toastData, newPassword]); // fix error here 
+
 
     return (
         <ToastProvider>
@@ -145,47 +154,82 @@ const ResetPasswordPage = () => {
                             Reset Password
                         </h2>
                         <form className="flex flex-col" onSubmit={handleSubmit}>
-                            <div className="mb-4">
+                            <div className="relative mb-4">
                                 <Label className="block text-sm font-medium text-gray-700">
                                     Current Password
                                 </Label>
                                 <Input
                                     name="currentPassword"
                                     placeholder="Enter your current password"
-                                    type="password"
+                                    type={showCurrentPassword ? "text" : "password"}
                                     value={currentPassword}
                                     onChange={(e) => setCurrentPassword(e.target.value)}
                                     required
                                     className="mt-1 block w-full"
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                    className="absolute right-3 top-9 text-gray-500"
+                                >
+                                    {showCurrentPassword ? "🔓" : "👁️"}
+                                </button>
                             </div>
-                            <div className="mb-4">
+                            <div className="relative mb-4">
                                 <Label className="block text-sm font-medium text-gray-700">
                                     New Password
                                 </Label>
                                 <Input
                                     name="newPassword"
                                     placeholder="Enter your new password"
-                                    type="password"
+                                    type={showNewPassword ? "text" : "password"}
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
+                                    className={`mt-1 block w-full ${
+                                        passwordStrength === "Weak" ? "border-red-500" : 
+                                        passwordStrength === "Moderate" ? "border-yellow-500" : 
+                                        "border-green-500"
+                                    }`}
                                     required
-                                    className="mt-1 block w-full"
-                                />
+                                /> 
+                                <button
+                                    type="button"
+                                    onClick={() => setShowNewPassword(!showNewPassword)}
+                                    className="absolute right-3 top-9 text-gray-500"
+                                >
+                                    {showNewPassword ? "🔓" : "👁️"}
+                                </button>
+                                <p className="text-sm mt-1">
+                                   Strength: <span className={
+                                        passwordStrength === "Weak" ? "text-red-500" :
+                                        passwordStrength === "Moderate" ? "text-yellow-500" :
+                                        "text-green-500"
+                                    }>
+                                        {passwordStrength}
+                                    </span>
+                                </p>
+                                
                             </div>
-                            <div className="mb-4">
+                            <div className="relative mb-4">
                                 <Label className="block text-sm font-medium text-gray-700">
                                     Confirm New Password
                                 </Label>
                                 <Input
                                     name="confirmNewPassword"
                                     placeholder="Confirm your new password"
-                                    type="password"
+                                    type={showConfirmNewPassword ? "text" : "password"}
                                     value={confirmNewPassword}
                                     onChange={(e) => setConfirmNewPassword(e.target.value)}
                                     required
                                     className="mt-1 block w-full"
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
+                                    className="absolute right-3 top-9 text-gray-500"
+                                >
+                                    {showConfirmNewPassword ? "🔓" : "👁️"}
+                                </button>
                             </div>
                             <div className="flex justify-center">
                                 <Button
