@@ -242,18 +242,32 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   };
 
   const handleDateClick = (date: Date) => {
+    // Prevent clicking on future dates
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); 
+    const clickedDate = new Date(date);
+    clickedDate.setHours(0, 0, 0, 0);
+    
+    // If the clicked date is in the future, don't allow selection
+    if (clickedDate > today) {
+      return; // Prevent further actions if the date is in the future
+    }
+    // End of prevent clicking on future dates
     setSelectedDate(date);
     const formattedDate = moment(date).format("YYYY-MM-DD");
-
-    const today = moment().startOf("day");
+  
+    const todayMoment = moment().startOf("day");
     const dayBeforeYesterday = moment().subtract(2, "days").startOf("day");
-
-    if (moment(date).isSame(today, 'day') || moment(date).isBetween(dayBeforeYesterday, today, 'day', '[]')) {
+  
+    if (
+      moment(date).isSame(todayMoment, "day") ||
+      moment(date).isBetween(dayBeforeYesterday, todayMoment, "day", "[]")
+    ) {
       setIsEditable(true);
     } else {
       setIsEditable(false);
     }
-
+  
     fetchEventForDate(formattedDate);
     setTaskModalOpen(true);
   };
@@ -269,7 +283,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     } else if (status === "rejected") {
       handleSubmit();
     }
-  }, [status]);
+  }, [status]);        
 
   /* 
 
