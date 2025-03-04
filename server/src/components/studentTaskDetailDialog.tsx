@@ -39,9 +39,14 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
 
   const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newNotes = e.target.value;
-    if (newNotes.length > 300) {
+    if (newNotes.length > 300 || newNotes.length == 0) {
       setShowToast(true);
     }
+
+    setTimeout(() => {
+      setShowToast(false);
+    }, 1000);
+
     setNotes(newNotes.substring(0, 300)); // Limit to 300 characters
   };
 
@@ -115,7 +120,7 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
           </AlertDialogDescription>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleClose}>Cancel</AlertDialogCancel>
-            {isEditable && <AlertDialogAction onClick={handleSubmit}>Save</AlertDialogAction>}
+            {notes != "" && isEditable && <AlertDialogAction onClick={handleSubmit}>Save</AlertDialogAction>}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -126,7 +131,7 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
         {showToast && (
           <Toast>
             <ToastTitle>Note Length Exceeded</ToastTitle>
-            <ToastDescription>The notes cannot exceed 300 characters.</ToastDescription>
+            <ToastDescription>The notes must be between 0 to 300 characters.</ToastDescription>
             <ToastClose onClick={() => setShowToast(false)} />
           </Toast>
         )}
