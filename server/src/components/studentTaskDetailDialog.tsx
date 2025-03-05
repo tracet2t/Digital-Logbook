@@ -120,7 +120,7 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
           </AlertDialogDescription>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleClose}>Cancel</AlertDialogCancel>
-            {notes != "" && isEditable && <AlertDialogAction onClick={handleSubmit}>Save</AlertDialogAction>}
+            {isEditable && <AlertDialogAction disabled={notes == ""} onClick={handleSubmit}>Save</AlertDialogAction>}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
