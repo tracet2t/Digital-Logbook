@@ -170,6 +170,12 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
             </AlertDialogDescription>
             <AlertDialogFooter className="flex justify-end gap-3 mt-4">
               <Button
+                onClick={() => setTaskModalOpen(false)}
+                className=" text-white  bg[#666668] px-4 py-2 rounded-md"
+              >
+                Close
+              </Button>
+              <Button
                 disabled={review == ""}
                 onClick={() => handleValidationAndAction('approved')}
                 className="bg-green-500 text-white hover:bg-green-700 px-4 py-2 rounded-md"
