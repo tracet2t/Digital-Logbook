@@ -199,7 +199,7 @@ const MentorDashboard = () => {
                 value={selectedUser || mentorId || ''} // Set selectedUser or mentorId if it's not yet available
                 onChange={handleMentorChange}
               >
-                <option value={mentorId || ""}>{mentorName}</option> 
+                <option value={mentorId || ""}>{"---Select Student---"}</option> 
                 {users.map((user) => (
                   <option key={user.id} value={user.id}>
                     {user.firstName} {user.lastName}
@@ -211,6 +211,12 @@ const MentorDashboard = () => {
             )}
 
             <div className="flex flex-wrap gap-4 mt-4 sm:mt-0">
+
+            <Button className="border-2 border-purple-500 text-black-500 px-4 py-2 bg-white rounded-md hover:border-purple-600 hover:bg-purple-100" 
+                onClick={() => window.location.href = ''} >
+              <p> <b>{session ? `${session.fname} ` : '...'} </b> Dashboard </p>
+            </Button>
+
             <Button className="border-2 border-orange-500 text-black-500 px-4 py-2 bg-white rounded-md hover:border-orange-600 hover:bg-orange-100" 
                 onClick={handleReport} disabled={mentorId === selectedUser}>
               Generate Report
