@@ -46,7 +46,12 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
   const handleTextChange = (value: string, setter: (value: string) => void) => {
     if (value.length > 300) {
       setShowToast(true);
-      setToastMessage("This is not allowed, maximum length is 300 characters.");
+      setToastMessage("This is not allowed, Characters should be between 1 and 300.");
+
+      setTimeout(() => {
+        setShowToast(false);
+      }, 8000);
+
     } else {
       setter(value);
     }
@@ -152,14 +157,14 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
         </AlertDialog>
 
         {showToast && (
-          <Toast onOpenChange={setShowToast} open={showToast}>
+          <Toast onOpenChange={setShowToast} open={showToast} duration={8000}>
             <ToastTitle>Error</ToastTitle>
             <ToastDescription>{toastMessage}</ToastDescription>
             <ToastClose />
           </Toast>
         )}
         {showHoursToast && (
-          <Toast>
+          <Toast duration={5000}>
             <ToastTitle>Invalid Working Hours</ToastTitle>
             <ToastDescription>Please enter a number between 1 and 12 for working hours.</ToastDescription>
             <ToastClose onClick={() => setShowHoursToast(false)} />

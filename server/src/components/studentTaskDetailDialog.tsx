@@ -45,7 +45,7 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
 
     setTimeout(() => {
       setShowToast(false);
-    }, 1000);
+    }, 8000);
 
     setNotes(newNotes.substring(0, 300)); // Limit to 300 characters
   };
@@ -129,14 +129,14 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
       <ToastProvider>
         <ToastViewport />
         {showToast && (
-          <Toast>
+          <Toast duration={8000}>
             <ToastTitle>Note Length Exceeded</ToastTitle>
             <ToastDescription>The notes must be between 0 to 300 characters.</ToastDescription>
             <ToastClose onClick={() => setShowToast(false)} />
           </Toast>
         )}
         {showHoursToast && (
-          <Toast>
+          <Toast duration={8000}>
             <ToastTitle>Invalid Working Hours</ToastTitle>
             <ToastDescription>Please enter a number between 1 and 12 for working hours.</ToastDescription>
             <ToastClose onClick={() => setShowHoursToast(false)} />
