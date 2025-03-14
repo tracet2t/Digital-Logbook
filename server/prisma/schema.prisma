@@ -1,7 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
-    binaryTargets = ["native", "linux-musl"] 
-
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl"] 
 }
 
 datasource db {
@@ -26,6 +25,7 @@ model User {
   mentorRoles      Mentorship[]     @relation(name: "mentorRole")
   studentRoles     Mentorship[]     @relation(name: "studentRole")
   mentorActivities MentorActivity[] @relation(name: "UserMentorActivities")
+  logs             Log[]            @relation(name: "mentorLogs")
 
   @@map("users")
 }
@@ -40,6 +40,7 @@ model Activity {
   updatedAt DateTime         @updatedAt
   student   User             @relation(fields: [studentId], references: [id])
   feedback  MentorFeedback[]
+  logs      Log[]
 
   @@map("activities")
 }
@@ -90,6 +91,22 @@ model MentorActivity {
   mentor       User     @relation(fields: [mentorId], references: [id], name: "UserMentorActivities")
 
   @@map("mentoractivities")
+}
+
+model Log {
+  id            String         @id @default(uuid()) // Primary Key
+  activityId    String         // Foreign Key (Activity)
+  mentorId      String         // Foreign Key (Mentor)
+  notes         String?
+  feedbackStatus FeedbackStatus @default(pending) // Enum
+  feedback      String?
+  createdAt     DateTime       @default(now()) // Timestamp
+
+  // Relations
+  activity Activity @relation(fields: [activityId], references: [id])
+  mentor   User     @relation(fields: [mentorId], references: [id], name: "mentorLogs")
+
+  @@map("logs") // Map to the actual database table name
 }
 
 enum Role {
