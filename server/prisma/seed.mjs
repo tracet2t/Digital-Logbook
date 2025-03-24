@@ -1,57 +1,153 @@
 import { PrismaClient } from "@prisma/client";
-import bcrypt from 'bcrypt';
-
+import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  // Clear existing data in the reverse order of dependencies
+  // Clear existing data in reverse order of dependencies
+  await prisma.review.deleteMany();
   await prisma.activity.deleteMany();
-  await prisma.mentorActivity.deleteMany();        
-  await prisma.mentorFeedback.deleteMany(); 
-  await prisma.report.deleteMany();          
-  await prisma.mentorship.deleteMany();     
-  await prisma.user.deleteMany(); 
-  
-  // Symmetric key for password hashing
+  await prisma.report.deleteMany();
+  await prisma.project.deleteMany();
+  await prisma.student.deleteMany();
+  await prisma.mentor.deleteMany();
+  await prisma.user.deleteMany();
+
+  // Password hashing setup
   const saltRounds = 10;
-  const defaultPassword = 't2tuser';
+  const defaultPassword = "t2tuser";
   const hashedPassword = await bcrypt.hash(defaultPassword, saltRounds);
 
-  // Create mentors
   try {
-  const mentor1 = await prisma.user.create({
-    data: {
-      firstName: 'Sam',
-      lastName: 'De',
-      email: 'mentor1@gmail.com',
-      passwordHash: hashedPassword,
-      role: 'mentor',
-    }
-  });
+    // Create mentors
+    const mentor1 = await prisma.user.create({
+      data: {
+        firstName: "Sam",
+        lastName: "De",
+        email: "mentor1@gmail.com",
+        password: hashedPassword,
+        role: "MENTOR",
+        emailConfirmed: true,
+        mentor: {
+          create: {
+            expertise: "Software Engineering",
+          },
+        },
+      },
+    });
 
-  const mentor2 = await prisma.user.create({
-    data: {
-      firstName: 'Jane',
-      lastName: 'Smith',
-      email: 'mentor2@gmail.com',
-      passwordHash: hashedPassword,
-      role: 'mentor',
-    }
-  });
+    const mentor2 = await prisma.user.create({
+      data: {
+        firstName: "Jane",
+        lastName: "Smith",
+        email: "mentor2@gmail.com",
+        password: hashedPassword,
+        role: "MENTOR",
+        emailConfirmed: true,
+        mentor: {
+          create: {
+            expertise: "Data Science",
+          },
+        },
+      },
+    });
 
-  
-  // console.log({ mentor1, mentor2, student1, student2, student3, feedback1, feedback2, report1, report2 });
-} catch (error) {
-  console.error('Error seeding data:', error);
-}
-}
+    // Create students
+    const student1 = await prisma.user.create({
+      data: {
+        firstName: "Alice",
+        lastName: "Johnson",
+        email: "student1@gmail.com",
+        password: hashedPassword,
+        role: "STUDENT",
+        emailConfirmed: true,
+        student: {
+          create: {
+            university: "MIT",
+            internshipStartDate: new Date("2024-06-01"),
+            duration: 6,
+            mentorID: mentor1.userID,
+          },
+        },
+      },
+    });
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
+    const student2 = await prisma.user.create({
+      data: {
+        firstName: "Bob",
+        lastName: "Williams",
+        email: "student2@gmail.com",
+        password: hashedPassword,
+        role: "STUDENT",
+        emailConfirmed: true,
+        student: {
+          create: {
+            university: "Harvard",
+            internshipStartDate: new Date("2024-07-01"),
+            duration: 5,
+            mentorID: mentor2.userID,
+          },
+        },
+      },
+    });
+
+    // Create a project
+    const project = await prisma.project.create({
+      data: {
+        projectTitle: "AI Chatbot Development",
+        projectDescription: "Building a chatbot using NLP techniques.",
+        progress: 10.0,
+        startedAt: new Date(),
+        deadline: new Date("2024-12-01"),
+        teamName: "AI Innovators",
+        mentorID: mentor1.userID,
+        students: {
+          connect: [{ userID: student1.userID }],
+        },
+      },
+    });
+
+    // Create an activity
+    const activity = await prisma.activity.create({
+      data: {
+        role: "STUDENT",
+        timeSpent: 5,
+        title: "Research on NLP",
+        description: "Studied various NLP techniques for chatbot development.",
+        date: new Date(),
+        userID: student1.userID,
+      },
+    });
+
+    // Create a review
+    const review = await prisma.review.create({
+      data: {
+        review: "Great work! Keep it up.",
+        reviewedAt: new Date(),
+        status: "approved",
+        activityID: activity.activityID,
+        mentorID: mentor1.userID,
+      },
+    });
+
+    // Create a report
+    const report = await prisma.report.create({
+      data: {
+        reportDate: new Date(),
+        status: "Generated",
+        mentorID: mentor1.userID,
+      },
+    });
+
+    console.log("Seeding completed successfully.");
+  } catch (error) {
+    console.error("Error seeding data:", error);
+  } finally {
     await prisma.$disconnect();
-  });
+  }
+}
+
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
