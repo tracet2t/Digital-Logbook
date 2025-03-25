@@ -1,13 +1,11 @@
 // src/api/mentorships.ts
 import { NextRequest, NextResponse } from "next/server";
 import getSession from "@/server_actions/getSession";
-import { MentorshipRepository } from "@/repositories/repositories";
-import { Mentorship, User } from '@prisma/client';
+import { MentorRepository } from "@/repositories/repositories";
 
-const mentorshipRepository = new MentorshipRepository();
+const mentorRepository = new MentorRepository();
 
 export const dynamic = 'force-dynamic';
-
 
 export const GET = async (req: NextRequest) => {
   try {
@@ -21,13 +19,13 @@ export const GET = async (req: NextRequest) => {
       return NextResponse.json({ message: "Mentor ID not found" }, { status: 401 });
     }
 
-    // Fetch mentorships using the repository
-    const mentorships = await mentorshipRepository.getMentorshipsByMentorId(mentorId);
+    // Fetch students associated with the mentor
+    const mentor = await mentorRepository.getMentorWithStudents(mentorId);
+    if (!mentor) {
+      return NextResponse.json({ message: "Mentor not found" }, { status: 404 });
+    }
 
-    // Ensure type for mentorships and student
-    const students = mentorships.map((mentorship: Mentorship & { student: User }) => mentorship.student);
-
-    return NextResponse.json(students);
+    return NextResponse.json(mentor.students);
   } catch (error) {
     console.error("Error fetching students:", error);
     return NextResponse.json({ message: "Error fetching students" }, { status: 500 });

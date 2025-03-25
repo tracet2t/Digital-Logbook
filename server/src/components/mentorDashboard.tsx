@@ -20,7 +20,7 @@ interface Session {
 
 const MentorDashboard = () => {
   const [showForm, setShowForm] = useState(false);
-  const [users, setUsers] = useState<{ id: string; firstName: string; lastName: string; }[]>([]);
+  const [users, setUsers] = useState<{ userID: string; firstName: string; lastName: string; }[]>([]);
   const [session, setSession] = useState<Session | null>(null);
   const [mentorName, setMentorName] = useState<string | null>(null);
   const [mentorId, setMentorId] = useState<string | null>(null);
@@ -63,7 +63,14 @@ const MentorDashboard = () => {
     try {
       const response = await fetch('http://localhost:3000/api/users');
       const data = await response.json();
-      setUsers(data);
+      const formattedUsers = data.map((user: any) => ({
+        userID: user.userID,
+        firstName: user.user?.firstName || "",
+        lastName: user.user?.lastName || "",
+      }));
+  
+      setUsers(formattedUsers);
+
       setIsLoading(false); // Stop loading once users are fetched
     } catch (error) {
       console.error("Failed to fetch users:", error);
@@ -199,9 +206,9 @@ const MentorDashboard = () => {
                 value={selectedUser || mentorId || ''} // Set selectedUser or mentorId if it's not yet available
                 onChange={handleMentorChange}
               >
-                <option value={mentorId || ""}>{"---Select Student---"}</option> 
+                <option value="">{"---Select Student---"}</option> 
                 {users.map((user) => (
-                  <option key={user.id} value={user.id}>
+                  <option key={user.userID} value={user.userID}>
                     {user.firstName} {user.lastName}
                   </option>
                 ))}

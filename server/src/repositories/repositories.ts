@@ -82,9 +82,9 @@ export class ActivityRepository extends BaseRepository<Activity> {
     });
   }
 
-  async deleteActivity(id: number) {
+  async deleteActivity(id: string) {
     return this.modelClient.delete({
-      where: { activityID: id },
+      where: { id },
     });
   }
 }
@@ -116,7 +116,7 @@ export class MentorRepository extends BaseRepository<Mentor> {
         },
       },
     });
-  }
+  }  
 }
 
 /*
@@ -189,7 +189,7 @@ export class ReviewRepository extends BaseRepository<Review> {
     super(prisma.review);
   }
 
-  async getReviewsByActivityId(activityId: number) {
+  async getReviewsByActivityId(activityId: string) {
     return this.modelClient.findMany({
       where: { activityID: activityId },
     });
