@@ -114,7 +114,6 @@ async function main() {
         timeSpent: 5,
         title: "Research on NLP",
         description: "Studied various NLP techniques for chatbot development.",
-        date: new Date(),
         userID: student1.userID,
       },
     });

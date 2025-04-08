@@ -72,7 +72,6 @@ model Activity {
   description String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  date        DateTime
   userID      String
   user        User @relation(fields: [userID], references: [userID])
   reviews     Review[]

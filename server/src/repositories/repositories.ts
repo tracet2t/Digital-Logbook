@@ -82,8 +82,24 @@ export class ActivityRepository extends BaseRepository<Activity> {
     });
   }
 
+  async updateActivity(id: string, userId: string, data: { timeSpent?: number; title?: string; notes?: string }) {
+    return this.modelClient.update({
+      where: {
+        activityID: id,
+        userID: userId,
+      },
+      data,
+    });
+  }
+
   async deleteActivity(id: string) {
     return this.modelClient.delete({
+      where: { id },
+    });
+  }
+
+  async findActivityById(id: string) {
+    return this.modelClient.findMany({
       where: { id },
     });
   }

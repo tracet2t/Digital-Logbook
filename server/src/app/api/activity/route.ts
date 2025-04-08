@@ -15,13 +15,13 @@ export const GET = async (req: NextRequest) => {
     const url = new URL(req.url);
     const date = url.searchParams.get('date');
 
-    const activities = await activityRepository.findByStudentId(userId, date ? new Date(date) : undefined);
+    const activities = await activityRepository.findByUserId(userId, date ? new Date(date) : undefined);
     return NextResponse.json(activities);
   } catch (error) {
     console.error("Error fetching activities:", error);
     return NextResponse.json({ message: "Error fetching activities" }, { status: 500 });
   }
-};  
+};
 
 export const POST = async (req: NextRequest) => {
   try {
@@ -37,7 +37,7 @@ export const POST = async (req: NextRequest) => {
       return NextResponse.json({ message: "Invalid input data" }, { status: 400 });
     }
 
-    const newActivity = await activityRepository.createActivity(userId, new Date(date), timeSpent, notes);
+    const newActivity = await activityRepository.createActivity(userId, new Date(date), timeSpent, "Research" , notes);
     return NextResponse.json(newActivity, { status: 201 });
   } catch (error) {
     console.error("Error creating activity:", error);
