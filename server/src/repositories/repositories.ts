@@ -159,6 +159,7 @@ export class ProjectRepository extends BaseRepository<Project> {
     super(prisma.project);
   }
 
+  // Get all projects by a mentor
   async getProjectsByMentorId(mentorId: string) {
     return this.modelClient.findMany({
       where: { mentorID: mentorId },
@@ -177,7 +178,88 @@ export class ProjectRepository extends BaseRepository<Project> {
       },
     });
   }
+
+  // Get a single project by ID
+  async getProjectById(projectID: number) {
+    return this.modelClient.findUnique({
+      where: { projectID },
+      include: {
+        mentor: {
+          select: {
+            userID: true,
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
+        students: {
+          select: {
+            userID: true,
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  // Create a new project
+  async createProject(data: {
+    projectTitle: string;
+    projectDescription: string;
+    progress: number;
+    startedAt: Date;
+    deadline: Date;
+    teamName: string;
+    mentorID?: string;
+    studentIDs?: string[]; // optional for linking students
+  }) {
+    return this.modelClient.create({
+      data: {
+        projectTitle: data.projectTitle,
+        projectDescription: data.projectDescription,
+        progress: data.progress,
+        startedAt: data.startedAt,
+        deadline: data.deadline,
+        teamName: data.teamName,
+        mentorID: data.mentorID,
+        students: data.studentIDs
+          ? {
+              connect: data.studentIDs.map((id) => ({ userID: id })),
+            }
+          : undefined,
+      },
+    });
+  }
+
+  // Update an existing project
+  async updateProject(projectID: number, updates: Partial<Project>) {
+    return this.modelClient.update({
+      where: { projectID },
+      data: updates,
+    });
+  }
+
+  // Soft delete a project
+  async softDeleteProject(projectID: number) {
+    return this.modelClient.update({
+      where: { projectID },
+      data: {
+        isDeleted: true,
+      },
+    });
+  }
 }
+
+
+
 
 /*
 
