@@ -33,6 +33,10 @@ class JwtPayloadSession {
     getName() {
         return this.isAuthenticated() ? this.payload["fname"] + ' ' + this.payload["lname"] : null;
     }
+
+    getEmailConfirmed(): Role {
+        return this.isAuthenticated() ? this.payload["emailConfirmed"] : null;
+    }
 }
 
 
@@ -50,7 +54,7 @@ export default async function getSession(reqCookies: RequestCookies | null = nul
 async function getSessionOnClient(): Promise<any> {
     const sessionCookie = cookies().get('token');
     const [_, payload, __] = sessionCookie ? sessionCookie.value.split('.') : [null, null, null];
-    return !!payload ? select(JSON.parse(atob(payload)), ['email', 'id', 'role', 'fname', 'lname']) : null;
+    return !!payload ? select(JSON.parse(atob(payload)), ['email', 'id', 'role', 'fname', 'lname', 'emailConfirmed']) : null;
 }
 
 export { getSessionOnClient }
