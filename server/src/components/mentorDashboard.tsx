@@ -8,20 +8,20 @@ import Footer from '@/components/footer';
 
 const MentorDashboard = () => {
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="min-h-screen bg-gray-100 p-4 md:p-6">
       {/* Navbar */}
-      <Navbar />
+      <Navbar userType='mentor' userName='John Doe'/>
       
       {/* Main Content */}
-      <div className="grid grid-cols-3 gap-4 mt-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
         {/* Left Panel - Dashboard Overview & Active Projects */}
-        <div className="col-span-2">
+        <div className="md:col-span-2 space-y-4">
           <DashboardOverview />
-          <div className="mt-4"> <ActiveProjects /></div>
+          <ActiveProjects />
         </div>
 
         {/* Right Panel - Calendar & Journal */}
-        <div className="flex flex-col gap-4">
+        <div className="space-y-4">
           <Calendar />
           <PersonalJournal />
         </div>
