@@ -94,13 +94,14 @@ export class ActivityRepository extends BaseRepository<Activity> {
 
   async deleteActivity(id: string) {
     return this.modelClient.delete({
-      where: { id },
+      where: { activityID: id },
     });
   }
 
   async findActivityById(id: string) {
-    return this.modelClient.findMany({
-      where: { id },
+    return this.modelClient.findUnique({
+      where: { activityID: id },
+      select: { createdAt: true, userID: true },
     });
   }
 }
@@ -132,7 +133,26 @@ export class MentorRepository extends BaseRepository<Mentor> {
         },
       },
     });
-  }  
+  }
+
+  async getMentorshipsByMentorId(mentorId: string) {
+    return prisma.project.findMany({
+      where: { mentorID: mentorId },
+      include: {
+        students: {
+          select: {
+            userID: true,
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
 }
 
 /*
@@ -209,6 +229,31 @@ export class ReviewRepository extends BaseRepository<Review> {
     return this.modelClient.findMany({
       where: { activityID: activityId },
     });
+  }
+
+  async upsertFeedback(activityId: string, mentorId: string, review: string, status: string) {
+    const existingFeedback = await this.modelClient.findFirst({
+      where: {
+        activityID: activityId,
+        mentorID: mentorId,
+      },
+    });
+
+    if (existingFeedback) {
+      return this.modelClient.update({
+        where: { id: existingFeedback.id },
+        data: { review, status },
+      });
+    } else {
+      return this.modelClient.create({
+        data: {
+          activityID: activityId,
+          mentorID: mentorId,
+          review,
+          status,
+        },
+      });
+    }
   }
 }
 
