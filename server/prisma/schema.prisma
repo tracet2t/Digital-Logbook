@@ -1,7 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
-    binaryTargets = ["native", "linux-musl"] 
-
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl"]
 }
 
 datasource db {
@@ -21,14 +20,15 @@ model User {
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
   activities       Activity[]
+  mentorActivities MentorActivity[] @relation("UserMentorActivities")
   mentorFeedback   MentorFeedback[]
-  mentorReports    Report[]         @relation(name: "mentorReports")
-  mentorRoles      Mentorship[]     @relation(name: "mentorRole")
-  studentRoles     Mentorship[]     @relation(name: "studentRole")
-  mentorActivities MentorActivity[] @relation(name: "UserMentorActivities")
+  mentorRoles      Mentorship[]     @relation("mentorRole")
+  studentRoles     Mentorship[]     @relation("studentRole")
+  mentorReports    Report[]         @relation("mentorReports")
 
   @@map("users")
 }
+
 
 model Activity {
   id        String           @id @default(uuid())
@@ -59,12 +59,12 @@ model MentorFeedback {
 }
 
 model Report {
-  id          String   @id @default(uuid())
+  id          String        @id @default(uuid())
   mentorId    String
   reportData  Json
   status      ProcessStatus @default(pending)
-  generatedAt DateTime @default(now())
-  mentor      User     @relation(fields: [mentorId], references: [id], name: "mentorReports")
+  generatedAt DateTime      @default(now())
+  mentor      User          @relation("mentorReports", fields: [mentorId], references: [id])
 
   @@map("reports")
 }
@@ -73,8 +73,8 @@ model Mentorship {
   id        String @id @default(uuid())
   mentorId  String
   studentId String
-  mentor    User   @relation(fields: [mentorId], references: [id], name: "mentorRole")
-  student   User   @relation(fields: [studentId], references: [id], name: "studentRole")
+  mentor    User   @relation("mentorRole", fields: [mentorId], references: [id])
+  student   User   @relation("studentRole", fields: [studentId], references: [id])
 
   @@map("mentorship")
 }
@@ -87,10 +87,22 @@ model MentorActivity {
   activities   String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  mentor       User     @relation(fields: [mentorId], references: [id], name: "UserMentorActivities")
+  mentor       User     @relation("UserMentorActivities", fields: [mentorId], references: [id])
 
   @@map("mentoractivities")
 }
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String
+  tableName String
+  recordId  String
+  oldData   Json?
+  timestamp DateTime @default(now())
+  @@map("audit_logs")
+}
+
+
 
 enum Role {
   student
