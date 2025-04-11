@@ -67,3 +67,23 @@
   }
 }
 
+.ql-container {
+  height: 120px !important; /* Fixed editor height */
+  display: flex;
+  flex-direction: column;
+  width: 100% !important; /* Keeps width consistent */
+  max-width: 600px !important; /* Adjust to your preferred width */
+}
+
+.ql-editor {
+  flex: 1; 
+  max-height: 90px !important; /* Prevents resizing */
+  overflow-y: auto !important; /* Enables scrolling for text */
+  padding-bottom: 10px; /* Avoids content cutting off */
+  word-wrap: break-word; /* Prevents text from expanding width */
+  overflow-wrap: break-word;
+  white-space: pre-wrap; /* Keeps text inside the box */
+}
+
+
+
