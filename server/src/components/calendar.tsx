@@ -43,15 +43,15 @@ interface FormData {
 }
 
 interface FeedbackData {
-  review: string,
-  status: string,
-  mentorId: string
+  review: string;
+  status: string;
+  mentorId: string;
 }
 
 interface MentorFormData {
-  date: string,
-  workingHours: number,
-  activities: string
+  date: string;
+  workingHours: number;
+  activities: string;
 }
 
 interface CalendarEvent {
@@ -145,8 +145,10 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     if (data) {
       const parsedEvents =
         role === "mentor"
-        ? studentId === selectedUser ?convertToCalendarEventsMentor(data)
-          :  convertToCalendarEvents(data): convertToCalendarEvents(data);
+          ? studentId === selectedUser
+            ? convertToCalendarEventsMentor(data)
+            : convertToCalendarEvents(data)
+          : convertToCalendarEvents(data);
       setEvents(parsedEvents);
     }
   };
@@ -190,7 +192,10 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   };
 
   const processResponse = async (existingEvent: any, formattedDate: string) => {
-    if ((role === "mentor" && studentId !== selectedUser) || (role === "student")) {
+    if (
+      (role === "mentor" && studentId !== selectedUser) ||
+      role === "student"
+    ) {
       const feedbackData = await fetchFeedback(existingEvent.id, formattedDate);
       updateFormData(existingEvent, feedbackData, formattedDate);
     } else {
@@ -258,18 +263,30 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   
     const todayMoment = moment().startOf("day");
     const dayBeforeYesterday = moment().subtract(2, "days").startOf("day");
-  
-    if (
-      moment(date).isSame(todayMoment, "day") ||
-      moment(date).isBetween(dayBeforeYesterday, todayMoment, "day", "[]")
-    ) {
-      setIsEditable(true);
-    } else {
-      setIsEditable(false);
-    }
-  
+
+    setIsEditable(
+      moment(date).isSame(today, "day") ||
+        moment(date).isBetween(dayBeforeYesterday, today, "day", "[]")
+    );
+
     fetchEventForDate(formattedDate);
-    setTaskModalOpen(true);
+
+    const isDateInEvents = events.some((event) => {
+      const eventStart = moment(event.start).format("YYYY-MM-DD");
+      const eventEnd = moment(event.end).format("YYYY-MM-DD");
+      return eventStart === formattedDate || eventEnd === formattedDate;
+    });
+
+    if (role === "mentor") {
+      if (isDateInEvents) {
+        setTaskModalOpen(true);
+      } else {
+        setTaskModalOpen(false);
+        showToast("No Task", "No task submitted for this day.");
+      }
+    } else {
+      setTaskModalOpen(true);
+    }
   };
 
   const handleClose = () => {
@@ -436,7 +453,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
           taskModalOpen={taskModalOpen}
           setTaskModalOpen={setTaskModalOpen}
           role={role}
-          selectedUser={selectedUser || ''}
+          selectedUser={selectedUser || ""}
           studentId={studentId}
           formData={formData}
           workingHours={workingHours}
@@ -453,7 +470,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
           taskModalOpen={taskModalOpen}
           setTaskModalOpen={setTaskModalOpen}
           role={role}
-          selectedUser={selectedUser || ''}
+          selectedUser={selectedUser || ""}
           studentId={studentId}
           formData={formData}
           workingHours={workingHours}
@@ -479,24 +496,26 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
           handleSubmit={handleSubmit}
         />
 
-<div className="relative w-[90vw] h-[80vh] ">
-        <BigCalendar
-          events={events}
-          localizer={localizer}
-          defaultView={Views.MONTH}
-          view={Views.MONTH}
-          startAccessor="start"
-          endAccessor="end"
-          onSelectSlot={(slotInfo) => handleDateClick(slotInfo.start)}
-          onSelectEvent={(event) => handleDateClick(event.start)}
-          selectable
-          components={{
-            toolbar: CustomToolbar,
-          }}
-          eventPropGetter={(event) => eventPropGetter(event, selectedUser || "")} // Pass selectedUser here
-          style={{height: "100%"}}
-        />
-      </div>
+        <div className="relative w-[90vw] h-[80vh] ">
+          <BigCalendar
+            events={events}
+            localizer={localizer}
+            defaultView={Views.MONTH}
+            view={Views.MONTH}
+            startAccessor="start"
+            endAccessor="end"
+            onSelectSlot={(slotInfo) => handleDateClick(slotInfo.start)}
+            onSelectEvent={(event) => handleDateClick(event.start)}
+            selectable
+            components={{
+              toolbar: CustomToolbar,
+            }}
+            eventPropGetter={(event) =>
+              eventPropGetter(event, selectedUser || "")
+            } // Pass selectedUser here
+            style={{ height: "100%" }}
+          />
+        </div>
 
         {toast && (
           <Toast>

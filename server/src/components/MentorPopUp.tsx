@@ -54,6 +54,12 @@ const MentorPopUp: React.FC<MentorPopUpProps> = ({ isOpen, onClose, mentorDetail
   };
 
   const handleAccept = async () => {
+    // Check if studentActivity is empty
+    if (!mentorDetails.studentActivity) {
+      console.log("No activity available for this journal entry.");
+      return; // Prevent further action if there's no activity
+    }
+
     try {
       const response = await fetch(`/api/mentor-activity/${mentorDetails.id}`, {
         method: 'POST',
@@ -80,8 +86,6 @@ const MentorPopUp: React.FC<MentorPopUpProps> = ({ isOpen, onClose, mentorDetail
   };
 
   return (
-
-
     <AlertDialog open={isOpen} onOpenChange={onClose}>
       <AlertDialogTrigger asChild>
         <div />
@@ -131,6 +135,4 @@ const MentorPopUp: React.FC<MentorPopUpProps> = ({ isOpen, onClose, mentorDetail
   );
 };
 
-
-
-export default MentorPopUp
+export default MentorPopUp;
