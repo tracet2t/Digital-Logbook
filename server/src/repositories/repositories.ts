@@ -104,6 +104,32 @@ export class ActivityRepository extends BaseRepository<Activity> {
       select: { createdAt: true, userID: true },
     });
   }
+
+  async findActivitiesByStudentIds(studentIds: string[], date?: Date) {
+    return this.modelClient.findMany({
+      where: {
+        studentId: { in: studentIds },
+        ...(date && {
+          date: {
+            gte: date,
+            lt: new Date(date.getTime() + 24 * 60 * 60 * 1000),
+          },
+        }),
+      },
+      include: {
+        student: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }
+  
 }
 
 /*

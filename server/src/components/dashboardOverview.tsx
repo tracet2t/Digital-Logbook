@@ -1,7 +1,78 @@
 // components/DashboardOverview.tsx
-import React from 'react';
+import getSession from '@/server_actions/getSession';
+import React, { useEffect, useState } from 'react';
+
+interface Project {
+  projectTitle: string;
+  progress: number;
+  deadline: string;
+  teamName: string;
+  students: {
+    userID: string;
+    user: {
+      firstName: string;
+      lastName: string;
+    };
+  }[];
+}
+
+interface Activity {
+  id: string;
+  timeSpent: number;
+  notes: string;
+  student: {
+    firstName: string;
+    lastName: string;
+  };
+}
+
+interface DashboardStats {
+  numberOfProjects: number;
+  numberOfStudents: number;
+  totalActivitiesThisWeek: number;
+}
 
 const DashboardOverview = () => {
+
+
+  
+  const getDashboardData = async() => {
+    const res = await fetch('/api/mentor/dashboard');
+    const { projects, recentActivities, stats } = await res.json();
+
+  }
+
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const res = await fetch("/api/mentor/dashboard");
+        if (!res.ok) throw new Error("Failed to fetch dashboard data");
+        const data = await res.json();
+        setProjects(data.projects);
+        setRecentActivities(data.recentActivities);
+        setStats(data.stats);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  if (loading) return <div className="p-8 text-center text-gray-500">Loading Dashboard...</div>;
+  if (error) return <div className="p-8 text-center text-red-500">{error}</div>;
+
+  
+  
+
   return (
     <div className="bg-white p-4 rounded-md shadow-md">
     <div className="grid grid-cols-4 gap-4 mb-6">
