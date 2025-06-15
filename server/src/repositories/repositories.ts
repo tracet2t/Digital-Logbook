@@ -108,7 +108,7 @@ export class ActivityRepository extends BaseRepository<Activity> {
   async findActivitiesByStudentIds(studentIds: string[], date?: Date) {
     return this.modelClient.findMany({
       where: {
-        studentId: { in: studentIds },
+        userID: { in: studentIds },
         ...(date && {
           date: {
             gte: date,
@@ -117,7 +117,7 @@ export class ActivityRepository extends BaseRepository<Activity> {
         }),
       },
       include: {
-        student: {
+        user: {
           select: {
             firstName: true,
             lastName: true,

@@ -63,7 +63,6 @@ CREATE TABLE "Activity" (
     "description" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "date" TIMESTAMP(3) NOT NULL,
     "userID" TEXT NOT NULL,
 
     CONSTRAINT "Activity_pkey" PRIMARY KEY ("activityID")

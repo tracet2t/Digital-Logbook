@@ -57,6 +57,7 @@ const DashboardOverview = () => {
         setProjects(data.projects);
         setRecentActivities(data.recentActivities);
         setStats(data.stats);
+        console.log(data)
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -69,9 +70,6 @@ const DashboardOverview = () => {
 
   if (loading) return <div className="p-8 text-center text-gray-500">Loading Dashboard...</div>;
   if (error) return <div className="p-8 text-center text-red-500">{error}</div>;
-
-  
-  
 
   return (
     <div className="bg-white p-4 rounded-md shadow-md">

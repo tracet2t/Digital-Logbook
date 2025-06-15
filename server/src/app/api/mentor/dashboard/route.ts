@@ -16,7 +16,6 @@ export const GET = async (req: NextRequest) => {
 
     const projects = await projectRepository.getProjectsByMentorId(mentorId);
 
-    console.log(projects)
 
     const studentIDs = projects.flatMap((project: { students: any[]; }) =>
       project.students.map((student) => student.userID)
