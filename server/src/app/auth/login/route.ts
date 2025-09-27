@@ -34,7 +34,8 @@ export async function POST(request: Request) {
             email: user.email,
             role: user.role.toString(),
             fname: user.firstName,
-            lname: user.lastName
+            lname: user.lastName,
+            emailConfirmed: user.emailConfirmed
         })
             .setProtectedHeader({ alg: algo })
             .setIssuedAt()
