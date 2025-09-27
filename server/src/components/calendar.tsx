@@ -134,7 +134,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   const fetchEvents = async () => {
     let url = `http://localhost:3000/api/activity?studentId=${studentId}`;
 
-    if (role === "mentor") {
+    if (role === "MENTOR") {
       url =
         studentId === selectedUser
           ? `http://localhost:3000/api/mentor?studentId=${selectedUser}`
@@ -144,7 +144,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     const data = await fetchEventData(url);
     if (data) {
       const parsedEvents =
-        role === "mentor"
+        role === "MENTOR"
         ? studentId === selectedUser ?convertToCalendarEventsMentor(data)
           :  convertToCalendarEvents(data): convertToCalendarEvents(data);
       setEvents(parsedEvents);

@@ -21,7 +21,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
 
-        const isPasswordValid = await compare(password, user.passwordHash);
+        const isPasswordValid = await compare(password, user.password);
         if (!isPasswordValid) {
             return NextResponse.json({ error: "Invalid password" }, { status: 401 });
         }
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
         const algo = 'HS256';
 
         const token = await new jose.SignJWT({
-            id: user.id,
+            id: user.userID,
             email: user.email,
             role: user.role.toString(),
             fname: user.firstName,
@@ -46,9 +46,9 @@ export async function POST(request: Request) {
 
 
         let redirectUrl = `${baseUrl}/unauthorized`;
-        if (user.role === 'student') {
+        if (user.role === 'STUDENT') {
             redirectUrl = !user.emailConfirmed ? `${baseUrl}/reset-password` : `${baseUrl}/student`;
-        } else if (user.role === 'mentor') {
+        } else if (user.role === 'MENTOR') {
             redirectUrl = `${baseUrl}/mentor`;
         }
 

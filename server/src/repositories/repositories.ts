@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { User, Activity, Mentorship, MentorActivity, Report, MentorFeedback } from "@prisma/client";
+import { User, Activity, Mentor, Student, Project, Review, Report } from "@prisma/client";
 import BaseRepository from "./baseRepository";
 
 /*
@@ -7,9 +7,7 @@ import BaseRepository from "./baseRepository";
       //-- User Repository --//
 
 */
-
 export class UserRepository extends BaseRepository<User> {
-
   constructor() {
     super(prisma.user);
   }
@@ -20,11 +18,9 @@ export class UserRepository extends BaseRepository<User> {
     });
   }
 
-  async getUserWithActivities(studentId: string) {
+  async getUserWithActivities(userId: string) {
     return this.modelClient.findUnique({
-      where: {
-        id: studentId,
-      },
+      where: { userID: userId },
       select: {
         firstName: true,
         lastName: true,
@@ -32,11 +28,12 @@ export class UserRepository extends BaseRepository<User> {
           select: {
             date: true,
             timeSpent: true,
-            notes: true,
-            feedback: {
+            title: true,
+            description: true,
+            reviews: {
               select: {
                 status: true,
-                feedbackNotes: true,
+                review: true,
               },
             },
           },
@@ -44,7 +41,6 @@ export class UserRepository extends BaseRepository<User> {
       },
     });
   }
-
 }
 
 /*
@@ -52,117 +48,85 @@ export class UserRepository extends BaseRepository<User> {
       //-- Activity Repository --//
 
 */
-
 export class ActivityRepository extends BaseRepository<Activity> {
-
   constructor() {
     super(prisma.activity);
   }
 
-
-  async findByStudentId(studentId: string, date?: Date) {
+  async findByUserId(userId: string, date?: Date) {
     return this.modelClient.findMany({
       where: {
-        studentId,
+        userID: userId,
         ...(date && { date }),
       },
       include: {
-        feedback: {
+        reviews: {
           select: {
             status: true,
-            feedbackNotes: true,
+            review: true,
           },
         },
       },
     });
   }
 
-  async createActivity(studentId: string, date: Date, timeSpent: number, notes: string) {
+  async createActivity(userId: string, date: Date, timeSpent: number, title: string, description: string) {
     return this.modelClient.create({
       data: {
-        studentId,
+        userID: userId,
         date,
         timeSpent,
-        notes,
+        title,
+        description,
       },
     });
   }
 
-  async updateActivity(id: string, studentId: string, data: { timeSpent?: number; notes?: string }) {
+  async updateActivity(id: string, userId: string, data: { timeSpent?: number; title?: string; notes?: string }) {
     return this.modelClient.update({
       where: {
-        id,
-        studentId,
+        activityID: id,
+        userID: userId,
       },
       data,
     });
   }
 
-  async findActivityById(id: string) {
-    return this.modelClient.findUnique({
-      where: { id },
-      select: { createdAt: true, studentId: true },
-    });
-  }
-
   async deleteActivity(id: string) {
     return this.modelClient.delete({
-      where: { id },
+      where: { activityID: id },
     });
   }
 
-  async getStudentFeedbacks(studentId: string, date?: string) {
-    return this.modelClient.findMany({
-      where: {
-        studentId: studentId,
-        ...(date && { date: new Date(date) }),
-      },
-      include: {
-        feedback: {
-          select: {
-            status: true,
-            feedbackNotes: true,
-          },
-        },
-      },
+  async findActivityById(id: string) {
+    return this.modelClient.findUnique({
+      where: { activityID: id },
+      select: { createdAt: true, userID: true },
     });
   }
-
 }
 
 /*
 
-      //-- Mentorship Repository --//
+      //-- Mentor Repository --//
 
 */
-
-export class MentorshipRepository extends BaseRepository<Mentorship> {
-
+export class MentorRepository extends BaseRepository<Mentor> {
   constructor() {
-    super(prisma.mentorship);
+    super(prisma.mentor);
   }
 
-  async getMentorWithStudents(mentorId: string): Promise<any[]> {
-    return this.modelClient.findMany({
-      where: { mentorId },
+  async getMentorWithStudents(mentorId: string) {
+    return this.modelClient.findUnique({
+      where: { userID: mentorId },
       include: {
-        student: {
+        students: {
           select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            activities: {
+            userID: true,
+            user: {
               select: {
-                id: true,
-                date: true,
-                timeSpent: true,
-                notes: true,
-                feedback: {
-                  select: {
-                    status: true,
-                    feedbackNotes: true,
-                  },
-                },
+                firstName: true,
+                lastName: true,
               },
             },
           },
@@ -172,60 +136,124 @@ export class MentorshipRepository extends BaseRepository<Mentorship> {
   }
 
   async getMentorshipsByMentorId(mentorId: string) {
-    return this.modelClient.findMany({
-      where: { mentorId: mentorId },
+    return prisma.project.findMany({
+      where: { mentorID: mentorId },
       include: {
-        student: true, // Fetch the student details associated with each mentorship
+        students: {
+          select: {
+            userID: true,
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
       },
     });
   }
-
 }
 
 /*
 
-      //-- Mentor Activity Repository --//
+      //-- Student Repository --//
 
 */
-
-
-export class MentorRepository extends BaseRepository<MentorActivity> {
-
+export class StudentRepository extends BaseRepository<Student> {
   constructor() {
-    super(prisma.mentorActivity);
+    super(prisma.student);
   }
 
-  async getMentorActivities(mentorId: string, date?: Date) {
-      return this.modelClient.findMany({
-          where: {
-              mentorId,
-              ...(date && { date }),
+  async getStudentWithMentor(studentId: string) {
+    return this.modelClient.findUnique({
+      where: { userID: studentId },
+      include: {
+        mentor: {
+          select: {
+            userID: true,
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
           },
-      });
+        },
+      },
+    });
+  }
+}
+
+/*
+
+      //-- Project Repository --//
+
+*/
+export class ProjectRepository extends BaseRepository<Project> {
+  constructor() {
+    super(prisma.project);
   }
 
-  async createMentorActivity(data: {
-      mentorId: string;
-      date: Date;
-      workingHours: number;
-      activities: string;
-  }) {
-      return this.modelClient.create({
-          data,
-      });
+  async getProjectsByMentorId(mentorId: string) {
+    return this.modelClient.findMany({
+      where: { mentorID: mentorId },
+      include: {
+        students: {
+          select: {
+            userID: true,
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+}
+
+/*
+
+      //-- Review Repository --//
+
+*/
+export class ReviewRepository extends BaseRepository<Review> {
+  constructor() {
+    super(prisma.review);
   }
 
-  async updateMentorActivity(id: string, mentorId: string, data: {
-      workingHours?: number;
-      activities?: string;
-  }) {
+  async getReviewsByActivityId(activityId: string) {
+    return this.modelClient.findMany({
+      where: { activityID: activityId },
+    });
+  }
+
+  async upsertFeedback(activityId: string, mentorId: string, review: string, status: string) {
+    const existingFeedback = await this.modelClient.findFirst({
+      where: {
+        activityID: activityId,
+        mentorID: mentorId,
+      },
+    });
+
+    if (existingFeedback) {
       return this.modelClient.update({
-          where: {
-              id,
-              mentorId,
-          },
-          data,
+        where: { id: existingFeedback.id },
+        data: { review, status },
       });
+    } else {
+      return this.modelClient.create({
+        data: {
+          activityID: activityId,
+          mentorID: mentorId,
+          review,
+          status,
+        },
+      });
+    }
   }
 }
 
@@ -234,73 +262,14 @@ export class MentorRepository extends BaseRepository<MentorActivity> {
       //-- Report Repository --//
 
 */
-
-
 export class ReportRepository extends BaseRepository<Report> {
-
   constructor() {
     super(prisma.report);
   }
-  
-}
 
-
-/*
-
-      //-- Mentor Feedback Repository --//
-
-*/
-
-
-export class MentorFeedbackRepository extends BaseRepository<MentorFeedback> {
-
-  constructor() {
-    super(prisma.mentorFeedback);
-  }
-
-  async getFeedbackByActivityId(activityId: string, date?: Date) {
-    return this.modelClient.findFirst({
-      where: { 
-        activityId: String(activityId),
-        activity: {
-          date: date ? new Date(date) : undefined,
-        },
-      },
+  async getReportsByMentorId(mentorId: string) {
+    return this.modelClient.findMany({
+      where: { mentorID: mentorId },
     });
   }
-
-  async upsertFeedback(activityId: string, mentorId: string, review: string, status: string) {
-    // Check if the feedback already exists
-    const existingFeedback = await this.modelClient.findFirst({
-      where: {
-        activityId,
-        mentorId,
-      },
-    });
-
-    if (existingFeedback) {
-      // Update the existing feedback
-      return this.modelClient.update({
-        where: {
-          id: existingFeedback.id,
-        },
-        data: {
-          feedbackNotes: review,
-          status,
-        },
-      });
-    } else {
-      // Create new feedback
-      return this.modelClient.create({
-        data: {
-          activityId,
-          mentorId,
-          feedbackNotes: review,
-          status,
-        },
-      });
-    }
-  }
 }
-
-

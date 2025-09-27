@@ -1,7 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
-    binaryTargets = ["native", "linux-musl"] 
-
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl"]
 }
 
 datasource db {
@@ -10,103 +9,97 @@ datasource db {
 }
 
 model User {
-  id               String           @id @default(uuid())
-  email            String           @unique
-  passwordHash     String
-  firstName        String
-  lastName         String
-  emailConfirmed   Boolean          @default(false)
-  role             Role
-  isFirstTimeLogin Boolean          @default(true)
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-  activities       Activity[]
-  mentorFeedback   MentorFeedback[]
-  mentorReports    Report[]         @relation(name: "mentorReports")
-  mentorRoles      Mentorship[]     @relation(name: "mentorRole")
-  studentRoles     Mentorship[]     @relation(name: "studentRole")
-  mentorActivities MentorActivity[] @relation(name: "UserMentorActivities")
-
-  @@map("users")
-}
-
-model Activity {
-  id        String           @id @default(uuid())
-  studentId String
-  date      DateTime
-  timeSpent Int
-  notes     String?
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
-  student   User             @relation(fields: [studentId], references: [id])
-  feedback  MentorFeedback[]
-
-  @@map("activities")
-}
-
-model MentorFeedback {
-  id            String         @id @default(uuid())
-  activityId    String
-  mentorId      String
-  status        FeedbackStatus
-  feedbackNotes String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  activity      Activity       @relation(fields: [activityId], references: [id])
-  mentor        User           @relation(fields: [mentorId], references: [id])
-
-  @@map("mentorfeedback")
-}
-
-model Report {
-  id          String   @id @default(uuid())
-  mentorId    String
-  reportData  Json
-  status      ProcessStatus @default(pending)
-  generatedAt DateTime @default(now())
-  mentor      User     @relation(fields: [mentorId], references: [id], name: "mentorReports")
-
-  @@map("reports")
-}
-
-model Mentorship {
-  id        String @id @default(uuid())
-  mentorId  String
-  studentId String
-  mentor    User   @relation(fields: [mentorId], references: [id], name: "mentorRole")
-  student   User   @relation(fields: [studentId], references: [id], name: "studentRole")
-
-  @@map("mentorship")
-}
-
-model MentorActivity {
-  id           String   @id @default(cuid())
-  mentorId     String
-  date         DateTime
-  workingHours Int
-  activities   String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  mentor       User     @relation(fields: [mentorId], references: [id], name: "UserMentorActivities")
-
-  @@map("mentoractivities")
+  userID          String              @id @default(uuid())
+  firstName       String
+  lastName        String
+  email           String              @unique
+  password        String
+  role            Role
+  emailConfirmed  Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  mentor          Mentor?
+  student         Student?
+  activities      Activity[]
 }
 
 enum Role {
-  student
-  mentor
-  admin
+  STUDENT
+  MENTOR
 }
 
-enum FeedbackStatus {
+model Mentor {
+  userID   String     @id @map("UserID")
+  expertise String
+  user     User    @relation(fields: [userID], references: [userID])
+  students Student[]
+  projects Project[]
+  reports  Report[]
+  review   Review[]
+}
+
+model Student {
+  userID              String     @id @map("UserID")
+  university          String
+  internshipStartDate DateTime
+  duration           Int
+  mentorID           String?
+  projectID          Int?
+  user               User    @relation(fields: [userID], references: [userID])
+  mentor             Mentor? @relation(fields: [mentorID], references: [userID])
+  project            Project? @relation(fields: [projectID], references: [projectID])
+}
+
+model Project {
+  projectID         Int      @id @default(autoincrement())
+  projectTitle      String
+  projectDescription String
+  progress         Float
+  startedAt        DateTime
+  deadline         DateTime
+  teamName         String
+  isDeleted        Boolean @default(false)
+  mentorID         String?
+  mentor           Mentor? @relation(fields: [mentorID], references: [userID])
+  students         Student[]
+}
+
+model Activity {
+  activityID  Int      @id @default(autoincrement())
+  role        Role
+  timeSpent   Int
+  title       String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userID      String
+  user        User @relation(fields: [userID], references: [userID])
+  reviews     Review[]
+}
+
+
+model Review {
+  reviewID   Int      @id @default(autoincrement())
+  review     String
+  reviewedAt DateTime @default(now())
+  status     reviewStatus
+  activityID Int
+  mentorID   String
+  activity   Activity @relation(fields: [activityID], references: [activityID])
+  mentor     Mentor   @relation(fields: [mentorID], references: [userID])
+}
+
+enum reviewStatus {
   approved
   rejected
   pending
 }
 
-enum ProcessStatus {
-  pending
-  error
-  completed
-  wip
+model Report {
+  reportID    Int      @id @default(autoincrement())
+  reportDate  DateTime
+  generatedAt DateTime @default(now())
+  status      String
+  mentorID    String
+  mentor      Mentor @relation(fields: [mentorID], references: [userID])
 }
