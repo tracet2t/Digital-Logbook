@@ -13,13 +13,18 @@ services:
       - "5432:5432"
     networks:
       - mynetwork
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   pgadmin:
     container_name: pgadmin
     image: dpage/pgadmin4:latest
     restart: always
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@example.com  
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
       PGADMIN_DEFAULT_PASSWORD: admin
     ports:
       - "8080:80"
@@ -40,7 +45,7 @@ services:
   nextjs-app:
     container_name: nextjs-app
     build:
-      context: ./server 
+      context: ./server
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
@@ -50,14 +55,17 @@ services:
       NEXT_PUBLIC_POSTGRES_PASSWORD: postgres
       NEXT_PUBLIC_REDIS_HOST: redis
       NEXT_PUBLIC_REDIS_PORT: 6379
+      DATABASE_URL: "postgresql://postgres:postgres@pgdb:5432/postgres?schema=public"
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
     networks:
       - mynetwork
     dns:
-      - 8.8.8.8   # Google's public DNS
-      - 1.1.1.1   # Cloudflare's public DNS
+      - 8.8.8.8 # Google's public DNS
+      - 1.1.1.1 # Cloudflare's public DNS
 
 volumes:
   postgres:
