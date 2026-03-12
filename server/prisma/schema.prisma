@@ -1,7 +1,118 @@
+// generator client {
+//   provider = "prisma-client-js"
+//     binaryTargets = ["native", "linux-musl"] 
+
+// }
+
+// datasource db {
+//   provider = "postgresql"
+//   url      = env("DATABASE_URL")
+// }
+
+// model User {
+//   id               String           @id @default(uuid())
+//   email            String           @unique
+//   passwordHash     String
+//   firstName        String
+//   lastName         String
+//   emailConfirmed   Boolean          @default(false)
+//   role             Role
+//   isFirstTimeLogin Boolean          @default(true)
+//   createdAt        DateTime         @default(now())
+//   updatedAt        DateTime         @updatedAt
+//   activities       Activity[]
+//   mentorFeedback   MentorFeedback[]
+//   mentorReports    Report[]         @relation(name: "mentorReports")
+//   mentorRoles      Mentorship[]     @relation(name: "mentorRole")
+//   studentRoles     Mentorship[]     @relation(name: "studentRole")
+//   mentorActivities MentorActivity[] @relation(name: "UserMentorActivities")
+
+//   @@map("users")
+// }
+
+// model Activity {
+//   id        String           @id @default(uuid())
+//   studentId String
+//   date      DateTime
+//   timeSpent Int
+//   notes     String?
+//   createdAt DateTime         @default(now())
+//   updatedAt DateTime         @updatedAt
+//   student   User             @relation(fields: [studentId], references: [id])
+//   feedback  MentorFeedback[]
+
+//   @@map("activities")
+// }
+
+// model MentorFeedback {
+//   id            String         @id @default(uuid())
+//   activityId    String
+//   mentorId      String
+//   status        FeedbackStatus
+//   feedbackNotes String?
+//   createdAt     DateTime       @default(now())
+//   updatedAt     DateTime       @updatedAt
+//   activity      Activity       @relation(fields: [activityId], references: [id])
+//   mentor        User           @relation(fields: [mentorId], references: [id])
+
+//   @@map("mentorfeedback")
+// }
+
+// model Report {
+//   id          String   @id @default(uuid())
+//   mentorId    String
+//   reportData  Json
+//   status      ProcessStatus @default(pending)
+//   generatedAt DateTime @default(now())
+//   mentor      User     @relation(fields: [mentorId], references: [id], name: "mentorReports")
+
+//   @@map("reports")
+// }
+
+// model Mentorship {
+//   id        String @id @default(uuid())
+//   mentorId  String
+//   studentId String
+//   mentor    User   @relation(fields: [mentorId], references: [id], name: "mentorRole")
+//   student   User   @relation(fields: [studentId], references: [id], name: "studentRole")
+
+//   @@map("mentorship")
+// }
+
+// model MentorActivity {
+//   id           String   @id @default(cuid())
+//   mentorId     String
+//   date         DateTime
+//   workingHours Int
+//   activities   String
+//   createdAt    DateTime @default(now())
+//   updatedAt    DateTime @updatedAt
+//   mentor       User     @relation(fields: [mentorId], references: [id], name: "UserMentorActivities")
+
+//   @@map("mentoractivities")
+// }
+
+// enum Role {
+//   student
+//   mentor
+//   admin
+// }
+
+// enum FeedbackStatus {
+//   approved
+//   rejected
+//   pending
+// }
+
+// enum ProcessStatus {
+//   pending
+//   error
+//   completed
+//   wip
+// }
+
 generator client {
   provider = "prisma-client-js"
-    binaryTargets = ["native", "linux-musl"] 
-
 }
 
 datasource db {
@@ -12,33 +123,50 @@ datasource db {
 model User {
   id               String           @id @default(uuid())
   email            String           @unique
-  passwordHash     String
+  passwordHash     String?
   firstName        String
   lastName         String
   emailConfirmed   Boolean          @default(false)
   role             Role
+  isActive         Boolean          @default(true)
   isFirstTimeLogin Boolean          @default(true)
+  invitedBy        String?
+
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
+
   activities       Activity[]
   mentorFeedback   MentorFeedback[]
   mentorReports    Report[]         @relation(name: "mentorReports")
+
   mentorRoles      Mentorship[]     @relation(name: "mentorRole")
   studentRoles     Mentorship[]     @relation(name: "studentRole")
+
   mentorActivities MentorActivity[] @relation(name: "UserMentorActivities")
+
+  badges           UserBadge[]
+
+  invitationsSent  Invitation[]     @relation("InvitationSender")
+
+  projectsCreated  Project[]
+
+  projectAssignments ProjectAssignment[]
 
   @@map("users")
 }
 
 model Activity {
-  id        String           @id @default(uuid())
+  id        String   @id @default(uuid())
   studentId String
   date      DateTime
   timeSpent Int
   notes     String?
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
-  student   User             @relation(fields: [studentId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student   User     @relation(fields: [studentId], references: [id])
+
   feedback  MentorFeedback[]
 
   @@map("activities")
@@ -50,8 +178,10 @@ model MentorFeedback {
   mentorId      String
   status        FeedbackStatus
   feedbackNotes String?
+
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+
   activity      Activity       @relation(fields: [activityId], references: [id])
   mentor        User           @relation(fields: [mentorId], references: [id])
 
@@ -59,12 +189,13 @@ model MentorFeedback {
 }
 
 model Report {
-  id          String   @id @default(uuid())
+  id          String        @id @default(uuid())
   mentorId    String
   reportData  Json
   status      ProcessStatus @default(pending)
-  generatedAt DateTime @default(now())
-  mentor      User     @relation(fields: [mentorId], references: [id], name: "mentorReports")
+  generatedAt DateTime      @default(now())
+
+  mentor      User          @relation(fields: [mentorId], references: [id], name: "mentorReports")
 
   @@map("reports")
 }
@@ -73,6 +204,7 @@ model Mentorship {
   id        String @id @default(uuid())
   mentorId  String
   studentId String
+
   mentor    User   @relation(fields: [mentorId], references: [id], name: "mentorRole")
   student   User   @relation(fields: [studentId], references: [id], name: "studentRole")
 
@@ -85,17 +217,92 @@ model MentorActivity {
   date         DateTime
   workingHours Int
   activities   String
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
   mentor       User     @relation(fields: [mentorId], references: [id], name: "UserMentorActivities")
 
   @@map("mentoractivities")
 }
 
+model Invitation {
+  id         String   @id @default(uuid())
+  email      String
+  role       Role
+  token      String   @unique
+  invitedBy  String
+  expiresAt  DateTime
+  accepted   Boolean  @default(false)
+
+  createdAt  DateTime @default(now())
+
+  inviter    User     @relation("InvitationSender", fields: [invitedBy], references: [id])
+
+  @@map("invitations")
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  domain      ProjectDomain
+
+  createdBy   String
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  creator     User     @relation(fields: [createdBy], references: [id])
+
+  assignments ProjectAssignment[]
+
+  @@map("projects")
+}
+
+model ProjectAssignment {
+  id        String   @id @default(uuid())
+  projectId String
+  studentId String
+
+  assignedAt DateTime @default(now())
+
+  project    Project  @relation(fields: [projectId], references: [id])
+  student    User     @relation(fields: [studentId], references: [id])
+
+  @@map("project_assignments")
+}
+
+model Badge {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  iconUrl     String?
+
+  createdAt   DateTime @default(now())
+
+  users       UserBadge[]
+
+  @@map("badges")
+}
+
+model UserBadge {
+  id        String   @id @default(uuid())
+  userId    String
+  badgeId   String
+
+  awardedAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+  badge     Badge    @relation(fields: [badgeId], references: [id])
+
+  @@map("user_badges")
+}
+
 enum Role {
   student
   mentor
-  admin
+  super_admin
 }
 
 enum FeedbackStatus {
@@ -109,4 +316,12 @@ enum ProcessStatus {
   error
   completed
   wip
+}
+
+enum ProjectDomain {
+  software
+  film
+  training
+  research
+  other
 }
