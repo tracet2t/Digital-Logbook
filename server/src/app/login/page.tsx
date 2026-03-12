@@ -1,159 +1,272 @@
-'use client';
-import React, { useState } from 'react';
-import Image from 'next/image';
+"use client";
+import React, { useState } from "react";
+import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useRouter } from 'next/navigation'; 
+import { useRouter } from "next/navigation";
 import {
-    ToastProvider,
-    ToastViewport,
-    Toast,
-    ToastTitle,
-    ToastDescription,
-    ToastClose
+  ToastProvider,
+  ToastViewport,
+  Toast,
+  ToastTitle,
+  ToastDescription,
+  ToastClose,
 } from "@/components/ui/toast";
+import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 
-type ToastVariant = 'default' | 'destructive';
+type ToastVariant = "default" | "destructive";
 
 const LoginPage = () => {
-    const router = useRouter();
-    const [toastData, setToastData] = useState({
-        open: false,
-        title: '',
-        description: '',
-        variant: 'default' as ToastVariant, // Ensure correct type
-    });
+  const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [toastData, setToastData] = useState({
+    open: false,
+    title: "",
+    description: "",
+    variant: "default" as ToastVariant,
+  });
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        const formData = new FormData(e.currentTarget);
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    const formData = new FormData(e.currentTarget);
 
-        setToastData((prev) => ({
-            ...prev,
-            open: false,
-        }));
+    setToastData((prev) => ({
+      ...prev,
+      open: false,
+    }));
 
-        try {
-            const res = await fetch('/auth/login', {
-                method: 'POST',
-                body: formData,
-            });
+    try {
+      const res = await fetch("/auth/login", {
+        method: "POST",
+        body: formData,
+      });
 
-            const data = await res.json();
+      const data = await res.json();
 
-            if (res.ok) {
-                setToastData({
-                    open: true,
-                    title: 'Login Successful',
-                    description: 'Welcome back!',
-                    variant: 'default',
-                });
+      if (res.ok) {
+        setToastData({
+          open: true,
+          title: "Access Granted",
+          description: "Welcome back. Initializing your workspace...",
+          variant: "default",
+        });
 
-                if (data.redirectUrl) {
-                    setTimeout(() => {
-                        router.push(data.redirectUrl);
-                    }, 1000);
-                }
-            } else {
-                setToastData({
-                    open: true,
-                    title: 'Login Failed',
-                    description: data.error || 'Invalid email or password.',
-                    variant: 'destructive',
-                });
-            }
-        } catch (error) {
-            setToastData({
-                open: true,
-                title: 'Error',
-                description: 'Something went wrong, please try again later.',
-                variant: 'destructive',
-            });
+        if (data.redirectUrl) {
+          setTimeout(() => {
+            router.push(data.redirectUrl);
+          }, 800);
         }
-    };
+      } else {
+        setToastData({
+          open: true,
+          title: "Authentication Failed",
+          description:
+            data.error || "Please verify your credentials and try again.",
+          variant: "destructive",
+        });
+        setLoading(false);
+      }
+    } catch (error) {
+      setToastData({
+        open: true,
+        title: "Network Error",
+        description: "Unable to reach the authentication gateway.",
+        variant: "destructive",
+      });
+      setLoading(false);
+    }
+  };
 
-    return (
-        <ToastProvider>
-            <div className="min-h-screen flex flex-col md:flex-row">
-                <div className="relative w-full md:w-1/2 h-64 md:h-screen">
-                    <Image
-                        src="/login.png"
-                        alt="Login"
-                        layout="fill"
-                        objectFit="cover"
-                        className="rounded-none"
-                    />
-                    <div className="absolute top-20 md:top-40 right-6 md:right-8 text-white font-bold text-right">
-                        <p className="text-lg md:text-3xl lg:text-5xl leading-tight md:leading-snug">
-                            Enhance <br /> record-keeping <br />
-                            with the seamless <br />
-                            Modern <br /> Digital Logbook.
-                        </p>
-                    </div>
-                </div>
+  return (
+    <ToastProvider>
+      <div className="min-h-screen flex bg-white dark:bg-zinc-950 font-sans antialiased">
+        {/* Visual Brand Panel (Desktop) */}
+        <div className="hidden lg:flex relative w-7/12 flex-col justify-between p-16 bg-zinc-900 border-r border-zinc-800 overflow-hidden">
+          <Image
+            src="/login.png"
+            alt="Product Visual"
+            fill
+            className="object-cover opacity-40 mix-blend-soft-light"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-transparent to-zinc-950/80" />
 
-                <div className="w-full md:w-1/2 h-auto md:h-screen bg-white flex items-center justify-center p-6 md:p-8">
-                    <div className="w-full max-w-md">
-                        <div className="flex justify-center mb-4">
-                            <Image
-                                src="/log-file.png"
-                                width={40}
-                                height={40}
-                                alt="Logo"
-                            />
-                        </div>
-                        <h2 className="text-2xl md:text-3xl font-semibold text-center mb-6">
-                            T2T Digital Logbook
-                        </h2>
-                        <form className="flex flex-col" onSubmit={handleSubmit}>
-                            <div className="mb-4">
-                                <Label className="block text-sm font-medium text-gray-700">
-                                    Email
-                                </Label>
-                                <Input
-                                    name="email"
-                                    placeholder="Enter your email"
-                                    required
-                                    className="mt-1 block w-full"
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <Label className="block text-sm font-medium text-gray-700">
-                                    Password
-                                </Label>
-                                <Input
-                                    name="password"
-                                    placeholder="Enter your password"
-                                    type="password"
-                                    required
-                                    className="mt-1 block w-full"
-                                />
-                            </div>
-                            <div className="flex justify-center">
-                                <Button
-                                    type="submit"
-                                    className="w-full py-2 rounded-md bg-[#0000FF] text-white hover:bg-[#0000CC]"
-                                >
-                                    Login
-                                </Button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-4">
+              <div className="p-2.5 bg-blue-600 rounded-xl shadow-2xl shadow-blue-500/40">
+                <Image
+                  src="/log-file.png"
+                  width={32}
+                  height={32}
+                  alt="Logo"
+                  className="invert brightness-0"
+                />
+              </div>
+              <span className="text-2xl font-black tracking-tight text-white uppercase italic">
+                Logbook Pro
+              </span>
+            </div>
+          </div>
+
+          <div className="relative z-10 max-w-2xl">
+            <h1 className="text-6xl xl:text-8xl font-black text-white leading-[1] tracking-tighter mb-8 bg-clip-text">
+              Precision <br />
+              <span className="text-blue-500 underline decoration-blue-500/30 underline-offset-8">
+                Record Keeping
+              </span>{" "}
+              <br />
+              Redefined.
+            </h1>
+            <p className="text-xl text-zinc-400 font-medium max-w-lg leading-relaxed">
+              Experience a world-class digital logging ecosystem designed for
+              speed, security, and absolute clarity.
+            </p>
+          </div>
+
+          <div className="relative z-10 flex items-center gap-6 text-xs font-bold text-zinc-600 tracking-widest uppercase">
+            <span>© 2024 T2T ANALYTICS</span>
+            <span className="w-8 h-[1px] bg-zinc-800" />
+            <span>ENCRYPTED ACCESS</span>
+          </div>
+        </div>
+
+        {/* Auth Interface */}
+        <div className="flex-1 flex flex-col items-center justify-center p-8 md:p-16">
+          <div className="w-full max-w-[420px] space-y-12">
+            <div className="lg:hidden flex flex-col items-center space-y-4 mb-4">
+              <div className="p-3 bg-zinc-100 dark:bg-zinc-900 rounded-2xl">
+                <Image src="/log-file.png" width={48} height={48} alt="Logo" />
+              </div>
+              <h1 className="text-2xl font-black tracking-tighter italic">
+                LOGBOOK PRO
+              </h1>
             </div>
 
-            {toastData.open && (
-                <Toast variant={toastData.variant}>
-                    <ToastTitle>{toastData.title}</ToastTitle>
-                    <ToastDescription>{toastData.description}</ToastDescription>
-                    <ToastClose />
-                </Toast>
-            )}
+            <div className="space-y-3 text-center lg:text-left">
+              <h2 className="text-5xl font-black text-zinc-900 dark:text-white tracking-tighter hover:text-blue-600 transition-colors cursor-default">
+                SIGN IN
+              </h2>
+              <p className="text-zinc-500 dark:text-zinc-400 font-medium text-lg leading-relaxed">
+                Connect your account to the central logbook network.
+              </p>
+            </div>
 
-            <ToastViewport />
-        </ToastProvider>
-    );
+            <form onSubmit={handleSubmit} className="space-y-8">
+              <div className="space-y-5">
+                <div className="space-y-2.5">
+                  <Label
+                    htmlFor="email"
+                    className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1"
+                  >
+                    Organizational Email
+                  </Label>
+                  <div className="relative group">
+                    <Mail className="absolute left-4 top-4 h-4 w-4 text-zinc-400 group-focus-within:text-blue-500 transition-colors" />
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      placeholder="user@organization.t2t"
+                      required
+                      disabled={loading}
+                      className="h-14 pl-12 bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 focus:ring-4 focus:ring-blue-500/10 transition-all text-base font-semibold rounded-xl"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between ml-1">
+                    <Label
+                      htmlFor="password"
+                      className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400"
+                    >
+                      Security Key
+                    </Label>
+                    <button
+                      type="button"
+                      className="text-xs font-black text-blue-600 hover:text-blue-500 tracking-tighter transition-colors"
+                    >
+                      FORGOT KEY?
+                    </button>
+                  </div>
+                  <div className="relative group">
+                    <Lock className="absolute left-4 top-4 h-4 w-4 text-zinc-400 group-focus-within:text-blue-500 transition-colors" />
+                    <Input
+                      id="password"
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••••••"
+                      required
+                      disabled={loading}
+                      className="h-14 pl-12 pr-12 bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 focus:ring-4 focus:ring-blue-500/10 transition-all text-base font-semibold rounded-xl"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-2 top-2 h-10 w-10 hover:bg-transparent text-zinc-400 hover:text-zinc-900 transition-colors"
+                      onClick={() => setShowPassword(!showPassword)}
+                      disabled={loading}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-5 w-5" />
+                      ) : (
+                        <Eye className="h-5 w-5" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full h-14 bg-zinc-900 dark:bg-white text-zinc-50 dark:text-zinc-950 hover:bg-zinc-800 dark:hover:bg-zinc-200 font-black text-lg shadow-2xl transition-all active:scale-[0.98] rounded-xl tracking-widest"
+                disabled={loading}
+              >
+                {loading ? (
+                  <div className="flex items-center gap-3">
+                    <Loader2 className="h-5 w-5 animate-spin font-black" />
+                    <span>AUTHORIZING...</span>
+                  </div>
+                ) : (
+                  "ESTABLISH CONNECTION"
+                )}
+              </Button>
+            </form>
+
+            <div className="pt-8 text-center text-sm font-medium text-zinc-500">
+              New system user?{" "}
+              <button className="text-zinc-900 dark:text-white font-black hover:underline underline-offset-4 tracking-tight">
+                Contact Network Admin
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {toastData.open && (
+        <Toast
+          variant={toastData.variant}
+          className="border-none shadow-2xl bg-white dark:bg-zinc-900 rounded-xl"
+        >
+          <div className="grid gap-1">
+            <ToastTitle className="text-base font-black tracking-tight">
+              {toastData.title}
+            </ToastTitle>
+            <ToastDescription className="text-sm opacity-90 font-bold">
+              {toastData.description}
+            </ToastDescription>
+          </div>
+          <ToastClose />
+        </Toast>
+      )}
+
+      <ToastViewport />
+    </ToastProvider>
+  );
 };
 
 export default LoginPage;
