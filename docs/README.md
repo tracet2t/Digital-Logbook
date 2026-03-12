@@ -25,7 +25,7 @@ Prior to setting up the enviornment, if you are not familiar with Node.js and NP
 3. **Switch to the required Node.js version**:
    Once `nvm` is installed, navigate to the project directory and run:
    ```bash
-   nvm use
+   nvm use 
    ```
 4. **Install the environment incase if it's not already available (optional)**
    If step 2 prompts you to install the environment then run:
