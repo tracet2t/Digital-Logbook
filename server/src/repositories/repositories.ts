@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { User, Activity, Mentorship, MentorActivity, Report, MentorFeedback } from "@prisma/client";
+import { User, Activity, Mentorship, MentorActivity, Report, MentorFeedback, Invitation, Role } from "@prisma/client";
 import BaseRepository from "./baseRepository";
 
 /*
@@ -300,6 +300,25 @@ export class MentorFeedbackRepository extends BaseRepository<MentorFeedback> {
         },
       });
     }
+  }
+}
+export class InvitationRepository extends BaseRepository<Invitation> {
+  constructor() {
+    super(prisma.invitation);
+  }
+  async createInvite(data: {
+    id?: string;
+    email: string;
+    role: Role;
+    token: string;
+    invitedBy: string;
+    expiresAt: Date;
+    accepted?: boolean; // default false
+    createdAt?: Date; // default now()
+  }) {
+    const token = "token_" + Math.random().toString(36).substr(2, 9); // random token
+    const expiresAt = new Date(Date.now() + 1 * 3 * 60 * 60 * 1000); //   (set it to 3 hours for testing)
+    return this.modelClient.create({ data });
   }
 }
 
