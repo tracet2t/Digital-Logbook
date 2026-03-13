@@ -1,6 +1,16 @@
 import prisma from "@/lib/prisma";
-import { User, Activity, Mentorship, MentorActivity, Report, MentorFeedback, Invitation, Role } from "@prisma/client";
+import {
+  User,
+  Activity,
+  Mentorship,
+  MentorActivity,
+  Report,
+  MentorFeedback,
+  Invitation,
+  Role,
+} from "@prisma/client";
 import BaseRepository from "./baseRepository";
+import crypto from "crypto";
 
 /*
 
@@ -9,7 +19,6 @@ import BaseRepository from "./baseRepository";
 */
 
 export class UserRepository extends BaseRepository<User> {
-
   constructor() {
     super(prisma.user);
   }
@@ -44,7 +53,6 @@ export class UserRepository extends BaseRepository<User> {
       },
     });
   }
-
 }
 
 /*
@@ -54,11 +62,9 @@ export class UserRepository extends BaseRepository<User> {
 */
 
 export class ActivityRepository extends BaseRepository<Activity> {
-
   constructor() {
     super(prisma.activity);
   }
-
 
   async findByStudentId(studentId: string, date?: Date) {
     return this.modelClient.findMany({
@@ -77,7 +83,12 @@ export class ActivityRepository extends BaseRepository<Activity> {
     });
   }
 
-  async createActivity(studentId: string, date: Date, timeSpent: number, notes: string) {
+  async createActivity(
+    studentId: string,
+    date: Date,
+    timeSpent: number,
+    notes: string,
+  ) {
     return this.modelClient.create({
       data: {
         studentId,
@@ -88,7 +99,11 @@ export class ActivityRepository extends BaseRepository<Activity> {
     });
   }
 
-  async updateActivity(id: string, studentId: string, data: { timeSpent?: number; notes?: string }) {
+  async updateActivity(
+    id: string,
+    studentId: string,
+    data: { timeSpent?: number; notes?: string },
+  ) {
     return this.modelClient.update({
       where: {
         id,
@@ -127,7 +142,6 @@ export class ActivityRepository extends BaseRepository<Activity> {
       },
     });
   }
-
 }
 
 /*
@@ -137,7 +151,6 @@ export class ActivityRepository extends BaseRepository<Activity> {
 */
 
 export class MentorshipRepository extends BaseRepository<Mentorship> {
-
   constructor() {
     super(prisma.mentorship);
   }
@@ -179,7 +192,6 @@ export class MentorshipRepository extends BaseRepository<Mentorship> {
       },
     });
   }
-
 }
 
 /*
@@ -188,44 +200,46 @@ export class MentorshipRepository extends BaseRepository<Mentorship> {
 
 */
 
-
 export class MentorRepository extends BaseRepository<MentorActivity> {
-
   constructor() {
     super(prisma.mentorActivity);
   }
 
   async getMentorActivities(mentorId: string, date?: Date) {
-      return this.modelClient.findMany({
-          where: {
-              mentorId,
-              ...(date && { date }),
-          },
-      });
+    return this.modelClient.findMany({
+      where: {
+        mentorId,
+        ...(date && { date }),
+      },
+    });
   }
 
   async createMentorActivity(data: {
-      mentorId: string;
-      date: Date;
-      workingHours: number;
-      activities: string;
+    mentorId: string;
+    date: Date;
+    workingHours: number;
+    activities: string;
   }) {
-      return this.modelClient.create({
-          data,
-      });
+    return this.modelClient.create({
+      data,
+    });
   }
 
-  async updateMentorActivity(id: string, mentorId: string, data: {
+  async updateMentorActivity(
+    id: string,
+    mentorId: string,
+    data: {
       workingHours?: number;
       activities?: string;
-  }) {
-      return this.modelClient.update({
-          where: {
-              id,
-              mentorId,
-          },
-          data,
-      });
+    },
+  ) {
+    return this.modelClient.update({
+      where: {
+        id,
+        mentorId,
+      },
+      data,
+    });
   }
 }
 
@@ -235,15 +249,11 @@ export class MentorRepository extends BaseRepository<MentorActivity> {
 
 */
 
-
 export class ReportRepository extends BaseRepository<Report> {
-
   constructor() {
     super(prisma.report);
   }
-  
 }
-
 
 /*
 
@@ -251,16 +261,14 @@ export class ReportRepository extends BaseRepository<Report> {
 
 */
 
-
 export class MentorFeedbackRepository extends BaseRepository<MentorFeedback> {
-
   constructor() {
     super(prisma.mentorFeedback);
   }
 
   async getFeedbackByActivityId(activityId: string, date?: Date) {
     return this.modelClient.findFirst({
-      where: { 
+      where: {
         activityId: String(activityId),
         activity: {
           date: date ? new Date(date) : undefined,
@@ -269,7 +277,12 @@ export class MentorFeedbackRepository extends BaseRepository<MentorFeedback> {
     });
   }
 
-  async upsertFeedback(activityId: string, mentorId: string, review: string, status: string) {
+  async upsertFeedback(
+    activityId: string,
+    mentorId: string,
+    review: string,
+    status: string,
+  ) {
     // Check if the feedback already exists
     const existingFeedback = await this.modelClient.findFirst({
       where: {
@@ -316,10 +329,17 @@ export class InvitationRepository extends BaseRepository<Invitation> {
     accepted?: boolean; // default false
     createdAt?: Date; // default now()
   }) {
-    const token = "token_" + Math.random().toString(36).substr(2, 9); // random token
-    const expiresAt = new Date(Date.now() + 1 * 3 * 60 * 60 * 1000); //   (set it to 3 hours for testing)
-    return this.modelClient.create({ data });
+    //const token = "token_" + Math.random().toString(36).substr(2, 9); // random token
+    //const expiresAt = new Date(Date.now() + 1 * 3 * 60 * 60 * 1000); //   (set it to 3 hours for testing)
+
+    const secureToke = crypto.randomBytes(64).toString("hex");
+    // set the expiration date to 24 hours from now
+    const expirationDate = new Date(Date.now()).setHours(24);
+
+    return this.modelClient.create({
+      ...data,
+      token: secureToke,
+      expiresAt: expirationDate,
+    });
   }
 }
-
-

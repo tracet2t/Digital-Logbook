@@ -11,7 +11,8 @@
     "seed": "node prisma/seed.mjs",
     "test": "dotenv -e .env.test -- jest -i",
     "migrate:maindb": "npx prisma migrate dev",
-    "migrate:testdb": "dotenv -e .env.test -- npx prisma migrate dev"
+    "migrate:testdb": "dotenv -e .env.test -- npx prisma migrate dev",
+    "db:studio": "npx prisma studio"
   },
   "engines": {
     "node": "22.7.0",
