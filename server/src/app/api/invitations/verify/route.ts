@@ -9,7 +9,10 @@ export const GET = async (req: NextRequest) => {
     const token = searchParams.get("token");
 
     if (!token) {
-      return NextResponse.json({ message: "Token is required" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Token is required" },
+        { status: 400 },
+      );
     }
 
     const invitation = await invitationRepository.findByToken(token);
@@ -19,20 +22,30 @@ export const GET = async (req: NextRequest) => {
     }
 
     if (invitation.accepted) {
-      return NextResponse.json({ message: "Invitation already used" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Invitation already used" },
+        { status: 400 },
+      );
     }
 
     if (new Date() > invitation.expiresAt) {
-      return NextResponse.json({ message: "Invitation expired" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Invitation expired" },
+        { status: 400 },
+      );
     }
 
     return NextResponse.json({
       email: invitation.email,
       role: invitation.role,
-      invitedBy: invitation.inviter.firstName + " " + invitation.inviter.lastName,
+      invitedBy:
+        invitation.inviter.firstName + " " + invitation.inviter.lastName,
     });
   } catch (error) {
     console.error("Error verifying invitation:", error);
-    return NextResponse.json({ message: "Error verifying invitation" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Error verifying invitation" },
+      { status: 500 },
+    );
   }
 };

@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcrypt";
-import { InvitationRepository, UserRepository, MentorshipRepository } from "@/repositories/repositories";
+import {
+  InvitationRepository,
+  UserRepository,
+  MentorshipRepository,
+} from "@/repositories/repositories";
 
 const invitationRepository = new InvitationRepository();
 const userRepository = new UserRepository();
@@ -11,14 +15,24 @@ export const POST = async (req: NextRequest) => {
     const { token, firstName, lastName, password } = await req.json();
 
     if (!token || !firstName || !lastName || !password) {
-      return NextResponse.json({ message: "All fields are required" }, { status: 400 });
+      return NextResponse.json(
+        { message: "All fields are required" },
+        { status: 400 },
+      );
     }
 
     // 1. Verify invitation again
     const invitation = await invitationRepository.findByToken(token);
 
-    if (!invitation || invitation.accepted || new Date() > invitation.expiresAt) {
-      return NextResponse.json({ message: "Invalid, used, or expired invitation" }, { status: 400 });
+    if (
+      !invitation ||
+      invitation.accepted ||
+      new Date() > invitation.expiresAt
+    ) {
+      return NextResponse.json(
+        { message: "Invalid, used, or expired invitation" },
+        { status: 400 },
+      );
     }
 
     // 2. Hash password
@@ -47,9 +61,15 @@ export const POST = async (req: NextRequest) => {
     // 5. Mark invitation as accepted
     await invitationRepository.acceptInvitation(token);
 
-    return NextResponse.json({ message: "User registered successfully", userId: user.id });
+    return NextResponse.json({
+      message: "User registered successfully",
+      userId: user.id,
+    });
   } catch (error) {
     console.error("Error registering via invitation:", error);
-    return NextResponse.json({ message: "Error during registration" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Error during registration" },
+      { status: 500 },
+    );
   }
 };
