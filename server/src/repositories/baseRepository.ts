@@ -15,9 +15,9 @@ export default abstract class BaseRepository<T> {
     });
   }
 
-  create(entity: Omit<T, 'id'>): Promise<T> {
-    return this.modelClient.create({
-      data: entity
+  create(entity: Omit<T, "id" | "createdAt" | "updatedAt" | "isActive"> & Partial<T>): Promise<T> {
+    return (this.modelClient as any).create({
+      data: entity,
     });
   }
 

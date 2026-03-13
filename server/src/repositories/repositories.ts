@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import crypto from "crypto";
 import {
   User,
   Activity,
@@ -10,7 +11,6 @@ import {
   Role,
 } from "@prisma/client";
 import BaseRepository from "./baseRepository";
-import crypto from "crypto";
 
 /*
 
@@ -319,27 +319,30 @@ export class InvitationRepository extends BaseRepository<Invitation> {
   constructor() {
     super(prisma.invitation);
   }
-  async createInvite(data: {
-    id?: string;
-    email: string;
-    role: Role;
-    token: string;
-    invitedBy: string;
-    expiresAt: Date;
-    accepted?: boolean; // default false
-    createdAt?: Date; // default now()
-  }) {
-    //const token = "token_" + Math.random().toString(36).substr(2, 9); // random token
-    //const expiresAt = new Date(Date.now() + 1 * 3 * 60 * 60 * 1000); //   (set it to 3 hours for testing)
-
-    const secureToke = crypto.randomBytes(64).toString("hex");
-    // set the expiration date to 24 hours from now
-    const expirationDate = new Date(Date.now()).setHours(24);
+  async createInvite(data: { email: string; role: Role; invitedBy: string }) {
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours expiration
 
     return this.modelClient.create({
-      ...data,
-      token: secureToke,
-      expiresAt: expirationDate,
+      data: {
+        ...data,
+        token,
+        expiresAt,
+      },
+    });
+  }
+
+  async findByToken(token: string) {
+    return this.modelClient.findUnique({
+      where: { token },
+      include: { inviter: true },
+    });
+  }
+
+  async acceptInvitation(token: string) {
+    return this.modelClient.update({
+      where: { token },
+      data: { accepted: true },
     });
   }
 }

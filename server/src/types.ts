@@ -1,4 +1,4 @@
-type Role = 'student' | 'mentor' | 'admin';
+type Role = 'student' | 'mentor' | 'super_admin' | 'admin';
 
 type UserState = {
     id: string;
