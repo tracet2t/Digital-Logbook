@@ -7,14 +7,14 @@ async function main() {
   // Clear existing data in reverse order of dependencies
   await prisma.userBadge.deleteMany();
   await prisma.badge.deleteMany();
-  await prisma.projectAssignment.deleteMany();
+  await prisma.projectAllocation.deleteMany();
+  await prisma.projectMentor.deleteMany();
   await prisma.project.deleteMany();
   await prisma.invitation.deleteMany();
   await prisma.mentorActivity.deleteMany();
   await prisma.report.deleteMany();
   await prisma.mentorFeedback.deleteMany();
   await prisma.activity.deleteMany();
-  await prisma.mentorship.deleteMany();
   await prisma.user.deleteMany();
 
   const saltRounds = 10;
@@ -29,7 +29,7 @@ async function main() {
         lastName: "User",
         email: "admin@gmail.com",
         passwordHash: hashedPassword,
-        role: "super_admin",
+        role: "superAdmin",
         emailConfirmed: true,
         isFirstTimeLogin: false,
       },
@@ -97,27 +97,7 @@ async function main() {
       },
     });
 
-    // Create Mentorships
-    const mentorship1 = await prisma.mentorship.create({
-      data: {
-        mentorId: mentor1.id,
-        studentId: student1.id,
-      },
-    });
-
-    const mentorship2 = await prisma.mentorship.create({
-      data: {
-        mentorId: mentor1.id,
-        studentId: student2.id,
-      },
-    });
-
-    const mentorship3 = await prisma.mentorship.create({
-      data: {
-        mentorId: mentor2.id,
-        studentId: student3.id,
-      },
-    });
+    // Assign mentors to projects
 
     // Create Activities
     const activity1 = await prisma.activity.create({
@@ -237,22 +217,30 @@ async function main() {
       },
     });
 
-    // Create ProjectAssignments
-    const assignment1 = await prisma.projectAssignment.create({
+    // Assign mentors to projects
+    await prisma.projectMentor.create({
+      data: { projectId: project1.id, mentorId: mentor1.id },
+    });
+    await prisma.projectMentor.create({
+      data: { projectId: project2.id, mentorId: mentor2.id },
+    });
+
+    // Create ProjectAllocations
+    const assignment1 = await prisma.projectAllocation.create({
       data: {
         projectId: project1.id,
         studentId: student1.id,
       },
     });
 
-    const assignment2 = await prisma.projectAssignment.create({
+    const assignment2 = await prisma.projectAllocation.create({
       data: {
         projectId: project1.id,
         studentId: student2.id,
       },
     });
 
-    const assignment3 = await prisma.projectAssignment.create({
+    const assignment3 = await prisma.projectAllocation.create({
       data: {
         projectId: project2.id,
         studentId: student3.id,

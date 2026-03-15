@@ -1,48 +1,55 @@
 // src/lib/bullmq.js
 
-import { Queue, Worker } from 'bullmq';
-import Redis from 'ioredis';
-import prisma from './prisma';
+import { Queue, Worker } from "bullmq";
+import Redis from "ioredis";
+import prisma from "./prisma";
 
 const redis = new Redis({
-  host: 'redis',
+  host: "redis",
   port: 6379,
   maxRetriesPerRequest: null, // Explicitly set to null
 });
 
 // Define the queue
-export const reportQueue = new Queue('reportQueue', { connection: redis,     defaultJobOptions: {
-  attempts: 2,
-  backoff: {
-    type: 'exponential',
-    delay: 5000,
+export const reportQueue = new Queue("reportQueue", {
+  connection: redis,
+  defaultJobOptions: {
+    attempts: 2,
+    backoff: {
+      type: "exponential",
+      delay: 5000,
+    },
   },
-}, });
+});
 
 // Define the worker to process jobs in the queue
 export const reportWorker = new Worker(
-  'reportQueue',
+  "reportQueue",
   async (job) => {
     // Generate report data
-    console.log(job.data.mentorId)
-    const reportData = await prisma.mentorship.findMany({
-      where: { mentorId: job.data.mentorId },
+    console.log(job.data.mentorId);
+    const reportData = await prisma.project.findMany({
+      where: { mentors: { some: { mentorId: job.data.mentorId } } },
       include: {
-        student: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            activities: {
+        assignments: {
+          include: {
+            student: {
               select: {
                 id: true,
-                date: true,
-                timeSpent: true,
-                notes: true,
-                feedback: {
+                firstName: true,
+                lastName: true,
+                activities: {
                   select: {
-                    status: true,
-                    feedbackNotes: true,
+                    id: true,
+                    date: true,
+                    timeSpent: true,
+                    notes: true,
+                    feedback: {
+                      select: {
+                        status: true,
+                        feedbackNotes: true,
+                      },
+                    },
                   },
                 },
               },
@@ -51,7 +58,7 @@ export const reportWorker = new Worker(
         },
       },
     });
-    console.log(reportData)
+    console.log(reportData);
 
     // Save generated report data
     await prisma.report.update({
@@ -59,11 +66,11 @@ export const reportWorker = new Worker(
       data: {
         reportData,
         generatedAt: new Date(),
-        status: 'completed'
+        status: "completed",
       },
     });
 
     console.log(`Report ${job.data.reportId} generated successfully.`);
   },
-  { connection: redis }
+  { connection: redis },
 );

@@ -1,116 +1,3 @@
-// generator client {
-//   provider = "prisma-client-js"
-//     binaryTargets = ["native", "linux-musl"] 
-
-// }
-
-// datasource db {
-//   provider = "postgresql"
-//   url      = env("DATABASE_URL")
-// }
-
-// model User {
-//   id               String           @id @default(uuid())
-//   email            String           @unique
-//   passwordHash     String
-//   firstName        String
-//   lastName         String
-//   emailConfirmed   Boolean          @default(false)
-//   role             Role
-//   isFirstTimeLogin Boolean          @default(true)
-//   createdAt        DateTime         @default(now())
-//   updatedAt        DateTime         @updatedAt
-//   activities       Activity[]
-//   mentorFeedback   MentorFeedback[]
-//   mentorReports    Report[]         @relation(name: "mentorReports")
-//   mentorRoles      Mentorship[]     @relation(name: "mentorRole")
-//   studentRoles     Mentorship[]     @relation(name: "studentRole")
-//   mentorActivities MentorActivity[] @relation(name: "UserMentorActivities")
-
-//   @@map("users")
-// }
-
-// model Activity {
-//   id        String           @id @default(uuid())
-//   studentId String
-//   date      DateTime
-//   timeSpent Int
-//   notes     String?
-//   createdAt DateTime         @default(now())
-//   updatedAt DateTime         @updatedAt
-//   student   User             @relation(fields: [studentId], references: [id])
-//   feedback  MentorFeedback[]
-
-//   @@map("activities")
-// }
-
-// model MentorFeedback {
-//   id            String         @id @default(uuid())
-//   activityId    String
-//   mentorId      String
-//   status        FeedbackStatus
-//   feedbackNotes String?
-//   createdAt     DateTime       @default(now())
-//   updatedAt     DateTime       @updatedAt
-//   activity      Activity       @relation(fields: [activityId], references: [id])
-//   mentor        User           @relation(fields: [mentorId], references: [id])
-
-//   @@map("mentorfeedback")
-// }
-
-// model Report {
-//   id          String   @id @default(uuid())
-//   mentorId    String
-//   reportData  Json
-//   status      ProcessStatus @default(pending)
-//   generatedAt DateTime @default(now())
-//   mentor      User     @relation(fields: [mentorId], references: [id], name: "mentorReports")
-
-//   @@map("reports")
-// }
-
-// model Mentorship {
-//   id        String @id @default(uuid())
-//   mentorId  String
-//   studentId String
-//   mentor    User   @relation(fields: [mentorId], references: [id], name: "mentorRole")
-//   student   User   @relation(fields: [studentId], references: [id], name: "studentRole")
-
-//   @@map("mentorship")
-// }
-
-// model MentorActivity {
-//   id           String   @id @default(cuid())
-//   mentorId     String
-//   date         DateTime
-//   workingHours Int
-//   activities   String
-//   createdAt    DateTime @default(now())
-//   updatedAt    DateTime @updatedAt
-//   mentor       User     @relation(fields: [mentorId], references: [id], name: "UserMentorActivities")
-
-//   @@map("mentoractivities")
-// }
-
-// enum Role {
-//   student
-//   mentor
-//   admin
-// }
-
-// enum FeedbackStatus {
-//   approved
-//   rejected
-//   pending
-// }
-
-// enum ProcessStatus {
-//   pending
-//   error
-//   completed
-//   wip
-// }
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -139,18 +26,15 @@ model User {
   mentorFeedback   MentorFeedback[]
   mentorReports    Report[]         @relation(name: "mentorReports")
 
-  mentorRoles      Mentorship[]     @relation(name: "mentorRole")
-  studentRoles     Mentorship[]     @relation(name: "studentRole")
-
   mentorActivities MentorActivity[] @relation(name: "UserMentorActivities")
 
   badges           UserBadge[]
 
   invitationsSent  Invitation[]     @relation("InvitationSender")
 
-  projectsCreated  Project[]
+  projectAllocations ProjectAllocation[] @relation(name: "StudentProjects")
 
-  projectAssignments ProjectAssignment[]
+  mentorAllocations ProjectMentor[]  @relation(name: "MentorProjects")
 
   @@map("users")
 }
@@ -200,17 +84,6 @@ model Report {
   @@map("reports")
 }
 
-model Mentorship {
-  id        String @id @default(uuid())
-  mentorId  String
-  studentId String
-
-  mentor    User   @relation(fields: [mentorId], references: [id], name: "mentorRole")
-  student   User   @relation(fields: [studentId], references: [id], name: "studentRole")
-
-  @@map("mentorship")
-}
-
 model MentorActivity {
   id           String   @id @default(cuid())
   mentorId     String
@@ -223,7 +96,7 @@ model MentorActivity {
 
   mentor       User     @relation(fields: [mentorId], references: [id], name: "UserMentorActivities")
 
-  @@map("mentoractivities")
+  @@map("mentorActivities")
 }
 
 model Invitation {
@@ -231,19 +104,19 @@ model Invitation {
   email      String
   role       Role
   token      String   @unique
-  invitedBy  String
+  invitedBy  String?
   expiresAt  DateTime
   accepted   Boolean  @default(false)
 
   createdAt  DateTime @default(now())
 
-  inviter    User     @relation("InvitationSender", fields: [invitedBy], references: [id])
+  inviter    User?    @relation("InvitationSender", fields: [invitedBy], references: [id], onDelete: SetNull)
 
   @@map("invitations")
 }
 
 model Project {
-  id          String   @id @default(uuid())
+  id          String        @id @default(uuid())
   name        String
   description String?
   domain      ProjectDomain
@@ -253,14 +126,13 @@ model Project {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  creator     User     @relation(fields: [createdBy], references: [id])
-
-  assignments ProjectAssignment[]
+  mentors     ProjectMentor[]
+  assignments ProjectAllocation[]
 
   @@map("projects")
 }
 
-model ProjectAssignment {
+model ProjectAllocation {
   id        String   @id @default(uuid())
   projectId String
   studentId String
@@ -268,9 +140,24 @@ model ProjectAssignment {
   assignedAt DateTime @default(now())
 
   project    Project  @relation(fields: [projectId], references: [id])
-  student    User     @relation(fields: [studentId], references: [id])
+  student    User     @relation(fields: [studentId], references: [id], name: "StudentProjects")
 
-  @@map("project_assignments")
+  @@unique([projectId, studentId])
+  @@map("ProjectAllocations")
+}
+
+model ProjectMentor {
+  id         String   @id @default(uuid())
+  projectId  String
+  mentorId   String
+
+  assignedAt DateTime @default(now())
+
+  project    Project  @relation(fields: [projectId], references: [id])
+  mentor     User     @relation(fields: [mentorId], references: [id], name: "MentorProjects")
+
+  @@unique([projectId, mentorId])
+  @@map("projectMentors")
 }
 
 model Badge {
@@ -296,13 +183,13 @@ model UserBadge {
   user      User     @relation(fields: [userId], references: [id])
   badge     Badge    @relation(fields: [badgeId], references: [id])
 
-  @@map("user_badges")
+  @@map("userBadges")
 }
 
 enum Role {
   student
   mentor
-  super_admin
+  superAdmin
 }
 
 enum FeedbackStatus {
