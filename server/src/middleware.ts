@@ -6,6 +6,6 @@ export default chain([withAuthMiddleware, withRoleBasedRoutingMiddleware])
 
 export const config = {                                               
     matcher: [
-      '/((?!login|auth/login|_next/static|_next/image|favicon.ico).*)',
+      '/((?!login|auth/login|auth/register|api/invitations|_next/static|_next/image|favicon.ico).*)',
     ],
 }
