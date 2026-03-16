@@ -67,7 +67,7 @@ const ResetPasswordPage = () => {
         }
 
         try {
-            const response = await fetch('/auth/reset-password', {
+            const response = await fetch('/api/reset-password', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

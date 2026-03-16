@@ -1,7 +1,7 @@
-// src/auth/reset-password.ts
+// src/api/auth/reset-password/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcrypt";
-import { UserRepository } from "@/repositories/repositories"; // Use your UserRepository
+import { UserRepository } from "@/repositories/repositories";
 import getSession from "@/server_actions/getSession";
 
 // Helper function to validate password requirements
@@ -59,6 +59,10 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    if (!user.passwordHash) {
+      return NextResponse.json({ error: "User has no password set" }, { status: 401 });
+    }
+
     const isPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
     if (!isPasswordValid) {
       return NextResponse.json(
@@ -71,7 +75,7 @@ export async function PUT(req: NextRequest) {
 
     await userRepository.update(user.id, {
       passwordHash: hashedPassword,
-      emailConfirmed: true, // Assuming this is a feature where you confirm after reset
+      emailConfirmed: true,
     });
 
     return NextResponse.json({ message: "Password updated successfully" });

@@ -181,7 +181,7 @@ const MentorDashboard = () => {
               </div>
 
               {/* Logout Button */}
-              <form action="/auth/logout" method="post" className="mt-4">
+              <form action="/api/logout" method="post" className="mt-4">
                 <Button variant="blue" className="w-full border-black">Logout</Button>
               </form>
             </div>
