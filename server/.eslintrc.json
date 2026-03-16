@@ -1,3 +1,14 @@
 {
-  "extends": ["next/babel","next/core-web-vitals"]
+  "extends": ["next/babel", "next/core-web-vitals"],
+  "rules": {
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ],
+    "no-unused-vars": "off"
+  }
 }

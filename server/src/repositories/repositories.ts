@@ -8,10 +8,9 @@ import {
   Invitation,
   Role,
   Project,
-  ProjectAllocation,
 } from "@prisma/client";
 import BaseRepository from "./baseRepository";
-import crypto from "crypto"
+import crypto from "crypto";
 
 /*
 
