@@ -1,7 +1,7 @@
-import fs from 'fs';
-import path from 'path';
-import { parse } from 'json2csv';
-import prisma from '@/lib/prisma';
+import fs from "fs";
+import path from "path";
+import { parse } from "json2csv";
+import prisma from "@/lib/prisma";
 
 interface CSVData {
   studentId: string;
@@ -12,50 +12,66 @@ interface CSVData {
 }
 
 export const generateCSVReport = async (mentorId: string): Promise<string> => {
-    // Fetch students linked to the mentor
-    const mentorships = await prisma.mentorship.findMany({
-      where: { mentorId },
-      include: {
-        student: {
-          include: {
-            activities: true, // Include activities
+  // Fetch students linked to the mentor via project assignments
+  const projects = await prisma.project.findMany({
+    where: { mentors: { some: { mentorId } } },
+    include: {
+      assignments: {
+        include: {
+          student: {
+            include: {
+              activities: true,
+            },
           },
         },
       },
-    });
-    
-  
-    if (mentorships.length === 0) {
-      throw new Error("No students found for this mentor");
-    }
-  
-    // Collect data for CSV
-    const csvData: CSVData[] = [];
-    mentorships.forEach((mentorship) => {
-      const student = mentorship.student;
-      student.activities.forEach((activity) => {
-        csvData.push({
-          studentId: student.id,
-          studentName: `${student.firstName} ${student.lastName}`,
-          activityDate: activity.date.toISOString(),
-          timeSpent: activity.timeSpent,
-          notes: activity.notes || '',
-        });
+    },
+  });
+
+  const assignments = projects.flatMap((p) => p.assignments);
+
+  if (assignments.length === 0) {
+    throw new Error("No students found for this mentor");
+  }
+
+  // Collect data for CSV
+  const csvData: CSVData[] = [];
+  assignments.forEach((assignment) => {
+    const student = assignment.student;
+    student.activities.forEach((activity) => {
+      csvData.push({
+        studentId: student.id,
+        studentName: `${student.firstName} ${student.lastName}`,
+        activityDate: activity.date.toISOString(),
+        timeSpent: activity.timeSpent,
+        notes: activity.notes || "",
       });
     });
-  
-    if (csvData.length === 0) {
-      throw new Error("No activities found for this mentor");
-    }
-  
-    // Generate CSV
-    const fields = ['studentId', 'studentName', 'activityDate', 'timeSpent', 'notes'];
-    const csv = parse(csvData, { fields });
-    const filePath = path.join(process.cwd(), 'public', 'downloads', `report-${Date.now()}.csv`);
-    fs.writeFileSync(filePath, csv);
-  
-    return filePath;
-  };
+  });
+
+  if (csvData.length === 0) {
+    throw new Error("No activities found for this mentor");
+  }
+
+  // Generate CSV
+  const fields = [
+    "studentId",
+    "studentName",
+    "activityDate",
+    "timeSpent",
+    "notes",
+  ];
+  const csv = parse(csvData, { fields });
+  const filePath = path.join(
+    process.cwd(),
+    "public",
+    "downloads",
+    `report-${Date.now()}.csv`,
+  );
+  fs.writeFileSync(filePath, csv);
+
+  return filePath;
+};
 
 /*export const generateDummyCSVReport = async (): Promise<string> => {
     // Dummy data to simulate actual mentor/student activities
@@ -94,5 +110,3 @@ export const generateCSVReport = async (mentorId: string): Promise<string> => {
     console.log(`CSV file created at: ${filePath}`);
     return filePath;
   };*/
-  
-  
