@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ActivityRepository } from "@/repositories/activity_Repository_impl";
+import { ActivityRepository } from "@/repositories/activity_repository_impl";
 import getSession from "@/server_actions/getSession";
 
 const activityRepository = new ActivityRepository();

@@ -1,7 +1,7 @@
 // src/api/activities.ts
 import { NextRequest, NextResponse } from "next/server";
 import getSession from "@/server_actions/getSession";
-import { ActivityRepository } from "@/repositories/activity_Repository_impl";
+import { ActivityRepository } from "@/repositories/activity_repository_impl";
 
 export const dynamic = 'force-dynamic';
 
