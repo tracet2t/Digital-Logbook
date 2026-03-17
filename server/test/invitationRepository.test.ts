@@ -1,4 +1,4 @@
-import { InvitationRepository } from "../src/repositories/repositories";
+import { InvitationRepository } from "../src/repositories/invitation_repository_impl";
 import prisma from "../src/lib/prisma";
 import { Role } from "@prisma/client";
 import crypto from "crypto";

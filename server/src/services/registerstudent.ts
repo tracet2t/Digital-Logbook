@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 import bcrypt from "bcrypt";
 import { sendEmail } from "@/lib/email";
 import getSession from "@/server_actions/getSession";
-import { UserRepository } from "@/repositories/repositories";
+import { UserRepository } from "@/repositories/user_repository_impl";
 
 interface RegisterStudentData {
   firstName: string;
