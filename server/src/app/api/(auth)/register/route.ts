@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import * as jose from 'jose';
-import { InvitationRepository, UserRepository } from "@/repositories/repositories";
+import { UserRepository } from "@/repositories/user_repository_impl";
 import { Role } from "@prisma/client";
+import { InvitationRepository } from "@/repositories/invitation_repository_impl";
 
 const invitationRepository = new InvitationRepository();
 const userRepository = new UserRepository();

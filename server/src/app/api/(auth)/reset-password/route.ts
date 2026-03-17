@@ -1,7 +1,7 @@
 // src/api/auth/reset-password/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcrypt";
-import { UserRepository } from "@/repositories/repositories";
+import { UserRepository } from "@/repositories/user_repository_impl";
 import getSession from "@/server_actions/getSession";
 
 // Helper function to validate password requirements

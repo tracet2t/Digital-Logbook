@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import getSession from "@/server_actions/getSession";
 import { parse } from "json2csv";
-import { UserRepository } from "@/repositories/repositories";
+import { UserRepository } from "@/repositories/user_repository_impl";
 import { Activity, MentorFeedback } from "@prisma/client";
 
 const userRepository = new UserRepository();

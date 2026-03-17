@@ -1,8 +1,9 @@
-import { InvitationRepository, UserRepository } from "@/repositories/repositories";
+import {  UserRepository } from "@/repositories/user_repository_impl";
 import getSession from "@/server_actions/getSession";
 import { Role } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto"
+import { InvitationRepository } from "@/repositories/invitation_repository_impl";
 
 const invitationRepository = new InvitationRepository();
 const userRepository = new UserRepository();

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { compare } from "bcrypt-ts";
 import * as jose from "jose";
-import { UserRepository } from "@/repositories/repositories"; // Import the repository
+import { UserRepository } from "@/repositories/user_repository_impl"; // Import the repository
 export async function POST(request: Request) {
   const baseUrl = request.headers.get("origin");
   const formData = await request.formData();
