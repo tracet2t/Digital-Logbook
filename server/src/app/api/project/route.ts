@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import getSession from "@/server_actions/getSession";
-import { ProjectRepository } from "@/repositories/repositories";
+import { ProjectRepository } from "@/repositories/project_repository_impl";
+
 
 const projectRepo = new ProjectRepository();
 

@@ -1,6 +1,6 @@
 // src/api/mentorActivities.ts
 import { NextRequest, NextResponse } from "next/server";
-import { MentorRepository } from "@/repositories/repositories";
+import { MentorRepository } from "@/repositories/mentor_repository_impl";
 import getSession from "@/server_actions/getSession";
 
 const mentorRepository = new MentorRepository();

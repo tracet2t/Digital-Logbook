@@ -1,7 +1,7 @@
 // src/api/mentorFeedback.ts
 import { NextRequest, NextResponse } from "next/server";
 import getSession from "@/server_actions/getSession";
-import { MentorFeedbackRepository } from "@/repositories/repositories";
+import { MentorFeedbackRepository } from "@/repositories/mentor_feedback_repository_impl";
 
 const mentorFeedbackRepository = new MentorFeedbackRepository();
 

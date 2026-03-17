@@ -1,7 +1,7 @@
 // src/api/reports.ts
 import { NextRequest, NextResponse } from "next/server";
 import { reportQueue } from "@/lib/queue";
-import { ReportRepository } from "@/repositories/repositories";
+import { ReportRepository } from "@/repositories/report_repository_impl";
 import getSession from "@/server_actions/getSession";
 
 const reportRepository = new ReportRepository();
