@@ -4,12 +4,14 @@ import { EmailTemplate } from "@/components/EmailTemplate/EmailTemplate";
 
 interface EmailData {
   email: string;
-  password: string;
-  name: string;
+   name: string;
   message: string;
+  tempPassword: string;
+  loginUrl: string;
+  token: string;
 }
 
-export async function sendEmail({ email, password, name, message }: EmailData): Promise<void> {
+export async function sendEmail({ email, tempPassword, name, message, loginUrl, token }: EmailData): Promise<void> {
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -18,14 +20,12 @@ export async function sendEmail({ email, password, name, message }: EmailData): 
     },
   });
 
-  const loginUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/login`;
-
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
-    subject: `Hello ${name}, here is your message!`,
+    subject: `Hello!! Here is your link to Registration`,
     text: message,
-    html: EmailTemplate({ name, password, loginUrl }),
+    html: EmailTemplate({ name,tempPassword, loginUrl }),
   };
 
   await transporter.sendMail(mailOptions);

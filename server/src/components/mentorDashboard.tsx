@@ -227,7 +227,7 @@ const MentorDashboard = () => {
               >
                 Register Student
               </Button>
-              {showForm && <MentorRegStudentForm onClose={handleCloseForm} />}
+              {showForm && <MentorRegStudentForm close={handleCloseForm} />}
             </div>
           </div>
 
