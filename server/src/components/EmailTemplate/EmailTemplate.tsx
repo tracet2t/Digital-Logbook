@@ -1,12 +1,12 @@
 type EmailTemplateProps = {
-  name: string;
-  password: string;
+ tempPassword: string;
   loginUrl: string;
+  name: string;
 };
 
 export const EmailTemplate = ({
   name,
-  password,
+  tempPassword,
   loginUrl
 }: EmailTemplateProps) => {
   return `
@@ -16,7 +16,7 @@ export const EmailTemplate = ({
         <p style="margin-bottom: 20px;">Thank you for joining us! We're excited to have you on board and look forward to working together.</p>
         <p style="margin-bottom: 20px;">Your temporary password is:</p>
         <div style="background-color: #f7f7f7; padding: 10px; border-radius: 4px; margin-bottom: 20px;">
-          <strong>${password}</strong>
+          <strong>${tempPassword}</strong>
         </div>
         <p style="margin-bottom: 20px;">Use this password to log in to your account. We recommend changing it once you have successfully logged in.</p>
         <p style="margin-bottom: 20px;">

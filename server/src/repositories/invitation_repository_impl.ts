@@ -15,7 +15,6 @@ export class InvitationRepository extends BaseRepository<Invitation> {
     email: string;
     role: Role;
     invitedBy: string; // ID of the super-admin
-    tempPassword: string; // hashed
   }) {
     const token = crypto.randomBytes(32).toString("hex"); // secure token
     const expiresAt = new Date(Date.now() + 3 * 60 * 60 * 1000); // 3 hours
@@ -31,10 +30,7 @@ export class InvitationRepository extends BaseRepository<Invitation> {
         token,
         expiresAt,
         accepted: false,
-        tempPassword: data.tempPassword,
-        inviter: {
-          connect: { id: data.invitedBy }, // ✅ Connect the relation properly
-        },
+        invitedBy: data.invitedBy,
       },
     });
   }

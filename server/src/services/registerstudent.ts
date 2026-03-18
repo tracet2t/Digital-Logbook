@@ -1,63 +1,66 @@
+// server_actions/registerUser.ts
 "use server";
 
 import prisma from "@/lib/prisma";
 import bcrypt from "bcrypt";
-import { sendEmail } from "@/lib/email";
-import getSession from "@/server_actions/getSession";
 import { UserRepository } from "@/repositories/user_repository_impl";
+import { Role } from "@prisma/client";
 
-interface RegisterStudentData {
+interface RegisterUserData {
   firstName: string;
   lastName: string;
   email: string;
-  projectId?: string;
+  role: Role;
+  invitedBy: string; // ID of the inviter (mentor/admin)
+  projectId?: string; // required for students
 }
 
-export async function registerStudent(data: RegisterStudentData) {
-  const { firstName, lastName, email, projectId } = data;
-  const password = Math.random().toString(36).slice(-8);
+export async function registerStudent(data: RegisterUserData) {
+  const { firstName, lastName, email, role, invitedBy, projectId } = data;
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+  // --- Validation ---
+  if (!email || !firstName || !lastName || !role) {
+    throw new Error("Missing required fields");
+  }
 
-  // Retrieve the mentor's ID from the session
-  const mentorId = (await getSession()).getId();
+  const validRoles: Role[] = [Role.student, Role.mentor];
+  if (!validRoles.includes(role)) {
+    throw new Error(`Invalid role. Must be one of: ${validRoles.join(", ")}`);
+  }
+
+  if (role === Role.student && !projectId) {
+    throw new Error("projectId is required for students");
+  }
+
+  // --- Generate temporary password ---
+  const tempPassword = Math.random().toString(36).slice(-8);
+  const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
   const userRepository = new UserRepository();
 
-  try {
-    // Create a new student in the database with default values for missing fields
-    const student = await userRepository.create({
-      firstName: firstName,
-      lastName: lastName,
-      email: email,
-      passwordHash: hashedPassword,
-      role: "student",
-      emailConfirmed: false,
-      isFirstTimeLogin: true,
-      isActive: true,
-      invitedBy: mentorId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+  // --- Create user ---
+  const user = await userRepository.create({
+    firstName,
+    lastName,
+    email,
+    role,
+    invitedBy,
+    passwordHash: hashedPassword,
+    emailConfirmed: false,
+    isFirstTimeLogin: true,
+    isActive: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+// --- Assign project if projectId is provided ---
+if (projectId) {
+  await prisma.projectAllocation.create({
+    data: {
+      studentId: user.id, // you might rename this field to userId if mentors also use the same table
+      projectId,
+    },
+  });
+}
 
-    // If a projectId is provided, assign the student to that project
-    if (projectId) {
-      await prisma.projectAllocation.create({
-        data: {
-          projectId: projectId,
-          studentId: student.id,
-        },
-      });
-    }
-
-    // Send an email to the student with the temporary password
-    await sendEmail({
-      email,
-      password,
-      name: `${firstName} ${lastName}`,
-      message: `Your registration was successful. Your temporary password is: ${password}`,
-    });
-  } catch (error) {
-    console.error("Error registering student:", error);
-    throw new Error("Failed to register student");
-  }
+  return { user, tempPassword, hashedPassword };
 }

@@ -1,3 +1,4 @@
+//log the user
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import * as jose from "jose";

@@ -2,8 +2,10 @@ import {  UserRepository } from "@/repositories/user_repository_impl";
 import getSession from "@/server_actions/getSession";
 import { Role } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto"
+import bcrypt from "bcrypt";
 import { InvitationRepository } from "@/repositories/invitation_repository_impl";
+import { sendEmail } from "@/lib/email";
+import { registerStudent } from "@/services/registerstudent";
 
 const invitationRepository = new InvitationRepository();
 const userRepository = new UserRepository();
@@ -18,10 +20,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    // 2. Check for permissions (Only super_admin can invite)
+    // 2. Check for permissions (super_admin and mentor can invite)
     const userRole = session.getRole();
-    if (userRole !== Role.superAdmin) {
-        return NextResponse.json({ message: "Forbidden: Only Super Admins can create invitations" }, { status: 403 });
+    if (userRole !== Role.superAdmin && userRole !== Role.mentor) {
+        return NextResponse.json({ message: "Forbidden: Only Super Admins or Mentors can create invitations" }, { status: 403 });
     }
 
     const invitedBy = session.getId();
@@ -31,7 +33,7 @@ export async function POST(req: NextRequest) {
 
     // 3. Parse and validate the request body
     const body = await req.json();
-    const { email, role } = body;
+    const { email, role,firstName, lastName,projectId } = body;
 
     if (!email || !role) {
       return NextResponse.json({ message: "Email and role are required" }, { status: 400 });
@@ -48,36 +50,37 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ message: "User with this email already exists" }, { status: 409 });
     }
 
-    // 5. Generate secure token and expiration
-    const token = crypto.randomBytes(32).toString("hex");
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7); // Expire in 7 days
-
+    //Register the user via reusbale function
+    const{user,tempPassword,hashedPassword} = await registerStudent({
+      email,
+      firstName,
+      lastName,
+      role,
+      invitedBy,
+      projectId, // now assigns project to students or mentors
+    })
     // 6. Create the invitation via repository
-    // Note: The repository method has some unused variables but uses our passed data correctly.
-    // We use createInvite because it handles the specific input type expected for Invitation creation
-    // better than BaseRepository.create which might expect all model fields.
     const invitation = await invitationRepository.createInvite({
       email,
-      role: role as Role,
-      token,
+      role,
       invitedBy,
-      expiresAt,
-      accepted: false,
     });
 
     // 7. Return the invitation details (In a real app, send email here)
-    return NextResponse.json({
-      message: "Invitation created successfully",
-      invitation: {
-        id: invitation.id,
-        email: invitation.email,
-        role: invitation.role,
-        token: invitation.token,
-        expiresAt: invitation.expiresAt,
-        link: `${process.env.NEXT_PUBLIC_BASE_URL}/auth/register?token=${invitation.token}` // Helper for frontend dev
-      }
-    }, { status: 201 });
+   console.log("Invite Created",invitation);
+
+   const loginUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/create-account?token=${invitation.token}&email=${encodeURIComponent(email)}`;
+   
+   await sendEmail({
+      email,
+       name: `${firstName} ${lastName}`,
+      tempPassword,
+      message: `Your registration was successful. Your temporary password is: ${tempPassword}`,
+      loginUrl,
+      token: invitation.token,
+    });
+
+    return NextResponse.json({ message: "Invitation sent successfully", invitation }, { status: 201 });
 
   } catch (error: any) {
     console.error("Error creating invitation:", error);
