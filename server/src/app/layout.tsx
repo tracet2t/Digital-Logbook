@@ -2,7 +2,7 @@ import "./index.css";
 
 import type { Metadata } from "next";
 
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/sonner";
 
 import { TaskstacktProvider } from "./providers/queryClientProvider";
 
@@ -21,7 +21,7 @@ export default function RootLayout({
       <body>
         <TaskstacktProvider>
           {children}
-          <Toaster />
+          <Toaster position="bottom-right" />
         </TaskstacktProvider>
       </body>
     </html>

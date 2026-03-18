@@ -2,29 +2,35 @@
 
 import * as React from "react";
 import { useState } from "react";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardHeader,
-  CardFooter,
-  CardTitle,
-  CardDescription,
   CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  ToastProvider,
-  ToastViewport,
   Toast,
-  ToastTitle,
-  ToastDescription,
   ToastClose,
-} from "@/components/ui/toast"; // Adjust the import path according to your project structure
+  ToastDescription,
+  ToastProvider,
+  ToastTitle,
+  ToastViewport,
+} from "@/components/ui/toast";
+
+// Adjust the import path according to your project structure
 
 const RegistrationForm: React.FC = () => {
-  const [toast, setToast] = useState<{ title: string; description: string } | null>(null);
+  const [toast, setToast] = useState<{
+    title: string;
+    description: string;
+  } | null>(null);
 
   const handleCancelClick = () => {
     console.log("Cancel clicked");
@@ -80,7 +86,9 @@ const RegistrationForm: React.FC = () => {
         {/* Registration Form within a Card */}
         <Card className="w-full max-w-md mx-auto mt-20">
           <CardHeader>
-            <CardTitle className="text-center">Register a New Student</CardTitle>
+            <CardTitle className="text-center">
+              Register a New Student
+            </CardTitle>
             <CardDescription className="text-center">
               Fill in the details below to register a new student.
             </CardDescription>

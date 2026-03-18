@@ -51,7 +51,7 @@ export const WelcomeEmail = ({
           </h1>
           <p style={{ color: "#4b5563", marginBottom: "1rem" }}>Dear {name},</p>
           <p style={{ color: "#4b5563", marginBottom: "1rem" }}>
-            Thank you for joining us! We're excited to have you on board and
+            Thank you for joining us! We are excited to have you on board and
             look forward to working together.
           </p>
           <p style={{ color: "#4b5563", marginBottom: "0.5rem" }}>
