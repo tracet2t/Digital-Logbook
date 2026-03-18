@@ -1,0 +1,46 @@
+name: Code Quality Checks
+
+on:
+  push:
+    branches: [dev-stage, development]
+  pull_request:
+    branches: [dev-stage, development]
+
+jobs:
+  lint-and-typecheck:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.7.0"
+          cache: "npm"
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./server
+        run: npm ci
+
+      - name: Generate Prisma Client
+        working-directory: ./server
+        run: npx prisma generate
+
+      - name: Run ESLint
+        working-directory: ./server
+        run: npm run lint
+
+      - name: TypeScript Type Check
+        working-directory: ./server
+        run: npx tsc --noEmit
+
+      - name: Run Tests
+        working-directory: ./server
+        run: npm test
+        env:
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/test?schema=public"

@@ -1,9 +1,6 @@
 import prisma from "@/lib/prisma";
-import {
-  Project,
-} from "@prisma/client";
+import { Project } from "@prisma/client";
 import BaseRepository from "./baseRepository";
-
 
 //-- Project Repository --//
 // Manages projects that organize mentorships by grouping students

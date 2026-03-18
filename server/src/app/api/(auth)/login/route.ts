@@ -56,6 +56,8 @@ export async function POST(request: Request) {
         : `${baseUrl}/student`;
     } else if (user.role === "mentor") {
       redirectUrl = `${baseUrl}/mentor`;
+    } else if (user.role === "superAdmin") {
+      redirectUrl = `${baseUrl}/admin`;
     }
 
     const response = NextResponse.json({
