@@ -43,6 +43,12 @@ export class UserRepository extends BaseRepository<User> {
       },
     });
   }
+   async updateByEmail(email: string, data: Partial<User>) {
+    return this.modelClient.update({
+      where: { email },
+      data,
+    });
+  }
 }
 
 
