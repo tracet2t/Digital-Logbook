@@ -126,7 +126,7 @@ export const useAssignToProject = () => {
 
       return res.json();
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (_, variables) => {
       const assignType = variables.studentId ? "Student" : "Mentor";
       toast.success(`${assignType} assigned successfully!`);
 
@@ -168,7 +168,7 @@ export const useRemoveFromProject = () => {
 
       return res.json();
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (_, variables) => {
       const removeType = variables.studentId ? "Student" : "Mentor";
       toast.success(`${removeType} removed successfully!`);
 
