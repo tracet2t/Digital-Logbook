@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import getSession from "@/server_actions/getSession";
+import AsideSidebar from "@/components/AsideSidebar";
 
 interface AdminUser {
   id: string;
@@ -48,8 +49,9 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="p-8">
+    <div className="flex min-h-screen bg-[#f1f1f9]">
+      <AsideSidebar />
+      <div className="flex-1 p-8">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="flex justify-between items-center mb-8">
