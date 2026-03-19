@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import getSession from "@/server_actions/getSession";
+
+import { TestInvitation } from "./Test/invitation";
 
 interface AdminUser {
   id: string;
@@ -151,6 +154,10 @@ export default function AdminDashboard() {
             <p className="text-gray-600">
               Admin activity logs and recent actions will appear here.
             </p>
+          </div>
+
+          <div className="mt-8 bg-white rounded-lg shadow p-6">
+            <TestInvitation />
           </div>
         </div>
       </div>
