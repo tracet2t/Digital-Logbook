@@ -25,16 +25,8 @@ interface NavItem {
 const mainMenu: NavItem[] = [
   { label: "Dashboard", icon: <LayoutDashboard size={18} />, href: "/admin" },
   { label: "Users", icon: <Users size={18} />, href: "/admin/users" },
-  {
-    label: "Invitations",
-    icon: <Mail size={18} />,
-    href: "/admin/invitations",
-  },
-  {
-    label: "Projects",
-    icon: <FolderOpen size={18} />,
-    href: "/admin/projects",
-  },
+  {label: "Invitations", icon: <Mail size={18} />, href: "/admin/invitation",},
+  {label: "Projects",icon: <FolderOpen size={18} />,href: "/admin/projects",},
   { label: "Badges", icon: <Award size={18} />, href: "/admin/badges" },
   { label: "Reports", icon: <BarChart2 size={18} />, href: "/admin/reports" },
 ];

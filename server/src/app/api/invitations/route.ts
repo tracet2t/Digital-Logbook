@@ -6,6 +6,7 @@ import { Role } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 import { sendEmail } from "@/lib/email";
+import prisma from "@/lib/prisma";
 
 const invitationRepository = new InvitationRepository();
 const userRepository = new UserRepository();
@@ -20,13 +21,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    // 2. Check for permissions (super_admin and mentor can invite)
+    // 2. Check for permissions (super_admin)
     const userRole = session.getRole();
-    if (userRole !== Role.superAdmin && userRole !== Role.mentor) {
+    if (userRole !== Role.superAdmin ) {
       return NextResponse.json(
         {
           message:
-            "Forbidden: Only Super Admins or Mentors can create invitations",
+            "Forbidden: Only Super Admins  can create invitations",
         },
         { status: 403 },
       );
@@ -138,56 +139,98 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
+
+    // If a token is passed, return **single invitation validation**
     const token = searchParams.get("token");
+    if (token) {
+      const invitations = await invitationRepository.getAll({
+        where: { token },
+      });
 
-    if (!token) {
-      return NextResponse.json(
-        { message: "Token is required" },
-        { status: 400 },
-      );
+      if (invitations.length === 0) {
+        return NextResponse.json(
+          { valid: false, message: "Invalid token" },
+          { status: 404 }
+        );
+      }
+
+      const invitation = invitations[0];
+
+      if (invitation.accepted) {
+        return NextResponse.json(
+          { valid: false, message: "Token has already been used" },
+          { status: 400 }
+        );
+      }
+
+      if (new Date() > new Date(invitation.expiresAt)) {
+        return NextResponse.json(
+          { valid: false, message: "Token has expired" },
+          { status: 400 }
+        );
+      }
+
+      return NextResponse.json({
+        valid: true,
+        email: invitation.email,
+        role: invitation.role,
+      });
     }
 
-    // Use getAll from BaseRepository to find by token without modifying the repository file
-    // The token is unique, so we expect at most one result
+    // If no token, return **all invitations for the table**
     const invitations = await invitationRepository.getAll({
-      where: { token },
+      orderBy: { createdAt: "desc" },
+      include: { inviter: true}, // optional, if you want inviter info
+    });
+    // 2. Fetch all projects
+    const now = new Date();
+     
+
+    // Fetch all users whose emails match invitations
+    const emails = invitations.map(inv => inv.email);
+    const users = await prisma.user.findMany({
+      where: { email: { in: emails } },
+      select: { id: true, email: true },
     });
 
-    if (invitations.length === 0) {
-      return NextResponse.json(
-        { valid: false, message: "Invalid token" },
-        { status: 404 },
-      );
-    }
-
-    const invitation = invitations[0];
-
-    // Check if used
-    if (invitation.accepted) {
-      return NextResponse.json(
-        { valid: false, message: "Token has already been used" },
-        { status: 400 },
-      );
-    }
-
-    // Check if expired
-    if (new Date() > new Date(invitation.expiresAt)) {
-      return NextResponse.json(
-        { valid: false, message: "Token has expired" },
-        { status: 400 },
-      );
-    }
-
-    return NextResponse.json({
-      valid: true,
-      email: invitation.email,
-      role: invitation.role,
+    // Map email → userId
+    const emailToUserId: Record<string, string> = {};
+    users.forEach(user => {
+      emailToUserId[user.email] = user.id;
     });
-  } catch (error) {
-    console.error("Error validating invitation:", error);
-    return NextResponse.json(
-      { message: "Internal Server Error" },
-      { status: 500 },
-    );
+
+    // Fetch project allocations for all invited users who exist
+    const userIds = Object.values(emailToUserId);
+    const allocations = await prisma.projectAllocation.findMany({
+      where: { studentId: { in: userIds } },
+      include: { project: true },
+    });
+
+    // Map userId → project name
+    const projectMap: Record<string, string> = {};
+    allocations.forEach(allocation => {
+      projectMap[allocation.studentId] = allocation.project.name;
+    });
+
+    const mapped = invitations.map(inv => {
+      const status: "Pending" | "Accepted" | "Expired" =
+        inv.accepted ? "Accepted" : (now > new Date(inv.expiresAt) ? "Expired" : "Pending");
+
+      const userId = emailToUserId[inv.email];
+      const projectName = userId ? projectMap[userId] || "-" : "-";
+
+      return {
+        email: inv.email,
+        role: inv.role,
+        project: projectName,
+        status,
+      };
+    });
+
+    return NextResponse.json(mapped, { status: 200 });
+  } catch (err) {
+    console.error("Error fetching invitations:", err);
+    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
 }
+

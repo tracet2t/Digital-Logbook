@@ -201,7 +201,7 @@ export default function ReportsPage() {
             </TableHeader>
             <TableBody>
               {MOCK_REPORTS.map((report) => (
-                <TableRow key={report.id} className="hover:bg-[#F5F5F5]">
+                <TableRow  className="hover:bg-[#F5F5F5]">
                   <TableCell>
                     <div className="font-semibold text-[#0A0A0A]">
                       {report.projectName}

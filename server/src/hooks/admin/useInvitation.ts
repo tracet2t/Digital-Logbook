@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { toast } from "sonner";
 
@@ -52,4 +52,27 @@ export const useInvitation = () => {
   });
 
   return mutation;
+};
+
+export const useRecentInvitations = () => {
+  return useQuery({
+    queryKey: ["invitations"],
+    queryFn: async () => {
+      const res = await fetch("/api/invitations");
+      if (!res.ok) throw new Error("Failed to fetch invitations");
+      return res.json();
+    },
+  });
+};
+
+export const useValidateInvitation = (token: string) => {
+  return useQuery({
+    queryKey: ["invitation", token],
+    queryFn: async () => {
+      const res = await fetch(`/api/invitations?token=${token}`);
+      if (!res.ok) throw new Error("Invalid token");
+      return res.json();
+    },
+    enabled: !!token,
+  });
 };
