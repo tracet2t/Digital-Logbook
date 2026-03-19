@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { toast } from "sonner";
 
@@ -22,6 +22,13 @@ interface InvitationResponse {
     createdAt: string;
     expiresAt: string;
   };
+}
+
+interface GetInvitationResponse {
+  valid: boolean;
+  email?: string;
+  role?: string;
+  message?: string;
 }
 
 export const useInvitation = () => {
@@ -52,4 +59,29 @@ export const useInvitation = () => {
   });
 
   return mutation;
+};
+
+export const useGetInvitation = (token: string | null) => {
+  const query = useQuery<GetInvitationResponse, Error>({
+    queryKey: ["invitation", token],
+    queryFn: async () => {
+      if (!token) throw new Error("Token is required");
+
+      const res = await fetch(`/api/invitations?token=${token}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        toast.error("Failed to fetch invitation");
+        throw new Error(errorData.message || "Failed to fetch invitation");
+      }
+
+      return res.json();
+    },
+    enabled: !!token, // Only runs when token exists
+  });
+
+  return query;
 };
