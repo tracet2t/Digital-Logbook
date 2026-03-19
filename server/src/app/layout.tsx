@@ -1,10 +1,10 @@
-import './index.css';
+import "./index.css";
+
 import type { Metadata } from "next";
-import { Toaster } from "@/components/ui/toaster"
 
+import { Toaster } from "@/components/ui/sonner";
 
-
-
+import { TaskstacktProvider } from "./providers/queryClientProvider";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -19,8 +19,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        {children}
-        <Toaster />
+        <TaskstacktProvider>
+          {children}
+          <Toaster position="bottom-right" />
+        </TaskstacktProvider>
       </body>
     </html>
   );
