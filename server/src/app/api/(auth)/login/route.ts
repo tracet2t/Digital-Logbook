@@ -32,6 +32,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid password" }, { status: 401 });
     }
 
+    if (!user.isActive) {
+      return NextResponse.json(
+        { error: "Your account has been deactivated. Please contact an administrator." },
+        { status: 403 },
+      );
+    }
+
     const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
     const algo = "HS256";
 

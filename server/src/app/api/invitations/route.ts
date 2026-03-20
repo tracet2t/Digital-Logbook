@@ -220,16 +220,97 @@ export async function GET(req: NextRequest) {
       const projectName = userId ? projectMap[userId] || "-" : "-";
 
       return {
+        id: inv.id,
         email: inv.email,
         role: inv.role,
         project: projectName,
         status,
+        createdAt: inv.createdAt,
+        expiresAt: inv.expiresAt,
       };
     });
 
     return NextResponse.json(mapped, { status: 200 });
   } catch (err) {
     console.error("Error fetching invitations:", err);
+    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+  }
+}
+
+// PATCH: Expire an invitation so the link can no longer be used
+export async function PATCH(req: NextRequest) {
+  try {
+    const session = await getSession();
+    if (!session || !session.isAuthenticated()) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+    if (session.getRole() !== Role.superAdmin) {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    }
+
+    const { id } = await req.json();
+    if (!id) return NextResponse.json({ message: "id is required" }, { status: 400 });
+
+    // Set expiresAt to epoch so the token is permanently invalidated
+    await prisma.invitation.update({
+      where: { id },
+      data: { expiresAt: new Date(0) },
+    });
+
+    return NextResponse.json({ message: "Invitation expired" });
+  } catch (err) {
+    console.error("Error expiring invitation:", err);
+    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+  }
+}
+
+// DELETE: Remove invitation and fully purge associated user data
+export async function DELETE(req: NextRequest) {
+  try {
+    const session = await getSession();
+    if (!session || !session.isAuthenticated()) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+    if (session.getRole() !== Role.superAdmin) {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+    if (!id) return NextResponse.json({ message: "id is required" }, { status: 400 });
+
+    const invitation = await prisma.invitation.findUnique({ where: { id } });
+    if (!invitation) return NextResponse.json({ message: "Invitation not found" }, { status: 404 });
+
+    const user = await prisma.user.findUnique({ where: { email: invitation.email } });
+
+    if (user) {
+      await prisma.$transaction(async (tx) => {
+        // Delete mentor feedback on user's activities
+        const activityIds = (await tx.activity.findMany({ where: { studentId: user.id }, select: { id: true } })).map(a => a.id);
+        if (activityIds.length) await tx.mentorFeedback.deleteMany({ where: { activityId: { in: activityIds } } });
+
+        await tx.activity.deleteMany({ where: { studentId: user.id } });
+        await tx.mentorFeedback.deleteMany({ where: { mentorId: user.id } });
+        await tx.mentorActivity.deleteMany({ where: { mentorId: user.id } });
+        await tx.report.deleteMany({ where: { mentorId: user.id } });
+        await tx.userBadge.deleteMany({ where: { userId: user.id } });
+        await tx.projectAllocation.deleteMany({ where: { studentId: user.id } });
+        await tx.projectMentor.deleteMany({ where: { mentorId: user.id } });
+        // Null-out invitations sent BY this user (onDelete: SetNull handles FK, but explicit is safer)
+        await tx.invitation.updateMany({ where: { invitedBy: user.id }, data: { invitedBy: null } });
+        // Delete the invitation record itself
+        await tx.invitation.delete({ where: { id } });
+        await tx.user.delete({ where: { id: user.id } });
+      });
+    } else {
+      // No user found – just remove the invitation record
+      await prisma.invitation.delete({ where: { id } });
+    }
+
+    return NextResponse.json({ message: "Deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting invitation:", err);
     return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
 }

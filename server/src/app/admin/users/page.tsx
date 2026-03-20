@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import AsideSidebar from "@/components/AsideSidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
 	Pagination,
@@ -28,13 +27,32 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import {
-	Bell,
-	Download,
-	EllipsisVertical,
-	Plus,
-	Search,
-	SlidersHorizontal,
-} from "lucide-react";
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogFooter,
+	DialogClose,
+} from "@/components/ui/dialog";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { EllipsisVertical, Search } from "lucide-react";
 
 type UserRole = "Student" | "Mentor" | "SuperAdmin";
 type UserStatus = "Active" | "Inactive";
@@ -131,6 +149,32 @@ export default function UsersPage() {
 	const [statusFilter, setStatusFilter] = useState<"all" | UserStatus>("all");
 	const [page, setPage] = useState(1);
 
+	// Modal state
+	const [viewUser, setViewUser] = useState<UserRecord | null>(null);
+	const [statusUser, setStatusUser] = useState<UserRecord | null>(null);
+	const [pendingStatus, setPendingStatus] = useState<UserStatus>("Active");
+	const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+	const [isMutating, setIsMutating] = useState(false);
+
+	const loadUsers = async () => {
+		setIsLoading(true);
+		setFetchError(null);
+		try {
+			const response = await fetch("/api/admin/users", { cache: "no-store" });
+			if (!response.ok) {
+				const payload = await response.json().catch(() => ({ message: "Failed to fetch users" }));
+				throw new Error(payload.message ?? "Failed to fetch users");
+			}
+			const data = (await response.json()) as ApiUserRecord[];
+			setUsers(data.map(mapApiUserToRecord));
+		} catch (error) {
+			setUsers([]);
+			setFetchError(error instanceof Error ? error.message : "Failed to fetch users");
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
 	useEffect(() => {
 		let mounted = true;
 
@@ -178,6 +222,40 @@ export default function UsersPage() {
 		};
 	}, []);
 
+	const handleChangeStatus = async () => {
+		if (!statusUser) return;
+		setIsMutating(true);
+		try {
+			const res = await fetch("/api/admin/users", {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ id: statusUser.id, isActive: pendingStatus === "Active" }),
+			});
+			if (!res.ok) throw new Error("Failed to update status");
+			setStatusUser(null);
+			await loadUsers();
+		} catch {
+			// silently ignore — keep dialog open on error
+		} finally {
+			setIsMutating(false);
+		}
+	};
+
+	const handleDeleteUser = async () => {
+		if (!deleteUserId) return;
+		setIsMutating(true);
+		try {
+			const res = await fetch(`/api/admin/users?id=${deleteUserId}`, { method: "DELETE" });
+			if (!res.ok) throw new Error("Failed to delete user");
+			setDeleteUserId(null);
+			await loadUsers();
+		} catch {
+			// silently ignore
+		} finally {
+			setIsMutating(false);
+		}
+	};
+
 	const filteredUsers = useMemo(() => {
 		return users.filter((user) => {
 			const isRoleMatch = roleFilter === "all" || user.role === roleFilter;
@@ -210,14 +288,8 @@ export default function UsersPage() {
 		setPage(nextPage);
 	};
 
-	const resetFilters = () => {
-		setSearch("");
-		setRoleFilter("all");
-		setStatusFilter("all");
-		setPage(1);
-	};
-
 	return (
+		<>
 		<div className="flex min-h-screen bg-[#f5f7fb]">
 			<AsideSidebar />
 
@@ -239,19 +311,7 @@ export default function UsersPage() {
 										placeholder="Search by name, email, or ID..."
 									/>
 								</div>
-								<button
-									className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[#dbe0e8] bg-white text-slate-500 transition hover:bg-slate-50"
-									type="button"
-									aria-label="Notifications"
-								>
-									<Bell className="h-4 w-4" />
-								</button>
 							</div>
-
-							<Button className="h-10 bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700">
-								<Plus className="mr-1.5 h-4 w-4" />
-								Add User
-							</Button>
 						</div>
 					</div>
 
@@ -264,75 +324,46 @@ export default function UsersPage() {
 							</p>
 						</div>
 
-						<div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#e4e7ed] bg-[#f8fafc] p-3">
-							<div className="flex flex-wrap items-end gap-3">
-								<div className="space-y-1">
-									<p className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">Role</p>
-									<Select
-										value={roleFilter}
-										onValueChange={(value) => {
-											setRoleFilter(value as "all" | UserRole);
-											setPage(1);
-										}}
-									>
-										<SelectTrigger className="h-8 w-[130px] bg-white">
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="all">All Roles</SelectItem>
-											<SelectItem value="Student">Student</SelectItem>
-											<SelectItem value="Mentor">Mentor</SelectItem>
-											<SelectItem value="SuperAdmin">SuperAdmin</SelectItem>
-										</SelectContent>
-									</Select>
-								</div>
-
-								<div className="space-y-1">
-									<p className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">Status</p>
-									<Select
-										value={statusFilter}
-										onValueChange={(value) => {
-											setStatusFilter(value as "all" | UserStatus);
-											setPage(1);
-										}}
-									>
-										<SelectTrigger className="h-8 w-[140px] bg-white">
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="all">All Statuses</SelectItem>
-											<SelectItem value="Active">Active</SelectItem>
-											<SelectItem value="Inactive">Inactive</SelectItem>
-										</SelectContent>
-									</Select>
-								</div>
+						<div className="flex flex-wrap items-center gap-3 rounded-lg border border-[#e4e7ed] bg-[#f8fafc] p-3">
+							<div className="space-y-1">
+								<p className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">Role</p>
+								<Select
+									value={roleFilter}
+									onValueChange={(value) => {
+										setRoleFilter(value as "all" | UserRole);
+										setPage(1);
+									}}
+								>
+									<SelectTrigger className="h-8 w-[130px] bg-white">
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="all">All Roles</SelectItem>
+										<SelectItem value="Student">Student</SelectItem>
+										<SelectItem value="Mentor">Mentor</SelectItem>
+										<SelectItem value="SuperAdmin">SuperAdmin</SelectItem>
+									</SelectContent>
+								</Select>
 							</div>
 
-							<div className="flex flex-wrap items-center gap-2">
-								<Button
-									variant="outline"
-									size="sm"
-									className="h-8 border-[#d8dce5] bg-white text-xs text-slate-700"
+							<div className="space-y-1">
+								<p className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">Status</p>
+								<Select
+									value={statusFilter}
+									onValueChange={(value) => {
+										setStatusFilter(value as "all" | UserStatus);
+										setPage(1);
+									}}
 								>
-									<SlidersHorizontal className="mr-1.5 h-3.5 w-3.5" />
-									Advanced Filters
-								</Button>
-								<Button
-									variant="outline"
-									size="sm"
-									className="h-8 border-[#d8dce5] bg-white text-xs text-slate-700"
-								>
-									<Download className="mr-1.5 h-3.5 w-3.5" />
-									Export
-								</Button>
-								<Button
-									variant="ghost"
-									size="sm"
-									onClick={resetFilters}
-									className="h-8 text-xs text-slate-500 hover:text-slate-800"
-								>
-									Reset
-								</Button>
+									<SelectTrigger className="h-8 w-[140px] bg-white">
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="all">All Statuses</SelectItem>
+										<SelectItem value="Active">Active</SelectItem>
+										<SelectItem value="Inactive">Inactive</SelectItem>
+									</SelectContent>
+								</Select>
 							</div>
 						</div>
 
@@ -359,19 +390,19 @@ export default function UsersPage() {
 								</TableHeader>
 
 								<TableBody>
-											{isLoading ? (
-												<TableRow>
-													<TableCell colSpan={5} className="px-4 py-8 text-center text-sm text-slate-500">
-														Loading users...
-													</TableCell>
-												</TableRow>
-											) : fetchError ? (
-												<TableRow>
-													<TableCell colSpan={5} className="px-4 py-8 text-center text-sm text-red-500">
-														{fetchError}
-													</TableCell>
-												</TableRow>
-											) : visibleUsers.length === 0 ? (
+									{isLoading ? (
+										<TableRow>
+											<TableCell colSpan={5} className="px-4 py-8 text-center text-sm text-slate-500">
+												Loading users...
+											</TableCell>
+										</TableRow>
+									) : fetchError ? (
+										<TableRow>
+											<TableCell colSpan={5} className="px-4 py-8 text-center text-sm text-red-500">
+												{fetchError}
+											</TableCell>
+										</TableRow>
+									) : visibleUsers.length === 0 ? (
 										<TableRow>
 											<TableCell colSpan={5} className="px-4 py-8 text-center text-sm text-slate-500">
 												No users found for the selected filters.
@@ -397,9 +428,7 @@ export default function UsersPage() {
 
 												<TableCell className="px-4 py-3">
 													<span
-														className={`inline-flex rounded-md border px-2 py-0.5 text-[11px] font-semibold ${roleClass(
-															user.role,
-														)}`}
+														className={`inline-flex rounded-md border px-2 py-0.5 text-[11px] font-semibold ${roleClass(user.role)}`}
 													>
 														{user.role}
 													</span>
@@ -417,13 +446,37 @@ export default function UsersPage() {
 												</TableCell>
 
 												<TableCell className="px-4 py-3 text-right">
-													<button
-														type="button"
-														className="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
-														aria-label={`Actions for ${user.name}`}
-													>
-														<EllipsisVertical className="h-4 w-4" />
-													</button>
+													<DropdownMenu>
+														<DropdownMenuTrigger asChild>
+															<button
+																type="button"
+																className="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+																aria-label={`Actions for ${user.name}`}
+															>
+																<EllipsisVertical className="h-4 w-4" />
+															</button>
+														</DropdownMenuTrigger>
+														<DropdownMenuContent align="end" className="w-44">
+															<DropdownMenuItem onSelect={() => setViewUser(user)}>
+																View Details
+															</DropdownMenuItem>
+															<DropdownMenuItem
+																onSelect={() => {
+																	setStatusUser(user);
+																	setPendingStatus(user.status === "Active" ? "Inactive" : "Active");
+																}}
+															>
+																Change Status
+															</DropdownMenuItem>
+															<DropdownMenuSeparator />
+															<DropdownMenuItem
+																className="text-red-600 focus:text-red-600 focus:bg-red-50"
+																onSelect={() => setDeleteUserId(user.id)}
+															>
+																Delete User
+															</DropdownMenuItem>
+														</DropdownMenuContent>
+													</DropdownMenu>
 												</TableCell>
 											</TableRow>
 										))
@@ -519,5 +572,115 @@ export default function UsersPage() {
 				</Card>
 			</div>
 		</div>
+
+		{/* ── View Details Dialog ─────────────────────────────────────────────── */}
+		<Dialog open={!!viewUser} onOpenChange={(open) => !open && setViewUser(null)}>
+			<DialogContent className="max-w-md">
+				<DialogHeader>
+					<DialogTitle>User Details</DialogTitle>
+				</DialogHeader>
+				{viewUser != null && (
+					<div className="space-y-4 text-sm">
+						<div className="flex items-center gap-4">
+							<Avatar className="h-14 w-14 border border-slate-200">
+								{viewUser!.avatar ? <AvatarImage src={viewUser!.avatar} alt={viewUser!.name} /> : null}
+								<AvatarFallback className="bg-slate-100 text-base font-semibold text-slate-700">
+									{getInitials(viewUser!.name)}
+								</AvatarFallback>
+							</Avatar>
+							<div>
+								<p className="text-base font-bold text-slate-900">{viewUser!.name}</p>
+								<p className="text-xs text-slate-500">{viewUser!.email}</p>
+							</div>
+						</div>
+						<div className="grid grid-cols-2 gap-4">
+							<div>
+								<p className="text-[11px] font-bold uppercase text-slate-500 mb-1">Role</p>
+								<span className={`inline-flex rounded-md border px-2 py-0.5 text-[11px] font-semibold ${roleClass(viewUser!.role)}`}>
+									{viewUser!.role}
+								</span>
+							</div>
+							<div>
+								<p className="text-[11px] font-bold uppercase text-slate-500 mb-1">Status</p>
+								<span className={`inline-flex items-center gap-1.5 text-sm font-medium ${statusClass(viewUser!.status)}`}>
+									<span className={`h-1.5 w-1.5 rounded-full ${viewUser!.status === "Active" ? "bg-blue-500" : "bg-red-500"}`} />
+									{viewUser!.status}
+								</span>
+							</div>
+							<div>
+								<p className="text-[11px] font-bold uppercase text-slate-500 mb-1">Created Date</p>
+								<p className="text-slate-700">{viewUser!.createdAt}</p>
+							</div>
+							<div>
+								<p className="text-[11px] font-bold uppercase text-slate-500 mb-1">User ID</p>
+								<p className="truncate text-xs text-slate-500">{viewUser!.id}</p>
+							</div>
+						</div>
+					</div>
+				)}
+				<DialogFooter>
+					<DialogClose asChild><Button variant="outline">Close</Button></DialogClose>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
+
+		{/* ── Change Status Dialog ────────────────────────────────────────────── */}
+		<AlertDialog open={!!statusUser} onOpenChange={(open) => !open && setStatusUser(null)}>
+			<AlertDialogContent>
+				<AlertDialogHeader>
+					<AlertDialogTitle>Change User Status</AlertDialogTitle>
+					<AlertDialogDescription>
+						Select the new status for <span className="font-semibold text-slate-900">{statusUser?.name}</span>. Deactivating a user will prevent them from logging in.
+					</AlertDialogDescription>
+				</AlertDialogHeader>
+				<div className="px-1 py-2">
+					<p className="mb-1.5 text-[11px] font-bold uppercase text-slate-500">New Status</p>
+					<Select
+						value={pendingStatus}
+						onValueChange={(v) => setPendingStatus(v as UserStatus)}
+					>
+						<SelectTrigger className="w-full bg-white">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="Active">Active</SelectItem>
+							<SelectItem value="Inactive">Inactive (Deactivated)</SelectItem>
+						</SelectContent>
+					</Select>
+				</div>
+				<AlertDialogFooter>
+					<AlertDialogCancel disabled={isMutating}>Cancel</AlertDialogCancel>
+					<AlertDialogAction
+						disabled={isMutating || pendingStatus === statusUser?.status}
+						onClick={handleChangeStatus}
+					>
+						{isMutating ? "Saving…" : "Save"}
+					</AlertDialogAction>
+				</AlertDialogFooter>
+			</AlertDialogContent>
+		</AlertDialog>
+
+		{/* ── Delete Confirmation Dialog ──────────────────────────────────────── */}
+		<AlertDialog open={!!deleteUserId} onOpenChange={(open) => !open && setDeleteUserId(null)}>
+			<AlertDialogContent>
+				<AlertDialogHeader>
+					<AlertDialogTitle>Delete User</AlertDialogTitle>
+					<AlertDialogDescription>
+						This will permanently delete the user account and all associated data — including activities, feedback, reports, badges, and project allocations. This action cannot be undone.
+					</AlertDialogDescription>
+				</AlertDialogHeader>
+				<AlertDialogFooter>
+					<AlertDialogCancel disabled={isMutating}>Cancel</AlertDialogCancel>
+					<AlertDialogAction
+						className="bg-red-600 hover:bg-red-700 text-white"
+						disabled={isMutating}
+						onClick={handleDeleteUser}
+					>
+						{isMutating ? "Deleting…" : "Delete"}
+					</AlertDialogAction>
+				</AlertDialogFooter>
+			</AlertDialogContent>
+		</AlertDialog>
+		</>
 	);
 }

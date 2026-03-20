@@ -65,6 +65,52 @@ export const useRecentInvitations = () => {
   });
 };
 
+export const useExpireInvitation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, { id: string }>({
+    mutationFn: async ({ id }) => {
+      const res = await fetch("/api/invitations", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to expire invitation");
+      }
+    },
+    onSuccess: () => {
+      toast.success("Invitation marked as expired.");
+      queryClient.invalidateQueries({ queryKey: ["invitations"] });
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to expire invitation");
+    },
+  });
+};
+
+export const useDeleteInvitation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, { id: string }>({
+    mutationFn: async ({ id }) => {
+      const res = await fetch(`/api/invitations?id=${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to delete invitation");
+      }
+    },
+    onSuccess: () => {
+      toast.success("Invitation and user data deleted.");
+      queryClient.invalidateQueries({ queryKey: ["invitations"] });
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to delete invitation");
+    },
+  });
+};
+
 export const useValidateInvitation = (token: string) => {
   return useQuery({
     queryKey: ["invitation", token],
