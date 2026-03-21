@@ -1,35 +1,40 @@
 "use client";
 
 import { useState } from "react";
-import AsideSidebar from "@/components/AsideSidebar";
-import DashboardHeader from "./DashboardHeader";
-import StatsGrid from "./StatsGrid";
-import RecentProjectsTable from "./RecentProjectsTable";
-import { useAdminDashboard } from "@/hooks/admin/useAdminDashboard";
+
 import {
-  Users,
-  GraduationCap,
-  UserCheck,
-  Briefcase,
-  Mail,
   Activity,
+  Briefcase,
+  GraduationCap,
+  Mail,
+  UserCheck,
+  Users,
 } from "lucide-react";
+
+import { useAdminDashboard } from "@/hooks/admin/useAdminDashboard";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
-  DialogClose,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import AsideSidebar from "@/components/AsideSidebar";
+
+import DashboardHeader from "./DashboardHeader";
+import RecentProjectsTable from "./RecentProjectsTable";
+import StatsGrid from "./StatsGrid";
 
 interface SuperAdminDashboardProps {
   userName?: string;
 }
 
-export default function SuperAdminDashboard({ userName }: SuperAdminDashboardProps) {
+export default function SuperAdminDashboard({
+  userName,
+}: SuperAdminDashboardProps) {
   const { stats, recentProjects, isLoading, error } = useAdminDashboard();
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [chosenFormat, setChosenFormat] = useState<"csv" | "pdf">("csv");
@@ -82,7 +87,9 @@ export default function SuperAdminDashboard({ userName }: SuperAdminDashboardPro
     lines.push(" ");
     lines.push("Section,Project Name,Domain,Date Created,Status");
     recentProjects.forEach((project) => {
-      lines.push(`Projects,${project.projectName},${project.domain},${project.dateCreated},${project.status}`);
+      lines.push(
+        `Projects,${project.projectName},${project.domain},${project.dateCreated},${project.status}`,
+      );
     });
 
     const csv = lines.join("\n");
@@ -230,14 +237,16 @@ export default function SuperAdminDashboard({ userName }: SuperAdminDashboardPro
       <AsideSidebar />
       <main className="flex-1 p-4 md:p-8">
         <div className="mx-auto w-full max-w-6xl space-y-5">
-          <DashboardHeader userName={userName} onRequestExport={openDialog} />
-
-          <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
+          <Dialog
+            open={isExportDialogOpen}
+            onOpenChange={setIsExportDialogOpen}
+          >
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Export Dashboard Report</DialogTitle>
                 <DialogDescription>
-                  Choose format and export the content including stats and recent projects.
+                  Choose format and export the content including stats and
+                  recent projects.
                 </DialogDescription>
               </DialogHeader>
               <div className="mt-4 space-y-3">
@@ -285,7 +294,28 @@ export default function SuperAdminDashboard({ userName }: SuperAdminDashboardPro
             </div>
           ) : (
             <>
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 md:p-5">
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 md:p-6">
+                {/* Header inside card */}
+                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between mb-6">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
+                      Dashboard Overview
+                    </p>
+                    <h1 className="mt-1 text-3xl font-bold text-slate-900">
+                      Admin Super Dashboard
+                    </h1>
+                    <p className="mt-1 text-sm text-slate-600">
+                      Welcome back{userName ? `, ${userName}` : ""}! Here&apos;s
+                      your latest platform summary.
+                    </p>
+                  </div>
+                  <Button
+                    className="h-10 bg-slate-900 text-white hover:bg-slate-800 shrink-0"
+                    onClick={openDialog}
+                  >
+                    Export Data
+                  </Button>
+                </div>
                 <StatsGrid stats={cards} />
               </div>
               <RecentProjectsTable projects={recentProjects} />

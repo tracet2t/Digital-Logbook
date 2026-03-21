@@ -1,7 +1,7 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 
 export type TrendType = "positive" | "negative" | "neutral";
 
@@ -30,7 +30,7 @@ export default function StatCard({
     <Card className="p-4 border border-slate-200 bg-white shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">
             {label}
           </p>
           <p className="mt-2 text-3xl font-bold text-slate-900">{value}</p>
@@ -39,7 +39,9 @@ export default function StatCard({
       </div>
       {trendLabel ? (
         <div className="mt-3 flex items-center gap-2">
-          <Badge className={`rounded-full px-2 py-1 text-[11px] font-medium ${trendClasses[trendType]}`}>
+          <Badge
+            className={`rounded-full px-2 py-1 text-[11px] font-medium ${trendClasses[trendType]}`}
+          >
             {trendLabel}
           </Badge>
           <p className="text-xs text-slate-500">since last month</p>
