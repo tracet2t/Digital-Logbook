@@ -1,6 +1,14 @@
 import { MoreVertical } from "lucide-react";
 
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -38,105 +46,107 @@ export default function InvitationsTable({
   onDelete,
 }: InvitationsTableProps) {
   return (
-    <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead className="bg-slate-50/95">
-            <tr>
-              <th className="px-5 py-3.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                Email
-              </th>
-              <th className="px-5 py-3.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                Role
-              </th>
-              <th className="px-5 py-3.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                Project
-              </th>
-              <th className="px-5 py-3.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-5 py-3.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-right">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 text-sm">
-            {loading && (
-              <tr>
-                <td
-                  colSpan={5}
-                  className="px-5 py-8 text-center text-slate-400"
-                >
-                  Loading...
-                </td>
-              </tr>
-            )}
-            {error && (
-              <tr>
-                <td colSpan={5} className="px-5 py-8 text-center text-red-500">
-                  Failed to load invitations
-                </td>
-              </tr>
-            )}
-            {!loading && !error && data.length === 0 && (
-              <tr>
-                <td
-                  colSpan={5}
-                  className="px-5 py-8 text-center text-slate-400"
-                >
-                  No invitations found.
-                </td>
-              </tr>
-            )}
-            {!loading &&
-              data.map((inv) => (
-                <tr
-                  key={inv.id}
-                  className="hover:bg-slate-50/50 transition-colors"
-                >
-                  <td className="px-5 py-4 font-medium text-slate-900">
-                    {inv.email}
-                  </td>
-                  <td className="px-5 py-4">
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${inv.role === "mentor" || inv.role === "superAdmin" ? "bg-[#18181B] text-white" : "bg-slate-100 text-slate-600"}`}
-                    >
-                      {inv.role}
-                    </span>
-                  </td>
-                  <td className="px-5 py-4 text-slate-500">{inv.project}</td>
-                  <td className="px-5 py-4">
-                    <StatusBadge status={inv.status} />
-                  </td>
-                  <td className="px-5 py-4 text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="h-8 w-8 inline-flex items-center justify-center rounded-md text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors">
-                          <MoreVertical size={15} />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-44">
-                        <DropdownMenuItem onSelect={() => onView(inv)}>
-                          View Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => onChangeStatus(inv)}>
-                          Change Status
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-red-600 focus:text-red-600 focus:bg-red-50"
-                          onSelect={() => onDelete(inv.id)}
-                        >
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
-      </div>
+    <div className="overflow-hidden rounded-lg border border-[#e4e7ed]">
+      <Table>
+        <TableHeader>
+          <TableRow className="border-[#e4e7ed] bg-slate-50">
+            <TableHead className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              Email
+            </TableHead>
+            <TableHead className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              Role
+            </TableHead>
+            <TableHead className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              Project
+            </TableHead>
+            <TableHead className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              Status
+            </TableHead>
+            <TableHead className="text-[11px] font-bold text-slate-500 uppercase tracking-wider text-right">
+              Actions
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {loading && (
+            <TableRow>
+              <TableCell
+                colSpan={5}
+                className="py-8 text-center text-slate-400"
+              >
+                Loading...
+              </TableCell>
+            </TableRow>
+          )}
+          {error && (
+            <TableRow>
+              <TableCell colSpan={5} className="py-8 text-center text-red-500">
+                Failed to load invitations
+              </TableCell>
+            </TableRow>
+          )}
+          {!loading && !error && data.length === 0 && (
+            <TableRow>
+              <TableCell
+                colSpan={5}
+                className="py-8 text-center text-slate-400"
+              >
+                No invitations found.
+              </TableCell>
+            </TableRow>
+          )}
+          {!loading &&
+            data.map((inv) => (
+              <TableRow
+                key={inv.id}
+                className="border-[#e4e7ed] hover:bg-slate-50/50 transition-colors"
+              >
+                <TableCell className="font-medium text-slate-900">
+                  {inv.email}
+                </TableCell>
+                <TableCell>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide ${
+                      inv.role === "mentor" || inv.role === "superAdmin"
+                        ? "bg-[#18181B] text-white"
+                        : "bg-slate-100 text-slate-600"
+                    }`}
+                  >
+                    {inv.role}
+                  </span>
+                </TableCell>
+                <TableCell className="text-slate-600">{inv.project}</TableCell>
+                <TableCell>
+                  <StatusBadge status={inv.status} />
+                </TableCell>
+                <TableCell className="text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="h-8 w-8 inline-flex items-center justify-center rounded-md text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+                        <MoreVertical size={15} />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-44">
+                      <DropdownMenuItem onSelect={() => onView(inv)}>
+                        View Details
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => onChangeStatus(inv)}>
+                        Change Status
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                        onSelect={() => onDelete(inv.id)}
+                      >
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))}
+        </TableBody>
+      </Table>
     </div>
   );
 }

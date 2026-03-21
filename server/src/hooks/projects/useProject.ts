@@ -18,7 +18,7 @@ interface CreateProjectResponse {
   data: {
     id: string;
     name: string;
-    description?: string;
+    description: string | null;
     domain: string;
     createdBy: string;
     createdAt: string;
@@ -51,7 +51,7 @@ interface RemoveFromProjectResponse {
 interface Project {
   id: string;
   name: string;
-  description?: string;
+  description: string | null;
   domain: string;
   createdBy: string;
   createdAt: string;
