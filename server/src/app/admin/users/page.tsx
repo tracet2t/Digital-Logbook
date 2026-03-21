@@ -311,7 +311,7 @@ export default function UsersPage() {
           <Card className="overflow-hidden border-[#d9dde5] bg-white">
             <div className="space-y-4 p-4 md:p-5">
               <div>
-                <h1 className="text-2xl font-bold text-slate-900">
+                <h1 className="text-page-title text-slate-900">
                   User Administration
                 </h1>
                 <p className="mt-1 text-sm text-slate-500">
@@ -320,16 +320,6 @@ export default function UsersPage() {
                 </p>
               </div>
 
-<<<<<<< HEAD
-					<div className="space-y-4 p-4 md:p-5">
-						<div>
-							<h1 className="text-page-title text-slate-900">User Administration</h1>
-							<p className="mt-1 text-sm text-slate-500">
-								Manage system users, define their platform roles, and monitor
-								account statuses.
-							</p>
-						</div>
-=======
               <div className="flex flex-wrap items-end gap-3 rounded-lg border border-[#e4e7ed] bg-[#f8fafc] p-3">
                 <div className="space-y-1">
                   <p className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">
@@ -353,7 +343,6 @@ export default function UsersPage() {
                     </SelectContent>
                   </Select>
                 </div>
->>>>>>> origin/86ewz6ncb-Create-the-Report-component
 
                 <div className="space-y-1">
                   <p className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">

@@ -202,22 +202,10 @@ export default function ProjectsPage() {
       <AsideSidebar />
 
       <div className="flex-1 p-8 space-y-6 min-w-0">
-<<<<<<< HEAD
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-page-title text-[#0A0A0A]">Projects</h1>
-          <Button
-            className="bg-[#0A0A0A] text-white hover:bg-[#333] flex items-center gap-2"
-            onClick={() => { setCreateForm(EMPTY_FORM); setShowCreate(true); }}
-          >
-            + Create New Project
-          </Button>
-        </div>
-=======
         {/* Header + Stat Cards */}
         <Card className="p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-[#0A0A0A]">Projects</h1>
+            <h1 className="text-page-title text-[#0A0A0A]">Projects</h1>
             <Button
               className="bg-[#0A0A0A] text-white hover:bg-[#333] flex items-center gap-2"
               onClick={() => {
@@ -228,7 +216,6 @@ export default function ProjectsPage() {
               + Create New Project
             </Button>
           </div>
->>>>>>> origin/86ewz6ncb-Create-the-Report-component
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex items-center justify-between rounded-xl border border-[#E5E5E5] bg-[#fafafa] p-5">

@@ -311,91 +311,10 @@ export default function ReportsPage() {
       <AsideSidebar />
 
       <div className="flex-1 p-8 space-y-6">
-<<<<<<< HEAD
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-page-title text-[#0A0A0A]">Reports</h1>
-          <Button className="bg-[#0A0A0A] text-white hover:bg-[#333]">
-            Generate Report
-          </Button>
-        </div>
-
-        {/* Stat Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="flex items-center justify-between p-6">
-            <div>
-              <p className="text-sm text-[#737373]">Total Generated</p>
-              <p className="text-3xl font-bold text-[#0A0A0A]">1,284</p>
-            </div>
-            <FileText className="text-[#737373]" size={28} />
-          </Card>
-          <Card className="flex items-center justify-between p-6">
-            <div>
-              <p className="text-sm text-[#737373]">Pending Reports</p>
-              <p className="text-3xl font-bold text-[#0A0A0A]">42</p>
-            </div>
-            <Clock className="text-yellow-500" size={28} />
-          </Card>
-          <Card className="flex items-center justify-between p-6">
-            <div>
-              <p className="text-sm text-[#737373]">Completed Reports</p>
-              <p className="text-3xl font-bold text-[#0A0A0A]">1,242</p>
-            </div>
-            <CheckCircle className="text-green-500" size={28} />
-          </Card>
-        </div>
-
-        {/* Filters */}
-        <Card className="p-4">
-          <div className="flex flex-wrap gap-4 items-end">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-[#737373] font-semibold uppercase tracking-wide">
-                Project
-              </label>
-              <Select>
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder="All Projects" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Projects</SelectItem>
-                  <SelectItem value="alpha">Alpha Initiative</SelectItem>
-                  <SelectItem value="beta">Beta Growth Phase</SelectItem>
-                  <SelectItem value="quantum">Quantum Leap</SelectItem>
-                  <SelectItem value="eco">Eco-Sustain Project</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-[#737373] font-semibold uppercase tracking-wide">
-                Mentor
-              </label>
-              <Select>
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder="Select Mentor" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="aris">Dr. Aris Thorne</SelectItem>
-                  <SelectItem value="sarah">Sarah Jenkins</SelectItem>
-                  <SelectItem value="marcus">Marcus Vane</SelectItem>
-                  <SelectItem value="elena">Elena Rossi</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-[#737373] font-semibold uppercase tracking-wide">
-                Date Range
-              </label>
-              <input
-                type="date"
-                className="border border-[#E5E5E5] rounded-md px-3 py-2 text-sm text-[#0A0A0A] bg-white focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
-              />
-            </div>
-=======
         {/* Header + Stat Cards */}
         <Card className="p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-[#0A0A0A]">Reports</h1>
->>>>>>> origin/86ewz6ncb-Create-the-Report-component
+            <h1 className="text-page-title text-[#0A0A0A]">Reports</h1>
             <Button
               className="bg-[#0A0A0A] text-white hover:bg-[#333]"
               disabled={isExporting || isLoading}

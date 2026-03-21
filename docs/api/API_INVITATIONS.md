@@ -349,7 +349,6 @@ return <RegistrationForm invitation={data.invitation} />;
 - Throws `"Invalid token"` on a non-OK response; surfaced via `error` from React Query.
 - Uses a scoped query key `["invitation", token]` so each token is cached independently.
 
-
 ## POST `/api/invitations`
 
 Create and send an invitation to a new user.
@@ -678,7 +677,6 @@ return <RegistrationForm invitation={data.invitation} />;
 
 - Throws `"Invalid token"` on a non-OK response; surfaced via `error` from React Query.
 - Uses a scoped query key `["invitation", token]` so each token is cached independently.
-
 
 ## POST `/api/invitations`
 
