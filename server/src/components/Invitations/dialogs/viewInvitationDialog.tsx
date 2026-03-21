@@ -2,7 +2,8 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import StatusBadge, { InvitationRow } from '../StatusBadge';
+import StatusBadge from '../StatusBadge';
+import { InvitationRow } from '../InvitationsTable';
 
 interface ViewInvitationDialogProps {
   invitation: InvitationRow | null;

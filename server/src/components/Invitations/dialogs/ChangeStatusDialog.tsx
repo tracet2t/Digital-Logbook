@@ -2,7 +2,7 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import InvitationsTable,{InvitationRow} from '../InvitationsTable'
+import {InvitationRow} from '../InvitationsTable'
 
 interface ChangeStatusDialogProps {
   invitation: InvitationRow | null;

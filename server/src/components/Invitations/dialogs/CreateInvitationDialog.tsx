@@ -62,7 +62,7 @@ export default function CreateInvitationDialog({
                   </select>
                   <ChevronDown size={14} className="absolute right-3 top-3 text-slate-400 pointer-events-none" />
                 </div>
-                {errors.role ? <p className="text-xs text-red-500 font-medium">{errors.role}</p> : <p className="text-xs text-slate-400">Determines the user's access level</p>}
+                {errors.role ? <p className="text-xs text-red-500 font-medium">{errors.role}</p> : <p className="text-xs text-slate-400">Determines the user`s access level</p>}
               </div>
 
               {/* Project */}
