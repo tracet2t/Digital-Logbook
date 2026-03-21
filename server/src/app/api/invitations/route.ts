@@ -23,11 +23,10 @@ export async function POST(req: NextRequest) {
 
     // 2. Check for permissions (super_admin)
     const userRole = session.getRole();
-    if (userRole !== Role.superAdmin ) {
+    if (userRole !== Role.superAdmin) {
       return NextResponse.json(
         {
-          message:
-            "Forbidden: Only Super Admins  can create invitations",
+          message: "Forbidden: Only Super Admins  can create invitations",
         },
         { status: 403 },
       );
@@ -87,6 +86,7 @@ export async function POST(req: NextRequest) {
         email,
         role,
         invitedBy,
+        projectId,
       });
 
       console.log("Invite Created", invitation);
@@ -107,7 +107,9 @@ export async function POST(req: NextRequest) {
         // If email fails, delete the created user and invitation
         console.error("Email failed, rolling back user creation:", emailError);
         // Remove project allocations first to avoid FK constraint violations
-        await prisma.projectAllocation.deleteMany({ where: { studentId: userId } });
+        await prisma.projectAllocation.deleteMany({
+          where: { studentId: userId },
+        });
         await userRepository.delete(userId);
         await invitationRepository.delete(invitation.id);
         throw new Error(
@@ -152,7 +154,7 @@ export async function GET(req: NextRequest) {
       if (invitations.length === 0) {
         return NextResponse.json(
           { valid: false, message: "Invalid token" },
-          { status: 404 }
+          { status: 404 },
         );
       }
 
@@ -161,14 +163,14 @@ export async function GET(req: NextRequest) {
       if (invitation.accepted) {
         return NextResponse.json(
           { valid: false, message: "Token has already been used" },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
       if (new Date() > new Date(invitation.expiresAt)) {
         return NextResponse.json(
           { valid: false, message: "Token has expired" },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -182,50 +184,26 @@ export async function GET(req: NextRequest) {
     // If no token, return **all invitations for the table**
     const invitations = await invitationRepository.getAll({
       orderBy: { createdAt: "desc" },
-      include: { inviter: true}, // optional, if you want inviter info
+      include: {
+        inviter: true,
+        project: true,
+      },
     });
-    // 2. Fetch all projects
+
     const now = new Date();
-     
 
-    // Fetch all users whose emails match invitations
-    const emails = invitations.map(inv => inv.email);
-    const users = await prisma.user.findMany({
-      where: { email: { in: emails } },
-      select: { id: true, email: true },
-    });
-
-    // Map email → userId
-    const emailToUserId: Record<string, string> = {};
-    users.forEach(user => {
-      emailToUserId[user.email] = user.id;
-    });
-
-    // Fetch project allocations for all invited users who exist
-    const userIds = Object.values(emailToUserId);
-    const allocations = await prisma.projectAllocation.findMany({
-      where: { studentId: { in: userIds } },
-      include: { project: true },
-    });
-
-    // Map userId → project name
-    const projectMap: Record<string, string> = {};
-    allocations.forEach(allocation => {
-      projectMap[allocation.studentId] = allocation.project.name;
-    });
-
-    const mapped = invitations.map(inv => {
-      const status: "Pending" | "Accepted" | "Expired" =
-        inv.accepted ? "Accepted" : (now > new Date(inv.expiresAt) ? "Expired" : "Pending");
-
-      const userId = emailToUserId[inv.email];
-      const projectName = userId ? projectMap[userId] || "-" : "-";
+    const mapped = invitations.map((inv) => {
+      const status: "Pending" | "Accepted" | "Expired" = inv.accepted
+        ? "Accepted"
+        : now > new Date(inv.expiresAt)
+          ? "Expired"
+          : "Pending";
 
       return {
         id: inv.id,
         email: inv.email,
         role: inv.role,
-        project: projectName,
+        project: inv.project?.name || "—",
         status,
         createdAt: inv.createdAt,
         expiresAt: inv.expiresAt,
@@ -235,7 +213,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(mapped, { status: 200 });
   } catch (err) {
     console.error("Error fetching invitations:", err);
-    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
 
@@ -251,7 +232,8 @@ export async function PATCH(req: NextRequest) {
     }
 
     const { id, status } = await req.json();
-    if (!id) return NextResponse.json({ message: "id is required" }, { status: 400 });
+    if (!id)
+      return NextResponse.json({ message: "id is required" }, { status: 400 });
 
     let updateData: { expiresAt?: Date; accepted?: boolean } = {};
 
@@ -260,7 +242,10 @@ export async function PATCH(req: NextRequest) {
         updateData = { accepted: true };
         break;
       case "Pending":
-        updateData = { accepted: false, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) };
+        updateData = {
+          accepted: false,
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        };
         break;
       case "Expired":
       default:
@@ -277,7 +262,10 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ message: "Invitation status updated" });
   } catch (err) {
     console.error("Error updating invitation status:", err);
-    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
 
@@ -294,28 +282,48 @@ export async function DELETE(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
-    if (!id) return NextResponse.json({ message: "id is required" }, { status: 400 });
+    if (!id)
+      return NextResponse.json({ message: "id is required" }, { status: 400 });
 
     const invitation = await prisma.invitation.findUnique({ where: { id } });
-    if (!invitation) return NextResponse.json({ message: "Invitation not found" }, { status: 404 });
+    if (!invitation)
+      return NextResponse.json(
+        { message: "Invitation not found" },
+        { status: 404 },
+      );
 
-    const user = await prisma.user.findUnique({ where: { email: invitation.email } });
+    const user = await prisma.user.findUnique({
+      where: { email: invitation.email },
+    });
 
     if (user) {
       await prisma.$transaction(async (tx) => {
         // Delete mentor feedback on user's activities
-        const activityIds = (await tx.activity.findMany({ where: { studentId: user.id }, select: { id: true } })).map(a => a.id);
-        if (activityIds.length) await tx.mentorFeedback.deleteMany({ where: { activityId: { in: activityIds } } });
+        const activityIds = (
+          await tx.activity.findMany({
+            where: { studentId: user.id },
+            select: { id: true },
+          })
+        ).map((a) => a.id);
+        if (activityIds.length)
+          await tx.mentorFeedback.deleteMany({
+            where: { activityId: { in: activityIds } },
+          });
 
         await tx.activity.deleteMany({ where: { studentId: user.id } });
         await tx.mentorFeedback.deleteMany({ where: { mentorId: user.id } });
         await tx.mentorActivity.deleteMany({ where: { mentorId: user.id } });
         await tx.report.deleteMany({ where: { mentorId: user.id } });
         await tx.userBadge.deleteMany({ where: { userId: user.id } });
-        await tx.projectAllocation.deleteMany({ where: { studentId: user.id } });
+        await tx.projectAllocation.deleteMany({
+          where: { studentId: user.id },
+        });
         await tx.projectMentor.deleteMany({ where: { mentorId: user.id } });
         // Null-out invitations sent BY this user (onDelete: SetNull handles FK, but explicit is safer)
-        await tx.invitation.updateMany({ where: { invitedBy: user.id }, data: { invitedBy: null } });
+        await tx.invitation.updateMany({
+          where: { invitedBy: user.id },
+          data: { invitedBy: null },
+        });
         // Delete the invitation record itself
         await tx.invitation.delete({ where: { id } });
         await tx.user.delete({ where: { id: user.id } });
@@ -328,7 +336,9 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ message: "Deleted successfully" });
   } catch (err) {
     console.error("Error deleting invitation:", err);
-    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
-

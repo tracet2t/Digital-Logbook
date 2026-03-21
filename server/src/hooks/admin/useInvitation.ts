@@ -24,13 +24,6 @@ interface InvitationResponse {
   };
 }
 
-interface GetInvitationResponse {
-  valid: boolean;
-  email?: string;
-  role?: string;
-  message?: string;
-}
-
 export const useInvitation = () => {
   const queryClient = useQueryClient();
 
@@ -60,7 +53,6 @@ export const useInvitation = () => {
 
   return mutation;
 };
-
 
 export const useRecentInvitations = () => {
   return useQuery({
@@ -101,7 +93,11 @@ export const useExpireInvitation = () => {
 export const useChangeInvitationStatus = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<void, Error, { id: string; status: "Accepted" | "Pending" | "Expired" }>({
+  return useMutation<
+    void,
+    Error,
+    { id: string; status: "Accepted" | "Pending" | "Expired" }
+  >({
     mutationFn: async ({ id, status }) => {
       const res = await fetch("/api/invitations", {
         method: "PATCH",
@@ -110,7 +106,9 @@ export const useChangeInvitationStatus = () => {
       });
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to update invitation status");
+        throw new Error(
+          errorData.message || "Failed to update invitation status",
+        );
       }
     },
     onSuccess: () => {
@@ -128,7 +126,9 @@ export const useDeleteInvitation = () => {
 
   return useMutation<void, Error, { id: string }>({
     mutationFn: async ({ id }) => {
-      const res = await fetch(`/api/invitations?id=${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/invitations?id=${id}`, {
+        method: "DELETE",
+      });
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.message || "Failed to delete invitation");
@@ -155,4 +155,3 @@ export const useValidateInvitation = (token: string) => {
     enabled: !!token,
   });
 };
->>>>>>> 86ewz6naj-Invitation
