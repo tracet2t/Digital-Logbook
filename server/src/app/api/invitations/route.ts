@@ -2,11 +2,33 @@ import { InvitationRepository } from "@/repositories/invitation_repository_impl"
 import { UserRepository } from "@/repositories/user_repository_impl";
 import getSession from "@/server_actions/getSession";
 import { registerStudent } from "@/services/registerstudent";
-import { Role } from "@prisma/client";
+import { Invitation, Project, Role } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 import { sendEmail } from "@/lib/email";
 import prisma from "@/lib/prisma";
+
+// Type for invitation with project relation
+type InvitationWithProject = Invitation & {
+  project: Project | null;
+  inviter: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+  } | null;
+};
+
+// Type for mapped invitation response
+interface MappedInvitation {
+  id: string;
+  email: string;
+  role: string;
+  project: string;
+  status: "Pending" | "Accepted" | "Expired";
+  createdAt: Date;
+  expiresAt: Date;
+}
 
 const invitationRepository = new InvitationRepository();
 const userRepository = new UserRepository();
@@ -182,17 +204,17 @@ export async function GET(req: NextRequest) {
     }
 
     // If no token, return **all invitations for the table**
-    const invitations = await invitationRepository.getAll({
+    const invitations = (await invitationRepository.getAll({
       orderBy: { createdAt: "desc" },
       include: {
         inviter: true,
         project: true,
       },
-    });
+    })) as InvitationWithProject[];
 
     const now = new Date();
 
-    const mapped = invitations.map((inv) => {
+    const mapped: MappedInvitation[] = invitations.map((inv) => {
       const status: "Pending" | "Accepted" | "Expired" = inv.accepted
         ? "Accepted"
         : now > new Date(inv.expiresAt)
