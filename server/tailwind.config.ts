@@ -86,6 +86,15 @@ const config = {
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out'
+  		},
+  		fontSize: {
+  			// Admin module heading scale
+  			// page-title   : top-level page heading  (h1 in the page header bar)
+  			// section-title: card / section headings (h2/h3 inside content areas)
+  			// card-label   : small all-caps labels inside cards / table headers
+  			'page-title':    ['1.25rem',   { lineHeight: '1.75rem', fontWeight: '600', letterSpacing: '-0.01em' }],
+  			'section-title': ['0.875rem',  { lineHeight: '1.25rem', fontWeight: '600' }],
+  			'card-label':    ['0.6875rem', { lineHeight: '1rem',    fontWeight: '700', letterSpacing: '0.05em' }],
   		}
   	}
   },
