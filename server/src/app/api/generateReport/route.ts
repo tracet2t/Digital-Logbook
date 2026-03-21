@@ -1,8 +1,10 @@
 // src/api/reports.ts
-import { NextRequest, NextResponse } from "next/server";
-import { reportQueue } from "@/lib/queue";
 import { ReportRepository } from "@/repositories/report_repository_impl";
 import getSession from "@/server_actions/getSession";
+import { Role } from "@prisma/client";
+import { NextRequest, NextResponse } from "next/server";
+
+import { reportQueue } from "@/lib/queue";
 
 const reportRepository = new ReportRepository();
 
@@ -54,26 +56,46 @@ export const GET = async (req: NextRequest) => {
   try {
     const session = await getSession();
 
-    if (!session) {
+    if (!session || !session.isAuthenticated()) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     const userId = session.getId();
-    if (!userId) {
+    const userRole = session.getRole();
+
+    if (!userId || !userRole) {
       return NextResponse.json(
         { message: "User ID not found" },
         { status: 401 },
       );
     }
 
-    // Retrieve all reports for the mentor using the repository
+    if (userRole !== Role.mentor && userRole !== Role.superAdmin) {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    }
+
     const reports = await reportRepository.getAll({
-      where: {
-        mentorId: userId,
+      where:
+        userRole === Role.superAdmin
+          ? {}
+          : {
+              mentorId: userId,
+            },
+      include: {
+        mentor: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        generatedAt: "desc",
       },
     });
 
-    // Respond with the report data
     return NextResponse.json(reports);
   } catch (error) {
     console.error("Error fetching reports:", error);
