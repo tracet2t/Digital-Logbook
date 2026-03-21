@@ -317,7 +317,7 @@ export default function UsersPage() {
 
 					<div className="space-y-4 p-4 md:p-5">
 						<div>
-							<h1 className="text-2xl font-bold text-slate-900">User Administration</h1>
+							<h1 className="text-page-title text-slate-900">User Administration</h1>
 							<p className="mt-1 text-sm text-slate-500">
 								Manage system users, define their platform roles, and monitor
 								account statuses.

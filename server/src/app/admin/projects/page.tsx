@@ -187,7 +187,7 @@ export default function ProjectsPage() {
       <div className="flex-1 p-8 space-y-6 min-w-0">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-[#0A0A0A]">Projects</h1>
+          <h1 className="text-page-title text-[#0A0A0A]">Projects</h1>
           <Button
             className="bg-[#0A0A0A] text-white hover:bg-[#333] flex items-center gap-2"
             onClick={() => { setCreateForm(EMPTY_FORM); setShowCreate(true); }}

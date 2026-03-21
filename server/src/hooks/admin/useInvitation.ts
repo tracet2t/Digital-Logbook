@@ -73,7 +73,7 @@ export const useExpireInvitation = () => {
       const res = await fetch("/api/invitations", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ id, status: "Expired" }),
       });
       if (!res.ok) {
         const errorData = await res.json();
@@ -86,6 +86,31 @@ export const useExpireInvitation = () => {
     },
     onError: (error) => {
       toast.error(error.message || "Failed to expire invitation");
+    },
+  });
+};
+
+export const useChangeInvitationStatus = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, { id: string; status: "Accepted" | "Pending" | "Expired" }>({
+    mutationFn: async ({ id, status }) => {
+      const res = await fetch("/api/invitations", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status }),
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to update invitation status");
+      }
+    },
+    onSuccess: () => {
+      toast.success("Invitation status updated.");
+      queryClient.invalidateQueries({ queryKey: ["invitations"] });
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update invitation status");
     },
   });
 };

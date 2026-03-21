@@ -2,13 +2,18 @@
 
 import React, { useEffect, useState } from 'react';
 import AsideSidebar from "@/components/AsideSidebar";
-import { useInvitation, useRecentInvitations, useExpireInvitation, useDeleteInvitation } from "@/hooks/admin/useInvitation";
+import { useInvitation, useRecentInvitations, useChangeInvitationStatus, useDeleteInvitation } from "@/hooks/admin/useInvitation";
 import { z } from 'zod';
 import {
   UserPlus,
   Send,
   MoreVertical,
-  ChevronDown
+  ChevronDown,
+  Plus,
+  Users,
+  Clock,
+  CheckCircle2,
+  XCircle
 } from 'lucide-react';
 import { Project } from '@prisma/client';
 import {
@@ -32,6 +37,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -73,7 +79,7 @@ export default function InvitationsView() {
   const [projects, setProjects] = useState<Project[]>([]);
   const { mutate: sendInvitation, isPending } = useInvitation();
   const { data: recentInvitations, isLoading: isInvLoading, isError: isInvError } = useRecentInvitations();
-  const { mutate: expireInvitation, isPending: isExpiring } = useExpireInvitation();
+  const { mutate: changeStatus, isPending: isChangingStatus } = useChangeInvitationStatus();
   const { mutate: deleteInvitation, isPending: isDeleting } = useDeleteInvitation();
 
   const [formData, setFormData] = useState({
@@ -89,8 +95,10 @@ export default function InvitationsView() {
   const [page, setPage] = useState(1);
 
   // Modals
+  const [createOpen, setCreateOpen] = useState(false);
   const [viewInv, setViewInv] = useState<InvitationRow | null>(null);
-  const [expireId, setExpireId] = useState<string | null>(null);
+  const [changeStatusInv, setChangeStatusInv] = useState<InvitationRow | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<'Accepted' | 'Pending' | 'Expired'>('Pending');
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const handleInputChange = (field: string, value: string) => {
@@ -133,6 +141,7 @@ export default function InvitationsView() {
         email: "",
         project: "",
       });
+      setCreateOpen(false);
     }
   });
 };
@@ -154,140 +163,88 @@ useEffect(() => {
 
   const invList: InvitationRow[] = (recentInvitations as InvitationRow[] | undefined) ?? [];
   const totalInvitations = invList.length;
+  const pendingCount = invList.filter(i => i.status === 'Pending').length;
+  const acceptedCount = invList.filter(i => i.status === 'Accepted').length;
+  const expiredCount = invList.filter(i => i.status === 'Expired').length;
   const totalPages = Math.max(1, Math.ceil(totalInvitations / ITEMS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);
   const pagedInvitations = invList.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   return (
     <>
-    <div className="flex min-h-screen bg-[#f1f1f9]">
+    <div className="flex min-h-screen bg-[#f5f5f7]">
       <AsideSidebar />
-      <div className="flex-1 flex flex-col">
-        {/* Top Bar */}
-        <div className="bg-white border-b border-[#E5E5E5] px-8 py-4 flex items-center justify-between">
-          <h1 className="text-base font-semibold text-[#0A0A0A]">Invitations</h1>
-        </div>
+      <div className="flex-1 flex flex-col min-w-0">
 
-        <div className="flex-1 p-8 space-y-8">
-        {/* Page Title */}
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight mb-1.5">Invitations Management</h2>
-          <p className="text-sm text-slate-500">Manage organizational access and track member onboarding status.</p>
-        </div>
-
-        {/* Invite User Card */}
-        <div className="border border-slate-200 rounded-xl bg-white shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-slate-100 bg-slate-50/50">
-            <div className="flex items-center gap-2 font-semibold text-sm text-slate-900">
-              <div className="bg-slate-200/50 p-1.5 rounded-md">
-                <UserPlus size={16} />
-              </div>
-              Invite User
+        {/* Page Header */}
+        <div className="bg-white border-b border-slate-200 px-8 py-6">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h1 className="text-page-title text-slate-900">Invitations</h1>
+              <p className="text-sm text-slate-500 mt-0.5">Manage organizational access and track member onboarding.</p>
             </div>
+            <button
+              onClick={() => setCreateOpen(true)}
+              className="inline-flex items-center gap-2 h-9 px-4 bg-[#18181B] hover:bg-[#27272A] text-white text-sm font-medium rounded-lg transition-colors shadow-sm shrink-0"
+            >
+              <Plus size={15} />
+              Create Invitation
+            </button>
           </div>
-          
-          <div className="p-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-start">
-              {/* Row 1 / Col 1 */}
-              <div className="w-full">
-                <label className="block text-[11px] font-bold text-slate-900 uppercase tracking-wide mb-2.5">Role</label>
-                <div className="relative">
-                  <select 
-                    value={formData.role}
-                    onChange={(e) => handleInputChange('role', e.target.value)}
-                    className={`w-full h-10 px-3 pr-10 border ${errors.role ? 'border-red-500 focus:ring-red-500 text-red-900' : 'border-slate-200 focus:ring-slate-900 text-slate-700'} rounded-md bg-white text-sm appearance-none focus:outline-none focus:ring-2 focus:border-transparent cursor-pointer`}
-                  >
-                    <option value="" disabled>Select Role</option>
-                    <option value="student">Student</option>
-                    <option value="mentor">Mentor</option>
-                    <option value="admin">superAdmin</option>
-                  </select>
-                  <ChevronDown size={14} className="absolute right-3 top-3 text-slate-500 pointer-events-none" />
-                </div>
-                {errors.role && <p className="text-[10px] text-red-500 mt-1.5 font-medium">{errors.role}</p>}
-              </div>
+        </div>
 
-              {/* Row 1 / Col 2 */}
-              <div className="w-full">
-                <label className="block text-[11px] font-bold text-slate-900 uppercase tracking-wide mb-2.5">First Name</label>
-                <input 
-                  type="text" 
-                  placeholder="Jane" 
-                  value={formData.firstName}
-                  onChange={(e) => handleInputChange('firstName', e.target.value)}
-                  className={`w-full h-10 px-3 border ${errors.firstName ? 'border-red-500 focus:ring-red-500 placeholder:text-red-300' : 'border-slate-200 focus:ring-slate-900 placeholder:text-slate-400'} rounded-md bg-white text-sm focus:outline-none focus:ring-2 focus:border-transparent`}
-                />
-                {errors.firstName && <p className="text-[10px] text-red-500 mt-1.5 font-medium">{errors.firstName}</p>}
-              </div>
+        <div className="flex-1 px-8 py-6 space-y-6">
 
-              {/* Row 1 / Col 3 */}
-              <div className="w-full">
-                <label className="block text-[11px] font-bold text-slate-900 uppercase tracking-wide mb-2.5">Last Name</label>
-                <input 
-                  type="text" 
-                  placeholder="Doe" 
-                  value={formData.lastName}
-                  onChange={(e) => handleInputChange('lastName', e.target.value)}
-                  className={`w-full h-10 px-3 border ${errors.lastName ? 'border-red-500 focus:ring-red-500 placeholder:text-red-300' : 'border-slate-200 focus:ring-slate-900 placeholder:text-slate-400'} rounded-md bg-white text-sm focus:outline-none focus:ring-2 focus:border-transparent`}
-                />
-                {errors.lastName && <p className="text-[10px] text-red-500 mt-1.5 font-medium">{errors.lastName}</p>}
-              </div>
-              
-              {/* Row 2 / Col 1 */}
-              <div className="w-full">
-                <label className="block text-[11px] font-bold text-slate-900 uppercase tracking-wide mb-2.5">Email Address</label>
-                <input 
-                  type="email" 
-                  placeholder="email@example.com" 
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  className={`w-full h-10 px-3 border ${errors.email ? 'border-red-500 focus:ring-red-500 placeholder:text-red-300' : 'border-slate-200 focus:ring-slate-900 placeholder:text-slate-400'} rounded-md bg-white text-sm focus:outline-none focus:ring-2 focus:border-transparent`}
-                />
-                {errors.email && <p className="text-[10px] text-red-500 mt-1.5 font-medium">{errors.email}</p>}
-              </div>
-
-              {/* Row 2 / Col 2 */}
-              <div className="w-full">
-                <label className="block text-[11px] font-bold text-slate-900 uppercase tracking-wide mb-2.5">Project</label>
-                <div className="relative">
-                  <select 
-                    value={formData.project}
-                    onChange={(e) => handleInputChange('project', e.target.value)}
-                    className={`w-full h-10 px-3 pr-10 border ${errors.project ? 'border-red-500 focus:ring-red-500 text-red-900' : 'border-slate-200 focus:ring-slate-900 text-slate-700'} rounded-md bg-white text-sm appearance-none focus:outline-none focus:ring-2 focus:border-transparent cursor-pointer`}
-                  >
-                    <option value="" disabled>Select Project</option>
-                    {projects.map((proj) => (
-                        <option key={proj.id} value={proj.id}>{proj.name}</option>
-                    ))}
-                  </select>
-                  <ChevronDown size={14} className="absolute right-3 top-3 text-slate-500 pointer-events-none" />
-                </div>
-                {errors.project && <p className="text-[10px] text-red-500 mt-1.5 font-medium">{errors.project}</p>}
-              </div>
-
-              {/* Row 2 / Col 3 - Button */}
-              <div className="w-full flex flex-col justify-start">
-                <button 
-                  onClick={handleSubmit}
-                  disabled={isPending}
-                  className="h-10 w-full bg-[#18181B] hover:bg-[#27272A] text-white text-sm font-medium rounded-md transition-colors flex items-center justify-center gap-2 shadow-sm mt-[24px]"
-                >
-                  <Send size={16} />
-                  Send Invitation
-                </button>
+        {/* Stat Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white border border-slate-200 rounded-xl px-5 py-4">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Total</p>
+              <div className="h-8 w-8 rounded-lg bg-slate-100 flex items-center justify-center">
+                <Users size={15} className="text-slate-500" />
               </div>
             </div>
+            <p className="text-2xl font-bold text-slate-900">{isInvLoading ? '—' : totalInvitations}</p>
+          </div>
+          <div className="bg-white border border-slate-200 rounded-xl px-5 py-4">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-medium text-amber-600 uppercase tracking-wide">Pending</p>
+              <div className="h-8 w-8 rounded-lg bg-amber-50 flex items-center justify-center">
+                <Clock size={15} className="text-amber-500" />
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-slate-900">{isInvLoading ? '—' : pendingCount}</p>
+          </div>
+          <div className="bg-white border border-slate-200 rounded-xl px-5 py-4">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-medium text-emerald-600 uppercase tracking-wide">Accepted</p>
+              <div className="h-8 w-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                <CheckCircle2 size={15} className="text-emerald-500" />
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-slate-900">{isInvLoading ? '—' : acceptedCount}</p>
+          </div>
+          <div className="bg-white border border-slate-200 rounded-xl px-5 py-4">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-medium text-rose-600 uppercase tracking-wide">Expired</p>
+              <div className="h-8 w-8 rounded-lg bg-rose-50 flex items-center justify-center">
+                <XCircle size={15} className="text-rose-500" />
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-slate-900">{isInvLoading ? '—' : expiredCount}</p>
           </div>
         </div>
 
-        {/* Recent Invitations Section */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-bold text-slate-900 tracking-tight">Recent Invitations</h3>
+        {/* Invitations Table */}
+        <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+          {/* Table Toolbar */}
+          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-semibold text-slate-900">All Invitations</h3>
+              {!isInvLoading && <p className="text-xs text-slate-400 mt-0.5">{totalInvitations} total record{totalInvitations !== 1 ? 's' : ''}</p>}
+            </div>
           </div>
-
-          <div className="border border-slate-200 rounded-xl bg-white shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
+          <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead className="bg-slate-50/95">
                   <tr>
@@ -331,11 +288,9 @@ useEffect(() => {
                             <DropdownMenuItem onSelect={() => setViewInv(inv)}>
                               View Details
                             </DropdownMenuItem>
-                            {inv.status !== 'Expired' && (
-                              <DropdownMenuItem onSelect={() => setExpireId(inv.id)}>
-                                Mark as Expired
-                              </DropdownMenuItem>
-                            )}
+                            <DropdownMenuItem onSelect={() => { setChangeStatusInv(inv); setSelectedStatus(inv.status); }}>
+                              Change Status
+                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                               className="text-red-600 focus:text-red-600 focus:bg-red-50"
@@ -352,8 +307,8 @@ useEffect(() => {
               </table>
             </div>
 
-            {/* Pagination */}
-            <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100">
+              {/* Pagination */}
+              <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100">
               <p className="text-sm text-slate-500">
                 Showing{" "}
                 <span className="font-medium text-slate-900">
@@ -380,12 +335,166 @@ useEffect(() => {
                   </PaginationItem>
                 </PaginationContent>
               </Pagination>
-            </div>
+              </div>
           </div>
-        </div>
         </div>
       </div>
     </div>
+
+    {/* ── Create Invitation Dialog ─────────────────────────────────────── */}
+    <Dialog open={createOpen} onOpenChange={open => { setCreateOpen(open); if (!open) { setErrors({}); } }}>
+      <DialogContent className="max-w-xl p-0 gap-0 overflow-hidden">
+        {/* Header */}
+        <div className="px-6 py-5 border-b border-slate-200 bg-slate-50">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2.5 text-base font-semibold text-slate-900">
+              <div className="bg-slate-900 text-white p-1.5 rounded-md">
+                <UserPlus size={15} />
+              </div>
+              Create Invitation
+            </DialogTitle>
+            <DialogDescription className="text-sm text-slate-500 mt-1">
+              Send an invitation email to onboard a new member to your organization.
+            </DialogDescription>
+          </DialogHeader>
+        </div>
+
+        {/* Form Body */}
+        <div className="px-6 py-5 space-y-5">
+
+          {/* Section: Access Details */}
+          <div>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Access Details</p>
+            <div className="grid grid-cols-2 gap-4">
+              {/* Role */}
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-slate-700">
+                  Role <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <select
+                    value={formData.role}
+                    onChange={(e) => handleInputChange('role', e.target.value)}
+                    className={`w-full h-10 px-3 pr-10 border ${errors.role ? 'border-red-400 focus:ring-red-400 bg-red-50/40' : 'border-slate-300 focus:ring-slate-900 bg-white'} rounded-lg text-sm text-slate-800 appearance-none focus:outline-none focus:ring-2 focus:border-transparent cursor-pointer transition-colors`}
+                  >
+                    <option value="" disabled>Select a role…</option>
+                    <option value="student">Student</option>
+                    <option value="mentor">Mentor</option>
+                    <option value="admin">Super Admin</option>
+                  </select>
+                  <ChevronDown size={14} className="absolute right-3 top-3 text-slate-400 pointer-events-none" />
+                </div>
+                {errors.role
+                  ? <p className="text-xs text-red-500 font-medium">{errors.role}</p>
+                  : <p className="text-xs text-slate-400">Determines the user's access level</p>
+                }
+              </div>
+
+              {/* Project */}
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-slate-700">
+                  Project <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <select
+                    value={formData.project}
+                    onChange={(e) => handleInputChange('project', e.target.value)}
+                    className={`w-full h-10 px-3 pr-10 border ${errors.project ? 'border-red-400 focus:ring-red-400 bg-red-50/40' : 'border-slate-300 focus:ring-slate-900 bg-white'} rounded-lg text-sm text-slate-800 appearance-none focus:outline-none focus:ring-2 focus:border-transparent cursor-pointer transition-colors`}
+                  >
+                    <option value="" disabled>Select a project…</option>
+                    {projects.map((proj) => (
+                      <option key={proj.id} value={proj.id}>{proj.name}</option>
+                    ))}
+                  </select>
+                  <ChevronDown size={14} className="absolute right-3 top-3 text-slate-400 pointer-events-none" />
+                </div>
+                {errors.project
+                  ? <p className="text-xs text-red-500 font-medium">{errors.project}</p>
+                  : <p className="text-xs text-slate-400">Assign to an existing project</p>
+                }
+              </div>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-slate-100" />
+
+          {/* Section: Recipient Details */}
+          <div>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Recipient Details</p>
+            <div className="space-y-4">
+              {/* Name row */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-medium text-slate-700">
+                    First Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Jane"
+                    value={formData.firstName}
+                    onChange={(e) => handleInputChange('firstName', e.target.value)}
+                    className={`w-full h-10 px-3 border ${errors.firstName ? 'border-red-400 focus:ring-red-400 bg-red-50/40 placeholder:text-red-300' : 'border-slate-300 focus:ring-slate-900 bg-white placeholder:text-slate-400'} rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:border-transparent transition-colors`}
+                  />
+                  {errors.firstName && <p className="text-xs text-red-500 font-medium">{errors.firstName}</p>}
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-medium text-slate-700">
+                    Last Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Doe"
+                    value={formData.lastName}
+                    onChange={(e) => handleInputChange('lastName', e.target.value)}
+                    className={`w-full h-10 px-3 border ${errors.lastName ? 'border-red-400 focus:ring-red-400 bg-red-50/40 placeholder:text-red-300' : 'border-slate-300 focus:ring-slate-900 bg-white placeholder:text-slate-400'} rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:border-transparent transition-colors`}
+                  />
+                  {errors.lastName && <p className="text-xs text-red-500 font-medium">{errors.lastName}</p>}
+                </div>
+              </div>
+
+              {/* Email */}
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-slate-700">
+                  Email Address <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  placeholder="e.g. jane.doe@company.com"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  className={`w-full h-10 px-3 border ${errors.email ? 'border-red-400 focus:ring-red-400 bg-red-50/40 placeholder:text-red-300' : 'border-slate-300 focus:ring-slate-900 bg-white placeholder:text-slate-400'} rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:border-transparent transition-colors`}
+                />
+                {errors.email
+                  ? <p className="text-xs text-red-500 font-medium">{errors.email}</p>
+                  : <p className="text-xs text-slate-400">The invitation link will be sent to this address</p>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between gap-3">
+          <p className="text-xs text-slate-400">Fields marked <span className="text-red-500 font-medium">*</span> are required</p>
+          <div className="flex items-center gap-2">
+            <DialogClose asChild>
+              <Button variant="outline" disabled={isPending} className="h-9 px-4 text-sm">
+                Cancel
+              </Button>
+            </DialogClose>
+            <button
+              onClick={handleSubmit}
+              disabled={isPending}
+              className="inline-flex items-center gap-2 h-9 px-5 bg-[#18181B] hover:bg-[#27272A] text-white text-sm font-medium rounded-lg transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <Send size={14} />
+              {isPending ? 'Sending…' : 'Send Invitation'}
+            </button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
 
     {/* ── View Details Dialog ──────────────────────────────────────────── */}
     <Dialog open={!!viewInv} onOpenChange={open => !open && setViewInv(null)}>
@@ -431,27 +540,63 @@ useEffect(() => {
       </DialogContent>
     </Dialog>
 
-    {/* ── Expire Confirmation Dialog ───────────────────────────────────── */}
-    <AlertDialog open={!!expireId} onOpenChange={open => !open && setExpireId(null)}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Mark Invitation as Expired</AlertDialogTitle>
-          <AlertDialogDescription>
-            This will immediately invalidate the invitation link. The invited user will no longer be able to use it to complete registration.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isExpiring}>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            className="bg-amber-600 hover:bg-amber-700 text-white"
-            disabled={isExpiring}
-            onClick={() => expireId && expireInvitation({ id: expireId }, { onSettled: () => setExpireId(null) })}
+    {/* ── Change Status Dialog ─────────────────────────────────────────── */}
+    <Dialog open={!!changeStatusInv} onOpenChange={open => !open && setChangeStatusInv(null)}>
+      <DialogContent className="max-w-sm p-0 gap-0 overflow-hidden">
+        {/* Header */}
+        <div className="px-5 py-4 border-b border-slate-200 bg-slate-50">
+          <DialogHeader>
+            <DialogTitle className="text-sm font-semibold text-slate-900">Change Invitation Status</DialogTitle>
+            <DialogDescription className="text-xs text-slate-500 mt-0.5">
+              Update the status for <span className="font-medium text-slate-700">{changeStatusInv?.email}</span>
+            </DialogDescription>
+          </DialogHeader>
+        </div>
+
+        {/* Status Options */}
+        <div className="px-5 py-4 space-y-2">
+          {([
+            { value: 'Accepted', label: 'Active', desc: 'Invitation is accepted and account is active', color: 'text-emerald-600', dot: 'bg-emerald-500', ring: 'border-emerald-500 bg-emerald-50' },
+            { value: 'Pending', label: 'Pending', desc: 'Awaiting the invitee to complete registration', color: 'text-amber-600', dot: 'bg-amber-500', ring: 'border-amber-500 bg-amber-50' },
+            { value: 'Expired', label: 'Expired', desc: 'Invalidates the invitation link immediately', color: 'text-rose-600', dot: 'bg-rose-500', ring: 'border-rose-500 bg-rose-50' },
+          ] as const).map(opt => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => setSelectedStatus(opt.value)}
+              className={`w-full flex items-start gap-3 px-4 py-3 rounded-lg border text-left transition-all ${
+                selectedStatus === opt.value
+                  ? `${opt.ring} border-2`
+                  : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+              }`}
+            >
+              <span className={`mt-1 h-3.5 w-3.5 rounded-full shrink-0 ${selectedStatus === opt.value ? opt.dot : 'bg-slate-300'}`} />
+              <div>
+                <p className={`text-sm font-semibold ${selectedStatus === opt.value ? opt.color : 'text-slate-700'}`}>{opt.label}</p>
+                <p className="text-xs text-slate-400 mt-0.5">{opt.desc}</p>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div className="px-5 py-3 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-2">
+          <DialogClose asChild>
+            <Button variant="outline" disabled={isChangingStatus} className="h-8 px-3 text-sm">Cancel</Button>
+          </DialogClose>
+          <button
+            disabled={isChangingStatus || selectedStatus === changeStatusInv?.status}
+            onClick={() => changeStatusInv && changeStatus(
+              { id: changeStatusInv.id, status: selectedStatus },
+              { onSettled: () => setChangeStatusInv(null) }
+            )}
+            className="inline-flex items-center h-8 px-4 bg-[#18181B] hover:bg-[#27272A] text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isExpiring ? 'Expiring…' : 'Mark as Expired'}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+            {isChangingStatus ? 'Saving…' : 'Save'}
+          </button>
+        </div>
+      </DialogContent>
+    </Dialog>
 
     {/* ── Delete Confirmation Dialog ────────────────────────────────────── */}
     <AlertDialog open={!!deleteId} onOpenChange={open => !open && setDeleteId(null)}>
@@ -493,10 +638,16 @@ function StatusBadge({ status }: { status: 'Pending' | 'Accepted' | 'Expired' })
     Expired: "bg-rose-500",
   };
 
+  const labels = {
+    Pending: "Pending",
+    Accepted: "Active",
+    Expired: "Expired",
+  };
+
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${styles[status]}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${dotColors[status]}`}></span>
-      {status}
+      {labels[status]}
     </span>
   );
 }

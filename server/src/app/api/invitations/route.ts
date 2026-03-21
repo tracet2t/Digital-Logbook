@@ -106,6 +106,8 @@ export async function POST(req: NextRequest) {
       } catch (emailError: any) {
         // If email fails, delete the created user and invitation
         console.error("Email failed, rolling back user creation:", emailError);
+        // Remove project allocations first to avoid FK constraint violations
+        await prisma.projectAllocation.deleteMany({ where: { studentId: userId } });
         await userRepository.delete(userId);
         await invitationRepository.delete(invitation.id);
         throw new Error(
@@ -237,7 +239,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// PATCH: Expire an invitation so the link can no longer be used
+// PATCH: Update the status of an invitation
 export async function PATCH(req: NextRequest) {
   try {
     const session = await getSession();
@@ -248,18 +250,33 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
-    const { id } = await req.json();
+    const { id, status } = await req.json();
     if (!id) return NextResponse.json({ message: "id is required" }, { status: 400 });
 
-    // Set expiresAt to epoch so the token is permanently invalidated
+    let updateData: { expiresAt?: Date; accepted?: boolean } = {};
+
+    switch (status) {
+      case "Accepted":
+        updateData = { accepted: true };
+        break;
+      case "Pending":
+        updateData = { accepted: false, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) };
+        break;
+      case "Expired":
+      default:
+        // Set expiresAt to epoch so the token is permanently invalidated
+        updateData = { accepted: false, expiresAt: new Date(0) };
+        break;
+    }
+
     await prisma.invitation.update({
       where: { id },
-      data: { expiresAt: new Date(0) },
+      data: updateData,
     });
 
-    return NextResponse.json({ message: "Invitation expired" });
+    return NextResponse.json({ message: "Invitation status updated" });
   } catch (err) {
-    console.error("Error expiring invitation:", err);
+    console.error("Error updating invitation status:", err);
     return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
 }
