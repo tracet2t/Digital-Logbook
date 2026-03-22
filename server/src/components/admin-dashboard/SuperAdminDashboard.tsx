@@ -155,7 +155,8 @@ export default function SuperAdminDashboard({
         [254, 226, 226],
       ];
       cards.slice(0, 3).forEach((card, idx) => {
-        doc.setFillColor(...metricColors[idx]);
+        const [r, g, b] = metricColors[idx];
+        doc.setFillColor(r, g, b);
         doc.roundedRect(boxX, boxY, boxW, boxH, 8, 8, "F");
         doc.setDrawColor(203);
         doc.roundedRect(boxX, boxY, boxW, boxH, 8, 8, "S");
