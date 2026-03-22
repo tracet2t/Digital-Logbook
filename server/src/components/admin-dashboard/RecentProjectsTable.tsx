@@ -9,7 +9,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import StatusBadge, { ProjectStatus } from "./StatusBadge";
+import { AdminStatusBadge } from "@/components/admin";
+import { ProjectStatus } from "./StatusBadge";
 
 export interface ProjectRow {
   projectName: string;
@@ -57,7 +58,7 @@ export default function RecentProjectsTable({ projects }: RecentProjectsTablePro
                   <TableCell>{project.domain}</TableCell>
                   <TableCell>{project.dateCreated}</TableCell>
                   <TableCell>
-                    <StatusBadge status={project.status} />
+                    <AdminStatusBadge status={project.status} />
                   </TableCell>
                 </TableRow>
               ))}

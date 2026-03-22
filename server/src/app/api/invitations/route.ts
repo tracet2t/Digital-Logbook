@@ -8,9 +8,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email";
 import prisma from "@/lib/prisma";
 
-// Type for invitation with project relation
-type InvitationWithProject = Invitation & {
-  project: Project | null;
+// Type for invitation with inviter relation
+type InvitationWithInviter = Invitation & {
+  projectId?: string | null;
   inviter: {
     id: string;
     email: string;
@@ -208,9 +208,20 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: "desc" },
       include: {
         inviter: true,
-        project: true,
       },
-    })) as InvitationWithProject[];
+    })) as InvitationWithInviter[];
+
+    const projectIdSet = new Set(
+      invitations
+        .map((inv) => inv.projectId)
+        .filter((id): id is string => Boolean(id)),
+    );
+
+    const projects = await prisma.project.findMany({
+      where: { id: { in: Array.from(projectIdSet) } },
+    });
+
+    const projectById = new Map(projects.map((p) => [p.id, p.name]));
 
     const now = new Date();
 
@@ -225,7 +236,7 @@ export async function GET(req: NextRequest) {
         id: inv.id,
         email: inv.email,
         role: inv.role,
-        project: inv.project?.name || "—",
+        project: inv.projectId ? projectById.get(inv.projectId) ?? "—" : "—",
         status,
         createdAt: inv.createdAt,
         expiresAt: inv.expiresAt,
