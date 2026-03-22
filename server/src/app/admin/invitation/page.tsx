@@ -115,8 +115,10 @@ export default function InvitationsView() {
   };
 
   // Invitations list with filtering
-  const invList: InvitationRow[] =
-    (recentInvitations as InvitationRow[] | undefined) ?? [];
+  const invList: InvitationRow[] = useMemo(
+    () => (recentInvitations as InvitationRow[] | undefined) ?? [],
+    [recentInvitations],
+  );
 
   const filteredInvitations = useMemo(() => {
     const query = search.trim().toLowerCase();
