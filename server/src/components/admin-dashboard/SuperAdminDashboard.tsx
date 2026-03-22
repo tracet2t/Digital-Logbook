@@ -22,9 +22,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import AsideSidebar from "@/components/AsideSidebar";
+import {
+  AdminPageLayout,
+  PageHeader,
+} from "@/components/admin";
 
-import DashboardHeader from "./DashboardHeader";
 import RecentProjectsTable from "./RecentProjectsTable";
 import StatsGrid from "./StatsGrid";
 
@@ -234,10 +236,8 @@ export default function SuperAdminDashboard({
   const openDialog = () => setIsExportDialogOpen(true);
 
   return (
-    <div className="flex min-h-screen bg-[#f5f7fb]">
-      <AsideSidebar />
-      <main className="flex-1 p-4 md:p-8">
-        <div className="mx-auto w-full max-w-6xl space-y-5">
+    <AdminPageLayout>
+      <div className="flex-1 p-5 md:p-8 space-y-5">
           <Dialog
             open={isExportDialogOpen}
             onOpenChange={setIsExportDialogOpen}
@@ -296,34 +296,24 @@ export default function SuperAdminDashboard({
           ) : (
             <>
               <div className="rounded-2xl border border-slate-200 bg-white p-4 md:p-6">
-                {/* Header inside card */}
-                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between mb-6">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
-                      Dashboard Overview
-                    </p>
-                    <h1 className="mt-1 text-3xl font-bold text-slate-900">
-                      Admin Super Dashboard
-                    </h1>
-                    <p className="mt-1 text-sm text-slate-600">
-                      Welcome back{userName ? `, ${userName}` : ""}! Here&apos;s
-                      your latest platform summary.
-                    </p>
-                  </div>
-                  <Button
-                    className="h-10 bg-slate-900 text-white hover:bg-slate-800 shrink-0"
-                    onClick={openDialog}
-                  >
-                    Export Data
-                  </Button>
-                </div>
+                <PageHeader
+                  title="Admin Super Dashboard"
+                  subtitle={`Welcome back${userName ? `, ${userName}` : ""}! Here’s your latest platform summary.`}
+                  action={
+                    <Button
+                      className="h-10 bg-slate-900 text-white hover:bg-slate-800 shrink-0"
+                      onClick={openDialog}
+                    >
+                      Export Data
+                    </Button>
+                  }
+                />
                 <StatsGrid stats={cards} />
               </div>
               <RecentProjectsTable projects={recentProjects} />
             </>
           )}
-        </div>
-      </main>
-    </div>
+      </div>
+    </AdminPageLayout>
   );
 }
