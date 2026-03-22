@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import TableStateRows from "@/components/admin/TableStateRows";
 
 import { ReportRow } from "./types";
 
@@ -81,34 +82,16 @@ export function ReportsTable({ isLoading, fetchError, visibleReports }: Props) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {isLoading ? (
-          <TableRow>
-            <TableCell
-              colSpan={4}
-              className="py-8 text-center text-sm text-[#737373]"
-            >
-              Loading reports...
-            </TableCell>
-          </TableRow>
-        ) : fetchError ? (
-          <TableRow>
-            <TableCell
-              colSpan={4}
-              className="py-8 text-center text-sm text-red-500"
-            >
-              {fetchError}
-            </TableCell>
-          </TableRow>
-        ) : visibleReports.length === 0 ? (
-          <TableRow>
-            <TableCell
-              colSpan={4}
-              className="py-8 text-center text-sm text-[#737373]"
-            >
-              No reports found for the selected filters.
-            </TableCell>
-          </TableRow>
-        ) : (
+        <TableStateRows
+          colSpan={4}
+          loading={isLoading}
+          error={fetchError}
+          empty={visibleReports.length === 0}
+          loadingMessage="Loading reports..."
+          emptyMessage="No reports found for the selected filters."
+        />
+        {!isLoading &&
+          !fetchError &&
           visibleReports.map((report) => {
             const { Icon, bg, color } = getProjectIcon(report.projectName);
             return (
@@ -134,8 +117,7 @@ export function ReportsTable({ isLoading, fetchError, visibleReports }: Props) {
                 <TableCell className="text-[#737373]">{report.date}</TableCell>
               </TableRow>
             );
-          })
-        )}
+          })}
       </TableBody>
     </Table>
   );
