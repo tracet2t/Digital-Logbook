@@ -6,6 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import FilterBar from "@/components/admin/FilterBar";
 
 interface Props {
   projectFilter: string;
@@ -21,7 +22,7 @@ interface Props {
   onReset: () => void;
 }
 
-// Filter bar for  reports
+// Filter bar for reports — uses shared FilterBar compound component
 export function ReportsFilters({
   projectFilter,
   mentorFilter,
@@ -36,11 +37,8 @@ export function ReportsFilters({
   onReset,
 }: Props) {
   return (
-    <div className="flex flex-wrap gap-4 items-end">
-      <div className="flex flex-col gap-1">
-        <label className="text-xs text-[#737373] font-semibold uppercase tracking-wide">
-          Project
-        </label>
+    <FilterBar>
+      <FilterBar.Field label="Project">
         <Select value={projectFilter} onValueChange={onProjectChange}>
           <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="All Projects" />
@@ -54,11 +52,8 @@ export function ReportsFilters({
             ))}
           </SelectContent>
         </Select>
-      </div>
-      <div className="flex flex-col gap-1">
-        <label className="text-xs text-[#737373] font-semibold uppercase tracking-wide">
-          Mentor
-        </label>
+      </FilterBar.Field>
+      <FilterBar.Field label="Mentor">
         <Select value={mentorFilter} onValueChange={onMentorChange}>
           <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="Select Mentor" />
@@ -72,38 +67,32 @@ export function ReportsFilters({
             ))}
           </SelectContent>
         </Select>
-      </div>
-      <div className="flex flex-col gap-1">
-        <label className="text-xs text-[#737373] font-semibold uppercase tracking-wide">
-          From
-        </label>
+      </FilterBar.Field>
+      <FilterBar.Field label="From">
         <input
           type="date"
           value={dateFrom}
           max={dateTo || undefined}
           onChange={(e) => onDateFromChange(e.target.value)}
-          className="border border-[#E5E5E5] rounded-md px-3 py-2 text-sm text-[#0A0A0A] bg-white focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
+          className="h-8 rounded-lg border border-[#dbe0e8] bg-white px-3 text-sm text-slate-700 outline-none focus:border-slate-400"
         />
-      </div>
-      <div className="flex flex-col gap-1">
-        <label className="text-xs text-[#737373] font-semibold uppercase tracking-wide">
-          To
-        </label>
+      </FilterBar.Field>
+      <FilterBar.Field label="To">
         <input
           type="date"
           value={dateTo}
           min={dateFrom || undefined}
           onChange={(e) => onDateToChange(e.target.value)}
-          className="border border-[#E5E5E5] rounded-md px-3 py-2 text-sm text-[#0A0A0A] bg-white focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
+          className="h-8 rounded-lg border border-[#dbe0e8] bg-white px-3 text-sm text-slate-700 outline-none focus:border-slate-400"
         />
-      </div>
+      </FilterBar.Field>
       <Button
         variant="ghost"
-        className="text-[#737373] hover:text-[#0A0A0A]"
+        className="self-end text-[#737373] hover:text-[#0A0A0A]"
         onClick={onReset}
       >
         Reset
       </Button>
-    </div>
+    </FilterBar>
   );
 }
