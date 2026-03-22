@@ -49,10 +49,6 @@ export function useReportsFilters(tableRows: ReportRow[]) {
     Math.ceil(filteredReports.length / ITEMS_PER_PAGE),
   );
   const safePage = Math.min(page, totalPages);
-  const pageNumbers = Array.from(
-    { length: totalPages },
-    (_, i) => i + 1,
-  ).filter((n) => Math.abs(n - safePage) <= 1);
   const startIndex = (safePage - 1) * ITEMS_PER_PAGE;
   const visibleReports = filteredReports.slice(
     startIndex,
@@ -91,7 +87,6 @@ export function useReportsFilters(tableRows: ReportRow[]) {
     visibleReports,
     safePage,
     totalPages,
-    pageNumbers,
     startCount,
     endCount,
     setPage,

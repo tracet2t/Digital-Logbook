@@ -32,7 +32,6 @@ export default function ReportsPage() {
     visibleReports,
     safePage,
     totalPages,
-    pageNumbers,
     startCount,
     endCount,
     setPage,
@@ -48,67 +47,72 @@ export default function ReportsPage() {
   return (
     <div className="flex min-h-screen bg-[#f1f1f9]">
       <AsideSidebar />
-      <div className="flex-1 p-8 space-y-6">
-        {/* Header + stat summary */}
-        <Card className="p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-page-title text-[#0A0A0A]">Reports</h1>
-            <Button
-              className="bg-[#0A0A0A] text-white hover:bg-[#333]"
-              disabled={isExporting || isLoading}
-              onClick={generatePDF}
-            >
-              {isExporting ? "Generating..." : "Generate Report"}
-            </Button>
-          </div>
-          <ReportsStatCards
-            totalGenerated={tableRows.length}
-            pendingReports={0}
-            completedReports={tableRows.length}
-          />
-        </Card>
+      <div className="flex-1 p-8">
+        <Card className="p-6 space-y-6">
+          {/* Header + stat summary */}
+          <Card className="p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h1 className="text-page-title text-[#0A0A0A]">Reports</h1>
+              <Button
+                className="bg-[#0A0A0A] text-white hover:bg-[#333]"
+                disabled={isExporting || isLoading}
+                onClick={generatePDF}
+              >
+                {isExporting ? "Generating..." : "Generate Report"}
+              </Button>
+            </div>
+            <ReportsStatCards
+              totalGenerated={tableRows.length}
+              pendingReports={0}
+              completedReports={tableRows.length}
+            />
+          </Card>
 
-        {/* Filters, table, and pagination */}
-        <Card className="overflow-hidden">
-          <ReportsFilters
-            projectFilter={projectFilter}
-            mentorFilter={mentorFilter}
-            dateFrom={dateFrom}
-            dateTo={dateTo}
-            projectOptions={projectOptions}
-            mentorOptions={mentorOptions}
-            onProjectChange={(v) => {
-              setProjectFilter(v);
-              setPage(1);
-            }}
-            onMentorChange={(v) => {
-              setMentorFilter(v);
-              setPage(1);
-            }}
-            onDateFromChange={(v) => {
-              setDateFrom(v);
-              setPage(1);
-            }}
-            onDateToChange={(v) => {
-              setDateTo(v);
-              setPage(1);
-            }}
-            onReset={resetFilters}
-          />
-          <ReportsTable
-            isLoading={isLoading}
-            fetchError={fetchError}
-            visibleReports={visibleReports}
-          />
-          <ReportsPagination
-            startCount={startCount}
-            endCount={endCount}
-            totalCount={filteredReports.length}
-            safePage={safePage}
-            totalPages={totalPages}
-            pageNumbers={pageNumbers}
-            onPageChange={setPage}
-          />
+          {/* Filters */}
+          <Card className="p-4 bg-[#f8fafc] border-[#e4e7ed]">
+            <ReportsFilters
+              projectFilter={projectFilter}
+              mentorFilter={mentorFilter}
+              dateFrom={dateFrom}
+              dateTo={dateTo}
+              projectOptions={projectOptions}
+              mentorOptions={mentorOptions}
+              onProjectChange={(v) => {
+                setProjectFilter(v);
+                setPage(1);
+              }}
+              onMentorChange={(v) => {
+                setMentorFilter(v);
+                setPage(1);
+              }}
+              onDateFromChange={(v) => {
+                setDateFrom(v);
+                setPage(1);
+              }}
+              onDateToChange={(v) => {
+                setDateTo(v);
+                setPage(1);
+              }}
+              onReset={resetFilters}
+            />
+          </Card>
+
+          {/* Table and pagination */}
+          <Card className="overflow-hidden">
+            <ReportsTable
+              isLoading={isLoading}
+              fetchError={fetchError}
+              visibleReports={visibleReports}
+            />
+            <ReportsPagination
+              startCount={startCount}
+              endCount={endCount}
+              totalCount={filteredReports.length}
+              safePage={safePage}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
+          </Card>
         </Card>
       </div>
     </div>
