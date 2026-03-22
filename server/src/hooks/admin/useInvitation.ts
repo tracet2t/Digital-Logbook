@@ -24,6 +24,13 @@ interface InvitationResponse {
   };
 }
 
+interface GetInvitationResponse {
+  valid: boolean;
+  email?: string;
+  role?: string;
+  message?: string;
+}
+
 export const useInvitation = () => {
   const queryClient = useQueryClient();
 

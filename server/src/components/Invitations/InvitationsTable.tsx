@@ -1,4 +1,4 @@
-import { MoreVertical } from "lucide-react";
+"use client";
 
 import {
   Table,
@@ -8,15 +8,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/dropdown-menu";
-
-import StatusBadge from "./StatusBadge";
+import AdminStatusBadge from "@/components/admin/AdminStatusBadge";
+import RoleBadge from "@/components/admin/RoleBadge";
+import TableActionMenu from "@/components/admin/TableActionMenu";
+import TableStateRows from "@/components/admin/TableStateRows";
 
 export interface InvitationRow {
   id: string;
@@ -46,107 +41,72 @@ export default function InvitationsTable({
   onDelete,
 }: InvitationsTableProps) {
   return (
-    <div className="overflow-hidden rounded-lg border border-[#e4e7ed]">
-      <Table>
-        <TableHeader>
-          <TableRow className="border-[#e4e7ed] bg-slate-50">
-            <TableHead className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-              Email
-            </TableHead>
-            <TableHead className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-              Role
-            </TableHead>
-            <TableHead className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-              Project
-            </TableHead>
-            <TableHead className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-              Status
-            </TableHead>
-            <TableHead className="text-[11px] font-bold text-slate-500 uppercase tracking-wider text-right">
-              Actions
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {loading && (
-            <TableRow>
-              <TableCell
-                colSpan={5}
-                className="py-8 text-center text-slate-400"
-              >
-                Loading...
+    <Table>
+      <TableHeader>
+        <TableRow className="bg-[#f8fafc] hover:bg-[#f8fafc]">
+          <TableHead className="px-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            Email
+          </TableHead>
+          <TableHead className="px-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            Role
+          </TableHead>
+          <TableHead className="px-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            Project
+          </TableHead>
+          <TableHead className="px-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            Status
+          </TableHead>
+          <TableHead className="px-4 text-right text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            Actions
+          </TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        <TableStateRows
+          colSpan={5}
+          loading={loading}
+          error={error}
+          empty={!loading && !error && data.length === 0}
+          loadingMessage="Loading invitations..."
+          emptyMessage="No invitations found."
+        />
+        {!loading &&
+          !error &&
+          data.map((inv) => (
+            <TableRow key={inv.id} className="bg-white hover:bg-[#fbfcff]">
+              <TableCell className="px-4 py-3 font-medium text-slate-900">
+                {inv.email}
+              </TableCell>
+              <TableCell className="px-4 py-3">
+                <RoleBadge role={inv.role} />
+              </TableCell>
+              <TableCell className="px-4 py-3 text-slate-500">
+                {inv.project}
+              </TableCell>
+              <TableCell className="px-4 py-3">
+                <AdminStatusBadge status={inv.status} />
+              </TableCell>
+              <TableCell className="px-4 py-3 text-right">
+                <TableActionMenu
+                  ariaLabel={`Actions for ${inv.email}`}
+                  items={[
+                    { label: "View Details", onSelect: () => onView(inv) },
+                    {
+                      label: "Change Status",
+                      onSelect: () => onChangeStatus(inv),
+                    },
+                    {
+                      label: "Delete",
+                      onSelect: () => onDelete(inv.id),
+                      variant: "danger",
+                      separator: true,
+                    },
+                  ]}
+                />
               </TableCell>
             </TableRow>
-          )}
-          {error && (
-            <TableRow>
-              <TableCell colSpan={5} className="py-8 text-center text-red-500">
-                Failed to load invitations
-              </TableCell>
-            </TableRow>
-          )}
-          {!loading && !error && data.length === 0 && (
-            <TableRow>
-              <TableCell
-                colSpan={5}
-                className="py-8 text-center text-slate-400"
-              >
-                No invitations found.
-              </TableCell>
-            </TableRow>
-          )}
-          {!loading &&
-            data.map((inv) => (
-              <TableRow
-                key={inv.id}
-                className="border-[#e4e7ed] hover:bg-slate-50/50 transition-colors"
-              >
-                <TableCell className="font-medium text-slate-900">
-                  {inv.email}
-                </TableCell>
-                <TableCell>
-                  <span
-                    className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide ${
-                      inv.role === "mentor" || inv.role === "superAdmin"
-                        ? "bg-[#18181B] text-white"
-                        : "bg-slate-100 text-slate-600"
-                    }`}
-                  >
-                    {inv.role}
-                  </span>
-                </TableCell>
-                <TableCell className="text-slate-600">{inv.project}</TableCell>
-                <TableCell>
-                  <StatusBadge status={inv.status} />
-                </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className="h-8 w-8 inline-flex items-center justify-center rounded-md text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors">
-                        <MoreVertical size={15} />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-44">
-                      <DropdownMenuItem onSelect={() => onView(inv)}>
-                        View Details
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={() => onChangeStatus(inv)}>
-                        Change Status
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-red-600 focus:text-red-600 focus:bg-red-50"
-                        onSelect={() => onDelete(inv.id)}
-                      >
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
-        </TableBody>
-      </Table>
-    </div>
+          ))}
+      </TableBody>
+    </Table>
   );
 }
