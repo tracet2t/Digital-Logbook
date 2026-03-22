@@ -1,10 +1,3 @@
-import {
-  AdminPagination,
-  AdminStatusBadge,
-  RoleBadge,
-  TableActionMenu,
-  TableStateRows,
-} from "@/components/admin";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Table,
@@ -14,6 +7,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  AdminPagination,
+  AdminStatusBadge,
+  RoleBadge,
+  TableActionMenu,
+  TableStateRows,
+} from "@/components/admin";
 
 import { UserRecord } from "./types";
 import { getInitials } from "./utils";

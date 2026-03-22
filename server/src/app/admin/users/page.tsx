@@ -10,8 +10,8 @@ import {
   ChangeStatusDialog,
   UsersFilters,
   UsersTable,
-  ViewUserDialog,
   useUsersAdmin,
+  ViewUserDialog,
 } from "@/components/admin/users";
 
 export default function UsersPage() {

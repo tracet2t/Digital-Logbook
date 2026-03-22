@@ -164,7 +164,7 @@ export const useValidateInvitation = (token: string) => {
 };
 
 export const useGetInvitation = (token: string | null) => {
-  const query = useQuery<GetInvitationResponse, Error>({
+  const query = useQuery<InvitationResponse, Error>({
     queryKey: ["invitation", token],
     queryFn: async () => {
       if (!token) throw new Error("Token is required");
