@@ -29,6 +29,12 @@ import {
 import MentorStudentTaskDetailDialog from "./mentorStudentTaskDetailDialog";
 import MentorTaskDetailDialog from "./mentorTaskDetailDialog";
 import StudentTaskDetailDialog from "./studentTaskDetailDialog";
+import CustomToolbar from "./CustomToolbar";
+
+import { useCalendarEvents } from "@/hooks/useCalendarEvents";
+import { useFormData } from "@/hooks/useFormData";
+import { useSubmission } from "@/hooks/useSubmission";
+import { useEventForDate } from "@/hooks/useEventForDate";
 
 moment.locale("en-GB");
 const localizer = momentLocalizer(moment);
@@ -75,30 +81,55 @@ interface TaskCalendarProps {
 const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [workingHours, setWorkingHours] = useState<number>(0);
   const [session, setSession] = useState(null);
-  const [notes, setNotes] = useState<string>("");
-  const [review, setReview] = useState<string>("");
-  const [status, setStatus] = useState<string>("");
-  const [studentId, setStudentId] = useState<string>("");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [role, setRole] = useState<string>("");
-  const [feedbackActivityId, setFeedbackActivityId] = useState<string>("");
-  const [formData, setFormData] = useState<FormData>({
-    studentId: "",
-    date: "",
-    timeSpent: 0,
-    notes: "",
-    status: "",
-    review: "",
-  });
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
+  const [studentId, setStudentId] = useState<string>("");
   const [isEditable, setIsEditable] = useState(true);
   const [toast, setToast] = useState<{
     title: string;
     description: string;
   } | null>(null);
+
+  // Custom hooks
+  const { events, refetchEvents } = useCalendarEvents(studentId, role, selectedUser);
+  const {
+    formData,
+    workingHours,
+    setWorkingHours,
+    notes,
+    setNotes,
+    review,
+    setReview,
+    status,
+    setStatus,
+    editingEvent,
+    feedbackActivityId,
+    updateFormData,
+    resetFormData,
+  } = useFormData();
+  const { fetchEventForDate } = useEventForDate(role, studentId, selectedUser, updateFormData, resetFormData);
+  const { handleSubmit } = useSubmission(
+    role,
+    studentId,
+    selectedUser,
+    formData,
+    workingHours,
+    notes,
+    review,
+    status,
+    editingEvent,
+    feedbackActivityId,
+    () => {
+      refetchEvents();
+      setTaskModalOpen(false);
+      setSelectedDate(null);
+    },
+    (title, description) => {
+      setToast({ title, description });
+      setTimeout(() => setToast(null), 1000);
+    }
+  );
 
   useEffect(() => {
     getSessionOnClient()
@@ -111,135 +142,6 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
         console.error("Error fetching session:", error);
       });
   }, []);
-
-  /* 
-
-        Fetch all information related to past activities 
-
-  */
-
-  const fetchEventData = async (url: string) => {
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error("Failed to fetch event data");
-      }
-      return await response.json();
-    } catch (error) {
-      console.error(error);
-      return null;
-    }
-  };
-
-  const fetchEvents = async () => {
-    let url = `http://localhost:3000/api/activity?studentId=${studentId}`;
-
-    if (role === "mentor") {
-      url =
-        studentId === selectedUser
-          ? `http://localhost:3000/api/mentor?studentId=${selectedUser}`
-          : `http://localhost:3000/api/student?studentId=${selectedUser}`;
-    }
-
-    const data = await fetchEventData(url);
-    if (data) {
-      const parsedEvents =
-        role === "mentor"
-        ? studentId === selectedUser ?convertToCalendarEventsMentor(data)
-          :  convertToCalendarEvents(data): convertToCalendarEvents(data);
-      setEvents(parsedEvents);
-    }
-  };
-
-  useEffect(() => {
-    if (selectedUser) {
-      fetchEvents();
-    }
-  }, [selectedUser]);
-
-  /* 
-
-        Fetch all information related to past activity particularly for a date 
-
-*/
-
-  const fetchEventForDate = async (formattedDate: string) => {
-    try {
-      const url = buildUrlForRole(formattedDate);
-      const response = await fetch(url);
-      const data = await response.json();
-
-      if (data.length > 0) {
-        await processResponse(data[0], formattedDate);
-      } else {
-        resetFormData(formattedDate);
-      }
-    } catch (error) {
-      console.error("Failed to fetch event for date:", error);
-    }
-  };
-
-  const buildUrlForRole = (formattedDate: string) => {
-    if (role === "student") {
-      return `http://localhost:3000/api/activity?date=${formattedDate}`;
-    }
-    if (studentId === selectedUser) {
-      return `http://localhost:3000/api/mentor?date=${formattedDate}&studentId=${selectedUser}`;
-    }
-    return `http://localhost:3000/api/student?date=${formattedDate}&studentId=${selectedUser}`;
-  };
-
-  const processResponse = async (existingEvent: any, formattedDate: string) => {
-    if ((role === "mentor" && studentId !== selectedUser) || (role === "student")) {
-      const feedbackData = await fetchFeedback(existingEvent.id, formattedDate);
-      updateFormData(existingEvent, feedbackData, formattedDate);
-    } else {
-      updateFormData(existingEvent, null, formattedDate);
-    }
-  };
-
-  const fetchFeedback = async (activityId: string, formattedDate: string) => {
-    const feedbackResponse = await fetch(
-      `http://localhost:3000/api/mentorFeedback?date=${formattedDate}&activityId=${activityId}`
-    );
-    return await feedbackResponse.json();
-  };
-
-  const updateFormData = (
-    event: any,
-    feedbackData: any,
-    formattedDate: string
-  ) => {
-    setFormData({
-      studentId: event.studentId || "",
-      date: formattedDate,
-      timeSpent: event.timeSpent || event.workingHours || 0,
-      notes: event.notes || event.activities || "",
-      review: feedbackData?.feedbackNotes || "",
-      status: feedbackData?.status || "",
-    });
-    setWorkingHours(event.timeSpent || event.workingHours || 0);
-    setNotes(event.notes || event.activities || "");
-    setEditingEvent(event);
-    setReview(feedbackData?.feedbackNotes || "");
-    setFeedbackActivityId(event?.id || "");
-  };
-
-  const resetFormData = (formattedDate: string) => {
-    setFormData({
-      studentId: "",
-      date: formattedDate,
-      timeSpent: 0,
-      notes: "",
-      review: "",
-      status: "",
-    });
-    setWorkingHours(1);
-    setNotes("");
-    setEditingEvent(null);
-    setReview("");
-    setFeedbackActivityId("");
-  };
 
   const handleDateClick = (date: Date) => {
     setSelectedDate(date);
@@ -264,156 +166,10 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   };
 
   useEffect(() => {
-    if (status === "approved") {
-      handleSubmit();
-    } else if (status === "rejected") {
+    if (status === "approved" || status === "rejected") {
       handleSubmit();
     }
   }, [status]);
-
-  /* 
-
-        Submit activity or feedback on-press 
-
-*/
-  const handleSubmit = async () => {
-    try {
-      const isStudent = role === "student";
-      const isMentor = role === "mentor";
-
-      if (isStudent) {
-        await submitActivity();
-      } else if (isMentor && selectedUser === studentId) {
-        await submitMentorActivity();
-      } else {
-        await submitFeedback();
-      }
-    } catch (error) {
-      showToast("Error", "Error saving data. Please try again.");
-    }
-  };
-
-  const submitActivity = async () => {
-    const newFormData: FormData = {
-      studentId,
-      date: formData.date,
-      timeSpent: workingHours,
-      notes,
-    };
-
-    const response = await fetch("http://localhost:3000/api/activity", {
-      method: editingEvent ? "PATCH" : "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ ...newFormData, id: editingEvent?.id }),
-    });
-
-    handleResponse(
-      response,
-      editingEvent ? "Activity Updated" : "Activity Added"
-    );
-  };
-
-  const submitMentorActivity = async () => {
-    const newFormData: MentorFormData = {
-      date: formData.date,
-      workingHours: workingHours,
-      activities: notes,
-    };
-
-    const response = await fetch("http://localhost:3000/api/mentor", {
-      method: editingEvent ? "PATCH" : "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ ...newFormData, id: editingEvent?.id }),
-    });
-
-    handleResponse(
-      response,
-      editingEvent ? "Activity Updated" : "Activity Added"
-    );
-  };
-
-  const submitFeedback = async () => {
-    const newFormFeedbackData: FeedbackData = {
-      review,
-      status,
-      mentorId: studentId,
-    };
-
-    const response = await fetch(
-      `http://localhost:3000/api/mentorFeedback?activityId=${feedbackActivityId}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ...newFormFeedbackData, id: editingEvent?.id }),
-      }
-    );
-
-    handleResponse(
-      response,
-      editingEvent ? "Feedback Updated" : "Feedback Added"
-    );
-  };
-
-  const handleResponse = async (response: Response, successMessage: string) => {
-    if (response.ok) {
-      showToast(
-        successMessage,
-        response.ok ? `${successMessage} successfully.` : "An error occurred."
-      );
-      fetchEvents();
-      handleClose();
-    } else {
-      showToast("Error", "Error saving data. Please try again.");
-    }
-  };
-
-  const showToast = (title: string, description: string) => {
-    setToast({ title, description });
-    setTimeout(() => setToast(null), 1000);
-  };
-
-  // Custom Toolbar
-  const CustomToolbar = (toolbar: any) => {
-    const goToBack = () => {
-      toolbar.onNavigate("PREV");
-    };
-
-    const goToNext = () => {
-      toolbar.onNavigate("NEXT");
-    };
-
-    return (
-      <div className="flex justify-between items-center mb-4">
-        <Button
-          onClick={() => {
-            setCurrentDate(moment(currentDate).subtract(1, "months").toDate());
-            goToBack();
-          }}
-          className="text-xl border-2 border-blue-500 text-blue-500 px-4 py-2 bg-white rounded-md hover:border-blue-600 hover:bg-blue-100"
-        >
-          {"<"}
-        </Button>
-        <span className="text-2xl font-bold">
-          {moment(toolbar.date).format("MMMM YYYY")}
-        </span>
-        <Button
-          onClick={() => {
-            setCurrentDate(moment(currentDate).subtract(1, "months").toDate());
-            goToNext();
-          }}
-          className="text-xl border-2 border-blue-500 text-blue-500 px-4 py-2 bg-#F0F8FF rounded-md hover:border-blue-600 hover:bg-blue-100"
-        >
-          {">"}
-        </Button>
-      </div>
-    );
-  };
 
   return (
     <>
@@ -477,7 +233,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
           onSelectEvent={(event) => handleDateClick(event.start)}
           selectable
           components={{
-            toolbar: CustomToolbar,
+            toolbar: (toolbar: any) => <CustomToolbar toolbar={toolbar} currentDate={currentDate} setCurrentDate={setCurrentDate} />,
           }}
           eventPropGetter={(event) => eventPropGetter(event, selectedUser || "")} // Pass selectedUser here
           style={{height: "100%"}}
