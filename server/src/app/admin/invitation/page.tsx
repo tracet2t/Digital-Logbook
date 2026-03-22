@@ -13,6 +13,7 @@ import {
 } from "@/hooks/admin/useInvitation";
 import { useGetProjects } from "@/hooks/projects";
 import { Card } from "@/components/ui/card";
+import PageHeader from "@/components/admin/PageHeader";
 import AsideSidebar from "@/components/AsideSidebar";
 import ChangeStatusDialog from "@/components/Invitations/dialogs/ChangeStatusDialog";
 import CreateInvitationDialog from "@/components/Invitations/dialogs/CreateInvitationDialog";
@@ -169,10 +170,10 @@ export default function InvitationsView() {
             <div className="space-y-4 p-4 md:p-5">
               {/* Header */}
               <div>
-                <h1 className="text-page-title text-slate-900">Invitations</h1>
-                <p className="mt-1 text-sm text-slate-500">
-                  Manage organizational access and track member onboarding.
-                </p>
+                <PageHeader
+                  title="Invitations"
+                  subtitle="Manage organizational access and track member onboarding."
+                />
               </div>
 
               {/* Stats Cards */}
