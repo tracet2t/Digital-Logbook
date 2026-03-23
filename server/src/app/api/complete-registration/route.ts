@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
-import {UserRepository} from "@/repositories/user_repository_impl";
 import { InvitationRepository } from "@/repositories/invitation_repository_impl";
+import { UserRepository } from "@/repositories/user_repository_impl";
 import bcrypt from "bcrypt";
+import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
@@ -21,10 +21,7 @@ export async function POST(req: Request) {
     // Verify temporary password against the user's current passwordHash
     const user = await userRepo.getByEmail(email);
     if (!user || !user.passwordHash)
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     const isValid = await bcrypt.compare(tempPassword, user.passwordHash);
     if (!isValid)
