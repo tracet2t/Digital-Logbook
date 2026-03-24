@@ -12,6 +12,8 @@ export interface AdminProject {
   students: number;
   createdBy: string;
   createdDate: string;
+  mentorList: Array<{ id: string; name: string }>;
+  studentList: Array<{ id: string; name: string }>;
 }
 
 export interface AdminProjectStats {
@@ -25,8 +27,20 @@ export async function getAdminProjectStats(): Promise<AdminProjectStats> {
   const [projects, totalMentors, totalStudents] = await Promise.all([
     prisma.project.findMany({
       include: {
-        mentors: true,
-        assignments: true,
+        mentors: {
+          include: {
+            mentor: {
+              select: { id: true, firstName: true, lastName: true },
+            },
+          },
+        },
+        assignments: {
+          include: {
+            student: {
+              select: { id: true, firstName: true, lastName: true },
+            },
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
     }),
@@ -57,6 +71,14 @@ export async function getAdminProjectStats(): Promise<AdminProjectStats> {
       day: "numeric",
       year: "numeric",
     }),
+    mentorList: p.mentors.map((m) => ({
+      id: m.mentor.id,
+      name: `${m.mentor.firstName} ${m.mentor.lastName}`,
+    })),
+    studentList: p.assignments.map((a) => ({
+      id: a.student.id,
+      name: `${a.student.firstName} ${a.student.lastName}`,
+    })),
   }));
 
   return {

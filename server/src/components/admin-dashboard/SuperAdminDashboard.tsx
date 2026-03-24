@@ -25,7 +25,6 @@ import {
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import AsideSidebar from "@/components/AsideSidebar";
 
-import DashboardHeader from "./DashboardHeader";
 import RecentProjectsTable from "./RecentProjectsTable";
 import StatsGrid from "./StatsGrid";
 
