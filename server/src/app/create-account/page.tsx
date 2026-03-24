@@ -128,7 +128,7 @@ export default function CreateAccount() {
                 />
               </div>
               <span className="text-2xl font-black tracking-tight text-white uppercase italic">
-                Logbook Pro
+                Digital LogBook
               </span>
             </div>
           </div>
@@ -149,7 +149,7 @@ export default function CreateAccount() {
           </div>
 
           <div className="relative z-10 flex items-center gap-6 text-xs font-bold text-zinc-600 tracking-widest uppercase">
-            <span>© 2024 T2T ANALYTICS</span>
+            <span>© 2026 T2T </span>
             <span className="w-8 h-[1px] bg-zinc-800" />
             <span>SECURE SETUP</span>
           </div>

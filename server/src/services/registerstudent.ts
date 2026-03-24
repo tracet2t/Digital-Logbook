@@ -52,15 +52,26 @@ export async function registerStudent(data: RegisterUserData) {
     createdAt: new Date(),
     updatedAt: new Date(),
   });
-// --- Assign project if projectId is provided ---
-if (projectId) {
-  await prisma.projectAllocation.create({
-    data: {
-      studentId: user.id, // you might rename this field to userId if mentors also use the same table
-      projectId,
-    },
-  });
-}
+
+  // --- Assign project if projectId is provided ---
+  if (projectId) {
+    if (role === Role.student) {
+      await prisma.projectAllocation.create({
+        data: {
+          studentId: user.id,
+          projectId,
+        },
+      });
+      //--Assign Mentors ---
+    } else if (role === Role.mentor) {
+      await prisma.projectMentor.create({
+        data: {
+          mentorId: user.id,
+          projectId,
+        },
+      });
+    }
+  }
 
   return { user, tempPassword, hashedPassword };
 }

@@ -22,6 +22,8 @@ export interface ProjectRow {
   createdBy: string;
   createdDate: string;
   description?: string;
+  mentorList?: Array<{ id: string; name: string }>;
+  studentList?: Array<{ id: string; name: string }>;
 }
 
 interface ProjectsTableProps {

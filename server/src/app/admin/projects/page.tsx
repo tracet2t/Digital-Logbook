@@ -14,6 +14,7 @@ import {
 } from "@/server_actions/adminProjectActions";
 import { Beaker, BookOpen, Cpu, Film, Globe, Plus, Search } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -81,6 +82,7 @@ export default function ProjectsPage() {
 
   useEffect(() => reload(), []);
 
+  //Edit project details
   const handleEditSave = async () => {
     if (!editProject) return;
     setEditSaving(true);
@@ -97,7 +99,7 @@ export default function ProjectsPage() {
       setEditSaving(false);
     }
   };
-
+  //Save the updated project
   const handleCreateSave = async () => {
     setCreateSaving(true);
     try {
@@ -113,7 +115,7 @@ export default function ProjectsPage() {
       setCreateSaving(false);
     }
   };
-
+  //Delete the project
   const handleDelete = async () => {
     if (!deleteId) return;
     setDeleting(true);
@@ -239,6 +241,8 @@ export default function ProjectsPage() {
                     createdBy: p.createdBy,
                     createdDate: p.createdDate,
                     description: p.description,
+                    mentorList: p.mentorList,
+                    studentList: p.studentList,
                   }))}
                   loading={loading}
                   domainIcons={DOMAIN_ICONS}
@@ -303,9 +307,10 @@ export default function ProjectsPage() {
       </div>
 
       {/** Reusable Dialogs */}
+      {/* View Project */ }
       {viewProject && (
         <Dialog open onOpenChange={(open) => !open && setViewProject(null)}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Project Details</DialogTitle>
             </DialogHeader>
@@ -317,8 +322,10 @@ export default function ProjectsPage() {
                 <p className="text-lg font-bold">{viewProject.name}</p>
               </div>
               {viewProject.description && <p>{viewProject.description}</p>}
-              <div className="grid grid-cols-2 gap-4">
-                {["Domain", "Created Date", "Mentors", "Students"].map(
+              
+              {/* Basic Info */}
+              <div className="grid grid-cols-2 gap-4 py-3 border-t border-b">
+                {["Domain", "Created Date"].map(
                   (l, i) => (
                     <div key={i}>
                       <p className="text-xs font-semibold uppercase text-slate-500">
@@ -327,16 +334,63 @@ export default function ProjectsPage() {
                       <p className="font-semibold text-slate-900">
                         {l === "Domain"
                           ? DOMAIN_LABELS[viewProject.domain]
-                          : l === "Created Date"
-                            ? viewProject.createdDate
-                            : l === "Mentors"
-                              ? viewProject.mentors
-                              : viewProject.students}
+                          : viewProject.createdDate}
                       </p>
                     </div>
                   ),
                 )}
               </div>
+
+              {/* Mentors List */}
+              <div>
+                <p className="text-xs font-semibold uppercase text-slate-500 mb-2">
+                  Mentors ({viewProject.mentorList?.length ?? 0})
+                </p>
+                {viewProject.mentorList && viewProject.mentorList.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {viewProject.mentorList.map((mentor) => (
+                      <Badge
+                        key={mentor.id}
+                        variant="secondary"
+                        className="flex items-center gap-1.5 px-2.5 py-1 text-sm font-medium"
+                      >
+                        <span className="flex items-center justify-center w-5 h-5 rounded-full bg-slate-400 text-white text-[10px] font-bold shrink-0">
+                          {mentor.name.charAt(0).toUpperCase()}
+                        </span>
+                        {mentor.name}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-slate-500 italic">No mentors assigned</p>
+                )}
+              </div>
+
+              {/* Students List */}
+              <div>
+                <p className="text-xs font-semibold uppercase text-slate-500 mb-2">
+                  Students ({viewProject.studentList?.length ?? 0})
+                </p>
+                {viewProject.studentList && viewProject.studentList.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {viewProject.studentList.map((student) => (
+                      <Badge
+                        key={student.id}
+                        variant="outline"
+                        className="flex items-center gap-1.5 px-2.5 py-1 text-sm font-medium"
+                      >
+                        <span className="flex items-center justify-center w-5 h-5 rounded-full bg-slate-300 text-slate-700 text-[10px] font-bold shrink-0">
+                          {student.name.charAt(0).toUpperCase()}
+                        </span>
+                        {student.name}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-slate-500 italic">No students assigned</p>
+                )}
+              </div>
+
               <div>
                 <p className="text-xs font-semibold uppercase text-slate-500">
                   Created By
