@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 import { Card } from "@/components/ui/card";
 import {
   Table,
@@ -26,6 +28,8 @@ interface RecentProjectsTableProps {
 export default function RecentProjectsTable({
   projects,
 }: RecentProjectsTableProps) {
+  const router = useRouter();
+
   return (
     <Card className="mt-4 p-4 md:mt-6">
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
@@ -37,7 +41,10 @@ export default function RecentProjectsTable({
             Track project onboarding and delivery status.
           </p>
         </div>
-        <button className="rounded-md px-3 py-2 text-sm font-medium bg-[#4F46E5] text-white hover:bg-[#4338CA] border border-transparent transition-colors">
+        <button
+          className="rounded-md px-3 py-2 text-sm font-medium bg-[#4F46E5] text-white hover:bg-[#4338CA] border border-transparent transition-colors"
+          onClick={() => router.push("/admin/projects")}
+        >
           View All Projects
         </button>
       </div>
