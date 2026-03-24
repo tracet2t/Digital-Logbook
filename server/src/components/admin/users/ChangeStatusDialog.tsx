@@ -42,8 +42,8 @@ export default function ChangeStatusDialog({
           <AlertDialogTitle>Change User Status</AlertDialogTitle>
           <AlertDialogDescription>
             Select the new status for{" "}
-            <span className="font-semibold text-slate-900">{user?.name}</span>
-            . Deactivating a user will prevent them from logging in.
+            <span className="font-semibold text-slate-900">{user?.name}</span>.
+            Deactivating a user will prevent them from logging in.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="px-1 py-2">
@@ -68,6 +68,12 @@ export default function ChangeStatusDialog({
           <AlertDialogAction
             disabled={isMutating || pendingStatus === user?.status}
             onClick={onSave}
+            className="bg-[#4F46E5] text-white hover:bg-[#4338CA] border-none focus:ring-0 focus:outline-none shadow-none"
+            style={{
+              backgroundColor: "#4F46E5",
+              color: "#fff",
+              border: "none",
+            }}
           >
             {isMutating ? "Saving…" : "Save"}
           </AlertDialogAction>

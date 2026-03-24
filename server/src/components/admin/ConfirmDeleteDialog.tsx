@@ -57,7 +57,12 @@ export default function ConfirmDeleteDialog({
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
           <AlertDialogAction
-            className="bg-red-600 hover:bg-red-700 text-white"
+            className="bg-[#4F46E5] text-white hover:bg-[#4338CA] border-none focus:ring-0 focus:outline-none shadow-none"
+            style={{
+              backgroundColor: "#4F46E5",
+              color: "#fff",
+              border: "none",
+            }}
             disabled={isPending}
             onClick={onConfirm}
           >

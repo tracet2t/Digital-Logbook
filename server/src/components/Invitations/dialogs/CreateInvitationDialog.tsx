@@ -226,7 +226,7 @@ export default function CreateInvitationDialog({
           <button
             onClick={onSubmit}
             disabled={isPending}
-            className="inline-flex items-center gap-2 h-9 px-5 bg-[#18181B] hover:bg-[#27272A] text-white text-sm font-medium rounded-lg transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 h-9 px-5 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-sm font-medium rounded-lg transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <Send size={14} />
             {isPending ? "Sending…" : "Send Invitation"}
