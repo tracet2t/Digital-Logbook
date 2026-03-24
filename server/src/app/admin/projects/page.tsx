@@ -34,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Textarea } from "@/components/ui/textarea";
 import { ConfirmDeleteDialog } from "@/components/admin";
 import ProjectsStats from "@/components/admin-dashboard/ProjectsStats";
@@ -173,10 +174,9 @@ export default function ProjectsPage() {
     ));
 
   return (
-    <>
-      <div className="flex min-h-screen bg-[#f5f7fb]">
-        <AsideSidebar />
-
+    <SidebarProvider>
+      <AsideSidebar />
+      <SidebarInset className="bg-[#f5f7fb]">
         <div className="flex-1 p-5 md:p-8">
           <Card className="overflow-hidden border-[#d9dde5] bg-white">
             <div className="space-y-4 p-4 md:p-5">
@@ -304,7 +304,7 @@ export default function ProjectsPage() {
             </div>
           </Card>
         </div>
-      </div>
+      </SidebarInset>
 
       {/** Reusable Dialogs */}
       {/* View Project */ }
@@ -506,6 +506,6 @@ export default function ProjectsPage() {
         title="Delete Project"
         description="This will permanently delete the project and all associated data. This action cannot be undone."
       />
-    </>
+    </SidebarProvider>
   );
 }

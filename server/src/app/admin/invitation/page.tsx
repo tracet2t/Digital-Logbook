@@ -13,6 +13,7 @@ import {
 } from "@/hooks/admin/useInvitation";
 import { useGetProjects } from "@/hooks/projects";
 import { Card } from "@/components/ui/card";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import PageHeader from "@/components/admin/PageHeader";
 import AsideSidebar from "@/components/AsideSidebar";
 import ChangeStatusDialog from "@/components/Invitations/dialogs/ChangeStatusDialog";
@@ -161,10 +162,9 @@ export default function InvitationsView() {
   };
 
   return (
-    <>
-      <div className="flex min-h-screen bg-[#f5f7fb]">
-        <AsideSidebar />
-
+    <SidebarProvider>
+      <AsideSidebar />
+      <SidebarInset className="bg-[#f5f7fb]">
         <div className="flex-1 p-5 md:p-8">
           <Card className="overflow-hidden border-[#d9dde5] bg-white">
             <div className="space-y-4 p-4 md:p-5">
@@ -274,7 +274,7 @@ export default function InvitationsView() {
             </div>
           </Card>
         </div>
-      </div>
+      </SidebarInset>
 
       {/* Dialogs */}
       <CreateInvitationDialog
@@ -317,6 +317,6 @@ export default function InvitationsView() {
         }
         isDeleting={isDeleting}
       />
-    </>
+    </SidebarProvider>
   );
 }
