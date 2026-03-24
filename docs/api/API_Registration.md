@@ -10,6 +10,7 @@ Welcome to the Digital Logbook API documentation. This guide provides an overvie
   - [Invitations](#invitations)
 - [Error Handling](#error-handling)
 - [Best Practices](#best-practices)
+- [API Test Cases](#api-test-cases)
 
 ## Authentication
 
@@ -44,6 +45,12 @@ For detailed invitation endpoint documentation, see [API_INVITATIONS.md](./API_I
 - Validate invitation tokens
 - Accept invitations
 - Resend invitations
+
+## API Test Cases
+
+- [Invitations API Test Cases](./TEST_CASES_INVITATIONS.md)
+- [Projects API Test Cases](./TEST_CASES_PROJECTS.md)
+- [Registration API Test Cases](./TEST_CASES_REGISTRATION.md)
 
 ## Error Handling
 

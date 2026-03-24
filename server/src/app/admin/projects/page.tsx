@@ -221,7 +221,7 @@ export default function ProjectsPage() {
                     setCreateForm(EMPTY_FORM);
                     setShowCreate(true);
                   }}
-                  className="ml-auto inline-flex items-center justify-center gap-2 h-9 px-4 bg-[#18181B] hover:bg-[#27272A] text-white text-sm font-medium rounded-lg transition-colors shadow-sm shrink-0 w-full sm:w-auto"
+                  className="ml-auto inline-flex items-center justify-center gap-2 h-9 px-4 bg-[#4F46E5] hover:bg-[#4F46E5] text-white text-sm font-medium rounded-lg transition-colors shadow-sm shrink-0 w-full sm:w-auto"
                 >
                   <Plus size={15} /> Create Project
                 </button>
