@@ -5,7 +5,7 @@ const config: Config.InitialOptions = {
   testEnvironment: "node",
 
   transform: {
-    "\\.[jt]s$": ["babel-jest", { configFile: "./babel.config.testing.js" }],
+    "\\.[jt]sx?$": ["babel-jest", { configFile: "./babel.config.testing.js" }],
   },
 
   moduleNameMapper: {
