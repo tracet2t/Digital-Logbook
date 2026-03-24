@@ -39,8 +39,20 @@ export const GET = async (_req: NextRequest) => {
       orderBy: { createdAt: "desc" },
     });
 
-    const rows = projects.flatMap((project) =>
-      project.mentors.map((pm) => {
+    const rows = projects.flatMap((project) => {
+      if (project.mentors.length === 0) {
+        return [
+          {
+            id: `${project.id}:unassigned`,
+            projectName: project.name,
+            mentor: "—",
+            studentsCount: project.assignments.length,
+            date: project.createdAt.toISOString(),
+            rawDate: project.createdAt.toISOString(),
+          },
+        ];
+      }
+      return project.mentors.map((pm) => {
         const mentorName =
           `${pm.mentor.firstName} ${pm.mentor.lastName}`.trim() ||
           pm.mentor.email;
@@ -52,8 +64,8 @@ export const GET = async (_req: NextRequest) => {
           date: project.createdAt.toISOString(),
           rawDate: project.createdAt.toISOString(),
         };
-      }),
-    );
+      });
+    });
 
     return NextResponse.json(rows);
   } catch (error) {
