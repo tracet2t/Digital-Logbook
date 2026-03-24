@@ -223,7 +223,7 @@ export default function ProjectsPage() {
                     setCreateForm(EMPTY_FORM);
                     setShowCreate(true);
                   }}
-                  className="ml-auto inline-flex items-center justify-center gap-2 h-9 px-4 bg-[#18181B] hover:bg-[#27272A] text-white text-sm font-medium rounded-lg transition-colors shadow-sm shrink-0 w-full sm:w-auto"
+                  className="ml-auto inline-flex items-center justify-center gap-2 h-9 px-4 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-sm font-medium rounded-lg transition-colors shadow-sm shrink-0 w-full sm:w-auto"
                 >
                   <Plus size={15} /> Create Project
                 </button>
@@ -282,7 +282,7 @@ export default function ProjectsPage() {
                             onClick={() => goToPage(pageNum)}
                             className={`h-8 w-8 rounded text-sm font-medium transition-colors ${
                               currentPage === pageNum
-                                ? "bg-[#18181B] text-white"
+                                ? "bg-[#4F46E5] text-white hover:bg-[#4338CA]"
                                 : "border border-[#dbe0e8] text-slate-700 hover:bg-slate-50"
                             }`}
                           >
@@ -307,7 +307,7 @@ export default function ProjectsPage() {
       </SidebarInset>
 
       {/** Reusable Dialogs */}
-      {/* View Project */ }
+      {/* View Project */}
       {viewProject && (
         <Dialog open onOpenChange={(open) => !open && setViewProject(null)}>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -322,23 +322,21 @@ export default function ProjectsPage() {
                 <p className="text-lg font-bold">{viewProject.name}</p>
               </div>
               {viewProject.description && <p>{viewProject.description}</p>}
-              
+
               {/* Basic Info */}
               <div className="grid grid-cols-2 gap-4 py-3 border-t border-b">
-                {["Domain", "Created Date"].map(
-                  (l, i) => (
-                    <div key={i}>
-                      <p className="text-xs font-semibold uppercase text-slate-500">
-                        {l}
-                      </p>
-                      <p className="font-semibold text-slate-900">
-                        {l === "Domain"
-                          ? DOMAIN_LABELS[viewProject.domain]
-                          : viewProject.createdDate}
-                      </p>
-                    </div>
-                  ),
-                )}
+                {["Domain", "Created Date"].map((l, i) => (
+                  <div key={i}>
+                    <p className="text-xs font-semibold uppercase text-slate-500">
+                      {l}
+                    </p>
+                    <p className="font-semibold text-slate-900">
+                      {l === "Domain"
+                        ? DOMAIN_LABELS[viewProject.domain]
+                        : viewProject.createdDate}
+                    </p>
+                  </div>
+                ))}
               </div>
 
               {/* Mentors List */}
@@ -371,7 +369,8 @@ export default function ProjectsPage() {
                 <p className="text-xs font-semibold uppercase text-slate-500 mb-2">
                   Students ({viewProject.studentList?.length ?? 0})
                 </p>
-                {viewProject.studentList && viewProject.studentList.length > 0 ? (
+                {viewProject.studentList &&
+                viewProject.studentList.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {viewProject.studentList.map((student) => (
                       <Badge
@@ -480,14 +479,14 @@ export default function ProjectsPage() {
                     </Button>
                   </DialogClose>
                   <Button
-                    className="bg-[#18181B] text-white hover:bg-[#27272A]"
+                    className="bg-[#4F46E5] text-white hover:bg-[#4338CA]"
                     onClick={d.onSave}
                     disabled={d.saving || !d.form.name.trim()}
                   >
                     {d.saving
                       ? d.title.includes("Edit")
-                        ? "Saving…"
-                        : "Creating…"
+                        ? "Saving"
+                        : "Creating"
                       : d.title.includes("Edit")
                         ? "Save Changes"
                         : "Create Project"}
