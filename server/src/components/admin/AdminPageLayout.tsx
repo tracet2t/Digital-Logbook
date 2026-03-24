@@ -1,5 +1,6 @@
 "use client";
 
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import AsideSidebar from "@/components/AsideSidebar";
 
 interface AdminPageLayoutProps {
@@ -24,9 +25,9 @@ export default function AdminPageLayout({
   className = "bg-[#f5f7fb]",
 }: AdminPageLayoutProps) {
   return (
-    <div className={`flex min-h-screen ${className}`}>
+    <SidebarProvider>
       <AsideSidebar />
-      {children}
-    </div>
+      <SidebarInset className={className}>{children}</SidebarInset>
+    </SidebarProvider>
   );
 }
