@@ -119,7 +119,7 @@ function NavMenu({
         <SidebarGroupLabel className="text-[#737373] text-[11px] font-bold tracking-[0.1em] uppercase">
           Main Menu
         </SidebarGroupLabel>
-        <SidebarMenu>
+        <SidebarMenu className="gap-3">
           {MAIN_MENU.map((item) => {
             const active = pathname === item.href;
             return (

@@ -2,10 +2,10 @@
 
 import React, { useState } from "react";
 
-import { BookOpen, Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
+import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { cn } from "@/lib/utils";
+
 
 import { useCompleteRegistration } from "@/hooks/admin/useCompleteRegistration";
 import { Button } from "@/components/ui/button";
@@ -118,14 +118,14 @@ export default function CreateAccount() {
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-transparent to-zinc-950/80" />
 
           <div className="relative z-10">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[#4F46E5] shrink-0 shadow-2xl shadow-blue-500/40">
-                <BookOpen size={20} color="white" />
-              </div>
-              <span className="text-2xl font-black tracking-tight text-white uppercase italic">
-                Digital LogBook
-              </span>
-            </div>
+            <Image
+              src="/logo.png"
+              width={180}
+              height={45}
+              alt="Logo"
+              className="h-auto w-full max-w-[180px] shrink-0"
+              priority
+            />
           </div>
 
           <div className="relative z-10 max-w-2xl">
@@ -153,13 +153,14 @@ export default function CreateAccount() {
         {/* Auth Interface */}
         <div className="flex-1 flex flex-col items-center justify-center p-8 md:p-16">
           <div className="w-full max-w-[420px] space-y-12">
-            <div className="lg:hidden flex flex-col items-center space-y-4 mb-4">
-              <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-[#4F46E5] shrink-0">
-                <BookOpen size={24} color="white" />
-              </div>
-              <h1 className="text-2xl font-black tracking-tighter italic">
-                LOGBOOK PRO
-              </h1>
+            <div className="lg:hidden flex flex-col items-center mb-4">
+              <Image
+                src="/logo.png"
+                width={180}
+                height={45}
+                alt="Logo"
+                className="h-auto w-full max-w-[180px]"
+              />
             </div>
 
             <div className="space-y-3 text-center lg:text-left">
