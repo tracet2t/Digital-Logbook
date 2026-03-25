@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import { BookOpen, Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 import { useCompleteRegistration } from "@/hooks/admin/useCompleteRegistration";
 import { Button } from "@/components/ui/button";
@@ -333,22 +334,22 @@ export default function CreateAccount() {
         </div>
       </div>
 
-      {toastData.open && (
-        <Toast
-          variant={toastData.variant}
-          className="border-none shadow-2xl bg-white dark:bg-zinc-900 rounded-xl"
-        >
-          <div className="grid gap-1">
-            <ToastTitle className="text-base font-black tracking-tight">
-              {toastData.title}
-            </ToastTitle>
-            <ToastDescription className="text-sm opacity-90 font-bold">
-              {toastData.description}
-            </ToastDescription>
-          </div>
-          <ToastClose />
-        </Toast>
-      )}
+      <Toast
+        open={toastData.open}
+        onOpenChange={(open) => setToastData((prev) => ({ ...prev, open }))}
+        variant={toastData.variant}
+        className="border-none shadow-2xl bg-black text-white dark:bg-black rounded-xl"
+      >
+        <div className="grid gap-1">
+          <ToastTitle className="text-base font-black tracking-tight">
+            {toastData.title}
+          </ToastTitle>
+          <ToastDescription className="text-sm opacity-90 font-bold">
+            {toastData.description}
+          </ToastDescription>
+        </div>
+        <ToastClose />
+      </Toast>
 
       <ToastViewport />
     </ToastProvider>
