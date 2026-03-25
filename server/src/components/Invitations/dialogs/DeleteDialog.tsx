@@ -39,9 +39,9 @@ export default function DeleteInvitationDialog({
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
           <AlertDialogAction
-            className="bg-[#4F46E5] text-white hover:bg-[#4338CA] border-none focus:ring-0 focus:outline-none shadow-none"
+            className="bg-[#000053] text-white hover:bg-[#000053] border-none focus:ring-0 focus:outline-none shadow-none"
             style={{
-              backgroundColor: "#4F46E5",
+              backgroundColor: "#000053",
               color: "#fff",
               border: "none",
             }}

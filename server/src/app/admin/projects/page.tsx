@@ -184,7 +184,7 @@ export default function ProjectsPage() {
               <div>
                 <PageHeader
                   title="Projects"
-                  subtitle="Manage and organize all projects with mentors and students."
+                  subtitle="Manage and organize all projects with mentors and mentees."
                 />
               </div>
 
@@ -223,7 +223,7 @@ export default function ProjectsPage() {
                     setCreateForm(EMPTY_FORM);
                     setShowCreate(true);
                   }}
-                  className="ml-auto inline-flex items-center justify-center gap-2 h-9 px-4 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-sm font-medium rounded-lg transition-colors shadow-sm shrink-0 w-full sm:w-auto"
+                  className="ml-auto inline-flex items-center justify-center gap-2 h-9 px-4 bg-[#000053] hover:bg-[#000053] text-white text-sm font-medium rounded-lg transition-colors shadow-sm shrink-0 w-full sm:w-auto"
                 >
                   <Plus size={15} /> Create Project
                 </button>
@@ -282,7 +282,7 @@ export default function ProjectsPage() {
                             onClick={() => goToPage(pageNum)}
                             className={`h-8 w-8 rounded text-sm font-medium transition-colors ${
                               currentPage === pageNum
-                                ? "bg-[#4F46E5] text-white hover:bg-[#4338CA]"
+                                ? "bg-[#000053] text-white hover:bg-[#000053]"
                                 : "border border-[#dbe0e8] text-slate-700 hover:bg-slate-50"
                             }`}
                           >
@@ -322,21 +322,25 @@ export default function ProjectsPage() {
                 <p className="text-lg font-bold">{viewProject.name}</p>
               </div>
               {viewProject.description && <p>{viewProject.description}</p>}
-
-              {/* Basic Info */}
               <div className="grid grid-cols-2 gap-4 py-3 border-t border-b">
-                {["Domain", "Created Date"].map((l, i) => (
-                  <div key={i}>
-                    <p className="text-xs font-semibold uppercase text-slate-500">
-                      {l}
-                    </p>
-                    <p className="font-semibold text-slate-900">
-                      {l === "Domain"
-                        ? DOMAIN_LABELS[viewProject.domain]
-                        : viewProject.createdDate}
-                    </p>
-                  </div>
-                ))}
+                {["Domain", "Created Date", "Mentors", "Mentees"].map(
+                  (l, i) => (
+                    <div key={i}>
+                      <p className="text-xs font-semibold uppercase text-slate-500">
+                        {l}
+                      </p>
+                      <p className="font-semibold text-slate-900">
+                        {l === "Domain"
+                          ? DOMAIN_LABELS[viewProject.domain]
+                          : l === "Created Date"
+                            ? viewProject.createdDate
+                            : l === "Mentors"
+                              ? viewProject.mentors
+                              : viewProject.students}
+                      </p>
+                    </div>
+                  ),
+                )}
               </div>
 
               {/* Mentors List */}
@@ -364,10 +368,10 @@ export default function ProjectsPage() {
                 )}
               </div>
 
-              {/* Students List */}
+              {/* Mentees List */}
               <div>
                 <p className="text-xs font-semibold uppercase text-slate-500 mb-2">
-                  Students ({viewProject.studentList?.length ?? 0})
+                  Mentees ({viewProject.studentList?.length ?? 0})
                 </p>
                 {viewProject.studentList &&
                 viewProject.studentList.length > 0 ? (
@@ -386,7 +390,7 @@ export default function ProjectsPage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-slate-500 italic">No students assigned</p>
+                  <p className="text-slate-500 italic">No mentees assigned</p>
                 )}
               </div>
 
@@ -401,7 +405,7 @@ export default function ProjectsPage() {
               <DialogClose asChild>
                 <Button
                   variant="outline"
-                  className="bg-[#4F46E5] text-white hover:bg-[#4338CA] border-none"
+                  className="bg-[#000053] text-white hover:bg-[#000053] border-none"
                 >
                   Close
                 </Button>
@@ -484,7 +488,7 @@ export default function ProjectsPage() {
                     </Button>
                   </DialogClose>
                   <Button
-                    className="bg-[#4F46E5] text-white hover:bg-[#4338CA]"
+                    className="bg-[#000053] text-white hover:bg-[#000053]"
                     onClick={d.onSave}
                     disabled={d.saving || !d.form.name.trim()}
                   >

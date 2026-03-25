@@ -56,7 +56,7 @@ export default function ReportsPage() {
               title="Reports"
               action={
                 <Button
-                  className="bg-[#4F46E5] text-white hover:bg-[#4338CA]"
+                  className="bg-[#000053] text-white hover:bg-[#000053]"
                   disabled={isExporting || isLoading}
                   onClick={generatePDF}
                 >

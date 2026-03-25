@@ -53,7 +53,7 @@ export default function UserDropdown({
               >
                 <Avatar className="h-8 w-8 shrink-0">
                   <AvatarImage src={undefined} alt={fullName} />
-                  <AvatarFallback className="bg-[#4F46E5] text-white text-xs font-bold">
+                  <AvatarFallback className="bg-[#000053] text-white text-xs font-bold">
                     {getInitials(user.fname, user.lname)}
                   </AvatarFallback>
                 </Avatar>
@@ -71,7 +71,7 @@ export default function UserDropdown({
             <DropdownMenuContent
               side="right"
               align="start"
-              className="w-[--radix-dropdown-menu-trigger-width] min-w-48 mb-5"
+              className="w-[--radix-dropdown-menu-trigger-width]git  min-w-48 mb-[15px]"
             >
               <DropdownMenuItem onSelect={() => onNavigate("/admin/settings")}>
                 <Settings size={14} className="mr-2 text-[#737373]" />

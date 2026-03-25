@@ -84,7 +84,7 @@ export default function ViewInvitationDialog({
           <DialogClose asChild>
             <Button
               variant="outline"
-              className="bg-[#4F46E5] text-white hover:bg-[#4338CA] border-none"
+              className="bg-[#000053] text-white hover:bg-[#000053] border-none"
             >
               Close
             </Button>

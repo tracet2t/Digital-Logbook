@@ -36,6 +36,17 @@ interface UserInfo {
   email: string;
 }
 
+function formatRole(role: string) {
+  if (role === "superAdmin") return "Super Admin";
+  if (role === "mentor") return "Mentor";
+  if (role === "student") return "Mentee";
+  return role;
+}
+
+function getInitials(fname: string, lname: string) {
+  return `${fname?.[0] ?? ""}${lname?.[0] ?? ""}`.toUpperCase() || "?";
+}
+
 const MAIN_MENU: { label: string; icon: ReactNode; href: string }[] = [
   { label: "Dashboard", icon: <LayoutDashboard size={18} />, href: "/admin" },
   { label: "Users", icon: <Users size={18} />, href: "/admin/users" },
@@ -67,7 +78,7 @@ const LOGO = {
 const COLLAPSED_BASE =
   "group-data-[collapsible=icon]:!size-10 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:mx-auto";
 const ACTIVE_CLASS =
-  "bg-[#4F46E5] text-white hover:bg-[#4338CA] hover:text-white data-[active=true]:bg-[#4F46E5] data-[active=true]:text-white data-[active=true]:hover:bg-[#4338CA]";
+  "bg-[#000053] text-white hover:bg-[#000053] hover:text-white data-[active=true]:bg-[#000053] data-[active=true]:text-white data-[active=true]:hover:bg-[#000053]";
 const INACTIVE_CLASS = "text-[#737373] hover:bg-gray-100 hover:text-[#0A0A0A]";
 
 const menuBtnClass = (active: boolean) =>

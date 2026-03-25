@@ -186,7 +186,7 @@ const LoginPage = () => {
                       type="button"
                       className="text-xs font-black text-blue-600 hover:text-blue-500 tracking-tighter transition-colors"
                     >
-                      FORGOT KEY?
+                      FORGOT PASSWORD?
                     </button>
                   </div>
                   <div className="relative group">
@@ -220,7 +220,7 @@ const LoginPage = () => {
 
               <Button
                 type="submit"
-                className="w-full h-14 bg-zinc-900 dark:bg-white text-zinc-50 dark:text-zinc-950 hover:bg-zinc-800 dark:hover:bg-zinc-200 font-black text-lg shadow-2xl transition-all active:scale-[0.98] rounded-xl tracking-widest"
+                className="w-full h-14 bg-[#000053] dark:bg-white text-zinc-50 dark:text-zinc-950 hover:bg-[#1a1a7a] dark:hover:bg-zinc-200 font-black text-lg shadow-2xl transition-all active:scale-[0.98] rounded-xl tracking-widest"
                 disabled={loading}
               >
                 {loading ? (

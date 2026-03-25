@@ -127,7 +127,7 @@ export const useAssignToProject = () => {
       return res.json();
     },
     onSuccess: (_, variables) => {
-      const assignType = variables.studentId ? "Student" : "Mentor";
+      const assignType = variables.studentId ? "Mentee" : "Mentor";
       toast.success(`${assignType} assigned successfully!`);
 
       // Invalidate relevant queries
@@ -169,7 +169,7 @@ export const useRemoveFromProject = () => {
       return res.json();
     },
     onSuccess: (_, variables) => {
-      const removeType = variables.studentId ? "Student" : "Mentor";
+      const removeType = variables.studentId ? "Mentee" : "Mentor";
       toast.success(`${removeType} removed successfully!`);
 
       // Invalidate relevant queries
