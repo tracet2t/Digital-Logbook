@@ -87,7 +87,7 @@ export default function CreateInvitationDialog({
                     <option value="" disabled>
                       Select a role…
                     </option>
-                    <option value="student">Student</option>
+                    <option value="student">Mentee</option>
                     <option value="mentor">Mentor</option>
                     <option value="admin">Super Admin</option>
                   </select>
@@ -226,7 +226,7 @@ export default function CreateInvitationDialog({
           <button
             onClick={onSubmit}
             disabled={isPending}
-            className="inline-flex items-center gap-2 h-9 px-5 bg-[#18181B] hover:bg-[#27272A] text-white text-sm font-medium rounded-lg transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 h-9 px-5 bg-[#000053] hover:bg-[#000053] text-white text-sm font-medium rounded-lg transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <Send size={14} />
             {isPending ? "Sending…" : "Send Invitation"}

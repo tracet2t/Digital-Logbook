@@ -20,8 +20,8 @@ const styles: Record<string, string> = {
 };
 
 const labels: Record<string, string> = {
-  student: "Student",
-  Student: "Student",
+  student: "Mentee",
+  Student: "Mentee",
   mentor: "Mentor",
   Mentor: "Mentor",
   superAdmin: "Super Admin",
@@ -29,7 +29,7 @@ const labels: Record<string, string> = {
 };
 
 /**
- * Colored pill badge for user roles (Student / Mentor / SuperAdmin).
+ * Colored pill badge for user roles (Mentee / Mentor / SuperAdmin).
  * Accepts both camelCase API values ("student", "superAdmin") and
  * display-case values ("Student", "SuperAdmin").
  *

@@ -22,6 +22,8 @@ export interface ProjectRow {
   createdBy: string;
   createdDate: string;
   description?: string;
+  mentorList?: Array<{ id: string; name: string }>;
+  studentList?: Array<{ id: string; name: string }>;
 }
 
 interface ProjectsTableProps {
@@ -59,7 +61,7 @@ export default function ProjectsTable({
             Mentors
           </TableHead>
           <TableHead className="px-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-            Students
+            Mentees
           </TableHead>
           <TableHead className="px-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">
             Created By

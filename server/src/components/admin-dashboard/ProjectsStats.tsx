@@ -29,7 +29,7 @@ export default function ProjectsStats({
       bg: "bg-emerald-50",
     },
     {
-      label: "Total Students",
+      label: "Total Mentees",
       value: totalStudents,
       icon: Users,
       color: "text-blue-500",

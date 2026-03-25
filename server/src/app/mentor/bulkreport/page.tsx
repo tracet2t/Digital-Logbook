@@ -98,7 +98,7 @@ const handleReport = async (report: Report): Promise<void> => {
     const csvContent = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
     const a = document.createElement('a');
     a.href = csvContent;
-    a.download = 'student_bulk_activity_report.csv'; // Customize the filename
+    a.download = 'mentee_bulk_activity_report.csv'; // Customize the filename
     document.body.appendChild(a);
     a.click();
     a.remove();

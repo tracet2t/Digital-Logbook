@@ -105,7 +105,7 @@ const MentorDashboard = () => {
       }
       const contentDisposition = response.headers.get('Content-Disposition');
       const filenameMatch = contentDisposition && contentDisposition.match(/filename="(.+)"/);
-      const filename = filenameMatch ? filenameMatch[1] : 'student_activity_report.csv';
+      const filename = filenameMatch ? filenameMatch[1] : 'mentee_activity_report.csv';
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -119,7 +119,7 @@ const MentorDashboard = () => {
       // Show toast on successful report download
       setToast({
         title: 'Report Generated',
-        description: 'Student report has been downloaded successfully!',
+        description: 'Mentee report has been downloaded successfully!',
       });
       setTimeout(() => setToast(null), 3000); // Hide toast after 3 seconds
     } catch (error) {
@@ -226,7 +226,7 @@ const MentorDashboard = () => {
               className="border-2 border-blue-500 text-black-500 px-4 py-2 bg-white rounded-md hover:border-blue-600 hover:bg-blue-100 "
                 onClick={handleOpenForm}
               >
-                Register Student
+                Register Mentee
               </Button>
               {showForm && <MentorRegStudentForm close={handleCloseForm} />}
             </div>

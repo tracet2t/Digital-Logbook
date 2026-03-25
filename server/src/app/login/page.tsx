@@ -1,19 +1,23 @@
 "use client";
+
 import React, { useState } from "react";
+
+import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
 import {
-  ToastProvider,
-  ToastViewport,
   Toast,
-  ToastTitle,
-  ToastDescription,
   ToastClose,
+  ToastDescription,
+  ToastProvider,
+  ToastTitle,
+  ToastViewport,
 } from "@/components/ui/toast";
-import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 
 type ToastVariant = "default" | "destructive";
 
@@ -247,22 +251,22 @@ const LoginPage = () => {
         </div>
       </div>
 
-      {toastData.open && (
-        <Toast
-          variant={toastData.variant}
-          className="border-none shadow-2xl bg-white dark:bg-zinc-900 rounded-xl"
-        >
-          <div className="grid gap-1">
-            <ToastTitle className="text-base font-black tracking-tight">
-              {toastData.title}
-            </ToastTitle>
-            <ToastDescription className="text-sm opacity-90 font-bold">
-              {toastData.description}
-            </ToastDescription>
-          </div>
-          <ToastClose />
-        </Toast>
-      )}
+      <Toast
+        open={toastData.open}
+        onOpenChange={(open) => setToastData((prev) => ({ ...prev, open }))}
+        variant={toastData.variant}
+        className="border-none shadow-2xl bg-white text-black dark:bg-black rounded-xl"
+      >
+        <div className="grid gap-1">
+          <ToastTitle className="text-base font-black tracking-tight">
+            {toastData.title}
+          </ToastTitle>
+          <ToastDescription className="text-sm opacity-90 font-bold">
+            {toastData.description}
+          </ToastDescription>
+        </div>
+        <ToastClose className="text-black !opacity-100 hover:text-zinc-700 focus:text-zinc-900 !text-black !hover:text-zinc-700 !focus:text-zinc-900 !group-[.destructive]:text-black !group-[.destructive]:hover:text-zinc-700 !group-[.destructive]:focus:text-zinc-900 !transition-none" />
+      </Toast>
 
       <ToastViewport />
     </ToastProvider>

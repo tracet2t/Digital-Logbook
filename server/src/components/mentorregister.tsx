@@ -45,7 +45,7 @@ const RegistrationForm: React.FC = () => {
     // Simulate form submission
     setToast({
       title: "Registration Successful",
-      description: "The student has been registered successfully.",
+      description: "The mentee has been registered successfully.",
     });
 
     // Clear toast after a short delay
@@ -87,10 +87,10 @@ const RegistrationForm: React.FC = () => {
         <Card className="w-full max-w-md mx-auto mt-20">
           <CardHeader>
             <CardTitle className="text-center">
-              Register a New Student
+              Register a New Mentee
             </CardTitle>
             <CardDescription className="text-center">
-              Fill in the details below to register a new student.
+              Fill in the details below to register a new mentee.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -100,7 +100,7 @@ const RegistrationForm: React.FC = () => {
                 <Input
                   id="firstName"
                   type="text"
-                  placeholder="Enter student’s first name"
+                  placeholder="Enter mentee’s first name"
                 />
               </div>
               <div className="mb-4">
@@ -108,7 +108,7 @@ const RegistrationForm: React.FC = () => {
                 <Input
                   id="lastName"
                   type="text"
-                  placeholder="Enter student’s last name"
+                  placeholder="Enter mentee’s last name"
                 />
               </div>
               <div className="mb-4">
@@ -116,7 +116,7 @@ const RegistrationForm: React.FC = () => {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Enter student’s email"
+                  placeholder="Enter mentee’s email"
                 />
               </div>
               <CardFooter className="flex justify-center">
