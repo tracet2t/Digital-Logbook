@@ -6,7 +6,6 @@ import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -99,54 +98,48 @@ const LoginPage = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-transparent to-zinc-950/80" />
 
           <div className="relative z-10">
-            <div className="flex items-center gap-4">
-              <div className="p-2.5 bg-blue-600 rounded-xl shadow-2xl shadow-blue-500/40">
-                <Image
-                  src="/log-file.png"
-                  width={32}
-                  height={32}
-                  alt="Logo"
-                  className="invert brightness-0"
-                />
-              </div>
-              <span className="text-2xl font-black tracking-tight text-white uppercase italic">
-                Logbook Pro
-              </span>
-            </div>
+            <Image
+              src="/logo.png"
+              width={180}
+              height={45}
+              alt="Logo"
+              className="h-auto w-full max-w-[180px] shrink-0"
+              priority
+            />
           </div>
 
           <div className="relative z-10 max-w-2xl">
             <h1 className="text-6xl xl:text-8xl font-black text-white leading-[1] tracking-tighter mb-8 bg-clip-text">
-              Precision <br />
+              Build <br />
               <span className="text-blue-500 underline decoration-blue-500/30 underline-offset-8">
-                Record Keeping
+                Your
               </span>{" "}
               <br />
-              Redefined.
+              Future.
             </h1>
             <p className="text-xl text-zinc-400 font-medium max-w-lg leading-relaxed">
-              Experience a world-class digital logging ecosystem designed for
-              speed, security, and absolute clarity.
+              Learn new skills and track your progress step by step.
             </p>
           </div>
 
           <div className="relative z-10 flex items-center gap-6 text-xs font-bold text-zinc-600 tracking-widest uppercase">
-            <span>© 2024 T2T ANALYTICS</span>
+            <span>© 2026 T2T</span>
             <span className="w-8 h-[1px] bg-zinc-800" />
-            <span>ENCRYPTED ACCESS</span>
+            <span>SECURE ACCESS</span>
           </div>
         </div>
 
         {/* Auth Interface */}
         <div className="flex-1 flex flex-col items-center justify-center p-8 md:p-16">
           <div className="w-full max-w-[420px] space-y-12">
-            <div className="lg:hidden flex flex-col items-center space-y-4 mb-4">
-              <div className="p-3 bg-zinc-100 dark:bg-zinc-900 rounded-2xl">
-                <Image src="/log-file.png" width={48} height={48} alt="Logo" />
-              </div>
-              <h1 className="text-2xl font-black tracking-tighter italic">
-                LOGBOOK PRO
-              </h1>
+            <div className="lg:hidden flex flex-col items-center mb-4">
+              <Image
+                src="/logo.png"
+                width={180}
+                height={45}
+                alt="Logo"
+                className="h-auto w-full max-w-[180px]"
+              />
             </div>
 
             <div className="space-y-3 text-center lg:text-left">
@@ -236,7 +229,7 @@ const LoginPage = () => {
                     <span>AUTHORIZING...</span>
                   </div>
                 ) : (
-                  "ESTABLISH CONNECTION"
+                  "SIGN IN"
                 )}
               </Button>
             </form>
