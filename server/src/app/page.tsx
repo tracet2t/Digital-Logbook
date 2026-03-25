@@ -33,7 +33,7 @@ export default async function Home() {
           </form>
         </div>
         <div className="flex flex-col h-full">
-          {role === 'student' && <div className="text-sm text-green-700">Student</div>}
+          {role === 'student' && <div className="text-sm text-green-700">Mentee</div>}
           {role === 'mentor' && <div className="text-sm text-green-700">Mentor</div>}
           {role === 'superAdmin' && <div className="text-sm text-green-700">Super Admin</div>}
         </div>

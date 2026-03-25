@@ -36,6 +36,17 @@ interface UserInfo {
   email: string;
 }
 
+function formatRole(role: string) {
+  if (role === "superAdmin") return "Super Admin";
+  if (role === "mentor") return "Mentor";
+  if (role === "student") return "Mentee";
+  return role;
+}
+
+function getInitials(fname: string, lname: string) {
+  return `${fname?.[0] ?? ""}${lname?.[0] ?? ""}`.toUpperCase() || "?";
+}
+
 const MAIN_MENU: { label: string; icon: ReactNode; href: string }[] = [
   { label: "Dashboard", icon: <LayoutDashboard size={18} />, href: "/admin" },
   { label: "Users", icon: <Users size={18} />, href: "/admin/users" },

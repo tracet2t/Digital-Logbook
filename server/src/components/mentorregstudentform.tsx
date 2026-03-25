@@ -134,7 +134,7 @@ export default function RegisterUserModal({ close }: { close: () => void }) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={Role.mentor}>Mentor</SelectItem>
-                  <SelectItem value={Role.student}>Student</SelectItem>
+                  <SelectItem value={Role.student}>Mentee</SelectItem>
                 </SelectContent>
               </Select>
             </div>

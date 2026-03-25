@@ -184,7 +184,7 @@ export default function ProjectsPage() {
               <div>
                 <PageHeader
                   title="Projects"
-                  subtitle="Manage and organize all projects with mentors and students."
+                  subtitle="Manage and organize all projects with mentors and mentees."
                 />
               </div>
 
@@ -322,21 +322,25 @@ export default function ProjectsPage() {
                 <p className="text-lg font-bold">{viewProject.name}</p>
               </div>
               {viewProject.description && <p>{viewProject.description}</p>}
-
-              {/* Basic Info */}
               <div className="grid grid-cols-2 gap-4 py-3 border-t border-b">
-                {["Domain", "Created Date"].map((l, i) => (
-                  <div key={i}>
-                    <p className="text-xs font-semibold uppercase text-slate-500">
-                      {l}
-                    </p>
-                    <p className="font-semibold text-slate-900">
-                      {l === "Domain"
-                        ? DOMAIN_LABELS[viewProject.domain]
-                        : viewProject.createdDate}
-                    </p>
-                  </div>
-                ))}
+                {["Domain", "Created Date", "Mentors", "Mentees"].map(
+                  (l, i) => (
+                    <div key={i}>
+                      <p className="text-xs font-semibold uppercase text-slate-500">
+                        {l}
+                      </p>
+                      <p className="font-semibold text-slate-900">
+                        {l === "Domain"
+                          ? DOMAIN_LABELS[viewProject.domain]
+                          : l === "Created Date"
+                            ? viewProject.createdDate
+                            : l === "Mentors"
+                              ? viewProject.mentors
+                              : viewProject.students}
+                      </p>
+                    </div>
+                  ),
+                )}
               </div>
 
               {/* Mentors List */}
@@ -364,10 +368,10 @@ export default function ProjectsPage() {
                 )}
               </div>
 
-              {/* Students List */}
+              {/* Mentees List */}
               <div>
                 <p className="text-xs font-semibold uppercase text-slate-500 mb-2">
-                  Students ({viewProject.studentList?.length ?? 0})
+                  Mentees ({viewProject.studentList?.length ?? 0})
                 </p>
                 {viewProject.studentList &&
                 viewProject.studentList.length > 0 ? (
@@ -386,7 +390,7 @@ export default function ProjectsPage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-slate-500 italic">No students assigned</p>
+                  <p className="text-slate-500 italic">No mentees assigned</p>
                 )}
               </div>
 
