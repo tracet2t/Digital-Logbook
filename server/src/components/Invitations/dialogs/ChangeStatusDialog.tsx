@@ -111,7 +111,7 @@ export default function ChangeStatusDialog({
           <button
             disabled={isPending || selectedStatus === invitation.status}
             onClick={onSave}
-            className="inline-flex items-center h-8 px-4 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center h-8 px-4 bg-[#000053] hover:bg-[#000053] text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isPending ? "Saving…" : "Save"}
           </button>

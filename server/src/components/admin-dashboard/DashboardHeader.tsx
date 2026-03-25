@@ -26,7 +26,7 @@ export default function DashboardHeader({
         </p>
       </div>
       <Button
-        className="h-10 bg-[#4F46E5] text-white hover:bg-[#4338CA]"
+        className="h-10 bg-[#000053] text-white hover:bg-[#000053]"
         onClick={onRequestExport}
       >
         Export Data

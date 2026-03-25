@@ -42,7 +42,7 @@ export default function RecentProjectsTable({
           </p>
         </div>
         <button
-          className="rounded-md px-3 py-2 text-sm font-medium bg-[#4F46E5] text-white hover:bg-[#4338CA] border border-transparent transition-colors"
+          className="rounded-md px-3 py-2 text-sm font-medium bg-[#000053] text-white hover:bg-[#000053] border border-transparent transition-colors"
           onClick={() => router.push("/admin/projects")}
         >
           View All Projects

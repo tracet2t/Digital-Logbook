@@ -278,7 +278,7 @@ export default function SuperAdminDashboard({
                 <DialogClose asChild>
                   <Button variant="outline">Cancel</Button>
                 </DialogClose>
-                <Button className="bg-[#4F46E5] text-white hover:bg-[#4338CA]" disabled={isExporting} onClick={handleExport}>
+                <Button className="bg-[#000053] text-white hover:bg-[#000053]" disabled={isExporting} onClick={handleExport}>
                   {isExporting ? "Exporting..." : "Export"}
                 </Button>
               </DialogFooter>
@@ -301,7 +301,7 @@ export default function SuperAdminDashboard({
                   subtitle={`Welcome back${userName ? `, ${userName}` : ""}! Here’s your latest platform summary.`}
                   action={
                     <Button
-                      className="h-10 bg-[#4F46E5] text-white hover:bg-[#4338CA] shrink-0"
+                      className="h-10 bg-[#000053] text-white hover:bg-[#000053] shrink-0"
                       onClick={openDialog}
                     >
                       Export Data
