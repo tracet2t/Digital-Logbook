@@ -30,7 +30,7 @@ const MentorDashboard = () => {
   const [toast, setToast] = useState<{ title: string; description: string } | null>(null); // State for toast notifications
 
   const router = useRouter(); // Initialize router
-
+//Setting Mentor Data
   useEffect(() => {
     getSessionOnClient()
       .then((data) => {
@@ -58,7 +58,7 @@ const MentorDashboard = () => {
   const handleMentorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedUser(e.target.value); 
   };
-
+ //Fetching users 
   const fetchUsers = async () => {
     try {
       const response = await fetch('http://localhost:3000/api/users');
@@ -75,6 +75,7 @@ const MentorDashboard = () => {
     fetchUsers();
   }, []);
 
+  //Bulk report generate
   const handleBulkReportClick = async () => {
     try {
       const response = await fetch("/api/generateReport", {
@@ -95,7 +96,7 @@ const MentorDashboard = () => {
       console.error("Error generating bulk report:", error);
     }
   };
-
+//Handle Report function
   const handleReport = async () => {
     try {
       const response = await fetch(`/api/report?studentId=${selectedUser}`);
