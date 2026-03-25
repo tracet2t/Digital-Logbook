@@ -14,6 +14,7 @@ import {
 } from "@/server_actions/adminProjectActions";
 import { Beaker, BookOpen, Cpu, Film, Globe, Plus, Search } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -33,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Textarea } from "@/components/ui/textarea";
 import { ConfirmDeleteDialog } from "@/components/admin";
 import ProjectsStats from "@/components/admin-dashboard/ProjectsStats";
@@ -81,6 +83,7 @@ export default function ProjectsPage() {
 
   useEffect(() => reload(), []);
 
+  //Edit project details
   const handleEditSave = async () => {
     if (!editProject) return;
     setEditSaving(true);
@@ -97,7 +100,7 @@ export default function ProjectsPage() {
       setEditSaving(false);
     }
   };
-
+  //Save the updated project
   const handleCreateSave = async () => {
     setCreateSaving(true);
     try {
@@ -113,7 +116,7 @@ export default function ProjectsPage() {
       setCreateSaving(false);
     }
   };
-
+  //Delete the project
   const handleDelete = async () => {
     if (!deleteId) return;
     setDeleting(true);
@@ -171,10 +174,9 @@ export default function ProjectsPage() {
     ));
 
   return (
-    <>
-      <div className="flex min-h-screen bg-[#f5f7fb]">
-        <AsideSidebar />
-
+    <SidebarProvider>
+      <AsideSidebar />
+      <SidebarInset className="bg-[#f5f7fb]">
         <div className="flex-1 p-5 md:p-8">
           <Card className="overflow-hidden border-[#d9dde5] bg-white">
             <div className="space-y-4 p-4 md:p-5">
@@ -221,7 +223,7 @@ export default function ProjectsPage() {
                     setCreateForm(EMPTY_FORM);
                     setShowCreate(true);
                   }}
-                  className="ml-auto inline-flex items-center justify-center gap-2 h-9 px-4 bg-[#18181B] hover:bg-[#27272A] text-white text-sm font-medium rounded-lg transition-colors shadow-sm shrink-0 w-full sm:w-auto"
+                  className="ml-auto inline-flex items-center justify-center gap-2 h-9 px-4 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-sm font-medium rounded-lg transition-colors shadow-sm shrink-0 w-full sm:w-auto"
                 >
                   <Plus size={15} /> Create Project
                 </button>
@@ -239,6 +241,8 @@ export default function ProjectsPage() {
                     createdBy: p.createdBy,
                     createdDate: p.createdDate,
                     description: p.description,
+                    mentorList: p.mentorList,
+                    studentList: p.studentList,
                   }))}
                   loading={loading}
                   domainIcons={DOMAIN_ICONS}
@@ -278,7 +282,7 @@ export default function ProjectsPage() {
                             onClick={() => goToPage(pageNum)}
                             className={`h-8 w-8 rounded text-sm font-medium transition-colors ${
                               currentPage === pageNum
-                                ? "bg-[#18181B] text-white"
+                                ? "bg-[#4F46E5] text-white hover:bg-[#4338CA]"
                                 : "border border-[#dbe0e8] text-slate-700 hover:bg-slate-50"
                             }`}
                           >
@@ -300,12 +304,13 @@ export default function ProjectsPage() {
             </div>
           </Card>
         </div>
-      </div>
+      </SidebarInset>
 
       {/** Reusable Dialogs */}
+      {/* View Project */}
       {viewProject && (
         <Dialog open onOpenChange={(open) => !open && setViewProject(null)}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Project Details</DialogTitle>
             </DialogHeader>
@@ -317,26 +322,74 @@ export default function ProjectsPage() {
                 <p className="text-lg font-bold">{viewProject.name}</p>
               </div>
               {viewProject.description && <p>{viewProject.description}</p>}
-              <div className="grid grid-cols-2 gap-4">
-                {["Domain", "Created Date", "Mentors", "Students"].map(
-                  (l, i) => (
-                    <div key={i}>
-                      <p className="text-xs font-semibold uppercase text-slate-500">
-                        {l}
-                      </p>
-                      <p className="font-semibold text-slate-900">
-                        {l === "Domain"
-                          ? DOMAIN_LABELS[viewProject.domain]
-                          : l === "Created Date"
-                            ? viewProject.createdDate
-                            : l === "Mentors"
-                              ? viewProject.mentors
-                              : viewProject.students}
-                      </p>
-                    </div>
-                  ),
+
+              {/* Basic Info */}
+              <div className="grid grid-cols-2 gap-4 py-3 border-t border-b">
+                {["Domain", "Created Date"].map((l, i) => (
+                  <div key={i}>
+                    <p className="text-xs font-semibold uppercase text-slate-500">
+                      {l}
+                    </p>
+                    <p className="font-semibold text-slate-900">
+                      {l === "Domain"
+                        ? DOMAIN_LABELS[viewProject.domain]
+                        : viewProject.createdDate}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Mentors List */}
+              <div>
+                <p className="text-xs font-semibold uppercase text-slate-500 mb-2">
+                  Mentors ({viewProject.mentorList?.length ?? 0})
+                </p>
+                {viewProject.mentorList && viewProject.mentorList.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {viewProject.mentorList.map((mentor) => (
+                      <Badge
+                        key={mentor.id}
+                        variant="secondary"
+                        className="flex items-center gap-1.5 px-2.5 py-1 text-sm font-medium"
+                      >
+                        <span className="flex items-center justify-center w-5 h-5 rounded-full bg-slate-400 text-white text-[10px] font-bold shrink-0">
+                          {mentor.name.charAt(0).toUpperCase()}
+                        </span>
+                        {mentor.name}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-slate-500 italic">No mentors assigned</p>
                 )}
               </div>
+
+              {/* Students List */}
+              <div>
+                <p className="text-xs font-semibold uppercase text-slate-500 mb-2">
+                  Students ({viewProject.studentList?.length ?? 0})
+                </p>
+                {viewProject.studentList &&
+                viewProject.studentList.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {viewProject.studentList.map((student) => (
+                      <Badge
+                        key={student.id}
+                        variant="outline"
+                        className="flex items-center gap-1.5 px-2.5 py-1 text-sm font-medium"
+                      >
+                        <span className="flex items-center justify-center w-5 h-5 rounded-full bg-slate-300 text-slate-700 text-[10px] font-bold shrink-0">
+                          {student.name.charAt(0).toUpperCase()}
+                        </span>
+                        {student.name}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-slate-500 italic">No students assigned</p>
+                )}
+              </div>
+
               <div>
                 <p className="text-xs font-semibold uppercase text-slate-500">
                   Created By
@@ -346,7 +399,12 @@ export default function ProjectsPage() {
             </div>
             <DialogFooter>
               <DialogClose asChild>
-                <Button variant="outline">Close</Button>
+                <Button
+                  variant="outline"
+                  className="bg-[#4F46E5] text-white hover:bg-[#4338CA] border-none"
+                >
+                  Close
+                </Button>
               </DialogClose>
             </DialogFooter>
           </DialogContent>
@@ -426,14 +484,14 @@ export default function ProjectsPage() {
                     </Button>
                   </DialogClose>
                   <Button
-                    className="bg-[#18181B] text-white hover:bg-[#27272A]"
+                    className="bg-[#4F46E5] text-white hover:bg-[#4338CA]"
                     onClick={d.onSave}
                     disabled={d.saving || !d.form.name.trim()}
                   >
                     {d.saving
                       ? d.title.includes("Edit")
-                        ? "Saving…"
-                        : "Creating…"
+                        ? "Saving"
+                        : "Creating"
                       : d.title.includes("Edit")
                         ? "Save Changes"
                         : "Create Project"}
@@ -452,6 +510,6 @@ export default function ProjectsPage() {
         title="Delete Project"
         description="This will permanently delete the project and all associated data. This action cannot be undone."
       />
-    </>
+    </SidebarProvider>
   );
 }

@@ -27,7 +27,7 @@ describe("InvitationRepository", () => {
       email: "student@test.com",
       role: Role.student,
       invitedBy: "admin-id-123",
-      tempPassword: "hashedpassword",
+      projectId: "project-id-123",
     };
 
     (prisma.invitation.create as jest.Mock).mockResolvedValue({
@@ -46,10 +46,8 @@ describe("InvitationRepository", () => {
         email: mockData.email,
         role: mockData.role,
         accepted: false,
-        tempPassword: mockData.tempPassword,
-        inviter: {
-          connect: { id: mockData.invitedBy },
-        },
+        invitedBy: mockData.invitedBy,
+        projectId: mockData.projectId,
       }),
     });
 
@@ -63,7 +61,7 @@ describe("InvitationRepository", () => {
     const invalidData: any = {
       email: "student@test.com",
       role: Role.student,
-      tempPassword: "hashedpassword",
+      projectId: "project-id-123",
     };
 
     await expect(repo.createInvite(invalidData)).rejects.toThrow(
@@ -135,7 +133,7 @@ describe("InvitationRepository", () => {
       email: "student@test.com",
       role: Role.student,
       invitedBy: "admin-id-123",
-      tempPassword: "hashedpassword",
+      projectId: "project-id-123",
     };
 
     // Mock prisma.create to just return what we pass in
@@ -161,7 +159,7 @@ describe("InvitationRepository", () => {
       email: "student@test.com",
       role: Role.student,
       invitedBy: "admin-id-123",
-      tempPassword: "hashedpassword",
+      projectId: "project-id-123",
     };
 
     let capturedToken = "";
@@ -212,7 +210,7 @@ describe("InvitationRepository", () => {
       email: "user1@test.com",
       role: Role.student,
       invitedBy: "admin-id",
-      tempPassword: "pwd1",
+      projectId: "project-id-1",
     });
     tokens.push(first.token);
 
@@ -220,7 +218,7 @@ describe("InvitationRepository", () => {
       email: "user2@test.com",
       role: Role.student,
       invitedBy: "admin-id",
-      tempPassword: "pwd2",
+      projectId: "project-id-2",
     });
     tokens.push(second.token);
 

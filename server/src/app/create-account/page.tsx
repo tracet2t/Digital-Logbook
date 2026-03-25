@@ -2,9 +2,10 @@
 
 import React, { useState } from "react";
 
-import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
+import { BookOpen, Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 import { useCompleteRegistration } from "@/hooks/admin/useCompleteRegistration";
 import { Button } from "@/components/ui/button";
@@ -118,17 +119,11 @@ export default function CreateAccount() {
 
           <div className="relative z-10">
             <div className="flex items-center gap-4">
-              <div className="p-2.5 bg-blue-600 rounded-xl shadow-2xl shadow-blue-500/40">
-                <Image
-                  src="/log-file.png"
-                  width={32}
-                  height={32}
-                  alt="Logo"
-                  className="invert brightness-0"
-                />
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[#4F46E5] shrink-0 shadow-2xl shadow-blue-500/40">
+                <BookOpen size={20} color="white" />
               </div>
               <span className="text-2xl font-black tracking-tight text-white uppercase italic">
-                Logbook Pro
+                Digital LogBook
               </span>
             </div>
           </div>
@@ -149,7 +144,7 @@ export default function CreateAccount() {
           </div>
 
           <div className="relative z-10 flex items-center gap-6 text-xs font-bold text-zinc-600 tracking-widest uppercase">
-            <span>© 2024 T2T ANALYTICS</span>
+            <span>© 2026 T2T </span>
             <span className="w-8 h-[1px] bg-zinc-800" />
             <span>SECURE SETUP</span>
           </div>
@@ -159,8 +154,8 @@ export default function CreateAccount() {
         <div className="flex-1 flex flex-col items-center justify-center p-8 md:p-16">
           <div className="w-full max-w-[420px] space-y-12">
             <div className="lg:hidden flex flex-col items-center space-y-4 mb-4">
-              <div className="p-3 bg-zinc-100 dark:bg-zinc-900 rounded-2xl">
-                <Image src="/log-file.png" width={48} height={48} alt="Logo" />
+              <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-[#4F46E5] shrink-0">
+                <BookOpen size={24} color="white" />
               </div>
               <h1 className="text-2xl font-black tracking-tighter italic">
                 LOGBOOK PRO
@@ -339,22 +334,22 @@ export default function CreateAccount() {
         </div>
       </div>
 
-      {toastData.open && (
-        <Toast
-          variant={toastData.variant}
-          className="border-none shadow-2xl bg-white dark:bg-zinc-900 rounded-xl"
-        >
-          <div className="grid gap-1">
-            <ToastTitle className="text-base font-black tracking-tight">
-              {toastData.title}
-            </ToastTitle>
-            <ToastDescription className="text-sm opacity-90 font-bold">
-              {toastData.description}
-            </ToastDescription>
-          </div>
-          <ToastClose />
-        </Toast>
-      )}
+      <Toast
+        open={toastData.open}
+        onOpenChange={(open) => setToastData((prev) => ({ ...prev, open }))}
+        variant={toastData.variant}
+        className="border-none shadow-2xl bg-black text-white dark:bg-black rounded-xl"
+      >
+        <div className="grid gap-1">
+          <ToastTitle className="text-base font-black tracking-tight">
+            {toastData.title}
+          </ToastTitle>
+          <ToastDescription className="text-sm opacity-90 font-bold">
+            {toastData.description}
+          </ToastDescription>
+        </div>
+        <ToastClose />
+      </Toast>
 
       <ToastViewport />
     </ToastProvider>

@@ -1,4 +1,3 @@
-import { AdminStatusBadge, RoleBadge } from "@/components/admin";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { AdminStatusBadge, RoleBadge } from "@/components/admin";
 
 import { UserRecord } from "./types";
 import { getInitials } from "./utils";
@@ -40,7 +40,9 @@ export default function ViewUserDialog({
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className="text-base font-bold text-slate-900">{user.name}</p>
+                <p className="text-base font-bold text-slate-900">
+                  {user.name}
+                </p>
                 <p className="text-xs text-slate-500">{user.email}</p>
               </div>
             </div>
@@ -74,7 +76,12 @@ export default function ViewUserDialog({
         )}
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Close</Button>
+            <Button
+              variant="outline"
+              className="bg-[#4F46E5] text-white hover:bg-[#4338CA] border-none"
+            >
+              Close
+            </Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>

@@ -1,5 +1,7 @@
 import * as React from "react";
+
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 import { ButtonProps, buttonVariants } from "@/components/ui/button";
 
@@ -46,6 +48,7 @@ const PaginationLink = ({
     className={cn(
       buttonVariants({ variant: isActive ? "default" : "outline", size }),
       "h-9",
+      isActive && "bg-[#4F46E5] text-white hover:bg-[#4338CA]",
       className,
     )}
     {...props}
