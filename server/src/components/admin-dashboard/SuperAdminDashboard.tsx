@@ -49,7 +49,7 @@ export default function SuperAdminDashboard({
       icon: <Users className="h-5 w-5 text-slate-500" />,
     },
     {
-      label: "Students",
+      label: "Mentees",
       value: stats.students || "--",
       icon: <GraduationCap className="h-5 w-5 text-slate-500" />,
     },

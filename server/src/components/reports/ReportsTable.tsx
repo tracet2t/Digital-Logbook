@@ -74,7 +74,7 @@ export function ReportsTable({ isLoading, fetchError, visibleReports }: Props) {
             Mentor
           </TableHead>
           <TableHead className="text-xs font-bold uppercase text-[#737373]">
-            Students Count
+            Mentees Count
           </TableHead>
           <TableHead className="text-xs font-bold uppercase text-[#737373]">
             Date

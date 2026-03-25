@@ -182,7 +182,7 @@ export default function ProjectsPage() {
               <div>
                 <PageHeader
                   title="Projects"
-                  subtitle="Manage and organize all projects with mentors and students."
+                  subtitle="Manage and organize all projects with mentors and mentees."
                 />
               </div>
 
@@ -318,7 +318,7 @@ export default function ProjectsPage() {
               </div>
               {viewProject.description && <p>{viewProject.description}</p>}
               <div className="grid grid-cols-2 gap-4">
-                {["Domain", "Created Date", "Mentors", "Students"].map(
+                {["Domain", "Created Date", "Mentors", "Mentees"].map(
                   (l, i) => (
                     <div key={i}>
                       <p className="text-xs font-semibold uppercase text-slate-500">

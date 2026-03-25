@@ -87,7 +87,7 @@ export default function CreateInvitationDialog({
                     <option value="" disabled>
                       Select a role…
                     </option>
-                    <option value="student">Student</option>
+                    <option value="student">Mentee</option>
                     <option value="mentor">Mentor</option>
                     <option value="admin">Super Admin</option>
                   </select>

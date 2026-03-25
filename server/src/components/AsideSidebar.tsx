@@ -44,7 +44,7 @@ interface UserInfo {
 function formatRole(role: string) {
   if (role === "superAdmin") return "Super Admin";
   if (role === "mentor") return "Mentor";
-  if (role === "student") return "Student";
+  if (role === "student") return "Mentee";
   return role;
 }
 

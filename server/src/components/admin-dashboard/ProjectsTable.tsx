@@ -59,7 +59,7 @@ export default function ProjectsTable({
             Mentors
           </TableHead>
           <TableHead className="px-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-            Students
+            Mentees
           </TableHead>
           <TableHead className="px-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">
             Created By
