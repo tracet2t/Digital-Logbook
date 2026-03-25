@@ -49,7 +49,7 @@ export default function UserDropdown({
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton
                 size="lg"
-                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground "
               >
                 <Avatar className="h-8 w-8 shrink-0">
                   <AvatarImage src={undefined} alt={fullName} />
@@ -71,7 +71,7 @@ export default function UserDropdown({
             <DropdownMenuContent
               side="right"
               align="start"
-              className="w-[--radix-dropdown-menu-trigger-width] min-w-48"
+              className="w-[--radix-dropdown-menu-trigger-width] min-w-48 mb-5"
             >
               <DropdownMenuItem onSelect={() => onNavigate("/admin/settings")}>
                 <Settings size={14} className="mr-2 text-[#737373]" />
