@@ -60,7 +60,7 @@ export function TestInvitation() {
         }
         className="w-full mb-3 p-2 border rounded"
       >
-        <option value="student">Student</option>
+        <option value="student">Mentee</option>
         <option value="mentor">Mentor</option>
         <option value="superAdmin">Super Admin</option>
       </select>

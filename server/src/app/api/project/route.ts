@@ -53,11 +53,11 @@ export async function POST(req: NextRequest) {
     const userId = session.getId();
     const userRole = session.getRole();
 
-    if (userRole !== "superAdmin" && userRole !== "mentor") {
+    if (userRole !== "superAdmin") {
       return NextResponse.json(
         {
           message:
-            "Forbidden - Only super admins and mentors can create projects",
+            "Forbidden - Only super admins  can create projects",
         },
         { status: 403 },
       );
@@ -103,7 +103,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     const userRole = session.getRole();
-    if (userRole !== "superAdmin" && userRole !== "mentor") {
+    if (userRole !== "superAdmin" ) {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 

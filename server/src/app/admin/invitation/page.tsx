@@ -13,6 +13,7 @@ import {
 } from "@/hooks/admin/useInvitation";
 import { useGetProjects } from "@/hooks/projects";
 import { Card } from "@/components/ui/card";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import PageHeader from "@/components/admin/PageHeader";
 import AsideSidebar from "@/components/AsideSidebar";
 import ChangeStatusDialog from "@/components/Invitations/dialogs/ChangeStatusDialog";
@@ -161,10 +162,9 @@ export default function InvitationsView() {
   };
 
   return (
-    <>
-      <div className="flex min-h-screen bg-[#f5f7fb]">
-        <AsideSidebar />
-
+    <SidebarProvider>
+      <AsideSidebar />
+      <SidebarInset className="bg-[#f5f7fb]">
         <div className="flex-1 p-5 md:p-8">
           <Card className="overflow-hidden border-[#d9dde5] bg-white">
             <div className="space-y-4 p-4 md:p-5">
@@ -209,7 +209,7 @@ export default function InvitationsView() {
                 {/* Create Button */}
                 <button
                   onClick={() => setCreateOpen(true)}
-                  className="ml-auto inline-flex items-center justify-center gap-2 h-9 px-4 bg-[#18181B] hover:bg-[#27272A] text-white text-sm font-medium rounded-lg transition-colors shadow-sm shrink-0 w-full sm:w-auto"
+                  className="ml-auto inline-flex items-center justify-center gap-2 h-9 px-4 bg-[#000053] hover:bg-[#000053] text-white text-sm font-medium rounded-lg transition-colors shadow-m shrink-0 w-full sm:w-auto"
                 >
                   <Plus size={15} /> Create Invitation
                 </button>
@@ -252,7 +252,7 @@ export default function InvitationsView() {
                             onClick={() => goToPage(pageNum)}
                             className={`h-8 w-8 rounded text-sm font-medium transition-colors ${
                               currentPage === pageNum
-                                ? "bg-[#18181B] text-white"
+                                ? "bg-[#000053] text-white hover:bg-[#000053]"
                                 : "border border-[#dbe0e8] text-slate-700 hover:bg-slate-50"
                             }`}
                           >
@@ -274,7 +274,7 @@ export default function InvitationsView() {
             </div>
           </Card>
         </div>
-      </div>
+      </SidebarInset>
 
       {/* Dialogs */}
       <CreateInvitationDialog
@@ -317,6 +317,6 @@ export default function InvitationsView() {
         }
         isDeleting={isDeleting}
       />
-    </>
+    </SidebarProvider>
   );
 }

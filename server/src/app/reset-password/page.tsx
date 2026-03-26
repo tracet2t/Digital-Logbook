@@ -106,16 +106,6 @@ const ResetPasswordPage = () => {
         }
     };
 
-    useEffect(() => {
-        if (toastData.open) {
-            // Automatically close toast after a short delay
-            const timer = setTimeout(() => {
-                setToastData(prev => ({ ...prev, open: false }));
-            }, 1000); // Adjust the duration as needed
-
-            return () => clearTimeout(timer);
-        }
-    }, [toastData]);
 
     return (
         <ToastProvider>
@@ -201,13 +191,18 @@ const ResetPasswordPage = () => {
             </div>
 
             {/* Toast Notification */}
-            {toastData.open && (
-                <Toast variant={toastData.variant}>
-                    <ToastTitle>{toastData.title}</ToastTitle>
-                    <ToastDescription>{toastData.description}</ToastDescription>
-                    <ToastClose />
-                </Toast>
-            )}
+            <Toast
+                open={toastData.open}
+                onOpenChange={(open) => setToastData((prev) => ({ ...prev, open }))}
+                variant={toastData.variant}
+                className="border-none shadow-2xl bg-black text-white dark:bg-black rounded-xl"
+            >
+                <div className="grid gap-1">
+                    <ToastTitle className="text-base font-black tracking-tight">{toastData.title}</ToastTitle>
+                    <ToastDescription className="text-sm opacity-90 font-bold">{toastData.description}</ToastDescription>
+                </div>
+                <ToastClose />
+            </Toast>
 
             {/* Toast Viewport for stacking multiple toasts */}
             <ToastViewport />

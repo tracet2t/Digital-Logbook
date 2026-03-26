@@ -38,7 +38,7 @@ export default function UsersFilters({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Roles</SelectItem>
-            <SelectItem value="Student">Student</SelectItem>
+            <SelectItem value="Student">Mentee</SelectItem>
             <SelectItem value="Mentor">Mentor</SelectItem>
             <SelectItem value="SuperAdmin">SuperAdmin</SelectItem>
           </SelectContent>

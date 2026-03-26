@@ -35,7 +35,7 @@ export function useGeneratePDF(
       doc.text("Project Reports", margin, 58);
       doc.setFontSize(9);
       doc.text(`Generated at: ${new Date().toLocaleString()}`, margin, 74);
-      doc.text("Project Name · Mentor · Students Count · Date", margin, 88);
+      doc.text("Project Name · Mentor · Mentees Count · Date", margin, 88);
       doc.setTextColor(0, 0, 0);
 
       y = 128;
@@ -72,7 +72,7 @@ export function useGeneratePDF(
       doc.setTextColor(55, 65, 81);
       doc.text("PROJECT NAME", colX.project + 3, y);
       doc.text("MENTOR", colX.mentor, y);
-      doc.text("STUDENTS", colX.students, y);
+      doc.text("MENTEES", colX.students, y);
       doc.text("DATE", colX.date, y);
       y += 14;
       doc.setDrawColor(220);

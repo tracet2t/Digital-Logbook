@@ -1,6 +1,15 @@
 "use client";
 
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface DeleteInvitationDialogProps {
   open: boolean;
@@ -9,20 +18,37 @@ interface DeleteInvitationDialogProps {
   isDeleting: boolean;
 }
 
-export default function DeleteInvitationDialog({ open, onOpenChange, onDelete, isDeleting }: DeleteInvitationDialogProps) {
+export default function DeleteInvitationDialog({
+  open,
+  onOpenChange,
+  onDelete,
+  isDeleting,
+}: DeleteInvitationDialogProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Delete Invitation</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently delete the invitation and remove the associated user account along with all their data — including project allocations, activities, and feedback. This action cannot be undone.
+            This will permanently delete the invitation and remove the
+            associated user account along with all their data — including
+            project allocations, activities, and feedback. This action cannot be
+            undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-          <AlertDialogAction className="bg-red-600 hover:bg-red-700 text-white" disabled={isDeleting} onClick={onDelete}>
-            {isDeleting ? 'Deleting…' : 'Delete'}
+          <AlertDialogAction
+            className="bg-[#000053] text-white hover:bg-[#000053] border-none focus:ring-0 focus:outline-none shadow-none"
+            style={{
+              backgroundColor: "#000053",
+              color: "#fff",
+              border: "none",
+            }}
+            disabled={isDeleting}
+            onClick={onDelete}
+          >
+            {isDeleting ? "Deleting..." : "Delete"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
