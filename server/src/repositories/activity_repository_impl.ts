@@ -94,7 +94,7 @@ export class ActivityRepository extends BaseRepository<Activity> {
    * Get aggregated activity submission and approval summary for a mentee in a project.
    *
    * @param studentId - Mentee user ID
-   * @param projectId - Project ID (optional — if provided, filters to that project only)
+   * @param projectId - Project ID (optional — if provided, verifies student is allocated to that project)
    * @returns Summary object with counts and approval rate
    */
   async getMenteeActivitySummary(
@@ -111,15 +111,29 @@ export class ActivityRepository extends BaseRepository<Activity> {
     lastActivityDate: Date | null;
     firstActivityDate: Date | null;
   }> {
-    // Build where clause
-    const where: { studentId: string; projectId?: string } = { studentId };
+    // If projectId provided, verify student is allocated to that project
     if (projectId) {
-      where.projectId = projectId;
+      const allocation = await prisma.projectAllocation.findUnique({
+        where: { projectId_studentId: { projectId, studentId } },
+      });
+      if (!allocation) {
+        return {
+          studentId,
+          projectId,
+          totalSubmitted: 0,
+          totalApproved: 0,
+          totalRejected: 0,
+          totalPending: 0,
+          approvalRate: 0,
+          lastActivityDate: null,
+          firstActivityDate: null,
+        };
+      }
     }
 
-    // Get all activities matching the filter
+    // Get all activities for the student (Activity has no projectId column)
     const activities = await this.modelClient.findMany({
-      where,
+      where: { studentId },
       include: {
         feedback: {
           select: { status: true },
@@ -135,7 +149,7 @@ export class ActivityRepository extends BaseRepository<Activity> {
     let totalRejected = 0;
     let totalPending = 0;
 
-    activities.forEach((activity) => {
+    activities.forEach((activity: any) => {
       if (activity.feedback.length === 0) {
         totalPending++;
       } else {
@@ -155,7 +169,7 @@ export class ActivityRepository extends BaseRepository<Activity> {
 
     return {
       studentId,
-      projectId: projectId || null,
+      projectId: projectId ?? null,
       totalSubmitted,
       totalApproved,
       totalRejected,
