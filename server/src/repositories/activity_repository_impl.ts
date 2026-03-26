@@ -89,4 +89,47 @@ export class ActivityRepository extends BaseRepository<Activity> {
       },
     });
   }
+
+  async getApprovedHours(studentId: string): Promise<number> {
+    const result = await this.modelClient.aggregate({
+      _sum: {
+        timeSpent: true,
+      },
+      where: {
+        studentId,
+        feedback: {
+          some: {
+            status: "approved",
+          },
+        },
+      },
+    });
+
+    return result._sum.timeSpent ?? 0;
+  }
+
+  async getTotalApprovedHours(studentId: string, projectId: string): Promise<number> {
+    const result = await this.modelClient.aggregate({
+      _sum: {
+        timeSpent: true,
+      },
+      where: {
+        studentId,
+        student: {
+          allocations: {
+            some: {
+              projectId,
+            },
+          },
+        },
+        feedback: {
+          some: {
+            status: "approved",
+          },
+        },
+      },
+    });
+
+    return result._sum.timeSpent ?? 0;
+  }
 }
