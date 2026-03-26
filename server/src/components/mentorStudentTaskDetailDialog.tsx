@@ -66,9 +66,9 @@ const MentorStudentTaskDetailDialog: React.FC<MentorStudentTaskDetailDialogProps
     <>
       {role === 'mentor' && selectedUser === studentId && (
         <Dialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
-          <DialogContent className="sm:max-w-md rounded-2xl p-0 overflow-hidden shadow-xl border-0">
+          <DialogContent className="sm:max-w-md rounded-2xl p-0 overflow-hidden shadow-xl border-0 bg-white">
             {/* Header */}
-            <div className="px-6 pt-6 pb-4 border-b border-gray-100">
+            <div className="px-6 pt-6 pb-4 border-b border-gray-100 bg-white">
               <DialogHeader>
                 <div className="flex items-center gap-2">
                   <DialogTitle className="text-xl font-semibold text-gray-900">
@@ -84,7 +84,7 @@ const MentorStudentTaskDetailDialog: React.FC<MentorStudentTaskDetailDialogProps
             </div>
 
             {/* Body */}
-            <div className="px-6 py-5 space-y-5">
+            <div className="px-6 py-5 space-y-5 bg-white">
               {/* Date & Working Hours row */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
@@ -151,7 +151,7 @@ const MentorStudentTaskDetailDialog: React.FC<MentorStudentTaskDetailDialogProps
             </div>
 
             {/* Footer */}
-            <DialogFooter className="px-6 py-4 border-t border-gray-100 flex flex-row justify-end gap-2 bg-gray-50/50">
+            <DialogFooter className="px-6 py-4 border-t border-gray-100 flex flex-row justify-end gap-2 bg-white">
               <Button
                 variant="outline"
                 onClick={handleClose}
@@ -162,7 +162,7 @@ const MentorStudentTaskDetailDialog: React.FC<MentorStudentTaskDetailDialogProps
               {isEditable && (
                 <Button
                   onClick={handleSubmit}
-                  className="rounded-lg bg-gray-900 text-white hover:bg-gray-700 px-6"
+                  className="rounded-lg bg-blue-600 text-white hover:bg-blue-700 px-6"
                 >
                   Save changes
                 </Button>
