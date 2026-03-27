@@ -57,28 +57,29 @@ const MentorDashboard = () => {
     if (mentorProjects.length > 0 && !selectedProject) {
       setSelectedProject(mentorProjects[0].id);
     }
-  }, [mentorProjects, selectedProject]);
+  }, [mentorProjects.length]); // Only check if the count changes, not the entire array
 
   // Initialize selected user with mentor ID
   useEffect(() => {
     if (mentorId && !selectedUser) {
       setSelectedUser(mentorId);
     }
-  }, [mentorId, selectedUser]);
+  }, [mentorId]); // Remove selectedUser from dependency to prevent circular logic
 
   // Update project students list when fetched students change
   useEffect(() => {
     if (selectedProject && Array.isArray(fetchedStudents) && mentorId) {
+      const mentorDisplay = (mentorName && mentorName.trim().length > 0) ? mentorName : "Mentor";
       const updatedList = [
         {
           id: mentorId,
-          name: mentorName || "Mentor",
+          name: mentorDisplay,
         },
         ...fetchedStudents,
       ];
       setProjectStudents(updatedList);
     }
-  }, [fetchedStudents, selectedProject, mentorId, mentorName]);
+  }, [selectedProject, fetchedStudents.length, mentorId]); // Use array length instead of array itself
   //Reset function
   const handleResetStudent = () => {
     if (mentorId) {
