@@ -9,6 +9,7 @@ import { getSessionOnClient } from "@/server_actions/getSession";
 import { useRouter } from 'next/navigation'; // Import useRouter hook
 import { ToastProvider, ToastViewport, Toast, ToastTitle, ToastDescription, ToastClose } from "@/components/ui/toast"; // Adjust import path if necessary
 import { GenericCombobox } from "@/components/mentor/combobox";
+import { useMentorProjects, useProjectStudents } from "@/hooks/mentor/useMentorFilter";
 
 interface Session {
   fname: string;
@@ -19,20 +20,22 @@ interface Session {
 }
 
 const MentorDashboard = () => {
-  const [users, setUsers] = useState<{ id: string; firstName: string; lastName: string; }[]>([]);
   const [session, setSession] = useState<Session | null>(null);
   const [mentorName, setMentorName] = useState<string | null>(null);
   const [mentorId, setMentorId] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [role, setRole] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ title: string; description: string } | null>(null); // State for toast notifications
+  const [toast, setToast] = useState<{ title: string; description: string } | null>(null);
 
-  const [mentorProjects, setMentorProjects] = useState<{ id: string; name: string }[]>([]);
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [projectStudents, setProjectStudents] = useState<{ id: string; name: string }[]>([]);
 
+  // TanStack Query hooks
+  const { data: mentorProjects = [], isLoading: projectsLoading } = useMentorProjects();
+  const { data: fetchedStudents = [], isLoading: studentsLoading } = useProjectStudents(selectedProject);
+
   const router = useRouter(); // Initialize router
+
   //Setting Mentor Data
   useEffect(() => {
     getSessionOnClient()
@@ -42,85 +45,46 @@ const MentorDashboard = () => {
           setMentorName(`${data.fname} ${data.lname}`);
           setMentorId(data.id);
           setRole(data.role);
-          setSelectedUser(data.id); // Setting the selected user based on session
         }
       })
       .catch((error) => {
         console.error('Error fetching session:', error);
       });
   }, []);
-  // Fetch mentor projects on login
+
+  // Auto-select first project when mentor projects load
   useEffect(() => {
-    if (!mentorId) return;
+    if (mentorProjects.length > 0 && !selectedProject) {
+      setSelectedProject(mentorProjects[0].id);
+    }
+  }, [mentorProjects, selectedProject]);
 
-    const fetchProjects = async () => {
-      try {
-        const res = await fetch(`/api/mentor/filter?mentorId=${mentorId}`);
-        const data = await res.json();
-        setMentorProjects(data);
-
-        // Auto-select first project
-        if (data.length > 0) setSelectedProject(data[0].id);
-      } catch (error) {
-        console.error("Failed to fetch mentor projects:", error);
-      }
-    };
-
-    fetchProjects();
-  }, [mentorId]);
-  // Fetch students when project changes
+  // Initialize selected user with mentor ID
   useEffect(() => {
-    if (!selectedProject) return;
+    if (mentorId && !selectedUser) {
+      setSelectedUser(mentorId);
+    }
+  }, [mentorId, selectedUser]);
 
-    const fetchStudents = async () => {
-      try {
-        const res = await fetch(`/api/mentor/filter?projectId=${selectedProject}`);
-        const data = await res.json();
-
-        // Include mentor as first option
-        const updatedList = [
-          {
-            id: mentorId!,
-            name: mentorName || "Mentor",
-          },
-          ...data,
-        ];
-
-        setProjectStudents(updatedList);
-
-        if (!selectedUser) {
-          setSelectedUser(mentorId);
-        }
-
-      } catch (error) {
-        console.error("Failed to fetch project students:", error);
-      }
-    };
-
-    fetchStudents();
-  }, [selectedProject, mentorId, mentorName, selectedUser]);
+  // Update project students list when fetched students change
+  useEffect(() => {
+    if (selectedProject && Array.isArray(fetchedStudents) && mentorId) {
+      const updatedList = [
+        {
+          id: mentorId,
+          name: mentorName || "Mentor",
+        },
+        ...fetchedStudents,
+      ];
+      setProjectStudents(updatedList);
+    }
+  }, [fetchedStudents, selectedProject, mentorId, mentorName]);
   //Reset function
   const handleResetStudent = () => {
     if (mentorId) {
       setSelectedUser(mentorId); // reset to mentor
     }
   };
-  //Fetching users 
-  const fetchUsers = async () => {
-    try {
-      const response = await fetch('http://localhost:3000/api/users');
-      const data = await response.json();
-      setUsers(data);
-      setIsLoading(false); // Stop loading once users are fetched
-    } catch (error) {
-      console.error("Failed to fetch users:", error);
-      setIsLoading(false); // Stop loading even if there's an error
-    }
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
 
   //Bulk report generate
   const handleBulkReportClick = async () => {
@@ -234,7 +198,7 @@ const MentorDashboard = () => {
         <div className="flex-grow flex flex-col items-center justify-center mt-[-7px] w-full max-w-[95vw] mx-auto">
           <div className="bg-white p-4 rounded-xl shadow-lg w-full max-w-[95vw] min-h-[60vh]">
             <div className="flex flex-wrap justify-between items-center mb-4 px-4">
-              {!isLoading && session ? (
+              {!projectsLoading && session ? (
                 <div className="flex gap-4 mb-4">
                   {/* Project Combobox */}
                   <GenericCombobox
