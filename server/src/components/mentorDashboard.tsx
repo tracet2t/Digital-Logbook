@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import TaskCalendar from "@/components/calendar"; // Import TaskCalendar
+import RsuiteCalendar from "@/components/rsuiteCalendar"; // Import RsuiteCalendar
+import AsideSidebar from "@/components/AsideSidebar"; // Import AsideSidebar
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -10,6 +11,7 @@ import { useRouter } from 'next/navigation'; // Import useRouter hook
 import { ToastProvider, ToastViewport, Toast, ToastTitle, ToastDescription, ToastClose } from "@/components/ui/toast"; // Adjust import path if necessary
 import { GenericCombobox } from "@/components/mentor/combobox";
 import { useMentorProjects, useProjectStudents } from "@/hooks/mentor/useMentorFilter";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 interface Session {
   fname: string;
@@ -148,117 +150,124 @@ const MentorDashboard = () => {
     setIsPopupOpen(!isPopupOpen);
   };
   return (
-    <ToastProvider>
-      <div className="gap-5 flex flex-col bg-[#f1f1f9] min-h-screen">
-        {/* Top Bar with Logo, Avatar, and Logout */}
-        <div className="flex gap-1 justify-between items-center p-4 bg-gradient-to-t from-blue-50 via-blue-75 to-blue-100 shadow-md h-[8vh] w-full max-w-[95vw] mx-auto mt-[10px] rounded-lg">
-          <Image
-            src="/logo.png"
-            alt="Logo"
-            width={200}
-            height={40}
-            className="mt-[0px]"
-          />
-          <div className="flex items-center gap-4 mt-[0px] relative mr-[15px]">
-            {/* Avatar */}
-            <div onClick={togglePopup} className="cursor-pointer">
-              <Avatar>
-                <AvatarImage src="https://github.com/shadcn.png" />
-                <AvatarFallback>CN</AvatarFallback>
-              </Avatar>
-            </div>
-            {/* Popup Screen */}
-            {isPopupOpen && (
-              <div className="absolute top-[100%] right-0 mt-2 bg-gradient-to-t from-blue-100 via-blue-200 to-blue-300 shadow-md shadow-lg p-6 rounded-lg z-50 w-[250px]">
-                {/* Large Avatar */}
-                <div className="flex justify-center mb-4">
-                  <Avatar className="w-24 h-24">
+    <SidebarProvider>
+      <ToastProvider>
+        <div className="flex min-h-screen">
+          {/* Sidebar */}
+          <AsideSidebar />
+          {/* Main Content Area */}
+          <div className="gap-5 flex flex-col bg-[#f1f1f9] min-h-screen flex-1 overflow-hidden">
+            {/* Top Bar with Logo, Avatar, and Logout */}
+            <div className="flex gap-1 justify-between items-center p-4 bg-gradient-to-t from-blue-50 via-blue-75 to-blue-100 shadow-md h-[8vh] w-full max-w-[95vw] mx-auto mt-[10px] rounded-lg">
+              <Image
+                src="/logo.png"
+                alt="Logo"
+                width={200}
+                height={40}
+                className="mt-[0px]"
+              />
+              <div className="flex items-center gap-4 mt-[0px] relative mr-[15px]">
+                {/* Avatar */}
+                <div onClick={togglePopup} className="cursor-pointer">
+                  <Avatar>
                     <AvatarImage src="https://github.com/shadcn.png" />
                     <AvatarFallback>CN</AvatarFallback>
                   </Avatar>
                 </div>
-                {/* Student Name and Email */}
-                <div className="text-center">
-                  <h3 className="text-lg font-semibold">
-                    {session ? `${session.fname} ${session.lname}` : 'Loading...'}
-                  </h3>
-                  <p className="text-xs text-gray-500">
-                    {session ? session.email : 'Loading...'}
-                  </p>
-                </div>
-                {/* Logout Button */}
-                <form action="/api/logout" method="post" className="mt-4">
-                  <Button variant="blue" className="w-full border-black">Logout</Button>
-                </form>
-              </div>
-            )}
-          </div>
-        </div>
-        {/* Main Content */}
-        <div className="flex-grow flex flex-col items-center justify-center mt-[-7px] w-full max-w-[95vw] mx-auto">
-          <div className="bg-white p-4 rounded-xl shadow-lg w-full max-w-[95vw] min-h-[60vh]">
-            <div className="flex flex-wrap justify-between items-center mb-4 px-4">
-              {!projectsLoading && session ? (
-                <div className="flex gap-4 mb-4">
-                  {/* Project Combobox */}
-                  <GenericCombobox
-                    items={mentorProjects}
-                    value={mentorProjects.find((p) => p.id === selectedProject) || null}
-                    onValueChange={(p) => setSelectedProject(p.id)}
-                    itemToStringValue={(p) => p.name}
-                    renderItem={(p) => <div className="px-2 py-1">{p.name}</div>}
-                    placeholder="Select Project"
-                    className="combobox-styled"
-                  />
-
-                  {/* Student Combobox */}
-                  <GenericCombobox
-                    items={projectStudents}
-                    value={projectStudents.find((u) => u.id === selectedUser) || null}
-                    onValueChange={(u) => setSelectedUser(u.id)}
-                    itemToStringValue={(u) => u.name}
-                    renderItem={(u) => <div className="px-2 py-1">{u.name}</div>}
-                    placeholder="Select Student"
-                    className="combobox-styled"
-                  />
-                  <Button
-                    variant="outline"
-                    onClick={handleResetStudent}
-                    className="reset-button-styled">Reset</Button>
-                </div>
-              ) : (
-                <p>Loading...</p>
-              )}
-              <div className="flex flex-wrap gap-4 mt-4 sm:mt-0">
-                <Button className="border-2 border-orange-500 text-black-500 px-4 py-2 bg-white rounded-md hover:border-orange-600 hover:bg-orange-100"
-                  onClick={handleReport} disabled={mentorId === selectedUser}>
-                  Generate Report
-                </Button>
-
-                <Button className="border-2 border-orange-500 text-black-500 px-4 py-2 bg-white rounded-md hover:border-orange-600 hover:bg-orange-100"
-                  onClick={handleBulkReportClick} // Handle Bulk Report click
-                >
-                  Bulk Report
-                </Button>
+                {/* Popup Screen */}
+                {isPopupOpen && (
+                  <div className="absolute top-[100%] right-0 mt-2 bg-gradient-to-t from-blue-100 via-blue-200 to-blue-300 shadow-md shadow-lg p-6 rounded-lg z-50 w-[250px]">
+                    {/* Large Avatar */}
+                    <div className="flex justify-center mb-4">
+                      <Avatar className="w-24 h-24">
+                        <AvatarImage src="https://github.com/shadcn.png" />
+                        <AvatarFallback>CN</AvatarFallback>
+                      </Avatar>
+                    </div>
+                    {/* Student Name and Email */}
+                    <div className="text-center">
+                      <h3 className="text-lg font-semibold">
+                        {session ? `${session.fname} ${session.lname}` : 'Loading...'}
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        {session ? session.email : 'Loading...'}
+                      </p>
+                    </div>
+                    {/* Logout Button */}
+                    <form action="/api/logout" method="post" className="mt-4">
+                      <Button variant="blue" className="w-full border-black">Logout</Button>
+                    </form>
+                  </div>
+                )}
               </div>
             </div>
-            {/* Pass the selectedUser as a prop to TaskCalendar */}
-            <div className="flex justify-center items-center w-full">
-              <TaskCalendar selectedUser={selectedUser || ""} />
+            {/* Main Content */}
+            <div className="flex-grow flex flex-col mt-[-7px] w-full px-4">
+              <div className="bg-white p-4 rounded-xl shadow-lg w-full flex-1">
+                <div className="flex flex-wrap justify-between items-center mb-4 px-4">
+                  {!projectsLoading && session ? (
+                    <div className="flex gap-4 mb-4">
+                      {/* Project Combobox */}
+                      <GenericCombobox
+                        items={mentorProjects}
+                        value={mentorProjects.find((p) => p.id === selectedProject) || null}
+                        onValueChange={(p) => setSelectedProject(p.id)}
+                        itemToStringValue={(p) => p.name}
+                        renderItem={(p) => <div className="px-2 py-1">{p.name}</div>}
+                        placeholder="Select Project"
+                        className="combobox-styled"
+                      />
+
+                      {/* Student Combobox */}
+                      <GenericCombobox
+                        items={projectStudents}
+                        value={projectStudents.find((u) => u.id === selectedUser) || null}
+                        onValueChange={(u) => setSelectedUser(u.id)}
+                        itemToStringValue={(u) => u.name}
+                        renderItem={(u) => <div className="px-2 py-1">{u.name}</div>}
+                        placeholder="Select Student"
+                        className="combobox-styled"
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={handleResetStudent}
+                        className="reset-button-styled">Reset</Button>
+                    </div>
+                  ) : (
+                    <p>Loading...</p>
+                  )}
+                  <div className="flex flex-wrap gap-4 mt-4 sm:mt-0">
+                    <Button className="border-2 border-orange-500 text-black-500 px-4 py-2 bg-white rounded-md hover:border-orange-600 hover:bg-orange-100"
+                      onClick={handleReport} disabled={mentorId === selectedUser}>
+                      Generate Report
+                    </Button>
+
+                    <Button className="border-2 border-orange-500 text-black-500 px-4 py-2 bg-white rounded-md hover:border-orange-600 hover:bg-orange-100"
+                      onClick={handleBulkReportClick} // Handle Bulk Report click
+                    >
+                      Bulk Report
+                    </Button>
+                  </div>
+                </div>
+                {/* Calendar Component */}
+                <div className="w-full">
+                  <RsuiteCalendar selectedUser={selectedUser || ""} />
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      {/* Toast Component */}
-      {toast && (
-        <Toast>
-          <ToastTitle>{toast.title}</ToastTitle>
-          <ToastDescription>{toast.description}</ToastDescription>
-          <ToastClose />
-        </Toast>
-      )}
-      <ToastViewport />
-    </ToastProvider>
+        {/* Toast Component */}
+        {toast && (
+          <Toast>
+            <ToastTitle>{toast.title}</ToastTitle>
+            <ToastDescription>{toast.description}</ToastDescription>
+            <ToastClose />
+          </Toast>
+        )}
+        <ToastViewport />
+      </ToastProvider>
+    </SidebarProvider>
   );
 };
 

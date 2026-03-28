@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   // Clear existing data in reverse order of dependencies
+  await prisma.projectTechnology.deleteMany();
   await prisma.userBadge.deleteMany();
   await prisma.badge.deleteMany();
   await prisma.projectAllocation.deleteMany();
@@ -244,6 +245,34 @@ async function main() {
       data: {
         projectId: project2.id,
         studentId: student3.id,
+      },
+    });
+
+    // Create ProjectTechnologies
+    await prisma.projectTechnology.create({
+      data: {
+        projectId: project1.id,
+        studentId: student1.id,
+        name: "React",
+        rating: 4,
+      },
+    });
+
+    await prisma.projectTechnology.create({
+      data: {
+        projectId: project1.id,
+        studentId: student1.id,
+        name: "Node.js",
+        rating: 3,
+      },
+    });
+
+    await prisma.projectTechnology.create({
+      data: {
+        projectId: project2.id,
+        studentId: student3.id,
+        name: "Design Patterns",
+        rating: 5,
       },
     });
 
