@@ -1,7 +1,9 @@
 import React from "react";
 
-function CalendarPage() {
-  return <div>CalendarPage</div>;
+import MentorDashboard from "@/components/mentorDashboard";
+
+function DashboardPage() {
+  return <MentorDashboard />;
 }
 
-export default CalendarPage;
+export default DashboardPage;
