@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  ADMIN_LOGO_CONFIG,
+  ADMIN_MENU_ITEMS,
+} from "@/utils/config/adminSidebarConfig";
+
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import AsideSidebar from "@/components/AsideSidebar";
 
@@ -26,7 +31,7 @@ export default function AdminPageLayout({
 }: AdminPageLayoutProps) {
   return (
     <SidebarProvider>
-      <AsideSidebar />
+      <AsideSidebar menu={ADMIN_MENU_ITEMS} logo={ADMIN_LOGO_CONFIG} />
       <SidebarInset className={className}>{children}</SidebarInset>
     </SidebarProvider>
   );

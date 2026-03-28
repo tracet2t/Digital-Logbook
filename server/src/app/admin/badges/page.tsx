@@ -1,5 +1,9 @@
 import React from "react";
 
+import {
+  ADMIN_LOGO_CONFIG,
+  ADMIN_MENU_ITEMS,
+} from "@/utils/config/adminSidebarConfig";
 import { Construction } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
@@ -10,7 +14,7 @@ import AsideSidebar from "@/components/AsideSidebar";
 export default function BadgesPage() {
   return (
     <SidebarProvider>
-      <AsideSidebar />
+      <AsideSidebar menu={ADMIN_MENU_ITEMS} logo={ADMIN_LOGO_CONFIG} />
       <SidebarInset className="bg-[#f5f7fb]">
         <div className="flex-1 p-5 md:p-8">
           <Card className="overflow-hidden border-[#d9dde5] bg-white">

@@ -36,6 +36,8 @@ model User {
 
   mentorAllocations ProjectMentor[]  @relation(name: "MentorProjects")
 
+  projectTechnologies ProjectTechnology[]
+
   @@map("users")
 }
 
@@ -131,6 +133,7 @@ model Project {
   mentors     ProjectMentor[]
   assignments ProjectAllocation[]
   invitations Invitation[]
+  technologies ProjectTechnology[]
 
   @@map("projects")
 }
@@ -214,4 +217,21 @@ enum ProjectDomain {
   training
   research
   other
+}
+
+model ProjectTechnology {
+  id        String   @id @default(uuid())
+  projectId String
+  studentId String
+  name      String
+  rating    Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project   Project  @relation(fields: [projectId], references: [id])
+  student   User     @relation(fields: [studentId], references: [id])
+
+  @@unique([projectId, studentId, name])
+  @@map("projectTechnologies")
 }
