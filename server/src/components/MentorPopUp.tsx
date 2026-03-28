@@ -1,17 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger
-} from "@/components/ui/alert-dialog";
+import React, { useEffect, useState } from 'react';
+
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { CalendarDays, Clock, FileText, MessageSquare, CheckCircle2, XCircle } from 'lucide-react';
 
 interface MentorPopUpProps {
   isOpen: boolean;
@@ -80,54 +75,106 @@ const MentorPopUp: React.FC<MentorPopUpProps> = ({ isOpen, onClose, mentorDetail
   };
 
   return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-2xl p-0 rounded-2xl overflow-hidden border border-gray-200 shadow-2xl">
 
+        {/* Gradient Header */}
+        <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-5">
+          <DialogHeader>
+            <DialogTitle className="text-white text-xl font-semibold tracking-tight">
+              Mentor Task Detail
+            </DialogTitle>
+            <p className="text-slate-400 text-sm mt-0.5">Review and respond to the student`s activity</p>
+          </DialogHeader>
+        </div>
 
-    <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogTrigger asChild>
-        <div />
-      </AlertDialogTrigger>
-      <AlertDialogContent className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-lg">
-        <AlertDialogHeader>
-          <AlertDialogTitle className="text-2xl font-semibold text-gray-900">Mentor Task Detail</AlertDialogTitle>
-        </AlertDialogHeader>
-        <AlertDialogDescription className="text-gray-700">
-          <div className="flex gap-6 mb-4">
-            <div className="w-1/2">
-              <span className="block text-sm font-medium text-black mb-1">Date</span>
-              <div className="p-3 border border-gray-300 rounded-md bg-gray-50">
-                <p>{mentorDetails.selectedDate || 'No date selected'}</p>
+        {/* Body */}
+        <div className="px-6 py-5 space-y-4 bg-white">
+
+          {/* Stat Cards: Date & Working Hours */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 border border-slate-200">
+              <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-slate-200 flex items-center justify-center">
+                <CalendarDays className="w-4 h-4 text-slate-600" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Date</p>
+                <p className="text-sm font-semibold text-slate-800 mt-0.5">
+                  {mentorDetails.selectedDate || '—'}
+                </p>
               </div>
             </div>
-            <div className="w-1/2">
-              <span className="block text-sm font-medium text-black mb-1">Working Hours</span>
-              <div className="p-3 border border-gray-300 rounded-md bg-gray-50">
-                <p>{mentorDetails.workingHours || 'No working hours'}</p>
+            <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 border border-slate-200">
+              <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-slate-200 flex items-center justify-center">
+                <Clock className="w-4 h-4 text-slate-600" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Working Hours</p>
+                <p className="text-sm font-semibold text-slate-800 mt-0.5">
+                  {mentorDetails.workingHours ? `${mentorDetails.workingHours} hrs` : '—'}
+                </p>
               </div>
             </div>
           </div>
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-black mb-2">Activity</h3>
-            <div className="p-3 border border-gray-300 rounded-md bg-gray-50 min-h-[120px] overflow-auto">
-              <p>{mentorDetails.studentActivity || ''}</p>
+
+          {/* Activity Card */}
+          <div className="rounded-xl border border-slate-200 overflow-hidden">
+            <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 border-b border-slate-200">
+              <FileText className="w-4 h-4 text-slate-500" />
+              <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">Student Activity</span>
+            </div>
+            <div className="px-4 py-3 text-sm text-slate-700 min-h-[100px] leading-relaxed whitespace-pre-wrap bg-white">
+              {mentorDetails.studentActivity || <span className="text-slate-400 italic">No activity recorded</span>}
             </div>
           </div>
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-black mb-2">Review</h3>
-            <textarea
+
+          {/* Review */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-semibold uppercase tracking-widest text-slate-500 flex items-center gap-1.5">
+                <MessageSquare className="w-3.5 h-3.5" />
+                Your Review
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-400 ml-0.5" />
+              </Label>
+              <span className="text-xs text-slate-400">{review.length} chars</span>
+            </div>
+            <Textarea
               value={review}
               onChange={handleReviewChange}
-              placeholder="Enter your review here..."
-              className="w-full h-32 p-3 border border-gray-300 rounded-md bg-white"
+              placeholder="Write your review here…"
+              rows={4}
+              className="rounded-xl bg-white border-slate-200 text-sm text-slate-700 placeholder:text-slate-400 resize-none focus-visible:ring-2 focus-visible:ring-slate-400/40 focus-visible:ring-offset-0"
             />
           </div>
-        </AlertDialogDescription>
-        <AlertDialogFooter className="flex justify-end gap-3 mt-4">
-          <AlertDialogCancel onClick={onClose} className="bg-green-500 text-white hover:bg-green-600 px-4 py-2 rounded-md">Close</AlertDialogCancel>
-          <AlertDialogAction onClick={handleAccept} className="bg-blue-500 text-white hover:bg-blue-700 px-4 py-2 rounded-md">Accept</AlertDialogAction>
-          <AlertDialogAction onClick={handleReject} className="bg-red-500 text-white hover:bg-red-700 px-4 py-2 rounded-md">Reject</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+        </div>
+
+        {/* Footer */}
+        <DialogFooter className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex flex-row items-center justify-end gap-2">
+          <Button
+            variant="ghost"
+            onClick={onClose}
+            className="rounded-xl text-slate-600 hover:bg-slate-200 hover:text-slate-800"
+          >
+            Close
+          </Button>
+          <Button
+            onClick={handleReject}
+            className="rounded-xl bg-red-500 hover:bg-red-600 text-white gap-1.5 shadow-sm"
+          >
+            <XCircle className="w-4 h-4" />
+            Reject
+          </Button>
+          <Button
+            onClick={handleAccept}
+            className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 shadow-sm"
+          >
+            <CheckCircle2 className="w-4 h-4" />
+            Accept
+          </Button>
+        </DialogFooter>
+
+      </DialogContent>
+    </Dialog>
   );
 };
 

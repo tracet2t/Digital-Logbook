@@ -71,7 +71,7 @@ export default function UserDropdown({
             <DropdownMenuContent
               side="right"
               align="start"
-              className="w-[--radix-dropdown-menu-trigger-width]git  min-w-48 mb-[15px]"
+              className="w-[--radix-dropdown-menu-trigger-width] min-w-48 mb-5"
             >
               <DropdownMenuItem onSelect={() => onNavigate("/admin/settings")}>
                 <Settings size={14} className="mr-2 text-[#737373]" />

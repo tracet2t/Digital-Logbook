@@ -2,6 +2,10 @@
 
 import React, { useMemo, useState } from "react";
 
+import {
+  ADMIN_LOGO_CONFIG,
+  ADMIN_MENU_ITEMS,
+} from "@/utils/config/adminSidebarConfig";
 import { Plus, Search } from "lucide-react";
 import { z } from "zod";
 
@@ -163,7 +167,7 @@ export default function InvitationsView() {
 
   return (
     <SidebarProvider>
-      <AsideSidebar />
+      <AsideSidebar menu={ADMIN_MENU_ITEMS} logo={ADMIN_LOGO_CONFIG} />
       <SidebarInset className="bg-[#f5f7fb]">
         <div className="flex-1 p-5 md:p-8">
           <Card className="overflow-hidden border-[#d9dde5] bg-white">

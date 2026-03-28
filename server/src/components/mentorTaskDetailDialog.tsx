@@ -1,11 +1,14 @@
 // src/components/MentorTaskDetailDialog.tsx
 'use client'
-import React, { useState } from 'react';
-import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
-import { Input } from '@/components/ui/input'; 
-import { Button } from '@/components/ui/button'; 
-import { Textarea } from '@/components/ui/textarea'; 
-import { ToastProvider, Toast, ToastTitle, ToastDescription, ToastClose, ToastViewport } from '@/components/ui/toast'; 
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { ToastProvider, Toast, ToastTitle, ToastDescription, ToastClose, ToastViewport } from '@/components/ui/toast';
+import { CalendarDays, Clock, FileText, MessageSquare, CheckCircle2, XCircle } from 'lucide-react';
 
 interface MentorTaskDetailDialogProps {
   taskModalOpen: boolean;
@@ -36,8 +39,7 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
   setNotes,
   review,
   setReview,
-  setStatus,
-  handleClose
+  setStatus
 }) => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -69,32 +71,56 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
     }
   };
 
+  // Clear review each time the dialog opens so it's never pre-filled
+  useEffect(() => {
+    if (taskModalOpen) {
+      setReview('');
+    }
+  }, [taskModalOpen, setReview]);
+
   return (
     role === 'mentor' && selectedUser !== studentId && (
       <ToastProvider>
-        <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
-          <AlertDialogTrigger asChild>
-            <div />
-          </AlertDialogTrigger>
-          <AlertDialogContent className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-lg">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-2xl font-semibold text-gray-900">Mentor Task Detail</AlertDialogTitle>
-            </AlertDialogHeader>
-            <AlertDialogDescription className="text-gray-700">
-              <div className="flex gap-6 mb-4">
-                <div className="w-1/2">
-                  <span className="block text-sm font-medium text-black mb-1">Date</span>
-                  <Input type="date" value={formData.date} disabled className="text-black" />
+        <Dialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
+          <DialogContent className="sm:max-w-2xl p-0 rounded-2xl overflow-hidden border border-gray-200 shadow-2xl">
+
+            {/* Gradient Header Banner */}
+            <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-5">
+              <DialogHeader>
+                <DialogTitle className="text-white text-xl font-semibold tracking-tight">
+                  Mentor Task Detail
+                </DialogTitle>
+              </DialogHeader>
+            </div>
+
+            {/* Body */}
+            <div className="px-6 py-5 space-y-5 bg-white">
+
+              {/* Date & Working Hours */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+                    <CalendarDays className="w-3.5 h-3.5" />
+                    Date
+                  </Label>
+                  <Input
+                    type="date"
+                    value={formData.date}
+                    disabled
+                    className="rounded-xl bg-slate-50 border-slate-200 text-sm text-slate-700 cursor-not-allowed"
+                  />
                 </div>
-                <div className="w-1/2">
-                  <span className="block text-sm font-medium text-black mb-1">Working Hours</span>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5" />
+                    Working Hours
+                  </Label>
                   <Input
                     type="number"
                     value={workingHours}
                     disabled={true}
                     onChange={(e) => {
                       const value = e.target.value;
-                    
                       if (value === '') {
                         setWorkingHours(0);
                       } else {
@@ -107,47 +133,74 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
                       }
                     }}
                     onBlur={handleWorkingHoursBlur}
-                    placeholder="Enter working hours"
+                    placeholder="1–12"
+                    className="rounded-xl bg-slate-50 border-slate-200 text-sm text-slate-700 cursor-not-allowed"
                   />
                 </div>
               </div>
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-black mb-2">Activity</h3>
+
+              <Separator className="bg-slate-100" />
+
+              {/* Activity */}
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5" />
+                  Activity
+                </Label>
                 <Textarea
                   value={notes}
                   onChange={(e) => handleTextChange(e.target.value, setNotes)}
-                  placeholder="Enter notes"
+                  placeholder="No activity recorded"
                   disabled={true}
-                  className="text-black"
+                  rows={4}
+                  className="rounded-xl bg-slate-50 border-slate-200 text-sm text-slate-700 resize-none cursor-not-allowed"
                 />
               </div>
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-black mb-2">Review</h3>
-                <textarea
+
+              {/* Review */}
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  Review
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-400 ml-0.5" />
+                </Label>
+                <Textarea
                   value={review}
                   onChange={(e) => handleTextChange(e.target.value, setReview)}
-                  placeholder="Enter your review here..."
-                  className="w-full h-32 p-3 border border-gray-300 rounded-md bg-white"
+                  placeholder="Write your review here…"
+                  rows={4}
+                  className="rounded-xl bg-white border-slate-200 text-sm text-slate-700 placeholder:text-slate-400 resize-none focus-visible:ring-2 focus-visible:ring-slate-400/40 focus-visible:ring-offset-0"
                 />
               </div>
-            </AlertDialogDescription>
-            <AlertDialogFooter className="flex justify-end gap-3 mt-4">
-              <Button onClick={() => setTaskModalOpen(false)} className=" text-white  bg[#666668] px-4 py-2 rounded-md">Close</Button>
+            </div>
+
+            {/* Footer */}
+            <DialogFooter className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex flex-row items-center justify-end gap-2">
+              <Button
+                variant="ghost"
+                onClick={() => setTaskModalOpen(false)}
+                className="rounded-xl text-slate-600 hover:bg-slate-200 hover:text-slate-800"
+              >
+                Close
+              </Button>
               <Button
                 onClick={() => handleValidationAndAction('approved')}
-                className="bg-green-500 text-white hover:bg-green-700 px-4 py-2 rounded-md"
+                className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 shadow-sm"
               >
+                <CheckCircle2 className="w-4 h-4" />
                 Accept
               </Button>
               <Button
                 onClick={() => handleValidationAndAction('rejected')}
-                className="bg-red-500 text-white hover:bg-red-700 px-4 py-2 rounded-md"
+                className="rounded-xl bg-red-500 hover:bg-red-600 text-white gap-1.5 shadow-sm"
               >
+                <XCircle className="w-4 h-4" />
                 Reject
               </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+            </DialogFooter>
+
+          </DialogContent>
+        </Dialog>
 
         {showToast && (
           <Toast onOpenChange={setShowToast} open={showToast}>
@@ -161,8 +214,8 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
             <ToastTitle>Invalid Working Hours</ToastTitle>
             <ToastDescription>Please enter a number between 1 and 12 for working hours.</ToastDescription>
             <ToastClose onClick={() => setShowHoursToast(false)} />
-            </Toast>
-          )}
+          </Toast>
+        )}
         <ToastViewport />
       </ToastProvider>
     )
