@@ -357,7 +357,6 @@ export default function ProjectsPage() {
                     {viewProject.mentorList.map((mentor) => (
                       <Badge
                         key={mentor.id}
-                        variant="secondary"
                         className="flex items-center gap-1.5 px-2.5 py-1 text-sm font-medium"
                       >
                         <span className="flex items-center justify-center w-5 h-5 rounded-full bg-slate-400 text-white text-[10px] font-bold shrink-0">
@@ -383,7 +382,6 @@ export default function ProjectsPage() {
                     {viewProject.studentList.map((student) => (
                       <Badge
                         key={student.id}
-                        variant="outline"
                         className="flex items-center gap-1.5 px-2.5 py-1 text-sm font-medium"
                       >
                         <span className="flex items-center justify-center w-5 h-5 rounded-full bg-slate-300 text-slate-700 text-[10px] font-bold shrink-0">

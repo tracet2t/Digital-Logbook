@@ -6,7 +6,8 @@ import {
   Mail,
   Users,
 } from "lucide-react";
-import { MenuItem, LogoConfig } from "@/components/AsideSidebar";
+
+import { LogoConfig, MenuItem } from "@/components/AsideSidebar";
 
 export const ADMIN_MENU_ITEMS: MenuItem[] = [
   { label: "Dashboard", icon: <LayoutDashboard size={18} />, href: "/admin" },
