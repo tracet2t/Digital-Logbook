@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import RsuiteCalendar from "@/components/rsuiteCalendar"; // Import RsuiteCalendar
+import dynamic from "next/dynamic";
 import AsideSidebar from "@/components/AsideSidebar"; // Import AsideSidebar
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -12,6 +12,8 @@ import { ToastProvider, ToastViewport, Toast, ToastTitle, ToastDescription, Toas
 import { GenericCombobox } from "@/components/mentor/combobox";
 import { useMentorProjects, useProjectStudents } from "@/hooks/mentor/useMentorFilter";
 import { SidebarProvider } from "@/components/ui/sidebar";
+
+const RsuiteCalendar = dynamic(() => import("@/components/rsuiteCalendar"), { ssr: false });
 
 interface Session {
   fname: string;
