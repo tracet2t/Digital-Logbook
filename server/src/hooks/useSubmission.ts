@@ -60,26 +60,48 @@ export const useSubmission = (
   };
 
   const submitActivity = async () => {
-    const newFormData: FormData = {
-      studentId,
-      date: formData.date,
-      timeSpent: workingHours,
-      notes,
-    };
-
-    const response = await fetch('http://localhost:3000/api/activity', {
-      method: editingEvent ? 'PATCH' : 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ ...newFormData, id: editingEvent?.id }),
-    });
-
-    handleResponse(
-      response,
-      editingEvent ? 'Activity Updated' : 'Activity Added'
-    );
+  const newFormData: FormData = {
+    studentId,
+    date: formData.date,
+    timeSpent: workingHours,
+    notes,
   };
+
+  const response = await fetch('http://localhost:3000/api/activity', {
+    method: editingEvent ? 'PATCH' : 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ ...newFormData, id: editingEvent?.id }),
+  });
+
+  if (response.ok) {
+    // If it's a new activity (POST), send notification to mentors
+    if (!editingEvent) {
+      try {
+        // Trigger notification endpoint
+        await fetch('http://localhost:3000/api/notifications/activity-submission', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            studentId,
+            taskDate: formData.date,
+          }),
+        });
+      } catch (notificationError) {
+        console.error('Error sending notification:', notificationError);
+        // Don't fail the activity submission if notification fails
+      }
+    }
+  }
+
+  handleResponse(
+    response,
+    editingEvent ? 'Activity Updated' : 'Activity Added'
+  );
+};
 
   const submitMentorActivity = async () => {
     const newFormData: MentorFormData = {

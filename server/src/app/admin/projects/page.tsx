@@ -12,6 +12,10 @@ import {
   getAdminProjectStats,
   updateProject,
 } from "@/server_actions/adminProjectActions";
+import {
+  ADMIN_LOGO_CONFIG,
+  ADMIN_MENU_ITEMS,
+} from "@/utils/config/adminSidebarConfig";
 import { Beaker, BookOpen, Cpu, Film, Globe, Plus, Search } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -175,7 +179,7 @@ export default function ProjectsPage() {
 
   return (
     <SidebarProvider>
-      <AsideSidebar />
+      <AsideSidebar menu={ADMIN_MENU_ITEMS} logo={ADMIN_LOGO_CONFIG} />
       <SidebarInset className="bg-[#f5f7fb]">
         <div className="flex-1 p-5 md:p-8">
           <Card className="overflow-hidden border-[#d9dde5] bg-white">
@@ -353,7 +357,6 @@ export default function ProjectsPage() {
                     {viewProject.mentorList.map((mentor) => (
                       <Badge
                         key={mentor.id}
-                        variant="secondary"
                         className="flex items-center gap-1.5 px-2.5 py-1 text-sm font-medium"
                       >
                         <span className="flex items-center justify-center w-5 h-5 rounded-full bg-slate-400 text-white text-[10px] font-bold shrink-0">
@@ -379,7 +382,6 @@ export default function ProjectsPage() {
                     {viewProject.studentList.map((student) => (
                       <Badge
                         key={student.id}
-                        variant="outline"
                         className="flex items-center gap-1.5 px-2.5 py-1 text-sm font-medium"
                       >
                         <span className="flex items-center justify-center w-5 h-5 rounded-full bg-slate-300 text-slate-700 text-[10px] font-bold shrink-0">

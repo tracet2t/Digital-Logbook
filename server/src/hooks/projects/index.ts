@@ -7,3 +7,10 @@ export {
   useGetProjectStudents,
   useGetProjectMentors,
 } from "./useProject";
+
+export {
+  useGetProjectTechnologies,
+  useGetStudentTechnologies,
+  useUpsertStudentTechnology,
+  useRemoveStudentTechnology,
+} from "./useProjectTechnologies";
