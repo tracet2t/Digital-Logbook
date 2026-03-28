@@ -12,6 +12,10 @@ import {
   getAdminProjectStats,
   updateProject,
 } from "@/server_actions/adminProjectActions";
+import {
+  ADMIN_LOGO_CONFIG,
+  ADMIN_MENU_ITEMS,
+} from "@/utils/config/adminSidebarConfig";
 import { Beaker, BookOpen, Cpu, Film, Globe, Plus, Search } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -175,7 +179,7 @@ export default function ProjectsPage() {
 
   return (
     <SidebarProvider>
-      <AsideSidebar />
+      <AsideSidebar menu={ADMIN_MENU_ITEMS} logo={ADMIN_LOGO_CONFIG} />
       <SidebarInset className="bg-[#f5f7fb]">
         <div className="flex-1 p-5 md:p-8">
           <Card className="overflow-hidden border-[#d9dde5] bg-white">
