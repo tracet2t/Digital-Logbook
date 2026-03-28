@@ -1,5 +1,7 @@
+import { Activity } from "@prisma/client";
+
 import prisma from "@/lib/prisma";
-import {Activity,} from "@prisma/client";
+
 import BaseRepository from "./baseRepository";
 
 /*
