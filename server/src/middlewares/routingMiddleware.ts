@@ -1,4 +1,3 @@
-import { isUrlAllowed } from "@/lib/extras";
 import getSession from "@/server_actions/getSession";
 import {
   NextFetchEvent,
@@ -6,6 +5,8 @@ import {
   NextRequest,
   NextResponse,
 } from "next/server";
+
+import { isUrlAllowed } from "@/lib/extras";
 
 const mentorRoutingBlacklist = ["/admin"];
 const studentRoutingBlacklist = [
@@ -35,7 +36,7 @@ export function withRoleBasedRoutingMiddleware(
     }
 
     if (role === "mentor" && request.nextUrl.pathname === "/") {
-      return NextResponse.redirect(`${process.env.BASE_URL}/mentor`);
+      return NextResponse.redirect(`${process.env.BASE_URL}/mentor/dashboard`);
     }
 
     if (
