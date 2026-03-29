@@ -41,15 +41,21 @@ export default function UserDropdown({
   onNavigate: (href: string) => void;
 }) {
   const fullName = `${user.fname} ${user.lname}`;
+
+  const handleLogout = () => {
+    const form = document.getElementById("sidebar-logout-form") as HTMLFormElement | null;
+    form?.submit();
+  };
+
   return (
     <SidebarFooter>
       <SidebarMenu>
         <SidebarMenuItem>
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+            <DropdownMenuTrigger className="w-full">
               <SidebarMenuButton
                 size="lg"
-                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground "
+                className="w-full data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               >
                 <Avatar className="h-8 w-8 shrink-0">
                   <AvatarImage src={undefined} alt={fullName} />
@@ -78,19 +84,18 @@ export default function UserDropdown({
                 Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <form action="/api/logout" method="post" className="w-full">
-                  <button
-                    type="submit"
-                    className="flex items-center gap-2 w-full text-red-600"
-                  >
-                    <LogOut size={14} />
-                    Logout
-                  </button>
-                </form>
+              <DropdownMenuItem onSelect={handleLogout} className="text-red-600">
+                <LogOut size={14} />
+                Logout
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <form
+            id="sidebar-logout-form"
+            action="/api/logout"
+            method="post"
+            className="hidden"
+          />
         </SidebarMenuItem>
       </SidebarMenu>
     </SidebarFooter>

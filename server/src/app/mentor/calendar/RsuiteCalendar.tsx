@@ -4,14 +4,6 @@ import { Calendar } from "rsuite";
 import "rsuite/dist/rsuite.min.css";
 import { useState, useEffect, useMemo } from "react";
 import moment from "moment";
-import {
-    ToastProvider,
-    ToastViewport,
-    Toast,
-    ToastTitle,
-    ToastDescription,
-    ToastClose,
-} from "@/components/ui/toast";
 
 import { getSessionOnClient } from "@/server_actions/getSession";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
@@ -24,15 +16,6 @@ import "@/styles/rsuiteCalendar.css";
 import MentorStudentTaskDetailDialog from "@/components/mentorStudentTaskDetailDialog";
 import MentorTaskDetailDialog from "@/components/mentorTaskDetailDialog";
 import StudentTaskDetailDialog from "@/components/studentTaskDetailDialog";
-
-interface FormData {
-    studentId: string;
-    date: string;
-    timeSpent: number;
-    notes?: string;
-    status?: string;
-    review?: string;
-}
 
 interface CalendarEvent {
     id: string;
@@ -56,7 +39,6 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [mounted, setMounted] = useState(false);
     const [taskModalOpen, setTaskModalOpen] = useState(false);
-    const [session, setSession] = useState(null);
     const [role, setRole] = useState<string>("");
     const [studentId, setStudentId] = useState<string>("");
     const [isEditable, setIsEditable] = useState(true);
@@ -114,7 +96,6 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
     useEffect(() => {
         getSessionOnClient()
             .then((data) => {
-                setSession(data);
                 setStudentId(data.id);
                 setRole(data.role);
             })
@@ -169,7 +150,7 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
         if (status === "approved" || status === "rejected") {
             handleSubmit();
         }
-    }, [status]);
+    }, [status, handleSubmit]);
 
     // Custom cell renderer to show events with grid layout
     const renderCell = (date: Date) => {
@@ -204,24 +185,20 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
     };
 
     return (
-        <ToastProvider>
-            <div className="flex flex-col p-0 w-full overflow-hidden">
-                <div className="bg-white rounded-lg shadow-lg p-6 w-full overflow-hidden">
+        <>
+            <div className="flex h-full min-h-0 flex-col p-0 w-full overflow-hidden">
+                <div className="bg-white rounded-lg shadow-lg p-3 md:p-4 w-full h-full min-h-0 overflow-hidden">
                     {mounted && (
                         <Calendar
                             value={selectedDate || new Date()}
                             onChange={handleDateChange}
                             onSelect={handleSelect}
-                            fullscreen={true}
+                            compact={false}
+                            className="h-full"
                             renderCell={renderCell}
                         />
                     )}
                 </div>
-                {selectedDate && (
-                    <p className="mt-2 text-sm font-semibold text-gray-700">
-                        Selected: {selectedDate.toDateString()}
-                    </p>
-                )}
 
                 {/* Task Detail Dialogs */}
                 <MentorTaskDetailDialog
@@ -272,14 +249,12 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
 
                 {/* Toast Component */}
                 {toast && (
-                    <Toast>
-                        <ToastTitle>{toast.title}</ToastTitle>
-                        <ToastDescription>{toast.description}</ToastDescription>
-                        <ToastClose />
-                    </Toast>
+                    <div className="fixed right-4 top-4 z-50 rounded-md border border-slate-300 bg-white px-4 py-3 shadow-lg">
+                        <p className="text-sm font-semibold text-slate-900">{toast.title}</p>
+                        <p className="mt-1 text-sm text-slate-600">{toast.description}</p>
+                    </div>
                 )}
-                <ToastViewport />
             </div>
-        </ToastProvider>
+        </>
     );
 }

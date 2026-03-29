@@ -89,10 +89,12 @@ function LogoHeader({
 function NavMenu({
   pathname,
   onNavigate,
+  collapsed,
   menu,
 }: {
   pathname: string;
   onNavigate: (href: string) => void;
+  collapsed: boolean;
   menu: MenuItem[];
 }) {
   return (
@@ -111,7 +113,7 @@ function NavMenu({
               >
                 <SidebarMenuButton
                   isActive={active}
-                  tooltip={item.label}
+                  title={collapsed ? item.label : undefined}
                   onClick={() => onNavigate(item.href)}
                   className={menuBtnClass(active)}
                 >
@@ -155,7 +157,12 @@ export default function AsideSidebar({ menu, logo }: AsideSidebarProps) {
   return (
     <Sidebar collapsible="icon" className="relative">
       <LogoHeader collapsed={collapsed} logo={logo} />
-      <NavMenu pathname={pathname} onNavigate={navigate} menu={menu} />
+      <NavMenu
+        pathname={pathname}
+        onNavigate={navigate}
+        collapsed={collapsed}
+        menu={menu}
+      />
       {user && <UserDropdown user={user} onNavigate={navigate} />}
       <SidebarRail />
     </Sidebar>
