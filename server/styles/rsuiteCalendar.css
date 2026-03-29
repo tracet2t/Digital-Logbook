@@ -50,10 +50,15 @@
 }
 .rs-calendar {
     width: 100% !important;
+    height: 100% !important;
     overflow: hidden !important;
+}
+.rs-calendar-month-view {
+    height: 100% !important;
 }
 .rs-calendar-table {
     width: 100% !important;
+    height: 100% !important;
     table-layout: fixed !important;
 }
 .rs-calendar-table-cell,
@@ -61,4 +66,20 @@
     width: calc(100% / 7) !important;
     min-width: 0 !important;
     overflow: hidden !important;
+}
+
+@media (max-width: 768px) {
+    .rs-calendar-table-header-cell {
+        padding: 6px !important;
+        font-size: 11px !important;
+    }
+
+    .rs-calendar-table-cell-content {
+        height: 64px !important;
+        padding: 3px 4px !important;
+    }
+
+    .rs-calendar-table-cell-day {
+        font-size: 11px !important;
+    }
 }

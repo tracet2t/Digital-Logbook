@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { ToastProvider, Toast, ToastTitle, ToastDescription, ToastClose, ToastViewport } from '@/components/ui/toast';
 import { CalendarDays, Clock, FileText, MessageSquare, CheckCircle2, XCircle } from 'lucide-react';
 
 interface MentorTaskDetailDialogProps {
@@ -80,7 +79,7 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
 
   return (
     role === 'mentor' && selectedUser !== studentId && (
-      <ToastProvider>
+      <>
         <Dialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
           <DialogContent className="sm:max-w-2xl p-0 rounded-2xl overflow-hidden border border-gray-200 shadow-2xl">
 
@@ -203,21 +202,32 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
         </Dialog>
 
         {showToast && (
-          <Toast onOpenChange={setShowToast} open={showToast}>
-            <ToastTitle>Error</ToastTitle>
-            <ToastDescription>{toastMessage}</ToastDescription>
-            <ToastClose />
-          </Toast>
+          <div className="fixed right-4 top-4 z-50 rounded-md border border-red-200 bg-white px-4 py-3 shadow-lg">
+            <p className="text-sm font-semibold text-red-700">Error</p>
+            <p className="mt-1 text-sm text-slate-600">{toastMessage}</p>
+            <button
+              type="button"
+              className="mt-2 text-xs text-red-600"
+              onClick={() => setShowToast(false)}
+            >
+              Dismiss
+            </button>
+          </div>
         )}
         {showHoursToast && (
-          <Toast>
-            <ToastTitle>Invalid Working Hours</ToastTitle>
-            <ToastDescription>Please enter a number between 1 and 12 for working hours.</ToastDescription>
-            <ToastClose onClick={() => setShowHoursToast(false)} />
-          </Toast>
+          <div className="fixed right-4 top-24 z-50 rounded-md border border-amber-200 bg-white px-4 py-3 shadow-lg">
+            <p className="text-sm font-semibold text-amber-700">Invalid Working Hours</p>
+            <p className="mt-1 text-sm text-slate-600">Please enter a number between 1 and 12 for working hours.</p>
+            <button
+              type="button"
+              className="mt-2 text-xs text-amber-700"
+              onClick={() => setShowHoursToast(false)}
+            >
+              Dismiss
+            </button>
+          </div>
         )}
-        <ToastViewport />
-      </ToastProvider>
+      </>
     )
   );
 };

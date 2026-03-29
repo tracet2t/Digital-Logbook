@@ -212,7 +212,7 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
                             value={selectedDate}
                             onChange={handleDateChange}
                             onSelect={handleSelect}
-                            fullscreen={true}
+                            compact={false}
                             renderCell={renderCell}
                         />
                     )}

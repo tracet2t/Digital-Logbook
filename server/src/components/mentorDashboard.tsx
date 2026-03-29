@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { getSessionOnClient } from "@/server_actions/getSession";
@@ -12,14 +18,6 @@ import {
   useProjectStudents,
 } from "@/hooks/mentor/useMentorFilter";
 import { Button } from "@/components/ui/button";
-import {
-  Toast,
-  ToastClose,
-  ToastDescription,
-  ToastProvider,
-  ToastTitle,
-  ToastViewport,
-} from "@/components/ui/toast";
 // Adjust import path if necessary
 import { GenericCombobox } from "@/components/mentor/combobox";
 
@@ -46,13 +44,12 @@ const MentorDashboard = () => {
   // TanStack Query hooks
   const { data: mentorProjects = [], isLoading: projectsLoading } =
     useMentorProjects();
-  const { data: fetchedStudents = [], isLoading: studentsLoading } =
-    useProjectStudents(selectedProject);
+  const { data: fetchedStudents = [] } = useProjectStudents(selectedProject);
 
   const router = useRouter(); // Initialize router
 
   // Fetch Mentor Session Data with useQuery
-  const { data: sessionData, isLoading: sessionLoading } = useQuery({
+  const { data: sessionData } = useQuery({
     queryKey: ["session"],
     queryFn: async () => {
       const data = await getSessionOnClient();
@@ -69,14 +66,14 @@ const MentorDashboard = () => {
   // Initialize selected user with mentor ID
   useEffect(() => {
     if (mentorId && !selectedUser) setSelectedUser(mentorId);
-  }, [mentorId, selectedUser]);
+  }, [mentorId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-select first project when mentor projects load
   useEffect(() => {
     if (mentorProjects.length > 0 && !selectedProject) {
       setSelectedProject(mentorProjects[0].id);
     }
-  }, [mentorProjects, selectedProject]);
+  }, [mentorProjects]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Update project students list when fetched students change
   useEffect(() => {
@@ -107,6 +104,54 @@ const MentorDashboard = () => {
       setSelectedProject(mentorProjects[0].id);
     }
   };
+
+  // Memoized selected objects — prevents new reference on every render
+  const selectedProjectObj = useMemo(
+    () => mentorProjects.find((p) => p.id === selectedProject) || null,
+    [mentorProjects, selectedProject],
+  );
+
+  const selectedStudentObj = useMemo(
+    () => projectStudents.find((u) => u.id === selectedUser) || null,
+    [projectStudents, selectedUser],
+  );
+
+  // Stable callbacks to avoid new function instances on every render
+  const projectToString = useCallback(
+    (p: { id: string; name: string }) => p.name,
+    [],
+  );
+  const studentToString = useCallback(
+    (u: { id: string; name: string }) => u.name,
+    [],
+  );
+
+  const renderProject = useCallback(
+    (p: { id: string; name: string }) => (
+      <div className="px-2 py-1">{p.name}</div>
+    ),
+    [],
+  );
+  const renderStudent = useCallback(
+    (u: { id: string; name: string }) => (
+      <div className="px-2 py-1">{u.name}</div>
+    ),
+    [],
+  );
+
+  const handleProjectChange = useCallback(
+    (p: { id: string; name: string }) => {
+      if (p && p.id !== selectedProject) setSelectedProject(p.id);
+    },
+    [selectedProject],
+  );
+
+  const handleStudentChange = useCallback(
+    (u: { id: string; name: string }) => {
+      if (u && u.id !== selectedUser) setSelectedUser(u.id);
+    },
+    [selectedUser],
+  );
 
   //Bulk report generate
   const handleBulkReportClick = async () => {
@@ -169,7 +214,7 @@ const MentorDashboard = () => {
   };
 
   return (
-    <ToastProvider>
+    <>
       <div className="flex min-h-screen">
         {/* Main Content Area */}
         <div className="gap-5 flex flex-col bg-[#f1f1f9] min-h-screen flex-1 overflow-hidden">
@@ -213,31 +258,19 @@ const MentorDashboard = () => {
                       <>
                         <GenericCombobox
                           items={mentorProjects}
-                          value={
-                            mentorProjects.find(
-                              (p) => p.id === selectedProject,
-                            ) || null
-                          }
-                          onValueChange={(p) => setSelectedProject(p.id)}
-                          itemToStringValue={(p) => p.name}
-                          renderItem={(p) => (
-                            <div className="px-2 py-1">{p.name}</div>
-                          )}
+                          value={selectedProjectObj}
+                          onValueChange={handleProjectChange}
+                          itemToStringValue={projectToString}
+                          renderItem={renderProject}
                           placeholder="Select Project"
                           className="combobox-styled"
                         />
                         <GenericCombobox
                           items={projectStudents}
-                          value={
-                            projectStudents.find(
-                              (u) => u.id === selectedUser,
-                            ) || null
-                          }
-                          onValueChange={(u) => setSelectedUser(u.id)}
-                          itemToStringValue={(u) => u.name}
-                          renderItem={(u) => (
-                            <div className="px-2 py-1">{u.name}</div>
-                          )}
+                          value={selectedStudentObj}
+                          onValueChange={handleStudentChange}
+                          itemToStringValue={studentToString}
+                          renderItem={renderStudent}
                           placeholder="Select Student"
                           className="combobox-styled"
                         />
@@ -256,7 +289,7 @@ const MentorDashboard = () => {
                 </div>
               </div>
               {/* Calendar Card Component */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-2 md:p-3 w-full h-[60vh] md:h-[70vh] overflow-y-auto flex flex-col">
+              <div className="rounded-2xl border border-slate-200 bg-white p-2 md:p-3 w-full flex-1 min-h-0 overflow-hidden flex flex-col">
                 <div className="flex-1 min-h-0">
                   {/* <RsuiteCalendar selectedUser={selectedUser || ""} /> */}
                 </div>
@@ -267,14 +300,12 @@ const MentorDashboard = () => {
       </div>
       {/* Toast Component */}
       {toast && (
-        <Toast>
-          <ToastTitle>{toast.title}</ToastTitle>
-          <ToastDescription>{toast.description}</ToastDescription>
-          <ToastClose />
-        </Toast>
+        <div className="fixed right-4 top-4 z-50 rounded-md border border-slate-300 bg-white px-4 py-3 shadow-lg">
+          <p className="text-sm font-semibold text-slate-900">{toast.title}</p>
+          <p className="mt-1 text-sm text-slate-600">{toast.description}</p>
+        </div>
       )}
-      <ToastViewport />
-    </ToastProvider>
+    </>
   );
 };
 
