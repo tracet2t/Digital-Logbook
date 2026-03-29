@@ -258,7 +258,7 @@ const LoginPage = () => {
             {toastData.description}
           </ToastDescription>
         </div>
-        <ToastClose className=" !opacity-100 hover:text-zinc-700 focus:text-zinc-900 !text-black !hover:text-zinc-700 !focus:text-zinc-900 !group-[.destructive]:text-black !group-[.destructive]:hover:text-zinc-700 !group-[.destructive]:focus:text-zinc-900 !transition-none" />
+        <ToastClose className="text-black !opacity-100 hover:text-zinc-700 focus:text-zinc-900 !hover:text-zinc-700 !focus:text-zinc-900 !group-[.destructive]:text-black !group-[.destructive]:hover:text-zinc-700 !group-[.destructive]:focus:text-zinc-900 !transition-none" />
       </Toast>
 
       <ToastViewport />

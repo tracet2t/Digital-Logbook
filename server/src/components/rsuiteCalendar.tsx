@@ -1,30 +1,19 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { Calendar } from "rsuite";
 
-import moment from "moment";
-import {
-  Calendar as BigCalendar,
-  momentLocalizer,
-  Views,
-} from "react-big-calendar";
+import "rsuite/dist/rsuite.min.css";
 
-import "react-big-calendar/lib/css/react-big-calendar.css";
+import { useEffect, useMemo, useState } from "react";
 
 import { getSessionOnClient } from "@/server_actions/getSession";
+import moment from "moment";
 
-import {
-  convertToCalendarEvents,
-  convertToCalendarEventsMentor,
-  eventPropGetter,
-} from "@/lib/calenderUtils";
+import { eventPropGetter } from "@/lib/calenderUtils";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
 import { useEventForDate } from "@/hooks/useEventForDate";
 import { useFormData } from "@/hooks/useFormData";
 import { useSubmission } from "@/hooks/useSubmission";
-// Adjust the import path according to your project structure
-
-import { Button } from "@/components/ui/button";
 import {
   Toast,
   ToastClose,
@@ -34,13 +23,11 @@ import {
   ToastViewport,
 } from "@/components/ui/toast";
 
-import CustomToolbar from "./CustomToolbar";
+import "@/styles/rsuiteCalendar.css";
+
 import MentorStudentTaskDetailDialog from "./mentorStudentTaskDetailDialog";
 import MentorTaskDetailDialog from "./mentorTaskDetailDialog";
 import StudentTaskDetailDialog from "./studentTaskDetailDialog";
-
-moment.locale("en-GB");
-const localizer = momentLocalizer(moment);
 
 interface FormData {
   studentId: string;
@@ -49,18 +36,6 @@ interface FormData {
   notes?: string;
   status?: string;
   review?: string;
-}
-
-interface FeedbackData {
-  review: string;
-  status: string;
-  mentorId: string;
-}
-
-interface MentorFormData {
-  date: string;
-  workingHours: number;
-  activities: string;
 }
 
 interface CalendarEvent {
@@ -74,18 +49,18 @@ interface CalendarEvent {
   studentId: string;
   timeSpent?: number;
   notes?: string;
-  status: "pending" | "approved" | "rejected"; // New field for status
+  status: "pending" | "approved" | "rejected";
 }
 
-interface TaskCalendarProps {
-  selectedUser: string; // New prop for selectedUser
+interface RsuiteCalendarProps {
+  selectedUser?: string;
 }
 
-const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
-  const [taskModalOpen, setTaskModalOpen] = useState(false);
+export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [session, setSession] = useState(null);
-  const [currentDate, setCurrentDate] = useState(new Date());
   const [role, setRole] = useState<string>("");
   const [studentId, setStudentId] = useState<string>("");
   const [isEditable, setIsEditable] = useState(true);
@@ -148,6 +123,12 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     },
   );
 
+  // Fetch session data
+  useEffect(() => {
+    setMounted(true);
+    setSelectedDate(new Date());
+  }, []);
+
   useEffect(() => {
     getSessionOnClient()
       .then((data) => {
@@ -160,8 +141,28 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
       });
   }, []);
 
-  const handleDateClick = (date: Date) => {
+  // Group events by date
+  const eventsByDate = useMemo(() => {
+    const grouped: { [key: string]: CalendarEvent[] } = {};
+    events.forEach((event) => {
+      const dateKey = moment(event.start).format("YYYY-MM-DD");
+      if (!grouped[dateKey]) {
+        grouped[dateKey] = [];
+      }
+      grouped[dateKey].push(event);
+    });
+    return grouped;
+  }, [events]);
+
+  const handleDateChange = (date: Date) => {
     setSelectedDate(date);
+  };
+
+  const handleSelect = (date: Date) => {
+    handleDateClick(date);
+  };
+
+  const handleDateClick = (date: Date) => {
     const formattedDate = moment(date).format("YYYY-MM-DD");
 
     const today = moment().startOf("day");
@@ -191,9 +192,59 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     }
   }, [status]);
 
+  // Custom cell renderer to show events with grid layout
+  const renderCell = (date: Date) => {
+    const dateKey = moment(date).format("YYYY-MM-DD");
+    const dateEvents = eventsByDate[dateKey] || [];
+
+    return (
+      <div className="w-full flex flex-col gap-1 pt-1">
+        {dateEvents.slice(0, 3).map((event) => {
+          const styling = eventPropGetter(event, selectedUser || "");
+          return (
+            <div
+              key={event.id}
+              className="text-xs px-2 py-1 rounded font-semibold cursor-pointer hover:opacity-80 truncate"
+              style={{
+                backgroundColor: styling.style.backgroundColor,
+                color: styling.style.color,
+              }}
+              title={event.title}
+            >
+              {event.title}
+            </div>
+          );
+        })}
+        {dateEvents.length > 3 && (
+          <div className="text-xs px-2 py-1 text-gray-500 font-medium">
+            +{dateEvents.length - 3} more
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
-    <>
-      <ToastProvider>
+    <ToastProvider>
+      <div className="flex flex-col p-0 w-full overflow-hidden">
+        <div className="bg-white rounded-lg shadow-lg p-6 w-full overflow-hidden">
+          {mounted && (
+            <Calendar
+              value={selectedDate}
+              onChange={handleDateChange}
+              onSelect={handleSelect}
+              compact={false}
+              renderCell={renderCell}
+            />
+          )}
+        </div>
+        {selectedDate && (
+          <p className="mt-2 text-sm font-semibold text-gray-700">
+            Selected: {selectedDate.toDateString()}
+          </p>
+        )}
+
+        {/* Task Detail Dialogs */}
         <MentorTaskDetailDialog
           taskModalOpen={taskModalOpen}
           setTaskModalOpen={setTaskModalOpen}
@@ -205,7 +256,6 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
           setWorkingHours={setWorkingHours}
           notes={notes}
           setNotes={setNotes}
-          /* look down here */
           review={review}
           setReview={setReview}
           setStatus={setStatus}
@@ -241,33 +291,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
           handleSubmit={handleSubmit}
         />
 
-        <div className="relative w-[90vw] h-[80vh] ">
-          <BigCalendar
-            events={events}
-            localizer={localizer}
-            defaultView={Views.MONTH}
-            view={Views.MONTH}
-            startAccessor="start"
-            endAccessor="end"
-            onSelectSlot={(slotInfo) => handleDateClick(slotInfo.start)}
-            onSelectEvent={(event) => handleDateClick(event.start)}
-            selectable
-            components={{
-              toolbar: (toolbar: any) => (
-                <CustomToolbar
-                  toolbar={toolbar}
-                  currentDate={currentDate}
-                  setCurrentDate={setCurrentDate}
-                />
-              ),
-            }}
-            eventPropGetter={(event) =>
-              eventPropGetter(event, selectedUser || "")
-            } // Pass selectedUser here
-            style={{ height: "100%" }}
-          />
-        </div>
-
+        {/* Toast Component */}
         {toast && (
           <Toast>
             <ToastTitle>{toast.title}</ToastTitle>
@@ -276,9 +300,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
           </Toast>
         )}
         <ToastViewport />
-      </ToastProvider>
-    </>
+      </div>
+    </ToastProvider>
   );
-};
-
-export default TaskCalendar;
+}

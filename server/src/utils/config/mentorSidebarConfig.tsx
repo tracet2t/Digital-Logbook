@@ -1,4 +1,12 @@
-import { BarChart2, LayoutDashboard, Users } from "lucide-react";
+import {
+  BarChart2,
+  Book,
+  BookKey,
+  Calendar,
+  LayoutDashboard,
+  School,
+  Users,
+} from "lucide-react";
 
 import { LogoConfig, MenuItem } from "@/components/AsideSidebar";
 
@@ -8,9 +16,9 @@ export const MENTOR_MENU_ITEMS: MenuItem[] = [
     icon: <LayoutDashboard size={18} />,
     href: "/mentor/dashboard",
   },
-  { label: "Calendar", icon: <Users size={18} />, href: "/mentor/calendar" },
+  { label: "Calendar", icon: <Calendar size={18} />, href: "/mentor/calendar" },
 
-  { label: "Mentees", icon: <BarChart2 size={18} />, href: "/mentor/mentees" },
+  { label: "Mentees", icon: <Users size={18} />, href: "/mentor/mentees" },
 ];
 
 export const MENTOR_LOGO_CONFIG: LogoConfig = {

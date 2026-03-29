@@ -1,14 +1,29 @@
 // src/components/MentorTaskDetailDialog.tsx
-'use client'
-import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { ToastProvider, Toast, ToastTitle, ToastDescription, ToastClose, ToastViewport } from '@/components/ui/toast';
-import { CalendarDays, Clock, FileText, MessageSquare, CheckCircle2, XCircle } from 'lucide-react';
+"use client";
+
+import React, { useEffect, useState } from "react";
+
+import {
+  CalendarDays,
+  CheckCircle2,
+  Clock,
+  FileText,
+  MessageSquare,
+  XCircle,
+} from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 
 interface MentorTaskDetailDialogProps {
   taskModalOpen: boolean;
@@ -39,10 +54,10 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
   setNotes,
   review,
   setReview,
-  setStatus
+  setStatus,
 }) => {
   const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
+  const [toastMessage, setToastMessage] = useState("");
   const [showHoursToast, setShowHoursToast] = useState(false);
 
   const handleTextChange = (value: string, setter: (value: string) => void) => {
@@ -57,7 +72,9 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
   const handleValidationAndAction = (action: string) => {
     if (!notes || !workingHours) {
       setShowToast(true);
-      setToastMessage("Notes and Working Hours must be provided before accepting or rejecting.");
+      setToastMessage(
+        "Notes and Working Hours must be provided before accepting or rejecting.",
+      );
       return;
     }
     setStatus(action);
@@ -74,16 +91,16 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
   // Clear review each time the dialog opens so it's never pre-filled
   useEffect(() => {
     if (taskModalOpen) {
-      setReview('');
+      setReview("");
     }
   }, [taskModalOpen, setReview]);
 
   return (
-    role === 'mentor' && selectedUser !== studentId && (
-      <ToastProvider>
+    role === "mentor" &&
+    selectedUser !== studentId && (
+      <>
         <Dialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
           <DialogContent className="sm:max-w-2xl p-0 rounded-2xl overflow-hidden border border-gray-200 shadow-2xl">
-
             {/* Gradient Header Banner */}
             <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-5">
               <DialogHeader>
@@ -95,7 +112,6 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
 
             {/* Body */}
             <div className="px-6 py-5 space-y-5 bg-white">
-
               {/* Date & Working Hours */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
@@ -121,7 +137,7 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
                     disabled={true}
                     onChange={(e) => {
                       const value = e.target.value;
-                      if (value === '') {
+                      if (value === "") {
                         setWorkingHours(0);
                       } else {
                         const hours = Number(value);
@@ -184,43 +200,56 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
                 Close
               </Button>
               <Button
-                onClick={() => handleValidationAndAction('approved')}
+                onClick={() => handleValidationAndAction("approved")}
                 className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 shadow-sm"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 Accept
               </Button>
               <Button
-                onClick={() => handleValidationAndAction('rejected')}
+                onClick={() => handleValidationAndAction("rejected")}
                 className="rounded-xl bg-red-500 hover:bg-red-600 text-white gap-1.5 shadow-sm"
               >
                 <XCircle className="w-4 h-4" />
                 Reject
               </Button>
             </DialogFooter>
-
           </DialogContent>
         </Dialog>
 
         {showToast && (
-          <Toast onOpenChange={setShowToast} open={showToast}>
-            <ToastTitle>Error</ToastTitle>
-            <ToastDescription>{toastMessage}</ToastDescription>
-            <ToastClose />
-          </Toast>
+          <div className="fixed right-4 top-4 z-50 rounded-md border border-red-200 bg-white px-4 py-3 shadow-lg">
+            <p className="text-sm font-semibold text-red-700">Error</p>
+            <p className="mt-1 text-sm text-slate-600">{toastMessage}</p>
+            <button
+              type="button"
+              className="mt-2 text-xs text-red-600"
+              onClick={() => setShowToast(false)}
+            >
+              Dismiss
+            </button>
+          </div>
         )}
         {showHoursToast && (
-          <Toast>
-            <ToastTitle>Invalid Working Hours</ToastTitle>
-            <ToastDescription>Please enter a number between 1 and 12 for working hours.</ToastDescription>
-            <ToastClose onClick={() => setShowHoursToast(false)} />
-          </Toast>
+          <div className="fixed right-4 top-24 z-50 rounded-md border border-amber-200 bg-white px-4 py-3 shadow-lg">
+            <p className="text-sm font-semibold text-amber-700">
+              Invalid Working Hours
+            </p>
+            <p className="mt-1 text-sm text-slate-600">
+              Please enter a number between 1 and 12 for working hours.
+            </p>
+            <button
+              type="button"
+              className="mt-2 text-xs text-amber-700"
+              onClick={() => setShowHoursToast(false)}
+            >
+              Dismiss
+            </button>
+          </div>
         )}
-        <ToastViewport />
-      </ToastProvider>
+      </>
     )
   );
 };
 
 export default MentorTaskDetailDialog;
-

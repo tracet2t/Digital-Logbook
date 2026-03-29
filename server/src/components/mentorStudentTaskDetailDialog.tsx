@@ -7,7 +7,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Toast, ToastProvider, ToastViewport, ToastTitle, ToastDescription, ToastClose } from '@/components/ui/toast';
 import { CalendarDays, Clock } from 'lucide-react';
 
 interface MentorStudentTaskDetailDialogProps {
@@ -173,23 +172,32 @@ const MentorStudentTaskDetailDialog: React.FC<MentorStudentTaskDetailDialogProps
       )}
 
       {/* Toast Notifications */}
-      <ToastProvider>
-        <ToastViewport />
-        {showToast && (
-          <Toast>
-            <ToastTitle>Character limit reached</ToastTitle>
-            <ToastDescription>Notes cannot exceed 300 characters.</ToastDescription>
-            <ToastClose onClick={() => setShowToast(false)} />
-          </Toast>
-        )}
-        {showHoursToast && (
-          <Toast>
-            <ToastTitle>Invalid working hours</ToastTitle>
-            <ToastDescription>Please enter a value between 1 and 12.</ToastDescription>
-            <ToastClose onClick={() => setShowHoursToast(false)} />
-          </Toast>
-        )}
-      </ToastProvider>
+      {showToast && (
+        <div className="fixed right-4 top-4 z-50 rounded-md border border-amber-200 bg-white px-4 py-3 shadow-lg">
+          <p className="text-sm font-semibold text-amber-700">Character limit reached</p>
+          <p className="mt-1 text-sm text-slate-600">Notes cannot exceed 300 characters.</p>
+          <button
+            type="button"
+            className="mt-2 text-xs text-amber-700"
+            onClick={() => setShowToast(false)}
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+      {showHoursToast && (
+        <div className="fixed right-4 top-24 z-50 rounded-md border border-amber-200 bg-white px-4 py-3 shadow-lg">
+          <p className="text-sm font-semibold text-amber-700">Invalid working hours</p>
+          <p className="mt-1 text-sm text-slate-600">Please enter a value between 1 and 12.</p>
+          <button
+            type="button"
+            className="mt-2 text-xs text-amber-700"
+            onClick={() => setShowHoursToast(false)}
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
     </>
   );
 };

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 import moment from "moment";
 import {
@@ -13,18 +14,11 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 
 import { getSessionOnClient } from "@/server_actions/getSession";
 
-import {
-  convertToCalendarEvents,
-  convertToCalendarEventsMentor,
-  eventPropGetter,
-} from "@/lib/calenderUtils";
+import { eventPropGetter } from "@/lib/calenderUtils";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
 import { useEventForDate } from "@/hooks/useEventForDate";
 import { useFormData } from "@/hooks/useFormData";
 import { useSubmission } from "@/hooks/useSubmission";
-// Adjust the import path according to your project structure
-
-import { Button } from "@/components/ui/button";
 import {
   Toast,
   ToastClose,
@@ -33,66 +27,89 @@ import {
   ToastTitle,
   ToastViewport,
 } from "@/components/ui/toast";
-
-import CustomToolbar from "./CustomToolbar";
-import MentorStudentTaskDetailDialog from "./mentorStudentTaskDetailDialog";
-import MentorTaskDetailDialog from "./mentorTaskDetailDialog";
-import StudentTaskDetailDialog from "./studentTaskDetailDialog";
+import CustomToolbar from "@/components/CustomToolbar";
+import MentorStudentTaskDetailDialog from "@/components/mentorStudentTaskDetailDialog";
+import MentorTaskDetailDialog from "@/components/mentorTaskDetailDialog";
+import StudentTaskDetailDialog from "@/components/studentTaskDetailDialog";
 
 moment.locale("en-GB");
 const localizer = momentLocalizer(moment);
 
-interface FormData {
-  studentId: string;
-  date: string;
-  timeSpent: number;
-  notes?: string;
-  status?: string;
-  review?: string;
-}
-
-interface FeedbackData {
-  review: string;
-  status: string;
-  mentorId: string;
-}
-
-interface MentorFormData {
-  date: string;
-  workingHours: number;
-  activities: string;
-}
-
-interface CalendarEvent {
+interface SessionData {
   id: string;
-  title: string;
-  start: Date;
-  end: Date;
-  allDay?: boolean;
-  color?: string;
-  createdAt: Date;
-  studentId: string;
-  timeSpent?: number;
-  notes?: string;
-  status: "pending" | "approved" | "rejected"; // New field for status
+  role: string;
+  fname: string;
+  lname: string;
+  email: string;
 }
+
+// Unused interface - declared for reference only
+// interface FormData {
+//   studentId: string;
+//   date: string;
+//   timeSpent: number;
+//   notes?: string;
+//   status?: string;
+//   review?: string;
+// }
+
+// Unused interface - declared for reference only
+// interface FeedbackData {
+//   review: string;
+//   status: string;
+//   mentorId: string;
+// }
+
+// Unused interface - declared for reference only
+// interface MentorFormData {
+//   date: string;
+//   workingHours: number;
+//   activities: string;
+// }
+
+// Unused interface - declared for reference only
+// interface CalendarEvent {
+//   id: string;
+//   title: string;
+//   start: Date;
+//   end: Date;
+//   allDay?: boolean;
+//   color?: string;
+//   createdAt: Date;
+//   studentId: string;
+//   timeSpent?: number;
+//   notes?: string;
+//   status: "pending" | "approved" | "rejected";
+// }
 
 interface TaskCalendarProps {
-  selectedUser: string; // New prop for selectedUser
+  selectedUser: string;
 }
 
 const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [session, setSession] = useState(null);
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [role, setRole] = useState<string>("");
-  const [studentId, setStudentId] = useState<string>("");
   const [isEditable, setIsEditable] = useState(true);
   const [toast, setToast] = useState<{
     title: string;
     description: string;
   } | null>(null);
+
+  // Fetch session data using TanStack Query
+  const { data: sessionData } = useQuery<SessionData>({
+    queryKey: ["session"],
+    queryFn: async () => {
+      const data = await getSessionOnClient();
+      if (!data) throw new Error("Failed to fetch session");
+      return data;
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 20 * 60 * 1000, // 20 minutes
+    retry: 1,
+  });
+
+  const studentId = sessionData?.id || "";
+  const role = sessionData?.role || "";
 
   // Custom hooks
   const { events, refetchEvents } = useCalendarEvents(
@@ -135,9 +152,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     feedbackActivityId,
     () => {
       setTaskModalOpen(false);
-      setSelectedDate(null);
       resetFormData("");
-      // Delay refetch to avoid rapid re-renders and duplicate submissions
       setTimeout(() => {
         refetchEvents();
       }, 500);
@@ -148,20 +163,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     },
   );
 
-  useEffect(() => {
-    getSessionOnClient()
-      .then((data) => {
-        setSession(data);
-        setStudentId(data.id);
-        setRole(data.role);
-      })
-      .catch((error) => {
-        console.error("Error fetching session:", error);
-      });
-  }, []);
-
   const handleDateClick = (date: Date) => {
-    setSelectedDate(date);
     const formattedDate = moment(date).format("YYYY-MM-DD");
 
     const today = moment().startOf("day");
@@ -182,14 +184,13 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
 
   const handleClose = () => {
     setTaskModalOpen(false);
-    setSelectedDate(null);
   };
 
   useEffect(() => {
     if (status === "approved" || status === "rejected") {
       handleSubmit();
     }
-  }, [status]);
+  }, [status, handleSubmit]);
 
   return (
     <>

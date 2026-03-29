@@ -44,8 +44,127 @@ export class ActivityRepository extends BaseRepository<Activity> {
         date,
         timeSpent,
         notes,
+        status: "pending",
       },
     });
+  }
+
+  /**
+   * Update activity status when mentor accepts/rejects
+   */
+  async updateActivityStatus(
+    id: string,
+    status: "accepted" | "rejected" | "pending",
+  ) {
+    return this.modelClient.update({
+      where: { id },
+      data: { status },
+    });
+  }
+
+  /**
+   * Get accepted activities only (approved by mentor)
+   */
+  async getAcceptedActivities(studentId: string) {
+    return this.modelClient.findMany({
+      where: {
+        studentId,
+        status: "accepted",
+      },
+      orderBy: { date: "desc" },
+    });
+  }
+
+  /**
+   * Get pending activities (awaiting mentor approval)
+   */
+  async getPendingActivities(studentId: string) {
+    return this.modelClient.findMany({
+      where: {
+        studentId,
+        status: "pending",
+      },
+      include: {
+        feedback: {
+          select: {
+            status: true,
+            feedbackNotes: true,
+          },
+        },
+      },
+      orderBy: { date: "desc" },
+    });
+  }
+
+  /**
+   * Get total ACCEPTED work hours only
+   */
+  async getStudentAcceptedHours(
+    studentId: string,
+    startDate?: Date,
+    endDate?: Date,
+  ): Promise<number> {
+    const activities = await this.modelClient.findMany({
+      where: {
+        studentId,
+        status: "accepted",
+        ...(startDate && { date: { gte: startDate } }),
+        ...(endDate && { date: { lte: endDate } }),
+      },
+      select: { timeSpent: true },
+    });
+
+    return activities.reduce(
+      (sum: number, activity: { timeSpent: number }) =>
+        sum + activity.timeSpent,
+      0,
+    );
+  }
+
+  /**
+   * Get hours breakdown by status
+   */
+  async getStudentHoursByStatus(
+    studentId: string,
+    startDate?: Date,
+    endDate?: Date,
+  ): Promise<{
+    studentId: string;
+    acceptedHours: number;
+    pendingHours: number;
+    rejectedHours: number;
+    totalHours: number;
+  }> {
+    const activities = await this.modelClient.findMany({
+      where: {
+        studentId,
+        ...(startDate && { date: { gte: startDate } }),
+        ...(endDate && { date: { lte: endDate } }),
+      },
+      select: { timeSpent: true, status: true },
+    });
+
+    let acceptedHours = 0;
+    let pendingHours = 0;
+    let rejectedHours = 0;
+
+    activities.forEach((activity: { timeSpent: number; status: string }) => {
+      if (activity.status === "accepted") {
+        acceptedHours += activity.timeSpent;
+      } else if (activity.status === "pending") {
+        pendingHours += activity.timeSpent;
+      } else if (activity.status === "rejected") {
+        rejectedHours += activity.timeSpent;
+      }
+    });
+
+    return {
+      studentId,
+      acceptedHours,
+      pendingHours,
+      rejectedHours,
+      totalHours: acceptedHours + pendingHours + rejectedHours,
+    };
   }
 
   async updateActivity(
@@ -94,22 +213,21 @@ export class ActivityRepository extends BaseRepository<Activity> {
 
   /**
    * Get aggregated activity submission and approval summary for a mentee in a project.
-   *
-   * @param studentId - Mentee user ID
-   * @param projectId - Project ID (optional — if provided, verifies student is allocated to that project)
-   * @returns Summary object with counts and approval rate
    */
   async getMenteeActivitySummary(
     studentId: string,
-    projectId?: string
+    projectId?: string,
   ): Promise<{
     studentId: string;
     projectId: string | null;
     totalSubmitted: number;
-    totalApproved: number;
-    totalRejected: number;
+    totalAccepted: number;
+    totalAcceptedHours: number;
     totalPending: number;
-    approvalRate: number;
+    totalPendingHours: number;
+    totalRejected: number;
+    totalRejectedHours: number;
+    acceptanceRate: number;
     lastActivityDate: Date | null;
     firstActivityDate: Date | null;
   }> {
@@ -123,66 +241,63 @@ export class ActivityRepository extends BaseRepository<Activity> {
           studentId,
           projectId,
           totalSubmitted: 0,
-          totalApproved: 0,
-          totalRejected: 0,
+          totalAccepted: 0,
+          totalAcceptedHours: 0,
           totalPending: 0,
-          approvalRate: 0,
+          totalPendingHours: 0,
+          totalRejected: 0,
+          totalRejectedHours: 0,
+          acceptanceRate: 0,
           lastActivityDate: null,
           firstActivityDate: null,
         };
       }
     }
 
-    // Get all activities for the student (Activity has no projectId column)
+    // Get all activities for the student
     const activities = await this.modelClient.findMany({
       where: { studentId },
-      include: {
-        feedback: {
-          select: { status: true },
-        },
-      },
       orderBy: { date: "asc" },
     });
 
     const totalSubmitted = activities.length;
-
-    // Count feedback statuses
-    let totalApproved = 0;
-    let totalRejected = 0;
+    let totalAccepted = 0;
+    let totalAcceptedHours = 0;
     let totalPending = 0;
+    let totalPendingHours = 0;
+    let totalRejected = 0;
+    let totalRejectedHours = 0;
 
-    activities.forEach((activity: any) => {
-      if (activity.feedback.length === 0) {
+    activities.forEach((activity: { status: string; timeSpent: number }) => {
+      if (activity.status === "accepted") {
+        totalAccepted++;
+        totalAcceptedHours += activity.timeSpent;
+      } else if (activity.status === "pending") {
         totalPending++;
-      } else {
-        const latestFeedback = activity.feedback[activity.feedback.length - 1];
-        if (latestFeedback.status === "approved") {
-          totalApproved++;
-        } else if (latestFeedback.status === "rejected") {
-          totalRejected++;
-        } else {
-          totalPending++;
-        }
+        totalPendingHours += activity.timeSpent;
+      } else if (activity.status === "rejected") {
+        totalRejected++;
+        totalRejectedHours += activity.timeSpent;
       }
     });
 
-    const approvalRate =
-      totalSubmitted > 0 ? totalApproved / totalSubmitted : 0;
+    const acceptanceRate =
+      totalSubmitted > 0 ? totalAccepted / totalSubmitted : 0;
 
     return {
       studentId,
       projectId: projectId ?? null,
       totalSubmitted,
-      totalApproved,
-      totalRejected,
+      totalAccepted,
+      totalAcceptedHours,
       totalPending,
-      approvalRate,
-      lastActivityDate: activities.length > 0
-        ? activities[activities.length - 1].date
-        : null,
-      firstActivityDate: activities.length > 0
-        ? activities[0].date
-        : null,
+      totalPendingHours,
+      totalRejected,
+      totalRejectedHours,
+      acceptanceRate,
+      lastActivityDate:
+        activities.length > 0 ? activities[activities.length - 1].date : null,
+      firstActivityDate: activities.length > 0 ? activities[0].date : null,
     };
   }
 }

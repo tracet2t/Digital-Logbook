@@ -40,7 +40,10 @@ export const useMentorProjects = () => {
  * @param projectId - The ID of the project
  * @param enabled - Whether the query should run (defaults to true if projectId is provided)
  */
-export const useProjectStudents = (projectId: string | null, enabled = true) => {
+export const useProjectStudents = (
+  projectId: string | null,
+  enabled = true,
+) => {
   return useQuery({
     queryKey: ["projectStudents", projectId],
     queryFn: async () => {
@@ -53,7 +56,7 @@ export const useProjectStudents = (projectId: string | null, enabled = true) => 
         {
           method: "GET",
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
 
       if (!response.ok) {
@@ -78,7 +81,7 @@ export const useMentorFilterData = (projectId: string | null) => {
         projectId
           ? `/api/mentor/filter?projectId=${encodeURIComponent(projectId)}`
           : "/api/mentor/filter",
-        typeof window !== "undefined" ? window.location.origin : ""
+        typeof window !== "undefined" ? window.location.origin : "",
       );
 
       const response = await fetch(url.toString(), {

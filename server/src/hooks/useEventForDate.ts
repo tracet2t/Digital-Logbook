@@ -1,30 +1,21 @@
-import { useState } from 'react';
+import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 export const useEventForDate = (
   role: string,
   studentId: string,
   selectedUser: string,
-  updateFormData: (event: any, feedbackData: any, formattedDate: string) => void,
-  resetFormData: (formattedDate: string) => void
+  updateFormData: (
+    event: any,
+    feedbackData: any,
+    formattedDate: string,
+  ) => void,
+  resetFormData: (formattedDate: string) => void,
 ) => {
-  const fetchEventForDate = async (formattedDate: string) => {
-    try {
-      const url = buildUrlForRole(formattedDate);
-      const response = await fetch(url);
-      const data = await response.json();
-
-      if (data.length > 0) {
-        await processResponse(data[0], formattedDate);
-      } else {
-        resetFormData(formattedDate);
-      }
-    } catch (error) {
-      console.error('Failed to fetch event for date:', error);
-    }
-  };
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   const buildUrlForRole = (formattedDate: string) => {
-    if (role === 'student') {
+    if (role === "student") {
       return `http://localhost:3000/api/activity?date=${formattedDate}`;
     }
     if (studentId === selectedUser) {
@@ -33,20 +24,69 @@ export const useEventForDate = (
     return `http://localhost:3000/api/student?date=${formattedDate}&studentId=${selectedUser}`;
   };
 
-  const processResponse = async (existingEvent: any, formattedDate: string) => {
-    if ((role === 'mentor' && studentId !== selectedUser) || (role === 'student')) {
-      const feedbackData = await fetchFeedback(existingEvent.id, formattedDate);
-      updateFormData(existingEvent, feedbackData, formattedDate);
-    } else {
-      updateFormData(existingEvent, null, formattedDate);
-    }
-  };
+  // Fetch event for selected date using TanStack Query
+  const { data: eventData } = useQuery<any>({
+    queryKey: ["eventForDate", selectedDate, role, studentId, selectedUser],
+    queryFn: async () => {
+      if (!selectedDate) return null;
 
-  const fetchFeedback = async (activityId: string, formattedDate: string) => {
-    const feedbackResponse = await fetch(
-      `http://localhost:3000/api/mentorFeedback?date=${formattedDate}&activityId=${activityId}`
-    );
-    return await feedbackResponse.json();
+      const url = buildUrlForRole(selectedDate);
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch event");
+      }
+
+      const data = await response.json();
+      return Array.isArray(data) && data.length > 0 ? data[0] : null;
+    },
+    enabled: !!selectedDate,
+    retry: 1,
+  });
+
+  // Determine if feedback should be fetched
+  const shouldFetchFeedback =
+    !!eventData &&
+    ((role === "mentor" && studentId !== selectedUser) || role === "student");
+
+  // Fetch feedback if needed using TanStack Query
+  const { data: feedbackData } = useQuery<any>({
+    queryKey: ["eventFeedback", eventData?.id, selectedDate],
+    queryFn: async () => {
+      if (!eventData?.id || !selectedDate) return null;
+
+      try {
+        const response = await fetch(
+          `http://localhost:3000/api/mentorFeedback?date=${selectedDate}&activityId=${eventData.id}`,
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch feedback");
+        }
+
+        return await response.json();
+      } catch (error) {
+        console.error("Error fetching feedback:", error);
+        return null;
+      }
+    },
+    enabled: shouldFetchFeedback,
+    retry: 1,
+  });
+
+  // Update form when event or feedback data changes
+  useEffect(() => {
+    if (selectedDate) {
+      if (eventData) {
+        updateFormData(eventData, feedbackData || null, selectedDate);
+      } else if (eventData === null) {
+        resetFormData(selectedDate);
+      }
+    }
+  }, [eventData, feedbackData, selectedDate, updateFormData, resetFormData]);
+
+  const fetchEventForDate = (formattedDate: string) => {
+    setSelectedDate(formattedDate);
   };
 
   return { fetchEventForDate };

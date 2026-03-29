@@ -42,16 +42,17 @@ model User {
 }
 
 model Activity {
-  id        String   @id @default(uuid())
+  id        String         @id @default(uuid())
   studentId String
   date      DateTime
   timeSpent Int
   notes     String?
+  status    ActivityStatus @default(pending)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
 
-  student   User     @relation(fields: [studentId], references: [id])
+  student   User           @relation(fields: [studentId], references: [id])
 
   feedback  MentorFeedback[]
 
@@ -202,6 +203,12 @@ enum FeedbackStatus {
   approved
   rejected
   pending
+}
+
+enum ActivityStatus {
+  pending
+  accepted
+  rejected
 }
 
 enum ProcessStatus {
