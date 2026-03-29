@@ -36,3 +36,26 @@ export const GET = async (req: NextRequest) => {
         return NextResponse.json({ message: "Error fetching mentor activities" }, { status: 500 });
     }
 };
+
+// PATCH: Mentor updates student task status (accept/reject/pending)
+export const PATCH = async (req: NextRequest) => {
+    try {
+        const session = await getSession();
+        if (!session) {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+        }
+        const role = session.getRole?.() || session.role;
+        if (role !== "mentor" && role !== "superAdmin") {
+            return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+        }
+        const { id, status } = await req.json();
+        if (!id || !["accepted", "rejected", "pending"].includes(status)) {
+            return NextResponse.json({ message: "Invalid input" }, { status: 400 });
+        }
+        const updated = await activityRepository.updateActivityStatus(id, status);
+        return NextResponse.json(updated, { status: 200 });
+    } catch (error) {
+        console.error("Error updating activity status:", error);
+        return NextResponse.json({ message: "Error updating activity status" }, { status: 500 });
+    }
+};
