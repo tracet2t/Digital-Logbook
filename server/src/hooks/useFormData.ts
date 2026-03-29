@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 
 interface FormData {
   studentId: string;
@@ -9,68 +9,56 @@ interface FormData {
   review?: string;
 }
 
-interface FeedbackData {
-  review: string;
-  status: string;
-  mentorId: string;
-}
-
-interface MentorFormData {
-  date: string;
-  workingHours: number;
-  activities: string;
-}
-
 export const useFormData = () => {
   const [formData, setFormData] = useState<FormData>({
-    studentId: '',
-    date: '',
+    studentId: "",
+    date: "",
     timeSpent: 0,
-    notes: '',
-    status: '',
-    review: '',
+    notes: "",
+    status: "",
+    review: "",
   });
   const [workingHours, setWorkingHours] = useState<number>(0);
-  const [notes, setNotes] = useState<string>('');
-  const [review, setReview] = useState<string>('');
-  const [status, setStatus] = useState<string>('');
+  const [notes, setNotes] = useState<string>("");
+  const [review, setReview] = useState<string>("");
+  const [status, setStatus] = useState<string>("");
   const [editingEvent, setEditingEvent] = useState<any>(null);
-  const [feedbackActivityId, setFeedbackActivityId] = useState<string>('');
+  const [feedbackActivityId, setFeedbackActivityId] = useState<string>("");
 
   const updateFormData = (
     event: any,
     feedbackData: any,
-    formattedDate: string
+    formattedDate: string,
   ) => {
     setFormData({
-      studentId: event.studentId || '',
+      studentId: event.studentId || "",
       date: formattedDate,
       timeSpent: event.timeSpent || event.workingHours || 0,
-      notes: event.notes || event.activities || '',
-      review: feedbackData?.feedbackNotes || '',
-      status: feedbackData?.status || '',
+      notes: event.notes || event.activities || "",
+      review: feedbackData?.feedbackNotes || "",
+      status: feedbackData?.status || "",
     });
     setWorkingHours(event.timeSpent || event.workingHours || 0);
-    setNotes(event.notes || event.activities || '');
+    setNotes(event.notes || event.activities || "");
     setEditingEvent(event);
-    setReview(feedbackData?.feedbackNotes || '');
-    setFeedbackActivityId(event?.id || '');
+    setReview(feedbackData?.feedbackNotes || "");
+    setFeedbackActivityId(event?.id || "");
   };
 
   const resetFormData = (formattedDate: string) => {
     setFormData({
-      studentId: '',
+      studentId: "",
       date: formattedDate,
       timeSpent: 0,
-      notes: '',
-      review: '',
-      status: '',
+      notes: "",
+      review: "",
+      status: "",
     });
-    setWorkingHours(1);
-    setNotes('');
+    setWorkingHours(2);
+    setNotes("");
     setEditingEvent(null);
-    setReview('');
-    setFeedbackActivityId('');
+    setReview("");
+    setFeedbackActivityId("");
   };
 
   return {

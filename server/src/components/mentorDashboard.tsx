@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 import { getSessionOnClient } from "@/server_actions/getSession";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation"; // Import useRouter hook
-import { useQuery } from "@tanstack/react-query";
 
 import {
   useMentorProjects,
@@ -23,17 +23,12 @@ import {
 // Adjust import path if necessary
 import { GenericCombobox } from "@/components/mentor/combobox";
 
-const RsuiteCalendar = dynamic(() => import("@/app/mentor/calendar/RsuiteCalendar"), {
-  ssr: false,
-});
-
-interface Session {
-  fname: string;
-  lname: string;
-  email: string;
-  id: string;
-  role: string;
-}
+const RsuiteCalendar = dynamic(
+  () => import("@/app/mentor/calendar/RsuiteCalendar"),
+  {
+    ssr: false,
+  },
+);
 
 const MentorDashboard = () => {
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
@@ -46,6 +41,7 @@ const MentorDashboard = () => {
   const [projectStudents, setProjectStudents] = useState<
     { id: string; name: string }[]
   >([]);
+  const prevStudentsRef = useRef<{ id: string; name: string }[]>([]);
 
   // TanStack Query hooks
   const { data: mentorProjects = [], isLoading: projectsLoading } =
@@ -65,7 +61,9 @@ const MentorDashboard = () => {
   });
 
   const session = sessionData || null;
-  const mentorName = sessionData ? `${sessionData.fname} ${sessionData.lname}` : null;
+  const mentorName = sessionData
+    ? `${sessionData.fname} ${sessionData.lname}`
+    : null;
   const mentorId = sessionData?.id || null;
 
   // Initialize selected user with mentor ID
@@ -85,10 +83,18 @@ const MentorDashboard = () => {
     if (selectedProject && mentorId) {
       const mentorDisplay =
         mentorName && mentorName.trim().length > 0 ? mentorName : "Mentor";
-      setProjectStudents([
+      const newStudents = [
         { id: mentorId, name: mentorDisplay },
         ...fetchedStudents,
-      ]);
+      ];
+
+      // Only update if data actually changed
+      if (
+        JSON.stringify(prevStudentsRef.current) !== JSON.stringify(newStudents)
+      ) {
+        setProjectStudents(newStudents);
+        prevStudentsRef.current = newStudents;
+      }
     }
   }, [selectedProject, fetchedStudents, mentorId, mentorName]);
 
@@ -252,7 +258,7 @@ const MentorDashboard = () => {
               {/* Calendar Card Component */}
               <div className="rounded-2xl border border-slate-200 bg-white p-2 md:p-3 w-full h-[60vh] md:h-[70vh] overflow-y-auto flex flex-col">
                 <div className="flex-1 min-h-0">
-                  <RsuiteCalendar selectedUser={selectedUser || ""} />
+                  {/* <RsuiteCalendar selectedUser={selectedUser || ""} /> */}
                 </div>
               </div>
             </div>
