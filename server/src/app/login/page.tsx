@@ -89,24 +89,15 @@ const LoginPage = () => {
         {/* Visual Brand Panel (Desktop) */}
         <div className="hidden lg:flex relative w-7/12 flex-col justify-between p-16 bg-zinc-900 border-r border-zinc-800 overflow-hidden">
           <Image
-            src="/login.png"
+            src="/login_2.png"
             alt="Product Visual"
             fill
-            className="object-cover opacity-40 mix-blend-soft-light"
+            className="object-cover"
             priority
           />
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-transparent to-zinc-950/80" />
 
-          <div className="relative z-10">
-            <Image
-              src="/logo.png"
-              width={180}
-              height={45}
-              alt="Logo"
-              className="h-auto w-full max-w-[180px] shrink-0"
-              priority
-            />
-          </div>
+          <div className="relative z-10"></div>
 
           <div className="relative z-10 max-w-2xl">
             <h1 className="text-6xl xl:text-8xl font-black text-white leading-[1] tracking-tighter mb-8 bg-clip-text">
