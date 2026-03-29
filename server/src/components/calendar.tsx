@@ -1,23 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+
+import moment from "moment";
 import {
   Calendar as BigCalendar,
   momentLocalizer,
   Views,
 } from "react-big-calendar";
-import moment from "moment";
-import "react-big-calendar/lib/css/react-big-calendar.css";
-import {
-  ToastProvider,
-  ToastViewport,
-  Toast,
-  ToastTitle,
-  ToastDescription,
-  ToastClose,
-} from "@/components/ui/toast"; // Adjust the import path according to your project structure
 
-import { Button } from "@/components/ui/button";
+import "react-big-calendar/lib/css/react-big-calendar.css";
+
 import { getSessionOnClient } from "@/server_actions/getSession";
 
 import {
@@ -25,16 +18,26 @@ import {
   convertToCalendarEventsMentor,
   eventPropGetter,
 } from "@/lib/calenderUtils";
+import { useCalendarEvents } from "@/hooks/useCalendarEvents";
+import { useEventForDate } from "@/hooks/useEventForDate";
+import { useFormData } from "@/hooks/useFormData";
+import { useSubmission } from "@/hooks/useSubmission";
+// Adjust the import path according to your project structure
 
+import { Button } from "@/components/ui/button";
+import {
+  Toast,
+  ToastClose,
+  ToastDescription,
+  ToastProvider,
+  ToastTitle,
+  ToastViewport,
+} from "@/components/ui/toast";
+
+import CustomToolbar from "./CustomToolbar";
 import MentorStudentTaskDetailDialog from "./mentorStudentTaskDetailDialog";
 import MentorTaskDetailDialog from "./mentorTaskDetailDialog";
 import StudentTaskDetailDialog from "./studentTaskDetailDialog";
-import CustomToolbar from "./CustomToolbar";
-
-import { useCalendarEvents } from "@/hooks/useCalendarEvents";
-import { useFormData } from "@/hooks/useFormData";
-import { useSubmission } from "@/hooks/useSubmission";
-import { useEventForDate } from "@/hooks/useEventForDate";
 
 moment.locale("en-GB");
 const localizer = momentLocalizer(moment);
@@ -49,15 +52,15 @@ interface FormData {
 }
 
 interface FeedbackData {
-  review: string,
-  status: string,
-  mentorId: string
+  review: string;
+  status: string;
+  mentorId: string;
 }
 
 interface MentorFormData {
-  date: string,
-  workingHours: number,
-  activities: string
+  date: string;
+  workingHours: number;
+  activities: string;
 }
 
 interface CalendarEvent {
@@ -92,7 +95,11 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   } | null>(null);
 
   // Custom hooks
-  const { events, refetchEvents } = useCalendarEvents(studentId, role, selectedUser);
+  const { events, refetchEvents } = useCalendarEvents(
+    studentId,
+    role,
+    selectedUser,
+  );
   const {
     formData,
     workingHours,
@@ -108,7 +115,13 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     updateFormData,
     resetFormData,
   } = useFormData();
-  const { fetchEventForDate } = useEventForDate(role, studentId, selectedUser, updateFormData, resetFormData);
+  const { fetchEventForDate } = useEventForDate(
+    role,
+    studentId,
+    selectedUser,
+    updateFormData,
+    resetFormData,
+  );
   const { handleSubmit } = useSubmission(
     role,
     studentId,
@@ -121,14 +134,18 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     editingEvent,
     feedbackActivityId,
     () => {
-      refetchEvents();
       setTaskModalOpen(false);
       setSelectedDate(null);
+      resetFormData("");
+      // Delay refetch to avoid rapid re-renders and duplicate submissions
+      setTimeout(() => {
+        refetchEvents();
+      }, 500);
     },
     (title, description) => {
       setToast({ title, description });
-      setTimeout(() => setToast(null), 1000);
-    }
+      setTimeout(() => setToast(null), 3000);
+    },
   );
 
   useEffect(() => {
@@ -150,7 +167,10 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     const today = moment().startOf("day");
     const dayBeforeYesterday = moment().subtract(2, "days").startOf("day");
 
-    if (moment(date).isSame(today, 'day') || moment(date).isBetween(dayBeforeYesterday, today, 'day', '[]')) {
+    if (
+      moment(date).isSame(today, "day") ||
+      moment(date).isBetween(dayBeforeYesterday, today, "day", "[]")
+    ) {
       setIsEditable(true);
     } else {
       setIsEditable(false);
@@ -178,7 +198,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
           taskModalOpen={taskModalOpen}
           setTaskModalOpen={setTaskModalOpen}
           role={role}
-          selectedUser={selectedUser || ''}
+          selectedUser={selectedUser || ""}
           studentId={studentId}
           formData={formData}
           workingHours={workingHours}
@@ -195,7 +215,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
           taskModalOpen={taskModalOpen}
           setTaskModalOpen={setTaskModalOpen}
           role={role}
-          selectedUser={selectedUser || ''}
+          selectedUser={selectedUser || ""}
           studentId={studentId}
           formData={formData}
           workingHours={workingHours}
@@ -233,9 +253,17 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
             onSelectEvent={(event) => handleDateClick(event.start)}
             selectable
             components={{
-              toolbar: (toolbar: any) => <CustomToolbar toolbar={toolbar} currentDate={currentDate} setCurrentDate={setCurrentDate} />,
+              toolbar: (toolbar: any) => (
+                <CustomToolbar
+                  toolbar={toolbar}
+                  currentDate={currentDate}
+                  setCurrentDate={setCurrentDate}
+                />
+              ),
             }}
-            eventPropGetter={(event) => eventPropGetter(event, selectedUser || "")} // Pass selectedUser here
+            eventPropGetter={(event) =>
+              eventPropGetter(event, selectedUser || "")
+            } // Pass selectedUser here
             style={{ height: "100%" }}
           />
         </div>
