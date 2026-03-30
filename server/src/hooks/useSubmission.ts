@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface FormData {
@@ -171,7 +172,7 @@ export const useSubmission = (
     },
   });
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     const isStudent = role === "student";
     const isMentor = role === "mentor";
 
@@ -194,7 +195,7 @@ export const useSubmission = (
         editingEvent,
       });
     }
-  };
+  }, [role, selectedUser, studentId, formData, editingEvent, mutation]);
 
   return { handleSubmit, isSubmitting: mutation.isPending };
 };

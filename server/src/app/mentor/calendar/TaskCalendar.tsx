@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import moment from "moment";
@@ -94,6 +94,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     title: string;
     description: string;
   } | null>(null);
+  const isSubmittingRef = useRef(false);
 
   // Fetch session data using TanStack Query
   const { data: sessionData } = useQuery<SessionData>({
@@ -152,6 +153,8 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     feedbackActivityId,
     () => {
       setTaskModalOpen(false);
+      setStatus("");
+      isSubmittingRef.current = false;
       resetFormData("");
       setTimeout(() => {
         refetchEvents();
@@ -188,7 +191,13 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
 
   useEffect(() => {
     if (status === "approved" || status === "rejected") {
-      handleSubmit();
+      if (!isSubmittingRef.current) {
+        isSubmittingRef.current = true;
+        handleSubmit();
+      }
+    } else {
+      // Reset the flag when status changes to something else
+      isSubmittingRef.current = false;
     }
   }, [status, handleSubmit]);
 

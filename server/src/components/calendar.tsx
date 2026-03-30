@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import moment from "moment";
 import {
@@ -83,7 +83,7 @@ interface TaskCalendarProps {
 
 const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [session, setSession] = useState(null);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [role, setRole] = useState<string>("");
@@ -93,6 +93,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     title: string;
     description: string;
   } | null>(null);
+  const isSubmittingRef = useRef(false);
 
   // Custom hooks
   const { events, refetchEvents } = useCalendarEvents(
@@ -135,7 +136,9 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     feedbackActivityId,
     () => {
       setTaskModalOpen(false);
-      setSelectedDate(null);
+      setSelectedDate(undefined);
+      setStatus("");
+      isSubmittingRef.current = false;
       resetFormData("");
       // Delay refetch to avoid rapid re-renders and duplicate submissions
       setTimeout(() => {
@@ -182,14 +185,20 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
 
   const handleClose = () => {
     setTaskModalOpen(false);
-    setSelectedDate(null);
+    setSelectedDate(undefined);
   };
 
   useEffect(() => {
     if (status === "approved" || status === "rejected") {
-      handleSubmit();
+      if (!isSubmittingRef.current) {
+        isSubmittingRef.current = true;
+        handleSubmit();
+      }
+    } else {
+      // Reset the flag when status changes to something else
+      isSubmittingRef.current = false;
     }
-  }, [status]);
+  }, [status, handleSubmit]);
 
   return (
     <>

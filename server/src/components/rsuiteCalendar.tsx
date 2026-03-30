@@ -4,7 +4,7 @@ import { Calendar } from "rsuite";
 
 import "rsuite/dist/rsuite.min.css";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { getSessionOnClient } from "@/server_actions/getSession";
 import moment from "moment";
@@ -57,7 +57,7 @@ interface RsuiteCalendarProps {
 }
 
 export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [mounted, setMounted] = useState(false);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [session, setSession] = useState(null);
@@ -68,12 +68,13 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
     title: string;
     description: string;
   } | null>(null);
+  const isSubmittingRef = useRef(false);
 
   // Custom hooks
   const { events, refetchEvents } = useCalendarEvents(
     studentId,
     role,
-    selectedUser,
+    selectedUser ?? "",
   );
   const {
     formData,
@@ -93,14 +94,14 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
   const { fetchEventForDate } = useEventForDate(
     role,
     studentId,
-    selectedUser,
+    selectedUser ?? "",
     updateFormData,
     resetFormData,
   );
   const { handleSubmit } = useSubmission(
     role,
     studentId,
-    selectedUser,
+    selectedUser ?? "",
     formData,
     workingHours,
     notes,
@@ -110,7 +111,9 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
     feedbackActivityId,
     () => {
       setTaskModalOpen(false);
-      setSelectedDate(null);
+      setSelectedDate(undefined);
+      setStatus("");
+      isSubmittingRef.current = false;
       resetFormData("");
       // Delay refetch to avoid rapid re-renders and duplicate submissions
       setTimeout(() => {
@@ -183,14 +186,20 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
 
   const handleClose = () => {
     setTaskModalOpen(false);
-    setSelectedDate(null);
+    setSelectedDate(undefined);
   };
 
   useEffect(() => {
     if (status === "approved" || status === "rejected") {
-      handleSubmit();
+      if (!isSubmittingRef.current) {
+        isSubmittingRef.current = true;
+        handleSubmit();
+      }
+    } else {
+      // Reset the flag when status changes to something else
+      isSubmittingRef.current = false;
     }
-  }, [status]);
+  }, [status, handleSubmit]);
 
   // Custom cell renderer to show events with grid layout
   const renderCell = (date: Date) => {
@@ -230,7 +239,7 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
         <div className="bg-white rounded-lg shadow-lg p-6 w-full overflow-hidden">
           {mounted && (
             <Calendar
-              value={selectedDate}
+              value={selectedDate === null ? undefined : selectedDate}
               onChange={handleDateChange}
               onSelect={handleSelect}
               compact={false}
