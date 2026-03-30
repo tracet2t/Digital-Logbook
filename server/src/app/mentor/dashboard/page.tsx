@@ -5,6 +5,7 @@ import React from "react";
 import { BarChart3, Briefcase, Clock, Users } from "lucide-react";
 import Link from "next/link";
 
+import { useMentorDashboard } from "@/hooks/mentor";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import {
@@ -16,22 +17,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-interface MenteeRow {
-  initials: string;
-  name: string;
-  project: string;
-  lastActivity: string;
-  status: "ACCEPTED" | "PENDING" | "REJECTED";
-}
-
 function StatCard({
   label,
   value,
   icon,
+  isLoading = false,
 }: {
   label: string;
   value: string | number;
   icon: React.ReactNode;
+  isLoading?: boolean;
 }) {
   return (
     <Card className="p-4 border border-slate-200 bg-white shadow-sm">
@@ -40,7 +35,13 @@ function StatCard({
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">
             {label}
           </p>
-          <p className="mt-2 text-3xl font-bold text-slate-900">{value}</p>
+          <p className="mt-2 text-3xl font-bold text-slate-900">
+            {isLoading ? (
+              <span className="inline-block h-8 w-16 animate-pulse rounded bg-slate-200" />
+            ) : (
+              value
+            )}
+          </p>
         </div>
         {icon && <div className="text-slate-400">{icon}</div>}
       </div>
@@ -68,61 +69,50 @@ function StatusBadge({
   );
 }
 
+function MenteeRow({ initials, name, project, lastActivity, status }: { initials: string; name: string; project: string; lastActivity: string; status: "ACCEPTED" | "PENDING" | "REJECTED" }) {
+  // Generate color based on initials
+  const generateColor = (initials: string) => {
+    const colors = [
+      { bg: "bg-blue-100", text: "text-blue-700" },
+      { bg: "bg-orange-100", text: "text-orange-700" },
+      { bg: "bg-teal-100", text: "text-teal-700" },
+      { bg: "bg-purple-100", text: "text-purple-700" },
+      { bg: "bg-pink-100", text: "text-pink-700" },
+      { bg: "bg-green-100", text: "text-green-700" },
+      { bg: "bg-indigo-100", text: "text-indigo-700" },
+      { bg: "bg-red-100", text: "text-red-700" },
+    ];
+
+    // Use initials to generate a consistent color
+    const charCode = initials.charCodeAt(0) + initials.charCodeAt(1);
+    return colors[charCode % colors.length];
+  };
+
+  const colorSet = generateColor(initials);
+
+  return (
+    <TableRow className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+      <TableCell>
+        <div className="flex items-center gap-3">
+          <div
+            className={`flex h-8 w-8 items-center justify-center rounded-full font-semibold text-sm ${colorSet.bg} ${colorSet.text}`}
+          >
+            {initials}
+          </div>
+          <span className="font-medium text-slate-900">{name}</span>
+        </div>
+      </TableCell>
+      <TableCell className="text-slate-700">{project}</TableCell>
+      <TableCell className="text-slate-700">{lastActivity}</TableCell>
+      <TableCell>
+        <StatusBadge status={status} />
+      </TableCell>
+    </TableRow>
+  );
+}
+
 export default function MentorDashboardPage() {
-  // Mock data
-  const menteeAvatarColors: Record<string, string> = {
-    SM: "bg-blue-100",
-    JL: "bg-orange-100",
-    EK: "bg-teal-100",
-    RT: "bg-purple-100",
-    AD: "bg-blue-400",
-  };
-
-  const menteeAvatarTextColors: Record<string, string> = {
-    SM: "text-blue-700",
-    JL: "text-orange-700",
-    EK: "text-teal-700",
-    RT: "text-purple-700",
-    AD: "text-white",
-  };
-
-  const recentlyActiveMentees: MenteeRow[] = [
-    {
-      initials: "SM",
-      name: "Sarah Mitchell",
-      project: "Blockchain Identity Archiving",
-      lastActivity: "2 mins ago",
-      status: "ACCEPTED",
-    },
-    {
-      initials: "JL",
-      name: "Julian Lefebvre",
-      project: "Quantum Neural Networks",
-      lastActivity: "1 hour ago",
-      status: "PENDING",
-    },
-    {
-      initials: "EK",
-      name: "Elena Kovic",
-      project: "Semantic Web Integration",
-      lastActivity: "4 hours ago",
-      status: "ACCEPTED",
-    },
-    {
-      initials: "RT",
-      name: "Robert Thorne",
-      project: "Legacy Data Migration",
-      lastActivity: "Yesterday",
-      status: "REJECTED",
-    },
-    {
-      initials: "AD",
-      name: "Aria Dupont",
-      project: "API Standardization Project",
-      lastActivity: "2 days ago",
-      status: "ACCEPTED",
-    },
-  ];
+  const { data, isLoading, error } = useMentorDashboard();
 
   return (
     <div className="flex-1 p-5 md:p-8">
@@ -140,27 +130,40 @@ export default function MentorDashboardPage() {
           </p>
         </div>
 
+        {/* Error State */}
+        {error && (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+            <p className="text-sm text-red-800">
+              {error.message || "Failed to load dashboard data. Please try again."}
+            </p>
+          </div>
+        )}
+
         {/* Stats Grid - 4 columns for desktop */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             label="Total Mentees"
-            value="24"
+            value={data?.stats.totalMentees ?? 0}
             icon={<Users className="h-5 w-5 text-slate-500" />}
+            isLoading={isLoading}
           />
           <StatCard
             label="Projects"
-            value="12"
+            value={data?.stats.projects ?? 0}
             icon={<Briefcase className="h-5 w-5 text-slate-500" />}
+            isLoading={isLoading}
           />
           <StatCard
             label="Total Working Hours"
-            value="156h"
+            value={`${data?.stats.totalWorkingHours ?? 0}h`}
             icon={<Clock className="h-5 w-5 text-slate-500" />}
+            isLoading={isLoading}
           />
           <StatCard
             label="Average Working Hours"
-            value="12.5h"
+            value={`${data?.stats.averageWorkingHours ?? 0}h`}
             icon={<BarChart3 className="h-5 w-5 text-slate-500" />}
+            isLoading={isLoading}
           />
         </div>
 
@@ -183,7 +186,20 @@ export default function MentorDashboardPage() {
             </Link>
           </div>
 
-          {recentlyActiveMentees.length === 0 ? (
+          {isLoading ? (
+            <div className="mt-4 space-y-3">
+              {[...Array(5)].map((_, i) => (
+                <div
+                  key={i}
+                  className="h-12 animate-pulse rounded-lg bg-slate-200"
+                />
+              ))}
+            </div>
+          ) : error ? (
+            <div className="mt-5 border border-dashed border-slate-300 rounded-xl p-6 text-center text-slate-500">
+              Failed to load mentees. Please try again.
+            </div>
+          ) : !data || data.recentlyActiveMentees.length === 0 ? (
             <div className="mt-5 border border-dashed border-slate-300 rounded-xl p-6 text-center text-slate-500">
               No recent mentees available.
             </div>
@@ -207,39 +223,15 @@ export default function MentorDashboardPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {recentlyActiveMentees.map((mentee) => (
-                    <TableRow
+                  {data.recentlyActiveMentees.map((mentee) => (
+                    <MenteeRow
                       key={`${mentee.initials}-${mentee.name}`}
-                      className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
-                    >
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div
-                            className={`flex h-8 w-8 items-center justify-center rounded-full font-semibold text-sm ${
-                              menteeAvatarColors[mentee.initials] ||
-                              "bg-slate-200"
-                            } ${
-                              menteeAvatarTextColors[mentee.initials] ||
-                              "text-slate-700"
-                            }`}
-                          >
-                            {mentee.initials}
-                          </div>
-                          <span className="font-medium text-slate-900">
-                            {mentee.name}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-slate-700">
-                        {mentee.project}
-                      </TableCell>
-                      <TableCell className="text-slate-700">
-                        {mentee.lastActivity}
-                      </TableCell>
-                      <TableCell>
-                        <StatusBadge status={mentee.status} />
-                      </TableCell>
-                    </TableRow>
+                      initials={mentee.initials}
+                      name={mentee.name}
+                      project={mentee.project}
+                      lastActivity={mentee.lastActivity}
+                      status={mentee.status}
+                    />
                   ))}
                 </TableBody>
               </Table>
