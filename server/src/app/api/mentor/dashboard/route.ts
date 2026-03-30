@@ -49,19 +49,52 @@ export const GET = async (_req: NextRequest) => {
 
     const menteeCount = mentees.length;
 
-    // Fetch mentor activities for working hours calculation
-    const mentorActivities = await prisma.mentorActivity.findMany({
-      where: { mentorId },
+    const studentIds = mentees.map((m) => m.student.id);
+
+    // Fetch student activities for working hours calculation
+    const studentActivities = await prisma.activity.findMany({
+      where: { studentId: { in: studentIds.length > 0 ? studentIds : undefined } },
+      select: {
+        studentId: true,
+        timeSpent: true,
+        status: true,
+        feedback: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: { status: true },
+        },
+      },
     });
 
-    const totalWorkingHours = mentorActivities.reduce(
-      (sum, activity) => sum + activity.workingHours,
-      0
+    let totalWorkingHours = 0;
+    
+    // Only sum hours for students whose project allocation has been actively accepted by the mentor
+    const acceptedStudentIds = new Set(
+      mentees
+        // @ts-ignore - Prisma type generation issue
+        .filter((m) => m.timeAllocationStatus === "accepted")
+        .map((m) => m.student.id)
     );
 
+    for (const a of studentActivities) {
+      let activityStatus = a.status ?? "pending";
+      if (a.feedback && a.feedback.length > 0) {
+        activityStatus = a.feedback[0].status as any;
+      }
+      
+      const normalizedStatus = activityStatus === "accepted" ? "approved" : activityStatus;
+      
+      if (normalizedStatus === "approved" && acceptedStudentIds.has(a.studentId)) {
+        totalWorkingHours += a.timeSpent;
+      }
+    }
+
+    // timeSpent is already in hours
+    // totalWorkingHours = Math.round(totalWorkingHours);
+
     const averageWorkingHours =
-      mentorActivities.length > 0
-        ? Math.round((totalWorkingHours / mentorActivities.length) * 10) / 10
+      menteeCount > 0
+        ? Math.round((totalWorkingHours / menteeCount) * 10) / 10
         : 0;
 
     // Fetch recently active mentees with latest activity
@@ -92,6 +125,12 @@ export const GET = async (_req: NextRequest) => {
         const latestActivity = await prisma.activity.findFirst({
           where: { studentId: allocation.student.id },
           orderBy: { date: "desc" },
+          include: {
+            feedback: {
+              orderBy: { createdAt: "desc" },
+              take: 1,
+            },
+          },
         });
 
         const initials =
@@ -126,13 +165,20 @@ export const GET = async (_req: NextRequest) => {
         // Map activity status to dashboard status  
         let dashboardStatus: "ACCEPTED" | "PENDING" | "REJECTED" = "PENDING";
         if (latestActivity) {
+          let activityState = latestActivity.status ?? "pending";
+          // Override with highest-priority status from feedback if it exists
+          if (latestActivity.feedback && latestActivity.feedback.length > 0) {
+            activityState = latestActivity.feedback[0].status as any;
+          }
+
           const statusMap: Record<string, "ACCEPTED" | "PENDING" | "REJECTED"> = {
             accepted: "ACCEPTED",
+            approved: "ACCEPTED",
             pending: "PENDING",
             rejected: "REJECTED",
           };
           // @ts-ignore - Prisma type generation issue with status field
-          dashboardStatus = statusMap[latestActivity.status ?? "pending"] ?? "PENDING";
+          dashboardStatus = statusMap[activityState] ?? "PENDING";
         }
 
         return {

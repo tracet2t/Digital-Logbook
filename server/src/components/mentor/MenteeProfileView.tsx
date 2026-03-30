@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { getSessionOnClient } from "@/server_actions/getSession";
 import {
@@ -17,7 +17,6 @@ import {
   FeedbackRecord,
   MentorStudent,
   ProjectOption,
-  QUICK_DOCUMENTS,
   StudentActivity,
   StudentOption,
   formatDate,
@@ -29,11 +28,11 @@ import {
   MenteeHeader,
   MenteeIdentityCard,
   MentorTeamCard,
-  QuickDocumentationCard,
   RecentActivityCard,
 } from "./MenteeProfileSections";
 
 function MenteeProfileView() {
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const queryProjectId = searchParams.get("projectId");
   const queryStudentId = searchParams.get("studentId");
@@ -154,7 +153,11 @@ function MenteeProfileView() {
 
   const totalWorkingHours = useMemo(() => {
     return studentActivities.reduce((total, activity) => {
-      return total + (activity.timeSpent ?? 0);
+      const status = getLatestFeedbackStatus(activity.feedback);
+      if (status === "approved") {
+        return total + (activity.timeSpent ?? 0);
+      }
+      return total;
     }, 0);
   }, [studentActivities]);
 
@@ -168,6 +171,7 @@ function MenteeProfileView() {
         title: activity.notes || "Activity Update",
         date: formatDate(activity.date),
         status: getLatestFeedbackStatus(activity.feedback),
+        hours: activity.timeSpent || 0,
       }));
   }, [studentActivities]);
 
@@ -187,11 +191,68 @@ function MenteeProfileView() {
     return Array.from(names).slice(0, 4);
   }, [feedbackHistory, mentorName]);
 
+  const { data: timeAllocationData, refetch: refetchTimeAllocation } = useQuery({
+    queryKey: ["time-allocation", selectedProjectId, selectedStudentId],
+    queryFn: async () => {
+      if (!selectedProjectId || !selectedStudentId) return null;
+      const response = await fetch(
+        `/api/mentor/mentees/time-allocation?projectId=${selectedProjectId}&studentId=${selectedStudentId}`
+      );
+      if (!response.ok) {
+        if (response.status === 404) return null;
+        throw new Error("Failed to fetch time allocation");
+      }
+      return response.json();
+    },
+    enabled: Boolean(selectedProjectId && selectedStudentId),
+  });
+
+  const updateAllocationMutation = useMutation({
+    mutationFn: async (status: string) => {
+      const response = await fetch("/api/mentor/mentees/time-allocation", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId: selectedProjectId,
+          studentId: selectedStudentId,
+          status,
+        }),
+      });
+      if (!response.ok) throw new Error("Failed to update status");
+      return response.json();
+    },
+    onSuccess: () => {
+      refetchTimeAllocation();
+      queryClient.invalidateQueries({ queryKey: ["mentor-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["mentees"] });
+      // Invalidate the directory query since the user stats recalculate based on acceptance
+      queryClient.invalidateQueries({ queryKey: ["mentor-students-directory"] });
+    },
+  });
+
+  useEffect(() => {
+    if (timeAllocationData?.status) {
+      setAssignmentDecision(timeAllocationData.status);
+    } else {
+      setAssignmentDecision("inReview");
+    }
+  }, [timeAllocationData]);
+
+  const handleAccept = () => {
+    setAssignmentDecision("accepted");
+    updateAllocationMutation.mutate("accepted");
+  };
+
+  const handleReject = () => {
+    setAssignmentDecision("rejected");
+    updateAllocationMutation.mutate("rejected");
+  };
+
   const summaryStatus = getSummaryStatus(assignmentDecision);
 
   return (
-    <div className="min-h-screen bg-[#f5f7fb] p-4 md:p-6">
-      <div className="mx-auto w-full max-w-7xl rounded-2xl border border-[#dbe5f4] bg-white shadow-sm">
+    <div className="flex-grow flex flex-col min-h-screen w-full bg-[#f5f7fb] p-4 md:p-6">
+      <div className="w-full flex-1 rounded-2xl border border-[#dbe5f4] bg-white shadow-sm">
         <MenteeHeader mentorName={mentorName} />
 
         <div className="border-t border-dashed border-[#86a8df]" />
@@ -228,7 +289,7 @@ function MenteeProfileView() {
                 />
               </div>
 
-              <div className="grid gap-4 lg:grid-cols-[1fr,1.6fr]">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr,1.6fr]">
                 <MenteeIdentityCard
                   displayName={selectedStudent?.displayName ?? "No mentee selected"}
                   email={selectedStudent?.email ?? "-"}
@@ -238,20 +299,19 @@ function MenteeProfileView() {
                   projectName={selectedProject?.name ?? "No project selected"}
                   summaryStatus={summaryStatus}
                   totalWorkingHours={totalWorkingHours}
-                  onAccept={() => setAssignmentDecision("accepted")}
-                  onReject={() => setAssignmentDecision("rejected")}
-                  disabled={!selectedStudentId}
+                  onAccept={handleAccept}
+                  onReject={handleReject}
+                  disabled={!selectedStudentId || updateAllocationMutation.isPending}
                 />
               </div>
             </CardContent>
           </Card>
 
-          <div className="grid gap-4 lg:grid-cols-[1.3fr,1fr]">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.3fr,1fr]">
             <RecentActivityCard recentActivities={recentActivities} />
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
               <MentorTeamCard mentorTeam={mentorTeam} />
-              <QuickDocumentationCard docs={QUICK_DOCUMENTS} />
             </div>
           </div>
 

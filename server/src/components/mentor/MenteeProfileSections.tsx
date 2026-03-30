@@ -23,7 +23,7 @@ import {
 
 export function MenteeHeader({ mentorName }: { mentorName: string }) {
   return (
-    <header className="flex items-center justify-between px-6 py-4 md:px-8">
+    <header className="flex flex-wrap gap-4 items-center justify-between px-4 py-4 md:px-8">
       <p className="text-sm font-semibold tracking-[0.16em] text-[#03255f]">
         MENTOR PORTAL
       </p>
@@ -97,12 +97,12 @@ export function AssignmentCard({
   return (
     <Card className="rounded-xl border-[#e6ecf8] bg-white shadow-none">
       <CardContent className="space-y-4 p-5">
-        <div className="grid gap-4 md:grid-cols-[1fr,auto] md:items-start">
-          <div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr,auto] md:items-start">
+          <div className="min-w-0 flex-1">
             <p className="text-[11px] uppercase tracking-[0.16em] text-[#7e8ea8]">
               Assigned Unit
             </p>
-            <h3 className="mt-1 text-xl font-semibold text-[#0f2543] md:text-2xl">
+            <h3 className="mt-1 text-xl font-semibold break-words text-[#0f2543] md:text-2xl">
               Project: {projectName}
             </h3>
           </div>
@@ -169,13 +169,18 @@ export function RecentActivityCard({
             recentActivities.map((activity) => (
               <div
                 key={activity.id}
-                className="rounded-lg border border-[#edf1f8] bg-[#fbfdff] px-3 py-2.5"
+                className="flex items-center justify-between rounded-lg border border-[#edf1f8] bg-[#fbfdff] px-3 py-2.5"
               >
-                <p className="text-sm font-medium text-[#21334f]">{activity.title}</p>
-                <div className="mt-1 flex items-center gap-1 text-xs text-[#6c7f9f]">
-                  <span>{activity.date}</span>
-                  <Dot className="h-4 w-4" />
-                  <span className="capitalize">{activity.status}</span>
+                <div className="min-w-0 flex-1 mr-3">
+                  <p className="truncate text-sm font-medium text-[#21334f]">{activity.title}</p>
+                  <div className="mt-1 flex items-center gap-1 text-xs text-[#6c7f9f]">
+                    <span>{activity.date}</span>
+                    <Dot className="h-4 w-4" />
+                    <span className="capitalize">{activity.status}</span>
+                  </div>
+                </div>
+                <div className="text-sm font-semibold text-[#0f2543]">
+                  {activity.hours}h
                 </div>
               </div>
             ))
@@ -248,7 +253,7 @@ export function SummaryStatsCard({
 }) {
   return (
     <Card className="rounded-xl border-[#e6ecf8] bg-white shadow-sm">
-      <CardContent className="grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-4">
+      <CardContent className="grid grid-cols-1 gap-3 p-5 sm:grid-cols-2 lg:grid-cols-4">
         <StatusStat
           label="Submitted"
           value={activitySummary?.totalSubmitted ?? 0}

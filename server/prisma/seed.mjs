@@ -104,7 +104,7 @@ async function main() {
     const activity1 = await prisma.activity.create({
       data: {
         studentId: student1.id,
-        date: new Date("2025-01-15"),
+        date: new Date("2026-03-15"),
         timeSpent: 120,
         notes: "Completed project module 1",
       },
@@ -113,7 +113,7 @@ async function main() {
     const activity2 = await prisma.activity.create({
       data: {
         studentId: student1.id,
-        date: new Date("2025-01-16"),
+        date: new Date("2026-03-16"),
         timeSpent: 90,
         notes: "Worked on debugging issues",
       },

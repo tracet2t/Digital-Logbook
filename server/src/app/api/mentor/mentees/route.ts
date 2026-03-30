@@ -42,7 +42,7 @@ export const GET = async (req: NextRequest) => {
     // ── Step 3: allocations (flat — no nested includes) ─────────────────────
     const allocations = await prisma.projectAllocation.findMany({
       where: { projectId: { in: projectIds } },
-      select: { studentId: true, projectId: true },
+      select: { studentId: true, projectId: true, timeAllocationStatus: true },
       orderBy: { assignedAt: "desc" },
     });
 
@@ -69,32 +69,45 @@ export const GET = async (req: NextRequest) => {
     });
     const studentById = new Map(students.map((s) => [s.id, s]));
 
-    // ── Step 5: activity time totals per student ────────────────────────────
+    // ── Step 5 & 6: activity time totals per student & pending reviews ──────
     const activityRows = await prisma.activity.findMany({
       where: { studentId: { in: studentIds } },
-      select: { studentId: true, timeSpent: true },
+      select: {
+        studentId: true,
+        timeSpent: true,
+        status: true,
+        feedback: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: { status: true },
+        },
+      },
     });
-    const minutesById = new Map<string, number>();
-    for (const a of activityRows) {
-      minutesById.set(a.studentId, (minutesById.get(a.studentId) ?? 0) + a.timeSpent);
-    }
 
-    // ── Step 6: pending review count (status exists at runtime) ─────────────
+    const minutesById = new Map<string, number>();
     let pendingReviews = 0;
-    try {
-      // prisma types may be stale – go through unknown to cast
-      type ActivityFindMany = (args: {
-        where: Record<string, unknown>;
-        select: Record<string, boolean>;
-      }) => Promise<Array<{ id: string }>>;
-      const activityModel = prisma.activity as unknown as { findMany: ActivityFindMany };
-      const withStatus = await activityModel.findMany({
-        where: { studentId: { in: studentIds }, status: "pending" },
-        select: { id: true },
-      });
-      pendingReviews = withStatus.length;
-    } catch {
-      pendingReviews = 0;
+
+    for (const a of activityRows) {
+      let activityStatus = a.status ?? "pending";
+      if (a.feedback && a.feedback.length > 0) {
+        activityStatus = a.feedback[0].status as any;
+      }
+
+      const normalizedStatus = activityStatus === "accepted" ? "approved" : activityStatus;
+      
+      // Determine if the student's project allocation has been accepted overall
+      const acceptedStudentIds = new Set(
+        allocations
+          // @ts-ignore - Prisma type generation issue
+          .filter((a) => a.timeAllocationStatus === "accepted")
+          .map((a) => a.studentId)
+      );
+
+      if (normalizedStatus === "approved" && acceptedStudentIds.has(a.studentId)) {
+        minutesById.set(a.studentId, (minutesById.get(a.studentId) ?? 0) + a.timeSpent);
+      } else if (normalizedStatus === "pending") {
+        pendingReviews++;
+      }
     }
 
     // ── Step 7: build response rows ─────────────────────────────────────────
@@ -108,7 +121,7 @@ export const GET = async (req: NextRequest) => {
           : alloc.studentId,
         projectId: alloc.projectId,
         projectName: projectNameById.get(alloc.projectId) ?? alloc.projectId,
-        workingHours: Math.round(totalMinutes / 60),
+        workingHours: totalMinutes,
         badgeCount: student?._count.badges ?? 0,
         isActive: student?.isActive ?? false,
       };
@@ -129,7 +142,7 @@ export const GET = async (req: NextRequest) => {
       0,
     );
     const avgCompletionHours =
-      studentIds.length === 0 ? 0 : Math.round(totalHours / 60 / studentIds.length);
+      studentIds.length === 0 ? 0 : Math.round(totalHours / studentIds.length);
 
     return NextResponse.json({
       summary: {

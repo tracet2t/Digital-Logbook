@@ -48,6 +48,7 @@ export type RecentActivity = {
   title: string;
   date: string;
   status: "approved" | "rejected" | "pending";
+  hours: number;
 };
 
 export const QUICK_DOCUMENTS = [

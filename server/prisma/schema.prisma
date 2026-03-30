@@ -145,6 +145,7 @@ model ProjectAllocation {
   studentId String
 
   assignedAt DateTime @default(now())
+  timeAllocationStatus TimeAllocationStatus @default(inReview)
 
   project    Project  @relation(fields: [projectId], references: [id])
   student    User     @relation(fields: [studentId], references: [id], name: "StudentProjects")
@@ -241,4 +242,10 @@ model ProjectTechnology {
 
   @@unique([projectId, studentId, name])
   @@map("projectTechnologies")
+}
+
+enum TimeAllocationStatus {
+  inReview
+  accepted
+  rejected
 }

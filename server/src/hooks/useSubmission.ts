@@ -111,6 +111,9 @@ export const useSubmission = (
       showToast(message, `${message} successfully.`);
 
       queryClient.invalidateQueries({ queryKey: ["calendarEvents"] });
+      queryClient.invalidateQueries({ queryKey: ["mentor-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["mentee-activities"] });
+      queryClient.invalidateQueries({ queryKey: ["mentee-feedback-history"] });
       onSuccess();
     },
     onError: (error) => {
