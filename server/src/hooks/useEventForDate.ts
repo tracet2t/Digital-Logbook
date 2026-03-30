@@ -24,6 +24,11 @@ export const useEventForDate = (
     return `http://localhost:3000/api/student?date=${formattedDate}&studentId=${selectedUser}`;
   };
 
+  // Only run once both role and studentId are known — prevents the race condition
+  // where role="" causes the wrong API endpoint to be called, setting editingEvent
+  // to stale data and turning the next submit into a PATCH on the wrong activity.
+  const sessionReady = !!role && !!studentId;
+
   // Fetch event for selected date using TanStack Query
   const { data: eventData } = useQuery<any>({
     queryKey: ["eventForDate", selectedDate, role, studentId, selectedUser],
@@ -40,7 +45,7 @@ export const useEventForDate = (
       const data = await response.json();
       return Array.isArray(data) && data.length > 0 ? data[0] : null;
     },
-    enabled: !!selectedDate,
+    enabled: !!selectedDate && sessionReady,
     retry: 1,
   });
 
