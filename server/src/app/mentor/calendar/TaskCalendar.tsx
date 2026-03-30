@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import moment from "moment";
@@ -94,7 +94,6 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     title: string;
     description: string;
   } | null>(null);
-  const isSubmittingRef = useRef(false);
 
   // Fetch session data using TanStack Query
   const { data: sessionData } = useQuery<SessionData>({
@@ -121,13 +120,8 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   const {
     formData,
     workingHours,
-    setWorkingHours,
     notes,
-    setNotes,
     review,
-    setReview,
-    status,
-    setStatus,
     editingEvent,
     feedbackActivityId,
     updateFormData,
@@ -144,17 +138,11 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     role,
     studentId,
     selectedUser,
-    formData,
-    workingHours,
-    notes,
-    review,
-    status,
+    formData.date,
     editingEvent,
     feedbackActivityId,
     () => {
       setTaskModalOpen(false);
-      setStatus("");
-      isSubmittingRef.current = false;
       resetFormData("");
       setTimeout(() => {
         refetchEvents();
@@ -189,67 +177,48 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     setTaskModalOpen(false);
   };
 
-  useEffect(() => {
-    if (status === "approved" || status === "rejected") {
-      if (!isSubmittingRef.current) {
-        isSubmittingRef.current = true;
-        handleSubmit();
-      }
-    } else {
-      // Reset the flag when status changes to something else
-      isSubmittingRef.current = false;
-    }
-  }, [status, handleSubmit]);
-
   return (
     <>
       <ToastProvider>
-        <MentorTaskDetailDialog
-          taskModalOpen={taskModalOpen}
-          setTaskModalOpen={setTaskModalOpen}
-          role={role}
-          selectedUser={selectedUser || ""}
-          studentId={studentId}
-          formData={formData}
-          workingHours={workingHours}
-          setWorkingHours={setWorkingHours}
-          notes={notes}
-          setNotes={setNotes}
-          /* look down here */
-          review={review}
-          setReview={setReview}
-          setStatus={setStatus}
-          handleClose={handleClose}
-        />
-        <MentorStudentTaskDetailDialog
-          taskModalOpen={taskModalOpen}
-          setTaskModalOpen={setTaskModalOpen}
-          role={role}
-          selectedUser={selectedUser || ""}
-          studentId={studentId}
-          formData={formData}
-          workingHours={workingHours}
-          setWorkingHours={setWorkingHours}
-          notes={notes}
-          setNotes={setNotes}
-          isEditable={isEditable}
-          handleClose={handleClose}
-          handleSubmit={handleSubmit}
-        />
-        <StudentTaskDetailDialog
-          taskModalOpen={taskModalOpen}
-          setTaskModalOpen={setTaskModalOpen}
-          role={role}
-          formData={formData}
-          workingHours={workingHours}
-          setWorkingHours={setWorkingHours}
-          notes={notes}
-          review={review}
-          setNotes={setNotes}
-          isEditable={isEditable}
-          handleClose={handleClose}
-          handleSubmit={handleSubmit}
-        />
+        {taskModalOpen && role === "mentor" && selectedUser !== studentId && (
+          <MentorTaskDetailDialog
+            open={taskModalOpen}
+            date={formData.date}
+            workingHours={workingHours}
+            notes={notes}
+            onSubmit={(reviewText, status) => {
+              handleSubmit({ review: reviewText, status });
+            }}
+            onClose={handleClose}
+          />
+        )}
+        {taskModalOpen && role === "mentor" && selectedUser === studentId && (
+          <MentorStudentTaskDetailDialog
+            open={taskModalOpen}
+            date={formData.date}
+            defaultWorkingHours={workingHours}
+            defaultNotes={notes}
+            isEditable={isEditable}
+            onSubmit={(wh, n) => {
+              handleSubmit({ workingHours: wh, notes: n });
+            }}
+            onClose={handleClose}
+          />
+        )}
+        {taskModalOpen && role === "student" && (
+          <StudentTaskDetailDialog
+            open={taskModalOpen}
+            date={formData.date}
+            defaultWorkingHours={workingHours}
+            defaultNotes={notes}
+            review={review}
+            isEditable={isEditable}
+            onSubmit={(wh, n) => {
+              handleSubmit({ workingHours: wh, notes: n });
+            }}
+            onClose={handleClose}
+          />
+        )}
 
         <div className="relative w-[90vw] h-[80vh] ">
           <BigCalendar

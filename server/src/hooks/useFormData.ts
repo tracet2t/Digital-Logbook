@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 interface FormData {
   studentId: string;
@@ -25,27 +25,26 @@ export const useFormData = () => {
   const [editingEvent, setEditingEvent] = useState<any>(null);
   const [feedbackActivityId, setFeedbackActivityId] = useState<string>("");
 
-  const updateFormData = (
-    event: any,
-    feedbackData: any,
-    formattedDate: string,
-  ) => {
-    setFormData({
-      studentId: event.studentId || "",
-      date: formattedDate,
-      timeSpent: event.timeSpent || event.workingHours || 0,
-      notes: event.notes || event.activities || "",
-      review: feedbackData?.feedbackNotes || "",
-      status: feedbackData?.status || "",
-    });
-    setWorkingHours(event.timeSpent || event.workingHours || 0);
-    setNotes(event.notes || event.activities || "");
-    setEditingEvent(event);
-    setReview(feedbackData?.feedbackNotes || "");
-    setFeedbackActivityId(event?.id || "");
-  };
+  const updateFormData = useCallback(
+    (event: any, feedbackData: any, formattedDate: string) => {
+      setFormData({
+        studentId: event.studentId || "",
+        date: formattedDate,
+        timeSpent: event.timeSpent || event.workingHours || 0,
+        notes: event.notes || event.activities || "",
+        review: feedbackData?.feedbackNotes || "",
+        status: feedbackData?.status || "",
+      });
+      setWorkingHours(event.timeSpent || event.workingHours || 0);
+      setNotes(event.notes || event.activities || "");
+      setEditingEvent(event);
+      setReview(feedbackData?.feedbackNotes || "");
+      setFeedbackActivityId(event?.id || "");
+    },
+    [],
+  );
 
-  const resetFormData = (formattedDate: string) => {
+  const resetFormData = useCallback((formattedDate: string) => {
     setFormData({
       studentId: "",
       date: formattedDate,
@@ -59,7 +58,7 @@ export const useFormData = () => {
     setEditingEvent(null);
     setReview("");
     setFeedbackActivityId("");
-  };
+  }, []);
 
   return {
     formData,

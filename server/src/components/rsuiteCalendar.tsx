@@ -4,7 +4,7 @@ import { Calendar } from "rsuite";
 
 import "rsuite/dist/rsuite.min.css";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { getSessionOnClient } from "@/server_actions/getSession";
 import moment from "moment";
@@ -68,7 +68,6 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
     title: string;
     description: string;
   } | null>(null);
-  const isSubmittingRef = useRef(false);
 
   // Custom hooks
   const { events, refetchEvents } = useCalendarEvents(
@@ -79,13 +78,8 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
   const {
     formData,
     workingHours,
-    setWorkingHours,
     notes,
-    setNotes,
     review,
-    setReview,
-    status,
-    setStatus,
     editingEvent,
     feedbackActivityId,
     updateFormData,
@@ -102,20 +96,13 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
     role,
     studentId,
     selectedUser ?? "",
-    formData,
-    workingHours,
-    notes,
-    review,
-    status,
+    formData.date,
     editingEvent,
     feedbackActivityId,
     () => {
       setTaskModalOpen(false);
       setSelectedDate(undefined);
-      setStatus("");
-      isSubmittingRef.current = false;
       resetFormData("");
-      // Delay refetch to avoid rapid re-renders and duplicate submissions
       setTimeout(() => {
         refetchEvents();
       }, 500);
@@ -189,18 +176,6 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
     setSelectedDate(undefined);
   };
 
-  useEffect(() => {
-    if (status === "approved" || status === "rejected") {
-      if (!isSubmittingRef.current) {
-        isSubmittingRef.current = true;
-        handleSubmit();
-      }
-    } else {
-      // Reset the flag when status changes to something else
-      isSubmittingRef.current = false;
-    }
-  }, [status, handleSubmit]);
-
   // Custom cell renderer to show events with grid layout
   const renderCell = (date: Date) => {
     const dateKey = moment(date).format("YYYY-MM-DD");
@@ -253,52 +228,46 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
           </p>
         )}
 
-        {/* Task Detail Dialogs */}
-        <MentorTaskDetailDialog
-          taskModalOpen={taskModalOpen}
-          setTaskModalOpen={setTaskModalOpen}
-          role={role}
-          selectedUser={selectedUser || ""}
-          studentId={studentId}
-          formData={formData}
-          workingHours={workingHours}
-          setWorkingHours={setWorkingHours}
-          notes={notes}
-          setNotes={setNotes}
-          review={review}
-          setReview={setReview}
-          setStatus={setStatus}
-          handleClose={handleClose}
-        />
-        <MentorStudentTaskDetailDialog
-          taskModalOpen={taskModalOpen}
-          setTaskModalOpen={setTaskModalOpen}
-          role={role}
-          selectedUser={selectedUser || ""}
-          studentId={studentId}
-          formData={formData}
-          workingHours={workingHours}
-          setWorkingHours={setWorkingHours}
-          notes={notes}
-          setNotes={setNotes}
-          isEditable={isEditable}
-          handleClose={handleClose}
-          handleSubmit={handleSubmit}
-        />
-        <StudentTaskDetailDialog
-          taskModalOpen={taskModalOpen}
-          setTaskModalOpen={setTaskModalOpen}
-          role={role}
-          formData={formData}
-          workingHours={workingHours}
-          setWorkingHours={setWorkingHours}
-          notes={notes}
-          review={review}
-          setNotes={setNotes}
-          isEditable={isEditable}
-          handleClose={handleClose}
-          handleSubmit={handleSubmit}
-        />
+        {/* Task Detail Dialogs - only mount the relevant one */}
+        {taskModalOpen && role === "mentor" && selectedUser !== studentId && (
+          <MentorTaskDetailDialog
+            open={taskModalOpen}
+            date={formData.date}
+            workingHours={workingHours}
+            notes={notes}
+            onSubmit={(reviewText, status) => {
+              handleSubmit({ review: reviewText, status });
+            }}
+            onClose={handleClose}
+          />
+        )}
+        {taskModalOpen && role === "mentor" && selectedUser === studentId && (
+          <MentorStudentTaskDetailDialog
+            open={taskModalOpen}
+            date={formData.date}
+            defaultWorkingHours={workingHours}
+            defaultNotes={notes}
+            isEditable={isEditable}
+            onSubmit={(wh, n) => {
+              handleSubmit({ workingHours: wh, notes: n });
+            }}
+            onClose={handleClose}
+          />
+        )}
+        {taskModalOpen && role === "student" && (
+          <StudentTaskDetailDialog
+            open={taskModalOpen}
+            date={formData.date}
+            defaultWorkingHours={workingHours}
+            defaultNotes={notes}
+            review={review}
+            isEditable={isEditable}
+            onSubmit={(wh, n) => {
+              handleSubmit({ workingHours: wh, notes: n });
+            }}
+            onClose={handleClose}
+          />
+        )}
 
         {/* Toast Component */}
         {toast && (
