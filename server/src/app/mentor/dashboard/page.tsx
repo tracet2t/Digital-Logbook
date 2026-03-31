@@ -115,129 +115,133 @@ export default function MentorDashboardPage() {
   const { data, isLoading, error } = useMentorDashboard();
 
   return (
-    <div className="flex-1 p-5 md:p-8">
-      <div className="space-y-6">
-        {/* Dashboard Header */}
-        <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
-            Dashboard Overview
+    <div className="w-full min-h-screen bg-[#f5f7fb] p-4 md:p-6">
+      <div className="w-full rounded-2xl border border-[#dbe5f4] bg-white shadow-sm">
+        {/* Dashboard Header Area */}
+        <div className="p-4 md:p-6">
+          <p className="text-xs uppercase tracking-[0.2em] text-slate-500 font-semibold">
+            DASHBOARD OVERVIEW
           </p>
-          <h1 className="mt-1 text-3xl font-bold text-slate-900">
+          <h1 className="mt-1 text-3xl font-bold text-slate-900 tracking-tight">
             Mentor Portal
           </h1>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="mt-1 text-sm text-slate-500">
             Welcome back. Here is a summary of your mentorship activities.
           </p>
         </div>
 
-        {/* Error State */}
-        {error && (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-            <p className="text-sm text-red-800">
-              {error.message || "Failed to load dashboard data. Please try again."}
-            </p>
-          </div>
-        )}
+        <div className="border-t border-dashed border-[#dbe5f4]" />
 
-        {/* Stats Grid - 4 columns for desktop */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            label="Total Mentees"
-            value={data?.stats.totalMentees ?? 0}
-            icon={<Users className="h-5 w-5 text-slate-500" />}
-            isLoading={isLoading}
-          />
-          <StatCard
-            label="Projects"
-            value={data?.stats.projects ?? 0}
-            icon={<Briefcase className="h-5 w-5 text-slate-500" />}
-            isLoading={isLoading}
-          />
-          <StatCard
-            label="Total Working Hours"
-            value={`${data?.stats.totalWorkingHours ?? 0}h`}
-            icon={<Clock className="h-5 w-5 text-slate-500" />}
-            isLoading={isLoading}
-          />
-          <StatCard
-            label="Average Working Hours"
-            value={`${data?.stats.averageWorkingHours ?? 0}h`}
-            icon={<BarChart3 className="h-5 w-5 text-slate-500" />}
-            isLoading={isLoading}
-          />
-        </div>
-
-        {/* Recently Active Mentees Section */}
-        <Card className="p-4 md:p-5">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className="text-lg md:text-xl font-semibold text-slate-900">
-                Recently Active Mentees
-              </h2>
-              <p className="text-sm text-slate-500">
-                Track mentee progress and engagement status.
+        <div className="space-y-6 p-4 md:p-6 bg-[#f8fafc]/50 rounded-b-2xl">
+          {/* Error State */}
+          {error && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+              <p className="text-sm text-red-800">
+                {error.message || "Failed to load dashboard data. Please try again."}
               </p>
             </div>
-            <Link
-              href="/mentor/mentees"
-              className="rounded-md px-3 py-2 text-sm font-medium bg-[#000053] text-white hover:bg-[#000040] border border-transparent transition-colors inline-block"
-            >
-              View All
-            </Link>
+          )}
+
+          {/* Stats Grid - 4 columns for desktop */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <StatCard
+              label="TOTAL MENTEES"
+              value={data?.stats.totalMentees ?? 0}
+              icon={<Users className="h-5 w-5 text-slate-500" />}
+              isLoading={isLoading}
+            />
+            <StatCard
+              label="PROJECTS"
+              value={data?.stats.projects ?? 0}
+              icon={<Briefcase className="h-5 w-5 text-slate-500" />}
+              isLoading={isLoading}
+            />
+            <StatCard
+              label="TOTAL WORKING HOURS"
+              value={`${data?.stats.totalWorkingHours ?? 0}h`}
+              icon={<Clock className="h-5 w-5 text-slate-500" />}
+              isLoading={isLoading}
+            />
+            <StatCard
+              label="AVERAGE WORKING HOURS"
+              value={`${data?.stats.averageWorkingHours ?? 0}h`}
+              icon={<BarChart3 className="h-5 w-5 text-slate-500" />}
+              isLoading={isLoading}
+            />
           </div>
 
-          {isLoading ? (
-            <div className="mt-4 space-y-3">
-              {[...Array(5)].map((_, i) => (
-                <div
-                  key={i}
-                  className="h-12 animate-pulse rounded-lg bg-slate-200"
-                />
-              ))}
+          {/* Recently Active Mentees Section */}
+          <Card className="p-4 md:p-5 border-[#e3ebf8] shadow-sm rounded-2xl">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-2">
+              <div>
+                <h2 className="text-lg md:text-xl font-semibold text-slate-900 tracking-tight">
+                  Recently Active Mentees
+                </h2>
+                <p className="text-sm text-slate-500 mt-1">
+                  Track mentee progress and engagement status.
+                </p>
+              </div>
+              <Link
+                href="/mentor/mentees"
+                className="rounded-md px-4 py-2 text-sm font-medium bg-[#000053] text-white hover:bg-[#000040] transition-colors inline-block"
+              >
+                View All
+              </Link>
             </div>
-          ) : error ? (
-            <div className="mt-5 border border-dashed border-slate-300 rounded-xl p-6 text-center text-slate-500">
-              Failed to load mentees. Please try again.
-            </div>
-          ) : !data || data.recentlyActiveMentees.length === 0 ? (
-            <div className="mt-5 border border-dashed border-slate-300 rounded-xl p-6 text-center text-slate-500">
-              No recent mentees available.
-            </div>
-          ) : (
-            <div className="mt-4 overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-xs uppercase tracking-wider text-slate-600">
-                      NAME
-                    </TableHead>
-                    <TableHead className="text-xs uppercase tracking-wider text-slate-600">
-                      PROJECT
-                    </TableHead>
-                    <TableHead className="text-xs uppercase tracking-wider text-slate-600">
-                      LAST ACTIVITY
-                    </TableHead>
-                    <TableHead className="text-xs uppercase tracking-wider text-slate-600">
-                      STATUS
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.recentlyActiveMentees.map((mentee) => (
-                    <MenteeRow
-                      key={`${mentee.initials}-${mentee.name}`}
-                      initials={mentee.initials}
-                      name={mentee.name}
-                      project={mentee.project}
-                      lastActivity={mentee.lastActivity}
-                      status={mentee.status}
-                    />
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </Card>
+
+            {isLoading ? (
+              <div className="mt-4 space-y-3">
+                {[...Array(5)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-12 animate-pulse rounded-lg bg-slate-200"
+                  />
+                ))}
+              </div>
+            ) : error ? (
+              <div className="mt-5 border border-dashed border-slate-300 rounded-xl p-6 text-center text-slate-500">
+                Failed to load mentees. Please try again.
+              </div>
+            ) : !data || data.recentlyActiveMentees.length === 0 ? (
+              <div className="mt-5 border border-dashed border-slate-300 rounded-xl p-6 text-center text-slate-500">
+                No recent mentees available.
+              </div>
+            ) : (
+              <div className="mt-4 overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-b border-[#e3ebf8]">
+                      <TableHead className="text-xs font-semibold uppercase tracking-wider text-slate-500 h-10">
+                        NAME
+                      </TableHead>
+                      <TableHead className="text-xs font-semibold uppercase tracking-wider text-slate-500 h-10">
+                        PROJECT
+                      </TableHead>
+                      <TableHead className="text-xs font-semibold uppercase tracking-wider text-slate-500 h-10">
+                        LAST ACTIVITY
+                      </TableHead>
+                      <TableHead className="text-xs font-semibold uppercase tracking-wider text-slate-500 h-10">
+                        STATUS
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {data.recentlyActiveMentees.map((mentee) => (
+                      <MenteeRow
+                        key={`${mentee.initials}-${mentee.name}`}
+                        initials={mentee.initials}
+                        name={mentee.name}
+                        project={mentee.project}
+                        lastActivity={mentee.lastActivity}
+                        status={mentee.status}
+                      />
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </Card>
+        </div>
       </div>
     </div>
   );

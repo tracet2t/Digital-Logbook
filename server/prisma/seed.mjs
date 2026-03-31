@@ -104,7 +104,7 @@ async function main() {
     const activity1 = await prisma.activity.create({
       data: {
         studentId: student1.id,
-        date: new Date("2025-01-15"),
+        date: new Date("2026-03-12"),
         timeSpent: 120,
         notes: "Completed project module 1",
       },
@@ -113,7 +113,7 @@ async function main() {
     const activity2 = await prisma.activity.create({
       data: {
         studentId: student1.id,
-        date: new Date("2025-01-16"),
+        date: new Date("2026-03-13"),
         timeSpent: 90,
         notes: "Worked on debugging issues",
       },
@@ -122,9 +122,36 @@ async function main() {
     const activity3 = await prisma.activity.create({
       data: {
         studentId: student2.id,
-        date: new Date("2025-01-15"),
+        date: new Date("2026-03-14"),
         timeSpent: 150,
         notes: "Research phase for new feature",
+      },
+    });
+
+    const activity4 = await prisma.activity.create({
+      data: {
+        studentId: student2.id,
+        date: new Date("2026-03-15"),
+        timeSpent: 5,
+        notes: "ccxcxcx",
+      },
+    });
+
+    const activity5 = await prisma.activity.create({
+      data: {
+        studentId: student2.id,
+        date: new Date("2026-03-16"),
+        timeSpent: 3,
+        notes: "dasasdad",
+      },
+    });
+
+    const activity6 = await prisma.activity.create({
+      data: {
+        studentId: student2.id,
+        date: new Date("2026-03-17"),
+        timeSpent: 2,
+        notes: "Tested6",
       },
     });
 
@@ -160,7 +187,7 @@ async function main() {
     const mentorActivity1 = await prisma.mentorActivity.create({
       data: {
         mentorId: mentor1.id,
-        date: new Date("2025-01-15"),
+        date: new Date("2026-03-15"),
         workingHours: 4,
         activities: "Reviewing student submissions, providing feedback",
       },
@@ -169,7 +196,7 @@ async function main() {
     const mentorActivity2 = await prisma.mentorActivity.create({
       data: {
         mentorId: mentor2.id,
-        date: new Date("2025-01-16"),
+        date: new Date("2026-03-16"),
         workingHours: 3,
         activities: "One-on-one meeting with student",
       },

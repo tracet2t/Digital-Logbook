@@ -1,29 +1,16 @@
+import { useCallback, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-interface FormData {
-  studentId: string;
-  date: string;
-  timeSpent: number;
+export interface SubmitFormValues {
+  workingHours?: number;
   notes?: string;
-  status?: string;
   review?: string;
-}
-
-interface FeedbackData {
-  review: string;
-  status: string;
-  mentorId: string;
-}
-
-interface MentorFormData {
-  date: string;
-  workingHours: number;
-  activities: string;
+  status?: string;
 }
 
 interface SubmitPayload {
   type: "activity" | "mentorActivity" | "feedback";
-  data: any;
+  formValues: SubmitFormValues;
   editingEvent?: any;
 }
 
@@ -31,11 +18,7 @@ export const useSubmission = (
   role: string,
   studentId: string,
   selectedUser: string,
-  formData: FormData,
-  workingHours: number,
-  notes: string,
-  review: string,
-  status: string,
+  date: string,
   editingEvent: any,
   feedbackActivityId: string,
   onSuccess: () => void,
@@ -43,124 +26,96 @@ export const useSubmission = (
 ) => {
   const queryClient = useQueryClient();
 
-  const submitActivity = async (payload: SubmitPayload) => {
-    const newFormData: FormData = {
-      studentId,
-      date: formData.date,
-      timeSpent: workingHours,
-      notes,
-    };
-
-    const res = await fetch("http://localhost:3000/api/activity", {
-      method: payload.editingEvent ? "PATCH" : "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...newFormData, id: payload.editingEvent?.id }),
-    });
-
-    if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.message || "Failed to submit activity");
-    }
-
-    // Send notification for new activities
-    if (!payload.editingEvent) {
-      try {
-        await fetch(
-          "http://localhost:3000/api/notifications/activity-submission",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              studentId,
-              taskDate: formData.date,
-            }),
-          },
-        );
-      } catch (notificationError) {
-        console.error("Error sending notification:", notificationError);
-      }
-    }
-
-    return res.json();
-  };
-
-  const submitMentorActivity = async (payload: SubmitPayload) => {
-    const newFormData: MentorFormData = {
-      date: formData.date,
-      workingHours: workingHours,
-      activities: notes,
-    };
-
-    const res = await fetch("http://localhost:3000/api/mentor", {
-      method: payload.editingEvent ? "PATCH" : "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...newFormData, id: payload.editingEvent?.id }),
-    });
-
-    if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.message || "Failed to submit mentor activity");
-    }
-
-    return res.json();
-  };
-
-  const submitFeedback = async (payload: SubmitPayload) => {
-    const newFormFeedbackData: FeedbackData = {
-      review,
-      status,
-      mentorId: studentId,
-    };
-
-    const res = await fetch(
-      `http://localhost:3000/api/mentorFeedback?activityId=${feedbackActivityId}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...newFormFeedbackData,
-          id: payload.editingEvent?.id,
-        }),
-      },
-    );
-
-    if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.message || "Failed to submit feedback");
-    }
-
-    return res.json();
-  };
-
   const mutation = useMutation<any, Error, SubmitPayload>({
     mutationFn: async (payload) => {
-      switch (payload.type) {
+      const { type, formValues, editingEvent: evt } = payload;
+
+      let url: string;
+      let method: string;
+      let body: Record<string, unknown>;
+
+      switch (type) {
         case "activity":
-          return submitActivity(payload);
+          url = "http://localhost:3000/api/activity";
+          method = evt ? "PATCH" : "POST";
+          body = {
+            studentId,
+            date,
+            timeSpent: formValues.workingHours,
+            notes: formValues.notes,
+            ...(evt && { id: evt.id }),
+          };
+          break;
         case "mentorActivity":
-          return submitMentorActivity(payload);
+          url = "http://localhost:3000/api/mentor";
+          method = evt ? "PATCH" : "POST";
+          body = {
+            date,
+            workingHours: formValues.workingHours,
+            activities: formValues.notes,
+            ...(evt && { id: evt.id }),
+          };
+          break;
         case "feedback":
-          return submitFeedback(payload);
+          url = `http://localhost:3000/api/mentorFeedback?activityId=${feedbackActivityId}`;
+          method = "POST";
+          body = {
+            review: formValues.review,
+            status: formValues.status,
+            mentorId: studentId,
+            ...(evt && { id: evt.id }),
+          };
+          break;
         default:
           throw new Error("Unknown submission type");
       }
+
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to submit");
+      }
+
+      if (type === "activity" && !evt) {
+        try {
+          await fetch(
+            "http://localhost:3000/api/notifications/activity-submission",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ studentId, taskDate: date }),
+            },
+          );
+        } catch (notificationError) {
+          console.error("Error sending notification:", notificationError);
+        }
+      }
+
+      return res.json();
     },
     onSuccess: (_, payload) => {
       const successMessages = {
-        activity: editingEvent ? "Activity Updated" : "Activity Added",
-        mentorActivity: editingEvent ? "Activity Updated" : "Activity Added",
-        feedback: editingEvent ? "Feedback Updated" : "Feedback Added",
+        activity: payload.editingEvent ? "Activity Updated" : "Activity Added",
+        mentorActivity: payload.editingEvent
+          ? "Activity Updated"
+          : "Activity Added",
+        feedback: payload.editingEvent ? "Feedback Updated" : "Feedback Added",
       };
 
-      const message =
-        successMessages[payload.type as keyof typeof successMessages];
+      const message = successMessages[payload.type];
       showToast(message, `${message} successfully.`);
 
-      // Invalidate calendar events cache
-      queryClient.invalidateQueries({
-        queryKey: ["calendarEvents"],
-      });
-
+      queryClient.invalidateQueries({ queryKey: ["calendarEvents"] });
+      queryClient.invalidateQueries({ queryKey: ["eventForDate"] });
+      queryClient.invalidateQueries({ queryKey: ["eventFeedback"] });
+      queryClient.invalidateQueries({ queryKey: ["mentor-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["mentee-activities"] });
+      queryClient.invalidateQueries({ queryKey: ["mentee-feedback-history"] });
       onSuccess();
     },
     onError: (error) => {
@@ -171,30 +126,27 @@ export const useSubmission = (
     },
   });
 
-  const handleSubmit = async () => {
-    const isStudent = role === "student";
-    const isMentor = role === "mentor";
+  const mutateRef = useRef(mutation.mutate);
+  mutateRef.current = mutation.mutate;
 
-    if (isStudent) {
-      mutation.mutate({
-        type: "activity",
-        data: formData,
-        editingEvent,
-      });
-    } else if (isMentor && selectedUser === studentId) {
-      mutation.mutate({
-        type: "mentorActivity",
-        data: formData,
-        editingEvent,
-      });
-    } else {
-      mutation.mutate({
-        type: "feedback",
-        data: formData,
-        editingEvent,
-      });
-    }
-  };
+  const handleSubmit = useCallback(
+    (formValues: SubmitFormValues) => {
+      const isStudent = role === "student";
+      const isMentor = role === "mentor";
+
+      let type: SubmitPayload["type"];
+      if (isStudent) {
+        type = "activity";
+      } else if (isMentor && selectedUser === studentId) {
+        type = "mentorActivity";
+      } else {
+        type = "feedback";
+      }
+
+      mutateRef.current({ type, formValues, editingEvent });
+    },
+    [role, selectedUser, studentId, editingEvent],
+  );
 
   return { handleSubmit, isSubmitting: mutation.isPending };
 };

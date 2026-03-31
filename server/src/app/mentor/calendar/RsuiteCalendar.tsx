@@ -6,10 +6,10 @@ import "rsuite/dist/rsuite.min.css";
 
 import { useEffect, useMemo, useState } from "react";
 
-import { getSessionOnClient } from "@/server_actions/getSession";
 import moment from "moment";
 
 import { eventPropGetter } from "@/lib/calenderUtils";
+import { useSession } from "@/hooks/core/useSession";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
 import { useEventForDate } from "@/hooks/useEventForDate";
 import { useFormData } from "@/hooks/useFormData";
@@ -43,61 +43,51 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [mounted, setMounted] = useState(false);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
-  const [role, setRole] = useState<string>("");
-  const [studentId, setStudentId] = useState<string>("");
   const [isEditable, setIsEditable] = useState(true);
   const [toast, setToast] = useState<{
     title: string;
     description: string;
   } | null>(null);
 
+  // Shared session hook — cached across all components
+  const { data: sessionData } = useSession();
+
+  const studentId = sessionData?.id || "";
+  const role = sessionData?.role || "";
+
   // Custom hooks
-  const { events, refetchEvents } = useCalendarEvents(
-    studentId,
-    role,
-    selectedUser || "",
-  );
+  const { events } = useCalendarEvents(studentId, role, selectedUser || "");
+
   const {
     formData,
     workingHours,
-    setWorkingHours,
     notes,
-    setNotes,
     review,
-    setReview,
-    status,
-    setStatus,
     editingEvent,
     feedbackActivityId,
     updateFormData,
     resetFormData,
   } = useFormData();
-  const { fetchEventForDate } = useEventForDate(
+
+  const { fetchEventForDate, isLoading: isEventLoading } = useEventForDate(
     role,
     studentId,
     selectedUser || "",
     updateFormData,
     resetFormData,
   );
-  const { handleSubmit } = useSubmission(
+
+  const { handleSubmit, isSubmitting } = useSubmission(
     role,
     studentId,
     selectedUser || "",
-    formData,
-    workingHours,
-    notes,
-    review,
-    status,
+    formData.date,
     editingEvent,
     feedbackActivityId,
     () => {
       setTaskModalOpen(false);
       setSelectedDate(null);
       resetFormData("");
-      // Delay refetch to avoid rapid re-renders and duplicate submissions
-      setTimeout(() => {
-        refetchEvents();
-      }, 500);
     },
     (title, description) => {
       setToast({ title, description });
@@ -105,21 +95,10 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
     },
   );
 
-  // Fetch session data
+  // Initialize mounted state and selected date on first render
   useEffect(() => {
     setMounted(true);
     setSelectedDate(new Date());
-  }, []);
-
-  useEffect(() => {
-    getSessionOnClient()
-      .then((data) => {
-        setStudentId(data.id);
-        setRole(data.role);
-      })
-      .catch((error) => {
-        console.error("Error fetching session:", error);
-      });
   }, []);
 
   // Group events by date
@@ -143,6 +122,7 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
     handleDateClick(date);
   };
 
+  //to open model when date is clicked
   const handleDateClick = (date: Date) => {
     const formattedDate = moment(date).format("YYYY-MM-DD");
 
@@ -166,12 +146,6 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
     setTaskModalOpen(false);
     setSelectedDate(null);
   };
-
-  useEffect(() => {
-    if (status === "approved" || status === "rejected") {
-      handleSubmit();
-    }
-  }, [status, handleSubmit]);
 
   // Custom cell renderer to show events with grid layout
   const renderCell = (date: Date) => {
@@ -221,52 +195,52 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
           )}
         </div>
 
-        {/* Task Detail Dialogs */}
-        <MentorTaskDetailDialog
-          taskModalOpen={taskModalOpen}
-          setTaskModalOpen={setTaskModalOpen}
-          role={role}
-          selectedUser={selectedUser || ""}
-          studentId={studentId}
-          formData={formData}
-          workingHours={workingHours}
-          setWorkingHours={setWorkingHours}
-          notes={notes}
-          setNotes={setNotes}
-          review={review}
-          setReview={setReview}
-          setStatus={setStatus}
-          handleClose={handleClose}
-        />
-        <MentorStudentTaskDetailDialog
-          taskModalOpen={taskModalOpen}
-          setTaskModalOpen={setTaskModalOpen}
-          role={role}
-          selectedUser={selectedUser || ""}
-          studentId={studentId}
-          formData={formData}
-          workingHours={workingHours}
-          setWorkingHours={setWorkingHours}
-          notes={notes}
-          setNotes={setNotes}
-          isEditable={isEditable}
-          handleClose={handleClose}
-          handleSubmit={handleSubmit}
-        />
-        <StudentTaskDetailDialog
-          taskModalOpen={taskModalOpen}
-          setTaskModalOpen={setTaskModalOpen}
-          role={role}
-          formData={formData}
-          workingHours={workingHours}
-          setWorkingHours={setWorkingHours}
-          notes={notes}
-          review={review}
-          setNotes={setNotes}
-          isEditable={isEditable}
-          handleClose={handleClose}
-          handleSubmit={handleSubmit}
-        />
+        {/* Task Detail Dialogs - only mount after event data is loaded */}
+        {taskModalOpen &&
+          !isEventLoading &&
+          role === "mentor" &&
+          selectedUser !== studentId && (
+            <MentorTaskDetailDialog
+              open={taskModalOpen}
+              date={formData.date}
+              workingHours={workingHours}
+              notes={notes}
+              onSubmit={(reviewText, status) => {
+                handleSubmit({ review: reviewText, status });
+              }}
+              onClose={handleClose}
+            />
+          )}
+        {taskModalOpen &&
+          !isEventLoading &&
+          role === "mentor" &&
+          selectedUser === studentId && (
+            <MentorStudentTaskDetailDialog
+              open={taskModalOpen}
+              date={formData.date}
+              defaultWorkingHours={workingHours}
+              defaultNotes={notes}
+              isEditable={isEditable}
+              onSubmit={(wh, n) => {
+                if (!isSubmitting) handleSubmit({ workingHours: wh, notes: n });
+              }}
+              onClose={handleClose}
+            />
+          )}
+        {taskModalOpen && !isEventLoading && role === "student" && (
+          <StudentTaskDetailDialog
+            open={taskModalOpen}
+            date={formData.date}
+            defaultWorkingHours={workingHours}
+            defaultNotes={notes}
+            review={review}
+            isEditable={isEditable}
+            onSubmit={(wh, n) => {
+              if (!isSubmitting) handleSubmit({ workingHours: wh, notes: n });
+            }}
+            onClose={handleClose}
+          />
+        )}
 
         {/* Toast Component */}
         {toast && (

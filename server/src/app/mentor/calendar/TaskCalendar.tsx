@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import React, { useState } from "react";
 
 import moment from "moment";
 import {
@@ -12,9 +11,8 @@ import {
 
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
-import { getSessionOnClient } from "@/server_actions/getSession";
-
 import { eventPropGetter } from "@/lib/calenderUtils";
+import { useSession } from "@/hooks/core/useSession";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
 import { useEventForDate } from "@/hooks/useEventForDate";
 import { useFormData } from "@/hooks/useFormData";
@@ -35,53 +33,6 @@ import StudentTaskDetailDialog from "@/components/studentTaskDetailDialog";
 moment.locale("en-GB");
 const localizer = momentLocalizer(moment);
 
-interface SessionData {
-  id: string;
-  role: string;
-  fname: string;
-  lname: string;
-  email: string;
-}
-
-// Unused interface - declared for reference only
-// interface FormData {
-//   studentId: string;
-//   date: string;
-//   timeSpent: number;
-//   notes?: string;
-//   status?: string;
-//   review?: string;
-// }
-
-// Unused interface - declared for reference only
-// interface FeedbackData {
-//   review: string;
-//   status: string;
-//   mentorId: string;
-// }
-
-// Unused interface - declared for reference only
-// interface MentorFormData {
-//   date: string;
-//   workingHours: number;
-//   activities: string;
-// }
-
-// Unused interface - declared for reference only
-// interface CalendarEvent {
-//   id: string;
-//   title: string;
-//   start: Date;
-//   end: Date;
-//   allDay?: boolean;
-//   color?: string;
-//   createdAt: Date;
-//   studentId: string;
-//   timeSpent?: number;
-//   notes?: string;
-//   status: "pending" | "approved" | "rejected";
-// }
-
 interface TaskCalendarProps {
   selectedUser: string;
 }
@@ -95,67 +46,41 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     description: string;
   } | null>(null);
 
-  // Fetch session data using TanStack Query
-  const { data: sessionData } = useQuery<SessionData>({
-    queryKey: ["session"],
-    queryFn: async () => {
-      const data = await getSessionOnClient();
-      if (!data) throw new Error("Failed to fetch session");
-      return data;
-    },
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    gcTime: 20 * 60 * 1000, // 20 minutes
-    retry: 1,
-  });
+  // Shared session hook — cached across all components
+  const { data: sessionData } = useSession();
 
   const studentId = sessionData?.id || "";
   const role = sessionData?.role || "";
 
   // Custom hooks
-  const { events, refetchEvents } = useCalendarEvents(
-    studentId,
-    role,
-    selectedUser,
-  );
+  const { events } = useCalendarEvents(studentId, role, selectedUser);
   const {
     formData,
     workingHours,
-    setWorkingHours,
     notes,
-    setNotes,
     review,
-    setReview,
-    status,
-    setStatus,
     editingEvent,
     feedbackActivityId,
     updateFormData,
     resetFormData,
   } = useFormData();
-  const { fetchEventForDate } = useEventForDate(
+  const { fetchEventForDate, isLoading: isEventLoading } = useEventForDate(
     role,
     studentId,
     selectedUser,
     updateFormData,
     resetFormData,
   );
-  const { handleSubmit } = useSubmission(
+  const { handleSubmit, isSubmitting } = useSubmission(
     role,
     studentId,
     selectedUser,
-    formData,
-    workingHours,
-    notes,
-    review,
-    status,
+    formData.date,
     editingEvent,
     feedbackActivityId,
     () => {
       setTaskModalOpen(false);
       resetFormData("");
-      setTimeout(() => {
-        refetchEvents();
-      }, 500);
     },
     (title, description) => {
       setToast({ title, description });
@@ -186,61 +111,54 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     setTaskModalOpen(false);
   };
 
-  useEffect(() => {
-    if (status === "approved" || status === "rejected") {
-      handleSubmit();
-    }
-  }, [status, handleSubmit]);
-
   return (
     <>
       <ToastProvider>
-        <MentorTaskDetailDialog
-          taskModalOpen={taskModalOpen}
-          setTaskModalOpen={setTaskModalOpen}
-          role={role}
-          selectedUser={selectedUser || ""}
-          studentId={studentId}
-          formData={formData}
-          workingHours={workingHours}
-          setWorkingHours={setWorkingHours}
-          notes={notes}
-          setNotes={setNotes}
-          /* look down here */
-          review={review}
-          setReview={setReview}
-          setStatus={setStatus}
-          handleClose={handleClose}
-        />
-        <MentorStudentTaskDetailDialog
-          taskModalOpen={taskModalOpen}
-          setTaskModalOpen={setTaskModalOpen}
-          role={role}
-          selectedUser={selectedUser || ""}
-          studentId={studentId}
-          formData={formData}
-          workingHours={workingHours}
-          setWorkingHours={setWorkingHours}
-          notes={notes}
-          setNotes={setNotes}
-          isEditable={isEditable}
-          handleClose={handleClose}
-          handleSubmit={handleSubmit}
-        />
-        <StudentTaskDetailDialog
-          taskModalOpen={taskModalOpen}
-          setTaskModalOpen={setTaskModalOpen}
-          role={role}
-          formData={formData}
-          workingHours={workingHours}
-          setWorkingHours={setWorkingHours}
-          notes={notes}
-          review={review}
-          setNotes={setNotes}
-          isEditable={isEditable}
-          handleClose={handleClose}
-          handleSubmit={handleSubmit}
-        />
+        {taskModalOpen &&
+          !isEventLoading &&
+          role === "mentor" &&
+          selectedUser !== studentId && (
+            <MentorTaskDetailDialog
+              open={taskModalOpen}
+              date={formData.date}
+              workingHours={workingHours}
+              notes={notes}
+              onSubmit={(reviewText, status) => {
+                if (!isSubmitting) handleSubmit({ review: reviewText, status });
+              }}
+              onClose={handleClose}
+            />
+          )}
+        {taskModalOpen &&
+          !isEventLoading &&
+          role === "mentor" &&
+          selectedUser === studentId && (
+            <MentorStudentTaskDetailDialog
+              open={taskModalOpen}
+              date={formData.date}
+              defaultWorkingHours={workingHours}
+              defaultNotes={notes}
+              isEditable={isEditable}
+              onSubmit={(wh, n) => {
+                if (!isSubmitting) handleSubmit({ workingHours: wh, notes: n });
+              }}
+              onClose={handleClose}
+            />
+          )}
+        {taskModalOpen && !isEventLoading && role === "student" && (
+          <StudentTaskDetailDialog
+            open={taskModalOpen}
+            date={formData.date}
+            defaultWorkingHours={workingHours}
+            defaultNotes={notes}
+            review={review}
+            isEditable={isEditable}
+            onSubmit={(wh, n) => {
+              if (!isSubmitting) handleSubmit({ workingHours: wh, notes: n });
+            }}
+            onClose={handleClose}
+          />
+        )}
 
         <div className="relative w-[90vw] h-[80vh] ">
           <BigCalendar
