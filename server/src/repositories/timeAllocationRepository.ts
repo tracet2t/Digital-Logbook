@@ -50,7 +50,7 @@ export class TimeAllocationRepository {
       }
     }
 
-    const totalWorkingHours = allocation.timeAllocationStatus === "accepted" ? totalWorkingMinutes : 0;
+    const totalWorkingHours = totalWorkingMinutes;
 
     return {
       status: allocation.timeAllocationStatus,

@@ -227,6 +227,7 @@ export class ActivityRepository extends BaseRepository<Activity> {
       },
       include: {
         feedback: {
+          orderBy: { createdAt: "asc" },
           select: {
             status: true,
             feedbackNotes: true,

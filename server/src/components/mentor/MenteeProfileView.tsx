@@ -31,11 +31,17 @@ import {
   RecentActivityCard,
 } from "./MenteeProfileSections";
 
-function MenteeProfileView() {
+type MenteeProfileViewProps = {
+  initialStudentId?: string;
+  initialProjectId?: string;
+  onAllocationChange?: () => void;
+};
+
+function MenteeProfileView({ initialStudentId, initialProjectId, onAllocationChange }: MenteeProfileViewProps = {}) {
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
-  const queryProjectId = searchParams.get("projectId");
-  const queryStudentId = searchParams.get("studentId");
+  const queryProjectId = initialProjectId ?? searchParams.get("projectId");
+  const queryStudentId = initialStudentId ?? searchParams.get("studentId");
 
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(queryProjectId);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(queryStudentId);
@@ -165,7 +171,6 @@ function MenteeProfileView() {
     return studentActivities
       .slice()
       .sort((a, b) => +new Date(b.date) - +new Date(a.date))
-      .slice(0, 3)
       .map((activity) => ({
         id: activity.id,
         title: activity.notes || "Activity Update",
@@ -227,6 +232,7 @@ function MenteeProfileView() {
       queryClient.invalidateQueries({ queryKey: ["mentees"] });
       // Invalidate the directory query since the user stats recalculate based on acceptance
       queryClient.invalidateQueries({ queryKey: ["mentor-students-directory"] });
+      onAllocationChange?.();
     },
   });
 
@@ -251,7 +257,7 @@ function MenteeProfileView() {
   const summaryStatus = getSummaryStatus(assignmentDecision);
 
   return (
-    <div className="flex-grow flex flex-col min-h-screen w-full bg-[#f5f7fb] p-4 md:p-6">
+    <div className="flex-grow flex flex-col w-full bg-[#f5f7fb] p-4 md:p-6">
       <div className="w-full flex-1 rounded-2xl border border-[#dbe5f4] bg-white shadow-sm">
         <MenteeHeader mentorName={mentorName} />
 
@@ -298,7 +304,7 @@ function MenteeProfileView() {
                 <AssignmentCard
                   projectName={selectedProject?.name ?? "No project selected"}
                   summaryStatus={summaryStatus}
-                  totalWorkingHours={totalWorkingHours}
+                  totalWorkingHours={timeAllocationData?.totalWorkingHours ?? totalWorkingHours}
                   onAccept={handleAccept}
                   onReject={handleReject}
                   disabled={!selectedStudentId || updateAllocationMutation.isPending}

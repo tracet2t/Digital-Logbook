@@ -1,29 +1,36 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 
 import {
   Award,
   Circle,
-  Eye,
-  MoreVertical,
   Search,
   Star,
   Users,
   Zap,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { FilterBar, PageHeader } from "@/components/admin";
 import AdminPagination from "@/components/admin/AdminPagination";
+import MenteeProfileView from "@/components/mentor/MenteeProfileView";
 
 type MenteeRow = {
   id: string;
@@ -69,8 +76,6 @@ function BadgeIcon({ count }: { count: number }) {
 }
 
 export default function MenteesPage() {
-  const router = useRouter();
-
   const [allRows, setAllRows] = useState<MenteeRow[]>([]);
   const [summary, setSummary] = useState<Summary>({
     archiveTotal: 0,
@@ -82,6 +87,8 @@ export default function MenteesPage() {
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [selectedDialogRow, setSelectedDialogRow] = useState<MenteeRow | null>(null);
+  const [refetchKey, setRefetchKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -108,7 +115,7 @@ export default function MenteesPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [refetchKey]);
 
   const filteredRows = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -130,12 +137,6 @@ export default function MenteesPage() {
     startIndex,
     startIndex + ITEMS_PER_PAGE,
   );
-
-  const viewProfile = (row: MenteeRow) => {
-    router.push(
-      `/mentor/mentees/profile-view?studentId=${encodeURIComponent(row.id)}&projectId=${encodeURIComponent(row.projectId)}`,
-    );
-  };
 
   return (
     <div className="gap-5 flex flex-col bg-[#f1f1f9] min-h-screen">
@@ -216,119 +217,109 @@ export default function MenteesPage() {
               </div>
             </Card>
 
-            {/* Mentee identity table — real DB rows, each in its own card */}
+            {/* Mentee identity table — shadcn Table */}
             <Card className="rounded-xl border-[#e4e7ed] bg-white overflow-hidden">
-              {/* Column header row */}
-              <div className="hidden grid-cols-12 gap-3 border-b border-[#e4e7ed] px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 md:grid md:px-5">
-                <p className="col-span-4">Mentee Identity (Project Based)</p>
-                <p className="col-span-2">Working Hours</p>
-                <p className="col-span-2 text-center">Active Badges</p>
-                <p className="col-span-2 text-center">Status</p>
-                <p className="col-span-2 pr-4 text-right">Actions</p>
-              </div>
-
-              {/* State rows */}
-              {isLoading && (
-                <div className="p-8 text-center text-sm text-slate-500">
-                  Loading mentees…
-                </div>
-              )}
-              {!isLoading && fetchError && (
-                <div className="p-8 text-center text-sm text-red-500">
-                  {fetchError}
-                </div>
-              )}
-              {!isLoading && !fetchError && visibleRows.length === 0 && (
-                <div className="p-8 text-center text-sm text-slate-500">
-                  No mentees found for this selection.
-                </div>
-              )}
-
-              {/* Data rows */}
-              {!isLoading && !fetchError && (
-                <div className="divide-y divide-[#e4e7ed]">
-                  {visibleRows.map((row) => (
-                    <div
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-b border-[#e4e7ed] hover:bg-transparent">
+                    <TableHead className="text-[11px] font-bold uppercase tracking-wider text-slate-500 py-3 px-5">
+                      Mentee Identity (Project Based)
+                    </TableHead>
+                    <TableHead className="text-[11px] font-bold uppercase tracking-wider text-slate-500 py-3">
+                      Working Hours
+                    </TableHead>
+                    <TableHead className="text-[11px] font-bold uppercase tracking-wider text-slate-500 py-3 text-center">
+                      Active Badges
+                    </TableHead>
+                    <TableHead className="text-[11px] font-bold uppercase tracking-wider text-slate-500 py-3 text-center">
+                      Status
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isLoading && (
+                    <TableRow>
+                      <TableCell colSpan={4} className="p-8 text-center text-sm text-slate-500">
+                        Loading mentees…
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {!isLoading && fetchError && (
+                    <TableRow>
+                      <TableCell colSpan={4} className="p-8 text-center text-sm text-red-500">
+                        {fetchError}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {!isLoading && !fetchError && visibleRows.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={4} className="p-8 text-center text-sm text-slate-500">
+                        No mentees found for this selection.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {!isLoading && !fetchError && visibleRows.map((row) => (
+                    <TableRow
                       key={`${row.id}-${row.projectId}`}
-                      className="grid grid-cols-12 items-center gap-3 px-4 py-4 transition-colors hover:bg-slate-50 md:px-5"
+                      className="cursor-pointer hover:bg-slate-50 border-b border-[#e4e7ed]"
+                      onClick={() => setSelectedDialogRow(row)}
                     >
                       {/* Identity */}
-                      <div className="col-span-10 flex items-center gap-3 md:col-span-4">
-                        <Avatar className="h-10 w-10 shrink-0 border border-[#d9dde5] bg-[#f5f7fb]">
-                          <AvatarFallback className="bg-[#e9edf5] text-xs font-bold text-[#0f1730]">
-                            {getInitials(row.name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0">
-                          <p className="truncate text-[17px] font-extrabold leading-tight text-[#111827]">
-                            {row.name}
-                          </p>
-                          <p className="mt-0.5 truncate text-[11px] font-bold uppercase tracking-wide text-slate-500">
-                            Project: {row.projectName}
-                          </p>
+                      <TableCell className="px-5 py-4">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10 shrink-0 border border-[#d9dde5] bg-[#f5f7fb]">
+                            <AvatarFallback className="bg-[#e9edf5] text-xs font-bold text-[#0f1730]">
+                              {getInitials(row.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0">
+                            <p className="truncate text-[17px] font-extrabold leading-tight text-[#111827]">
+                              {row.name}
+                            </p>
+                            <p className="mt-0.5 truncate text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                              Project: {row.projectName}
+                            </p>
+                          </div>
                         </div>
-                      </div>
+                      </TableCell>
 
                       {/* Working hours */}
-                      <div className="col-span-2 hidden flex-col items-start md:col-span-2 md:flex">
+                      <TableCell className="py-4">
                         <p className="text-xl font-extrabold text-[#0b1459]">
                           {row.workingHours}h
                         </p>
                         <p className="text-[10px] font-bold uppercase text-slate-500">
                           Total
                         </p>
-                      </div>
+                      </TableCell>
 
                       {/* Badges */}
-                      <div className="hidden items-center justify-center gap-1 md:col-span-2 md:flex">
-                        <BadgeIcon count={row.badgeCount} />
-                        {row.badgeCount > 0 && (
-                          <span className="text-xs font-bold text-[#0b1459]">
-                            {row.badgeCount}
-                          </span>
-                        )}
-                      </div>
+                      <TableCell className="py-4 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <BadgeIcon count={row.badgeCount} />
+                          {row.badgeCount > 0 && (
+                            <span className="text-xs font-bold text-[#0b1459]">
+                              {row.badgeCount}
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
 
                       {/* Status */}
-                      <div className="hidden items-center justify-center md:col-span-2 md:flex">
+                      <TableCell className="py-4 text-center">
                         <span
-                          className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-bold ${
-                            row.isActive
-                              ? "bg-emerald-100 text-emerald-700"
-                              : "bg-slate-200 text-slate-600"
-                          }`}
+                          className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-bold ${row.isActive
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-slate-200 text-slate-600"
+                            }`}
                         >
                           {row.isActive ? "ACTIVE" : "INACTIVE"}
                         </span>
-                      </div>
-
-                      {/* Actions — View Profile only */}
-                      <div className="col-span-2 flex items-center justify-end pr-0 md:col-span-2 md:pr-1">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button
-                              type="button"
-                              aria-label={`Actions for ${row.name}`}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100"
-                            >
-                              <MoreVertical className="h-4 w-4" />
-                            </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-44">
-                            <DropdownMenuItem
-                              onClick={() => viewProfile(row)}
-                              className="cursor-pointer gap-2"
-                            >
-                              <Eye className="h-4 w-4 text-slate-500" />
-                              View Profile
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </div>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </div>
-              )}
+                </TableBody>
+              </Table>
 
               {/* AdminPagination inside the table card */}
               {!isLoading && !fetchError && (
@@ -345,6 +336,32 @@ export default function MenteesPage() {
           </div>
         </div>
       </div>
+
+      {/* Profile View Dialog */}
+      <Dialog
+        open={selectedDialogRow !== null}
+        onOpenChange={(open) => { if (!open) setSelectedDialogRow(null); }}
+      >
+        <DialogContent className="max-w-5xl w-full p-0">
+          {selectedDialogRow && (
+            <Suspense>
+              <MenteeProfileView
+                key={`${selectedDialogRow.id}-${selectedDialogRow.projectId}`}
+                initialStudentId={selectedDialogRow.id}
+                initialProjectId={selectedDialogRow.projectId}
+                onAllocationChange={() => setRefetchKey((k) => k + 1)}
+              />
+            </Suspense>
+          )}
+          <DialogFooter className="px-6 pb-5 pt-2">
+            <DialogClose asChild>
+              <Button variant="outline" className="min-w-[100px]">
+                Close
+              </Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

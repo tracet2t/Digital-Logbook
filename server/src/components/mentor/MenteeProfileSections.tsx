@@ -1,5 +1,4 @@
 import {
-  Bell,
   Check,
   Clock3,
   Dot,
@@ -21,26 +20,12 @@ import {
   nameToInitials,
 } from "./menteeProfileView.helpers";
 
-export function MenteeHeader({ mentorName }: { mentorName: string }) {
+export function MenteeHeader({ mentorName: _mentorName }: { mentorName: string }) {
   return (
-    <header className="flex flex-wrap gap-4 items-center justify-between px-4 py-4 md:px-8">
+    <header className="flex flex-wrap gap-4 items-center px-4 py-4 md:px-8">
       <p className="text-sm font-semibold tracking-[0.16em] text-[#03255f]">
         MENTOR PORTAL
       </p>
-      <div className="flex items-center gap-4">
-        <button
-          type="button"
-          className="rounded-full border border-[#d9e4f7] bg-white p-2 text-[#18498e] transition hover:bg-[#f3f7ff]"
-          aria-label="Notifications"
-        >
-          <Bell className="h-4 w-4" />
-        </button>
-        <Avatar className="h-9 w-9 border border-[#d9e4f7] bg-[#e9f1ff] text-[#0f3972]">
-          <AvatarFallback className="bg-[#e9f1ff] text-xs font-semibold text-[#0f3972]">
-            {nameToInitials(mentorName || "Mentor")}
-          </AvatarFallback>
-        </Avatar>
-      </div>
     </header>
   );
 }
@@ -164,7 +149,7 @@ export function RecentActivityCard({
           Recent Activity Log
         </p>
 
-        <div className="mt-4 space-y-3">
+        <div className="mt-4 max-h-52 overflow-y-auto space-y-3 pr-1">
           {recentActivities.length > 0 ? (
             recentActivities.map((activity) => (
               <div
