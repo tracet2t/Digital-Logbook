@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import React, { useState } from "react";
 
 import moment from "moment";
 import {
@@ -12,9 +11,8 @@ import {
 
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
-import { getSessionOnClient } from "@/server_actions/getSession";
-
 import { eventPropGetter } from "@/lib/calenderUtils";
+import { useSession } from "@/hooks/core/useSession";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
 import { useEventForDate } from "@/hooks/useEventForDate";
 import { useFormData } from "@/hooks/useFormData";
@@ -35,53 +33,6 @@ import StudentTaskDetailDialog from "@/components/studentTaskDetailDialog";
 moment.locale("en-GB");
 const localizer = momentLocalizer(moment);
 
-interface SessionData {
-  id: string;
-  role: string;
-  fname: string;
-  lname: string;
-  email: string;
-}
-
-// Unused interface - declared for reference only
-// interface FormData {
-//   studentId: string;
-//   date: string;
-//   timeSpent: number;
-//   notes?: string;
-//   status?: string;
-//   review?: string;
-// }
-
-// Unused interface - declared for reference only
-// interface FeedbackData {
-//   review: string;
-//   status: string;
-//   mentorId: string;
-// }
-
-// Unused interface - declared for reference only
-// interface MentorFormData {
-//   date: string;
-//   workingHours: number;
-//   activities: string;
-// }
-
-// Unused interface - declared for reference only
-// interface CalendarEvent {
-//   id: string;
-//   title: string;
-//   start: Date;
-//   end: Date;
-//   allDay?: boolean;
-//   color?: string;
-//   createdAt: Date;
-//   studentId: string;
-//   timeSpent?: number;
-//   notes?: string;
-//   status: "pending" | "approved" | "rejected";
-// }
-
 interface TaskCalendarProps {
   selectedUser: string;
 }
@@ -95,28 +46,14 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     description: string;
   } | null>(null);
 
-  // Fetch session data using TanStack Query
-  const { data: sessionData } = useQuery<SessionData>({
-    queryKey: ["session"],
-    queryFn: async () => {
-      const data = await getSessionOnClient();
-      if (!data) throw new Error("Failed to fetch session");
-      return data;
-    },
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    gcTime: 20 * 60 * 1000, // 20 minutes
-    retry: 1,
-  });
+  // Shared session hook — cached across all components
+  const { data: sessionData } = useSession();
 
   const studentId = sessionData?.id || "";
   const role = sessionData?.role || "";
 
   // Custom hooks
-  const { events, refetchEvents } = useCalendarEvents(
-    studentId,
-    role,
-    selectedUser,
-  );
+  const { events } = useCalendarEvents(studentId, role, selectedUser);
   const {
     formData,
     workingHours,
@@ -144,9 +81,6 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     () => {
       setTaskModalOpen(false);
       resetFormData("");
-      setTimeout(() => {
-        refetchEvents();
-      }, 500);
     },
     (title, description) => {
       setToast({ title, description });

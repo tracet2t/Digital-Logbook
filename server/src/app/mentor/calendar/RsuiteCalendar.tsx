@@ -6,10 +6,10 @@ import "rsuite/dist/rsuite.min.css";
 
 import { useEffect, useMemo, useState } from "react";
 
-import { getSessionOnClient } from "@/server_actions/getSession";
 import moment from "moment";
 
 import { eventPropGetter } from "@/lib/calenderUtils";
+import { useSession } from "@/hooks/core/useSession";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
 import { useEventForDate } from "@/hooks/useEventForDate";
 import { useFormData } from "@/hooks/useFormData";
@@ -43,20 +43,20 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [mounted, setMounted] = useState(false);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
-  const [role, setRole] = useState<string>("");
-  const [studentId, setStudentId] = useState<string>("");
   const [isEditable, setIsEditable] = useState(true);
   const [toast, setToast] = useState<{
     title: string;
     description: string;
   } | null>(null);
 
+  // Shared session hook — cached across all components
+  const { data: sessionData } = useSession();
+
+  const studentId = sessionData?.id || "";
+  const role = sessionData?.role || "";
+
   // Custom hooks
-  const { events, refetchEvents } = useCalendarEvents(
-    studentId,
-    role,
-    selectedUser || "",
-  );
+  const { events } = useCalendarEvents(studentId, role, selectedUser || "");
 
   const {
     formData,
@@ -88,9 +88,6 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
       setTaskModalOpen(false);
       setSelectedDate(null);
       resetFormData("");
-      setTimeout(() => {
-        refetchEvents();
-      }, 500);
     },
     (title, description) => {
       setToast({ title, description });
@@ -98,21 +95,10 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
     },
   );
 
-  // Fetch session data
+  // Initialize mounted state and selected date on first render
   useEffect(() => {
     setMounted(true);
     setSelectedDate(new Date());
-  }, []);
-
-  useEffect(() => {
-    getSessionOnClient()
-      .then((data) => {
-        setStudentId(data.id);
-        setRole(data.role);
-      })
-      .catch((error) => {
-        console.error("Error fetching session:", error);
-      });
   }, []);
 
   // Group events by date
