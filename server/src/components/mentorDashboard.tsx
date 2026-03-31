@@ -40,6 +40,7 @@ const MentorDashboard = () => {
   // Shared session hook — cached across all components
   const { data: sessionData } = useSession();
 
+  //to filter mentor from the session
   const session = sessionData || null;
   const mentorName = sessionData
     ? `${sessionData.fname} ${sessionData.lname}`

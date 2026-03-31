@@ -69,7 +69,7 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
     resetFormData,
   } = useFormData();
 
-  const { fetchEventForDate } = useEventForDate(
+  const { fetchEventForDate, isLoading: isEventLoading } = useEventForDate(
     role,
     studentId,
     selectedUser || "",
@@ -77,7 +77,7 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
     resetFormData,
   );
 
-  const { handleSubmit } = useSubmission(
+  const { handleSubmit, isSubmitting } = useSubmission(
     role,
     studentId,
     selectedUser || "",
@@ -195,33 +195,39 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
           )}
         </div>
 
-        {/* Task Detail Dialogs - only mount the relevant one */}
-        {taskModalOpen && role === "mentor" && selectedUser !== studentId && (
-          <MentorTaskDetailDialog
-            open={taskModalOpen}
-            date={formData.date}
-            workingHours={workingHours}
-            notes={notes}
-            onSubmit={(reviewText, status) => {
-              handleSubmit({ review: reviewText, status });
-            }}
-            onClose={handleClose}
-          />
-        )}
-        {taskModalOpen && role === "mentor" && selectedUser === studentId && (
-          <MentorStudentTaskDetailDialog
-            open={taskModalOpen}
-            date={formData.date}
-            defaultWorkingHours={workingHours}
-            defaultNotes={notes}
-            isEditable={isEditable}
-            onSubmit={(wh, n) => {
-              handleSubmit({ workingHours: wh, notes: n });
-            }}
-            onClose={handleClose}
-          />
-        )}
-        {taskModalOpen && role === "student" && (
+        {/* Task Detail Dialogs - only mount after event data is loaded */}
+        {taskModalOpen &&
+          !isEventLoading &&
+          role === "mentor" &&
+          selectedUser !== studentId && (
+            <MentorTaskDetailDialog
+              open={taskModalOpen}
+              date={formData.date}
+              workingHours={workingHours}
+              notes={notes}
+              onSubmit={(reviewText, status) => {
+                handleSubmit({ review: reviewText, status });
+              }}
+              onClose={handleClose}
+            />
+          )}
+        {taskModalOpen &&
+          !isEventLoading &&
+          role === "mentor" &&
+          selectedUser === studentId && (
+            <MentorStudentTaskDetailDialog
+              open={taskModalOpen}
+              date={formData.date}
+              defaultWorkingHours={workingHours}
+              defaultNotes={notes}
+              isEditable={isEditable}
+              onSubmit={(wh, n) => {
+                if (!isSubmitting) handleSubmit({ workingHours: wh, notes: n });
+              }}
+              onClose={handleClose}
+            />
+          )}
+        {taskModalOpen && !isEventLoading && role === "student" && (
           <StudentTaskDetailDialog
             open={taskModalOpen}
             date={formData.date}
@@ -230,7 +236,7 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
             review={review}
             isEditable={isEditable}
             onSubmit={(wh, n) => {
-              handleSubmit({ workingHours: wh, notes: n });
+              if (!isSubmitting) handleSubmit({ workingHours: wh, notes: n });
             }}
             onClose={handleClose}
           />
