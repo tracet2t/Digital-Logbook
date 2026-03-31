@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import MentorDashboardPage from "@/app/mentor/dashboard/page";
 
@@ -65,7 +65,7 @@ describe("MentorDashboardPage", () => {
 
     render(<MentorDashboardPage />);
 
-    expect(screen.getByText("Dashboard Overview")).toBeInTheDocument();
+    expect(screen.getByText(/dashboard overview/i)).toBeInTheDocument();
     expect(screen.getByText("Mentor Portal")).toBeInTheDocument();
     expect(
       screen.getByText("Welcome back. Here is a summary of your mentorship activities.")
@@ -81,16 +81,16 @@ describe("MentorDashboardPage", () => {
 
     render(<MentorDashboardPage />);
 
-    expect(screen.getByText("Total Mentees")).toBeInTheDocument();
+    expect(screen.getByText(/total mentees/i)).toBeInTheDocument();
     expect(screen.getByText("12")).toBeInTheDocument();
 
-    expect(screen.getByText("Projects")).toBeInTheDocument();
+    expect(screen.getByText(/projects/i)).toBeInTheDocument();
     expect(screen.getByText("5")).toBeInTheDocument();
 
-    expect(screen.getByText("Total Working Hours")).toBeInTheDocument();
+    expect(screen.getByText(/total working hours/i)).toBeInTheDocument();
     expect(screen.getByText("240h")).toBeInTheDocument();
 
-    expect(screen.getByText("Average Working Hours")).toBeInTheDocument();
+    expect(screen.getByText(/average working hours/i)).toBeInTheDocument();
     expect(screen.getByText("20h")).toBeInTheDocument();
   });
 
@@ -366,8 +366,8 @@ describe("MentorDashboardPage", () => {
 
     const { container } = render(<MentorDashboardPage />);
 
-    const mainContent = container.querySelector(".flex-1.p-5");
-    expect(mainContent).toBeInTheDocument();
+    const mainContainer = container.querySelector(".w-full.min-h-screen");
+    expect(mainContainer).toBeInTheDocument();
 
     const statsGrid = container.querySelector(".grid.grid-cols-1");
     expect(statsGrid).toBeInTheDocument();

@@ -113,7 +113,7 @@ describe("MenteeRow Component", () => {
   });
 
   it("should have correct styling for name cell", () => {
-    const { container } = render(
+    render(
       <table>
         <tbody>
           <MenteeRow {...defaultProps} />
@@ -126,7 +126,7 @@ describe("MenteeRow Component", () => {
   });
 
   it("should have correct styling for project cell", () => {
-    const { container } = render(
+    render(
       <table>
         <tbody>
           <MenteeRow {...defaultProps} />
@@ -139,7 +139,7 @@ describe("MenteeRow Component", () => {
   });
 
   it("should have correct styling for last activity cell", () => {
-    const { container } = render(
+    render(
       <table>
         <tbody>
           <MenteeRow {...defaultProps} />
@@ -191,7 +191,7 @@ describe("MenteeRow Component", () => {
   });
 
   it("should display avatar with correct size classes", () => {
-    const { container } = render(
+    render(
       <table>
         <tbody>
           <MenteeRow {...defaultProps} />
@@ -199,7 +199,7 @@ describe("MenteeRow Component", () => {
       </table>
     );
 
-    const avatar = container.querySelector(
+    const avatar = document.querySelector(
       "div[class*='h-8'][class*='w-8'][class*='rounded-full']"
     );
     expect(avatar).toBeInTheDocument();
@@ -207,7 +207,7 @@ describe("MenteeRow Component", () => {
   });
 
   it("should have row hover effect", () => {
-    const { container } = render(
+    render(
       <table>
         <tbody>
           <MenteeRow {...defaultProps} />
@@ -215,8 +215,8 @@ describe("MenteeRow Component", () => {
       </table>
     );
 
-    const row = container.querySelector("tr");
-    expect(row).toHaveClass("hover:bg-slate-50");
+    const row = document.querySelector("tr");
+    expect(row).toHaveClass("hover:bg-slate-50", "transition-colors");
   });
 
   it("should render multiple mentee rows correctly", () => {
@@ -270,7 +270,7 @@ describe("MenteeRow Component", () => {
   });
 
   it("should have border bottom styling", () => {
-    const { container } = render(
+    render(
       <table>
         <tbody>
           <MenteeRow {...defaultProps} />
@@ -278,12 +278,12 @@ describe("MenteeRow Component", () => {
       </table>
     );
 
-    const row = container.querySelector("tr");
+    const row = document.querySelector("tr");
     expect(row).toHaveClass("border-b", "border-slate-100");
   });
 
   it("should render with flex layout for name column", () => {
-    const { container } = render(
+    render(
       <table>
         <tbody>
           <MenteeRow {...defaultProps} />
@@ -291,12 +291,12 @@ describe("MenteeRow Component", () => {
       </table>
     );
 
-    const nameCell = container.querySelector("td:first-child > div");
+    const nameCell = document.querySelector("td:first-child > div");
     expect(nameCell).toHaveClass("flex", "items-center", "gap-3");
   });
 
   it("should have avatar with correct font styling", () => {
-    const { container } = render(
+    render(
       <table>
         <tbody>
           <MenteeRow {...defaultProps} />
@@ -304,14 +304,14 @@ describe("MenteeRow Component", () => {
       </table>
     );
 
-    const avatar = container.querySelector(
+    const avatar = document.querySelector(
       "div[class*='h-8'][class*='w-8'][class*='rounded-full']"
     );
     expect(avatar).toHaveClass("font-semibold", "text-sm");
   });
 
   it("should render activity time in correct cell position", () => {
-    const { container } = render(
+    render(
       <table>
         <tbody>
           <MenteeRow {...defaultProps} lastActivity="5 minutes ago" />
@@ -323,7 +323,7 @@ describe("MenteeRow Component", () => {
   });
 
   it("should display name with initials avatar together", () => {
-    const { container } = render(
+    render(
       <table>
         <tbody>
           <MenteeRow {...defaultProps} />
@@ -331,7 +331,7 @@ describe("MenteeRow Component", () => {
       </table>
     );
 
-    const firstCell = container.querySelector("tr td");
+    const firstCell = screen.getByText("JD").closest("tr")?.querySelector("td");
     expect(firstCell).toBeInTheDocument();
     expect(firstCell).toHaveTextContent("JD");
     expect(firstCell).toHaveTextContent("John Doe");

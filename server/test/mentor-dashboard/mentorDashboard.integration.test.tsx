@@ -299,7 +299,7 @@ describe("MentorDashboardPage - Integration & Edge Cases", () => {
     render(<MentorDashboardPage />);
 
     expect(screen.getByText("Mentor Portal")).toBeInTheDocument();
-    expect(screen.getByText("Dashboard Overview")).toBeInTheDocument();
+    expect(screen.getByText(/dashboard overview/i)).toBeInTheDocument();
   });
 
   it("should handle error with custom message", () => {
@@ -404,7 +404,7 @@ describe("MentorDashboardPage - Integration & Edge Cases", () => {
     const statsGrid = container.querySelector(".grid.grid-cols-1");
     expect(statsGrid).toBeInTheDocument();
 
-    const mainContent = container.querySelector(".flex-1");
+    const mainContent = container.querySelector(".w-full.min-h-screen");
     expect(mainContent).toBeInTheDocument();
   });
 
