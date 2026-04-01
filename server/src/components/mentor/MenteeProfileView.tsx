@@ -1,28 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { getSessionOnClient } from "@/server_actions/getSession";
+import { useSearchParams } from "next/navigation";
+
 import {
   useMentorProjects,
   useProjectStudents,
 } from "@/hooks/mentor/useMentorFilter";
-import { GenericCombobox } from "@/components/mentor/combobox";
 import { Card, CardContent } from "@/components/ui/card";
+import { GenericCombobox } from "@/components/mentor/combobox";
 
-import {
-  AssignmentDecision,
-  FeedbackRecord,
-  MentorStudent,
-  ProjectOption,
-  StudentActivity,
-  StudentOption,
-  formatDate,
-  getLatestFeedbackStatus,
-  getSummaryStatus,
-} from "./menteeProfileView.helpers";
 import {
   AssignmentCard,
   MenteeHeader,
@@ -30,6 +20,17 @@ import {
   MentorTeamCard,
   RecentActivityCard,
 } from "./MenteeProfileSections";
+import {
+  AssignmentDecision,
+  FeedbackRecord,
+  formatDate,
+  getLatestFeedbackStatus,
+  getSummaryStatus,
+  MentorStudent,
+  ProjectOption,
+  StudentActivity,
+  StudentOption,
+} from "./menteeProfileView.helpers";
 
 type MenteeProfileViewProps = {
   initialStudentId?: string;
@@ -37,14 +38,22 @@ type MenteeProfileViewProps = {
   onAllocationChange?: () => void;
 };
 
-function MenteeProfileView({ initialStudentId, initialProjectId, onAllocationChange }: MenteeProfileViewProps = {}) {
+function MenteeProfileView({
+  initialStudentId,
+  initialProjectId,
+  onAllocationChange,
+}: MenteeProfileViewProps = {}) {
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const queryProjectId = initialProjectId ?? searchParams.get("projectId");
   const queryStudentId = initialStudentId ?? searchParams.get("studentId");
 
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(queryProjectId);
-  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(queryStudentId);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    queryProjectId,
+  );
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
+    queryStudentId,
+  );
   const [assignmentDecision, setAssignmentDecision] =
     useState<AssignmentDecision>("inReview");
 
@@ -97,11 +106,16 @@ function MenteeProfileView({ initialStudentId, initialProjectId, onAllocationCha
   });
 
   const selectedProject = useMemo(() => {
-    return mentorProjects.find((project) => project.id === selectedProjectId) ?? null;
+    return (
+      mentorProjects.find((project) => project.id === selectedProjectId) ?? null
+    );
   }, [mentorProjects, selectedProjectId]);
 
   const selectedStudentObj = useMemo(() => {
-    return projectStudents.find((student) => student.id === selectedStudentId) ?? null;
+    return (
+      projectStudents.find((student) => student.id === selectedStudentId) ??
+      null
+    );
   }, [projectStudents, selectedStudentId]);
 
   const selectedStudent = useMemo(() => {
@@ -114,7 +128,8 @@ function MenteeProfileView({ initialStudentId, initialProjectId, onAllocationCha
     const studentDetails =
       mentorStudents.find((student) => student.id === fromProject.id) ?? null;
 
-    const firstName = studentDetails?.firstName ?? fromProject.name.split(" ")[0] ?? "";
+    const firstName =
+      studentDetails?.firstName ?? fromProject.name.split(" ")[0] ?? "";
     const lastName =
       studentDetails?.lastName ??
       fromProject.name.split(" ").slice(1).join(" ") ??
@@ -196,21 +211,23 @@ function MenteeProfileView({ initialStudentId, initialProjectId, onAllocationCha
     return Array.from(names).slice(0, 4);
   }, [feedbackHistory, mentorName]);
 
-  const { data: timeAllocationData, refetch: refetchTimeAllocation } = useQuery({
-    queryKey: ["time-allocation", selectedProjectId, selectedStudentId],
-    queryFn: async () => {
-      if (!selectedProjectId || !selectedStudentId) return null;
-      const response = await fetch(
-        `/api/mentor/mentees/time-allocation?projectId=${selectedProjectId}&studentId=${selectedStudentId}`
-      );
-      if (!response.ok) {
-        if (response.status === 404) return null;
-        throw new Error("Failed to fetch time allocation");
-      }
-      return response.json();
+  const { data: timeAllocationData, refetch: refetchTimeAllocation } = useQuery(
+    {
+      queryKey: ["time-allocation", selectedProjectId, selectedStudentId],
+      queryFn: async () => {
+        if (!selectedProjectId || !selectedStudentId) return null;
+        const response = await fetch(
+          `/api/mentor/mentees/time-allocation?projectId=${selectedProjectId}&studentId=${selectedStudentId}`,
+        );
+        if (!response.ok) {
+          if (response.status === 404) return null;
+          throw new Error("Failed to fetch time allocation");
+        }
+        return response.json();
+      },
+      enabled: Boolean(selectedProjectId && selectedStudentId),
     },
-    enabled: Boolean(selectedProjectId && selectedStudentId),
-  });
+  );
 
   const updateAllocationMutation = useMutation({
     mutationFn: async (status: string) => {
@@ -231,7 +248,9 @@ function MenteeProfileView({ initialStudentId, initialProjectId, onAllocationCha
       queryClient.invalidateQueries({ queryKey: ["mentor-dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["mentees"] });
       // Invalidate the directory query since the user stats recalculate based on acceptance
-      queryClient.invalidateQueries({ queryKey: ["mentor-students-directory"] });
+      queryClient.invalidateQueries({
+        queryKey: ["mentor-students-directory"],
+      });
       onAllocationChange?.();
     },
   });
@@ -275,7 +294,9 @@ function MenteeProfileView({ initialStudentId, initialProjectId, onAllocationCha
                   renderItem={(project) => (
                     <div className="px-2 py-1 text-sm">{project.name}</div>
                   )}
-                  placeholder={projectsLoading ? "Loading projects..." : "Select project"}
+                  placeholder={
+                    projectsLoading ? "Loading projects..." : "Select project"
+                  }
                   className="w-full md:w-[320px]"
                 />
 
@@ -290,24 +311,32 @@ function MenteeProfileView({ initialStudentId, initialProjectId, onAllocationCha
                   renderItem={(student) => (
                     <div className="px-2 py-1 text-sm">{student.name}</div>
                   )}
-                  placeholder={studentsLoading ? "Loading mentees..." : "Select mentee"}
+                  placeholder={
+                    studentsLoading ? "Loading mentees..." : "Select mentee"
+                  }
                   className="w-full md:w-[320px]"
                 />
               </div>
 
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr,1.6fr]">
                 <MenteeIdentityCard
-                  displayName={selectedStudent?.displayName ?? "No mentee selected"}
+                  displayName={
+                    selectedStudent?.displayName ?? "No mentee selected"
+                  }
                   email={selectedStudent?.email ?? "-"}
                 />
 
                 <AssignmentCard
                   projectName={selectedProject?.name ?? "No project selected"}
                   summaryStatus={summaryStatus}
-                  totalWorkingHours={timeAllocationData?.totalWorkingHours ?? totalWorkingHours}
+                  totalWorkingHours={
+                    timeAllocationData?.totalWorkingHours ?? totalWorkingHours
+                  }
                   onAccept={handleAccept}
                   onReject={handleReject}
-                  disabled={!selectedStudentId || updateAllocationMutation.isPending}
+                  disabled={
+                    !selectedStudentId || updateAllocationMutation.isPending
+                  }
                 />
               </div>
             </CardContent>
@@ -320,7 +349,6 @@ function MenteeProfileView({ initialStudentId, initialProjectId, onAllocationCha
               <MentorTeamCard mentorTeam={mentorTeam} />
             </div>
           </div>
-
         </div>
       </div>
     </div>

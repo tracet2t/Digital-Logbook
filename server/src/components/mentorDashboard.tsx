@@ -2,8 +2,8 @@
 
 import React, { useCallback, useMemo, useState } from "react";
 
-import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation"; // Import useRouter hook
+import RsuiteCalendar from "@/app/mentor/calendar/RsuiteCalendar";
+import { useRouter } from "next/navigation";
 
 import { useSession } from "@/hooks/core/useSession";
 import {
@@ -11,15 +11,7 @@ import {
   useProjectStudents,
 } from "@/hooks/mentor/useMentorFilter";
 import { Button } from "@/components/ui/button";
-// Adjust import path if necessary
 import { GenericCombobox } from "@/components/mentor/combobox";
-
-const RsuiteCalendar = dynamic(
-  () => import("@/app/mentor/calendar/RsuiteCalendar"),
-  {
-    ssr: false,
-  },
-);
 
 const MentorDashboard = () => {
   // User-selected overrides (null = use default from query data)
