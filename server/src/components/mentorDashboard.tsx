@@ -11,6 +11,7 @@ import {
   useProjectStudents,
 } from "@/hooks/mentor/useMentorFilter";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/admin";
 import { GenericCombobox } from "@/components/mentor/combobox";
 
 const MentorDashboard = () => {
@@ -185,9 +186,7 @@ const MentorDashboard = () => {
                 <div className="flex flex-row items-center w-full gap-4 justify-between">
                   {/* Sub-card: Dropdowns and Reset */}
                   <div className="flex items-center mb-6">
-                    <span className="text-3xl font-extrabold text-black tracking-tight">
-                      MENTOR PORTAL
-                    </span>
+                    <PageHeader title="Mentor Portal" />
                   </div>
                   {/* Sub-card: Report Buttons */}
                   <div className="rounded-xl border border-slate-200 bg-white p-2 flex flex-row items-center gap-4">

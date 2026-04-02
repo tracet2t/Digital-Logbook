@@ -3,17 +3,19 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 
 import {
+  Archive,
   Award,
   Circle,
-  Search,
+  Clock3,
   Star,
+  Timer,
   Users,
   Zap,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   Dialog,
   DialogClose,
@@ -30,6 +32,7 @@ import {
 } from "@/components/ui/table";
 import { FilterBar, PageHeader } from "@/components/admin";
 import AdminPagination from "@/components/admin/AdminPagination";
+import { GenericCombobox } from "@/components/mentor/combobox";
 import MenteeProfileView from "@/components/mentor/MenteeProfileView";
 
 type MenteeRow = {
@@ -83,11 +86,13 @@ export default function MenteesPage() {
     avgCompletionHours: 0,
     pendingReviews: 0,
   });
-  const [search, setSearch] = useState("");
+  const [selectedProject, setSelectedProject] = useState<string>("all");
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [selectedDialogRow, setSelectedDialogRow] = useState<MenteeRow | null>(null);
+  const [selectedDialogRow, setSelectedDialogRow] = useState<MenteeRow | null>(
+    null,
+  );
   const [refetchKey, setRefetchKey] = useState(0);
 
   useEffect(() => {
@@ -117,15 +122,25 @@ export default function MenteesPage() {
     };
   }, [refetchKey]);
 
+  // Get unique project names for dropdown
+  const projectOptions = useMemo(() => {
+    const set = new Set<string>();
+    allRows.forEach((row) => set.add(row.projectName));
+    return Array.from(set);
+  }, [allRows]);
+
+  const projectFilterOptions = useMemo(
+    () => ["All Projects", ...projectOptions],
+    [projectOptions],
+  );
+
+  const selectedProjectOption =
+    selectedProject === "all" ? "All Projects" : selectedProject;
+
   const filteredRows = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return allRows;
-    return allRows.filter(
-      (row) =>
-        row.name.toLowerCase().includes(q) ||
-        row.projectName.toLowerCase().includes(q),
-    );
-  }, [allRows, search]);
+    if (!selectedProject || selectedProject === "all") return allRows;
+    return allRows.filter((row) => row.projectName === selectedProject);
+  }, [allRows, selectedProject]);
 
   const totalPages = Math.max(
     1,
@@ -144,77 +159,71 @@ export default function MenteesPage() {
       <div className="flex-grow flex flex-col w-full p-4">
         <div className="bg-white p-6 rounded-xl border border-slate-300 shadow-lg w-full">
           {/* Mentor Portal heading */}
-          <div className="mb-6 border-b border-[#e4e7ed] pb-3">
-            <p className="text-[22px] font-black tracking-tight text-[#0b1459]">
-              Mentor Portal
-            </p>
-          </div>
-          <div className="w-full space-y-5">
-            {/* Title */}
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                Management Hub
-              </p>
-              <PageHeader title="All Mentees" subtitle={undefined} />
-            </div>
-
-            {/* Search filter */}
-            <Card className="rounded-xl border-[#e4e7ed] bg-white px-4 py-3 md:px-5">
-              <FilterBar>
-                <FilterBar.Field label="Search">
-                  <div className="relative">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type="search"
-                      value={search}
-                      onChange={(e) => {
-                        setSearch(e.target.value);
-                        setPage(1);
-                      }}
-                      placeholder="Search project based mentees..."
-                      className="h-10 w-full rounded-lg border border-[#e3e7ee] bg-white pl-9 pr-3 text-sm text-slate-700 outline-none transition focus:border-slate-400 sm:w-[360px] md:w-[420px]"
-                    />
-                  </div>
-                </FilterBar.Field>
-              </FilterBar>
-            </Card>
-
-            {/* Stats card — real DB values */}
-            <Card className="rounded-xl border-[#e4e7ed] bg-white px-5 py-5">
-              <div className="grid grid-cols-2 gap-y-5 divide-x-0 md:grid-cols-4 md:divide-x md:divide-[#e4e7ed]">
-                <div className="px-0 md:px-0">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                    Archive Total
-                  </p>
-                  <p className="mt-1 text-4xl font-extrabold text-[#0b1459]">
+          <Card className="mb-6 space-y-6 p-6">
+            <PageHeader title="Mentor Portal" />
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <div className="flex items-center justify-between rounded-xl border border-[#E5E5E5] bg-[#fafafa] p-5">
+                <div>
+                  <p className="text-sm text-[#737373]">Archive Total</p>
+                  <p className="text-3xl font-bold text-[#0A0A0A]">
                     {summary.archiveTotal}
                   </p>
                 </div>
-                <div className="pl-0 md:pl-6">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                    Active Mentees
-                  </p>
-                  <p className="mt-1 text-4xl font-extrabold text-[#0b1459]">
+                <Archive className="text-[#737373]" size={28} />
+              </div>
+              <div className="flex items-center justify-between rounded-xl border border-[#E5E5E5] bg-[#fafafa] p-5">
+                <div>
+                  <p className="text-sm text-[#737373]">Active Mentees</p>
+                  <p className="text-3xl font-bold text-[#0A0A0A]">
                     {String(summary.activeProjects).padStart(2, "0")}
                   </p>
                 </div>
-                <div className="pl-0 md:pl-6">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                    Avg. Completion
-                  </p>
-                  <p className="mt-1 text-4xl font-extrabold text-[#0b1459]">
+                <Users className="text-[#737373]" size={28} />
+              </div>
+              <div className="flex items-center justify-between rounded-xl border border-[#E5E5E5] bg-[#fafafa] p-5">
+                <div>
+                  <p className="text-sm text-[#737373]">Avg. Completion</p>
+                  <p className="text-3xl font-bold text-[#0A0A0A]">
                     {summary.avgCompletionHours}h
                   </p>
                 </div>
-                <div className="pl-0 md:pl-6">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                    Pending Reviews
-                  </p>
-                  <p className="mt-1 text-4xl font-extrabold text-[#e45a3a]">
+                <Timer className="text-[#737373]" size={28} />
+              </div>
+              <div className="flex items-center justify-between rounded-xl border border-[#E5E5E5] bg-[#fafafa] p-5">
+                <div>
+                  <p className="text-sm text-[#737373]">Pending Reviews</p>
+                  <p className="text-3xl font-bold text-[#0A0A0A]">
                     {String(summary.pendingReviews).padStart(2, "0")}
                   </p>
                 </div>
+                <Clock3 className="text-yellow-500" size={28} />
               </div>
+            </div>
+          </Card>
+          <div className="w-full space-y-5">
+            {/* Title */}
+            {/* Project dropdown filter */}
+            <Card className="rounded-xl border-[#e4e7ed] bg-white px-4 py-3 md:px-5">
+              <FilterBar>
+                <FilterBar.Field label="Project">
+                  <GenericCombobox
+                    items={projectFilterOptions}
+                    value={selectedProjectOption}
+                    onValueChange={(project) => {
+                      setSelectedProject(
+                        project === "All Projects" ? "all" : project,
+                      );
+                      setPage(1);
+                    }}
+                    placeholder="Select project"
+                    className="w-full md:w-[240px]"
+                    itemToStringValue={(project) => project}
+                    renderItem={(project) => (
+                      <div className="px-2 py-1 text-sm">{project}</div>
+                    )}
+                  />
+                </FilterBar.Field>
+              </FilterBar>
             </Card>
 
             {/* Mentee identity table — shadcn Table */}
@@ -239,85 +248,97 @@ export default function MenteesPage() {
                 <TableBody>
                   {isLoading && (
                     <TableRow>
-                      <TableCell colSpan={4} className="p-8 text-center text-sm text-slate-500">
+                      <TableCell
+                        colSpan={4}
+                        className="p-8 text-center text-sm text-slate-500"
+                      >
                         Loading mentees…
                       </TableCell>
                     </TableRow>
                   )}
                   {!isLoading && fetchError && (
                     <TableRow>
-                      <TableCell colSpan={4} className="p-8 text-center text-sm text-red-500">
+                      <TableCell
+                        colSpan={4}
+                        className="p-8 text-center text-sm text-red-500"
+                      >
                         {fetchError}
                       </TableCell>
                     </TableRow>
                   )}
                   {!isLoading && !fetchError && visibleRows.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={4} className="p-8 text-center text-sm text-slate-500">
+                      <TableCell
+                        colSpan={4}
+                        className="p-8 text-center text-sm text-slate-500"
+                      >
                         No mentees found for this selection.
                       </TableCell>
                     </TableRow>
                   )}
-                  {!isLoading && !fetchError && visibleRows.map((row) => (
-                    <TableRow
-                      key={`${row.id}-${row.projectId}`}
-                      className="cursor-pointer hover:bg-slate-50 border-b border-[#e4e7ed]"
-                      onClick={() => setSelectedDialogRow(row)}
-                    >
-                      {/* Identity */}
-                      <TableCell className="px-5 py-4">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10 shrink-0 border border-[#d9dde5] bg-[#f5f7fb]">
-                            <AvatarFallback className="bg-[#e9edf5] text-xs font-bold text-[#0f1730]">
-                              {getInitials(row.name)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="min-w-0">
-                            <p className="truncate text-[17px] font-extrabold leading-tight text-[#111827]">
-                              {row.name}
-                            </p>
-                            <p className="mt-0.5 truncate text-[11px] font-bold uppercase tracking-wide text-slate-500">
-                              Project: {row.projectName}
-                            </p>
+                  {!isLoading &&
+                    !fetchError &&
+                    visibleRows.map((row) => (
+                      <TableRow
+                        key={`${row.id}-${row.projectId}`}
+                        className="cursor-pointer hover:bg-slate-50 border-b border-[#e4e7ed]"
+                        onClick={() => setSelectedDialogRow(row)}
+                      >
+                        {/* Identity */}
+                        <TableCell className="px-5 py-4">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10 shrink-0 border border-[#d9dde5] bg-[#f5f7fb]">
+                              <AvatarFallback className="bg-[#e9edf5] text-xs font-bold text-[#0f1730]">
+                                {getInitials(row.name)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="min-w-0">
+                              <p className="truncate text-[17px] font-extrabold leading-tight text-[#111827]">
+                                {row.name}
+                              </p>
+                              <p className="mt-0.5 truncate text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                                Project: {row.projectName}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      </TableCell>
+                        </TableCell>
 
-                      {/* Working hours */}
-                      <TableCell className="py-4">
-                        <p className="text-xl font-extrabold text-[#0b1459]">
-                          {row.workingHours}h
-                        </p>
-                        <p className="text-[10px] font-bold uppercase text-slate-500">
-                          Total
-                        </p>
-                      </TableCell>
+                        {/* Working hours */}
+                        <TableCell className="py-4">
+                          <p className="text-xl font-extrabold text-[#0b1459]">
+                            {row.workingHours}h
+                          </p>
+                          <p className="text-[10px] font-bold uppercase text-slate-500">
+                            Total
+                          </p>
+                        </TableCell>
 
-                      {/* Badges */}
-                      <TableCell className="py-4 text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          <BadgeIcon count={row.badgeCount} />
-                          {row.badgeCount > 0 && (
-                            <span className="text-xs font-bold text-[#0b1459]">
-                              {row.badgeCount}
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
+                        {/* Badges */}
+                        <TableCell className="py-4 text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <BadgeIcon count={row.badgeCount} />
+                            {row.badgeCount > 0 && (
+                              <span className="text-xs font-bold text-[#0b1459]">
+                                {row.badgeCount}
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
 
-                      {/* Status */}
-                      <TableCell className="py-4 text-center">
-                        <span
-                          className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-bold ${row.isActive
-                            ? "bg-emerald-100 text-emerald-700"
-                            : "bg-slate-200 text-slate-600"
+                        {/* Status */}
+                        <TableCell className="py-4 text-center">
+                          <span
+                            className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-bold ${
+                              row.isActive
+                                ? "bg-emerald-100 text-emerald-700"
+                                : "bg-slate-200 text-slate-600"
                             }`}
-                        >
-                          {row.isActive ? "ACTIVE" : "INACTIVE"}
-                        </span>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                          >
+                            {row.isActive ? "ACTIVE" : "INACTIVE"}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
                 </TableBody>
               </Table>
 
@@ -340,7 +361,9 @@ export default function MenteesPage() {
       {/* Profile View Dialog */}
       <Dialog
         open={selectedDialogRow !== null}
-        onOpenChange={(open) => { if (!open) setSelectedDialogRow(null); }}
+        onOpenChange={(open) => {
+          if (!open) setSelectedDialogRow(null);
+        }}
       >
         <DialogContent className="max-w-5xl w-full p-0">
           {selectedDialogRow && (
