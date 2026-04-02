@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer";
 import { sendEmail } from "../../src/lib/email";
 
-jest.mock("../src/components/EmailTemplate/EmailTemplate", () => ({
+jest.mock("../../src/components/EmailTemplate/EmailTemplate", () => ({
   __esModule: true,
   EmailTemplate: jest.fn(() => "<div>Mock Email Template</div>"),
 }));
