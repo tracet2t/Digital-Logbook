@@ -158,9 +158,9 @@ export default function MenteesPage() {
       {/* Responsive parent container and card, similar to calendar page */}
       <div className="flex-grow flex flex-col w-full p-4">
         <div className="bg-white p-6 rounded-xl border border-slate-300 shadow-lg w-full">
-          {/* Mentor Portal heading */}
+          {/* Mentees heading */}
           <Card className="mb-6 space-y-6 p-6">
-            <PageHeader title="Mentor Portal" />
+            <PageHeader title="Mentee Section" />
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
               <div className="flex items-center justify-between rounded-xl border border-[#E5E5E5] bg-[#fafafa] p-5">
                 <div>
