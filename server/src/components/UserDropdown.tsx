@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 
+import { useLogout } from "@/_hooks/core/useLogout";
 import { ChevronRight, LogOut, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-import { useLogout } from "@/hooks/core/useLogout";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   SidebarFooter,
