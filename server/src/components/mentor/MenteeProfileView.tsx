@@ -263,11 +263,12 @@ function MenteeProfileView({
     }
   }, [timeAllocationData]);
 
+  //Accept
   const handleAccept = () => {
     setAssignmentDecision("accepted");
     updateAllocationMutation.mutate("accepted");
   };
-
+//Reject
   const handleReject = () => {
     setAssignmentDecision("rejected");
     updateAllocationMutation.mutate("rejected");
