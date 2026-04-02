@@ -16,6 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { PageHeader } from "@/components/admin";
 
 function StatCard({
   label,
@@ -131,12 +132,7 @@ export default function MentorDashboardPage() {
       <div className="w-full rounded-2xl border border-[#dbe5f4] bg-white shadow-sm">
         {/* Dashboard Header Area */}
         <div className="p-4 md:p-6">
-          <p className="text-xs uppercase tracking-[0.2em] text-slate-500 font-semibold">
-            DASHBOARD OVERVIEW
-          </p>
-          <h1 className="mt-1 text-3xl font-bold text-slate-900 tracking-tight">
-            Mentor Portal
-          </h1>
+          <PageHeader title="Mentor Portal" />
           <p className="mt-1 text-sm text-slate-500">
             Welcome back. Here is a summary of your mentorship activities.
           </p>
