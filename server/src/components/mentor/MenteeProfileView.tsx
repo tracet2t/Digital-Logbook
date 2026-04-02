@@ -5,12 +5,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { getSessionOnClient } from "@/server_actions/getSession";
 import { useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 
 import {
   useMentorProjects,
   useProjectStudents,
 } from "@/hooks/mentor/useMentorFilter";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
 import { GenericCombobox } from "@/components/mentor/combobox";
 
 import {
@@ -36,12 +39,16 @@ type MenteeProfileViewProps = {
   initialStudentId?: string;
   initialProjectId?: string;
   onAllocationChange?: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
 };
 
 function MenteeProfileView({
   initialStudentId,
   initialProjectId,
   onAllocationChange,
+  isOpen = true,
+  onClose,
 }: MenteeProfileViewProps = {}) {
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
@@ -252,6 +259,12 @@ function MenteeProfileView({
         queryKey: ["mentor-students-directory"],
       });
       onAllocationChange?.();
+
+      //for moement comment out the model close
+      // Close dialog after brief delay to show toast
+      // setTimeout(() => {
+      //   onClose?.();
+      // }, 500);
     },
   });
 
@@ -267,92 +280,112 @@ function MenteeProfileView({
   const handleAccept = () => {
     setAssignmentDecision("accepted");
     updateAllocationMutation.mutate("accepted");
+    toast.success("Mentee accepted for the project");
   };
 //Reject
   const handleReject = () => {
     setAssignmentDecision("rejected");
     updateAllocationMutation.mutate("rejected");
+    toast.success("Mentee rejected for the project");
   };
 
   const summaryStatus = getSummaryStatus(assignmentDecision);
 
   return (
-    <div className="flex-grow flex flex-col w-full bg-[#f5f7fb] p-4 md:p-6">
-      <div className="w-full flex-1 rounded-2xl border border-[#dbe5f4] bg-white shadow-sm">
-        <MenteeHeader mentorName={mentorName} />
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-5xl w-full p-0">
+        <div className="flex-grow flex flex-col w-full bg-[#f5f7fb] p-4 md:p-6">
+          <div className="w-full flex-1 rounded-2xl border border-[#dbe5f4] bg-white shadow-sm">
+            <MenteeHeader mentorName={mentorName} />
 
-        <div className="border-t border-dashed border-[#86a8df]" />
+            <div className="border-t border-dashed border-[#86a8df]" />
 
-        <div className="space-y-4 p-4 md:space-y-6 md:p-6">
-          <Card className="rounded-2xl border-[#e3ebf8] shadow-sm">
-            <CardContent className="space-y-4 p-4 md:space-y-5 md:p-5">
-              <div className="flex flex-col gap-3 md:flex-row md:items-center">
-                <GenericCombobox<ProjectOption>
-                  items={mentorProjects}
-                  value={selectedProject}
-                  onValueChange={(project) => setSelectedProjectId(project.id)}
-                  itemToStringValue={(project) => project.name}
-                  renderItem={(project) => (
-                    <div className="px-2 py-1 text-sm">{project.name}</div>
-                  )}
-                  placeholder={
-                    projectsLoading ? "Loading projects..." : "Select project"
-                  }
-                  className="w-full md:w-[320px]"
-                />
+            <div className="space-y-4 p-4 md:space-y-6 md:p-6">
+              <Card className="rounded-2xl border-[#e3ebf8] shadow-sm">
+                <CardContent className="space-y-4 p-4 md:space-y-5 md:p-5">
+                  <div className="flex flex-col gap-3 md:flex-row md:items-center">
+                    <GenericCombobox<ProjectOption>
+                      items={mentorProjects}
+                      value={selectedProject}
+                      onValueChange={(project) =>
+                        setSelectedProjectId(project.id)
+                      }
+                      itemToStringValue={(project) => project.name}
+                      renderItem={(project) => (
+                        <div className="px-2 py-1 text-sm">{project.name}</div>
+                      )}
+                      placeholder={
+                        projectsLoading
+                          ? "Loading projects..."
+                          : "Select project"
+                      }
+                      className="w-full md:w-[320px]"
+                    />
 
-                <GenericCombobox<StudentOption>
-                  items={projectStudents}
-                  value={selectedStudentObj}
-                  onValueChange={(student) => {
-                    setSelectedStudentId(student.id);
-                    setAssignmentDecision("inReview");
-                  }}
-                  itemToStringValue={(student) => student.name}
-                  renderItem={(student) => (
-                    <div className="px-2 py-1 text-sm">{student.name}</div>
-                  )}
-                  placeholder={
-                    studentsLoading ? "Loading mentees..." : "Select mentee"
-                  }
-                  className="w-full md:w-[320px]"
-                />
+                    <GenericCombobox<StudentOption>
+                      items={projectStudents}
+                      value={selectedStudentObj}
+                      onValueChange={(student) => {
+                        setSelectedStudentId(student.id);
+                        setAssignmentDecision("inReview");
+                      }}
+                      itemToStringValue={(student) => student.name}
+                      renderItem={(student) => (
+                        <div className="px-2 py-1 text-sm">{student.name}</div>
+                      )}
+                      placeholder={
+                        studentsLoading ? "Loading mentees..." : "Select mentee"
+                      }
+                      className="w-full md:w-[320px]"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr,1.6fr]">
+                    <MenteeIdentityCard
+                      displayName={
+                        selectedStudent?.displayName ?? "No mentee selected"
+                      }
+                      email={selectedStudent?.email ?? "-"}
+                    />
+
+                    <AssignmentCard
+                      projectName={
+                        selectedProject?.name ?? "No project selected"
+                      }
+                      summaryStatus={summaryStatus}
+                      totalWorkingHours={
+                        timeAllocationData?.totalWorkingHours ??
+                        totalWorkingHours
+                      }
+                      onAccept={handleAccept}
+                      onReject={handleReject}
+                      disabled={
+                        !selectedStudentId || updateAllocationMutation.isPending
+                      }
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.3fr,1fr]">
+                <RecentActivityCard recentActivities={recentActivities} />
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
+                  <MentorTeamCard mentorTeam={mentorTeam} />
+                </div>
               </div>
-
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr,1.6fr]">
-                <MenteeIdentityCard
-                  displayName={
-                    selectedStudent?.displayName ?? "No mentee selected"
-                  }
-                  email={selectedStudent?.email ?? "-"}
-                />
-
-                <AssignmentCard
-                  projectName={selectedProject?.name ?? "No project selected"}
-                  summaryStatus={summaryStatus}
-                  totalWorkingHours={
-                    timeAllocationData?.totalWorkingHours ?? totalWorkingHours
-                  }
-                  onAccept={handleAccept}
-                  onReject={handleReject}
-                  disabled={
-                    !selectedStudentId || updateAllocationMutation.isPending
-                  }
-                />
+              <div className="flex justify-end pt-4 border-t border-[#e3ebf8]">
+                <DialogClose asChild>
+                  <Button variant="outline" className="min-w-[100px]">
+                    Close
+                  </Button>
+                </DialogClose>
               </div>
-            </CardContent>
-          </Card>
-
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.3fr,1fr]">
-            <RecentActivityCard recentActivities={recentActivities} />
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
-              <MentorTeamCard mentorTeam={mentorTeam} />
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
