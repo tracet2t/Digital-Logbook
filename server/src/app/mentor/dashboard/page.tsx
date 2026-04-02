@@ -2,10 +2,10 @@
 
 import React from "react";
 
+import { useMentorDashboard } from "@/_hooks/mentor";
 import { BarChart3, Briefcase, Clock, Users } from "lucide-react";
 import Link from "next/link";
 
-import { useMentorDashboard } from "@/hooks/mentor";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import {
@@ -69,7 +69,19 @@ function StatusBadge({
   );
 }
 
-function MenteeRow({ initials, name, project, lastActivity, status }: { initials: string; name: string; project: string; lastActivity: string; status: "ACCEPTED" | "PENDING" | "REJECTED" }) {
+function MenteeRow({
+  initials,
+  name,
+  project,
+  lastActivity,
+  status,
+}: {
+  initials: string;
+  name: string;
+  project: string;
+  lastActivity: string;
+  status: "ACCEPTED" | "PENDING" | "REJECTED";
+}) {
   // Generate color based on initials
   const generateColor = (initials: string) => {
     const colors = [
@@ -137,7 +149,8 @@ export default function MentorDashboardPage() {
           {error && (
             <div className="rounded-lg border border-red-200 bg-red-50 p-4">
               <p className="text-sm text-red-800">
-                {error.message || "Failed to load dashboard data. Please try again."}
+                {error.message ||
+                  "Failed to load dashboard data. Please try again."}
               </p>
             </div>
           )}
