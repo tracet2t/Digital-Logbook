@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 import { getSessionOnClient } from "@/server_actions/getSession";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
+import { useMenteeTimeAllocation } from "@/hooks/mentor/useMenteeTimeAllocation";
 import {
   useMentorProjects,
   useProjectStudents,
@@ -50,7 +51,6 @@ function MenteeProfileView({
   isOpen = true,
   onClose,
 }: MenteeProfileViewProps = {}) {
-  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const queryProjectId = initialProjectId ?? searchParams.get("projectId");
   const queryStudentId = initialStudentId ?? searchParams.get("studentId");
@@ -236,36 +236,12 @@ function MenteeProfileView({
     },
   );
 
-  const updateAllocationMutation = useMutation({
-    mutationFn: async (status: string) => {
-      const response = await fetch("/api/mentor/mentees/time-allocation", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          projectId: selectedProjectId,
-          studentId: selectedStudentId,
-          status,
-        }),
-      });
-      if (!response.ok) throw new Error("Failed to update status");
-      return response.json();
-    },
-    onSuccess: () => {
-      refetchTimeAllocation();
-      queryClient.invalidateQueries({ queryKey: ["mentor-dashboard"] });
-      queryClient.invalidateQueries({ queryKey: ["mentees"] });
-      // Invalidate the directory query since the user stats recalculate based on acceptance
-      queryClient.invalidateQueries({
-        queryKey: ["mentor-students-directory"],
-      });
-      onAllocationChange?.();
-
-      //for moement comment out the model close
-      // Close dialog after brief delay to show toast
-      // setTimeout(() => {
-      //   onClose?.();
-      // }, 500);
-    },
+  // Replace the old inline useMutation with:
+  const updateAllocationMutation = useMenteeTimeAllocation({
+    projectId: selectedProjectId,
+    studentId: selectedStudentId,
+    onAllocationChange,
+    refetchTimeAllocation,
   });
 
   useEffect(() => {
@@ -280,13 +256,11 @@ function MenteeProfileView({
   const handleAccept = () => {
     setAssignmentDecision("accepted");
     updateAllocationMutation.mutate("accepted");
-    toast.success("Mentee accepted for the project");
   };
-//Reject
+  //Reject
   const handleReject = () => {
     setAssignmentDecision("rejected");
     updateAllocationMutation.mutate("rejected");
-    toast.success("Mentee rejected for the project");
   };
 
   const summaryStatus = getSummaryStatus(assignmentDecision);
