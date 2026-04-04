@@ -77,6 +77,7 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
         if (!isOpen) onClose();
       }}
     >
+      
       <AlertDialogContent className="!max-w-lg">
         <AlertDialogHeader>
           <AlertDialogTitle>Task Details</AlertDialogTitle>

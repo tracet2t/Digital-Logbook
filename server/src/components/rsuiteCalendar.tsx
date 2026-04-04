@@ -85,7 +85,7 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
     updateFormData,
     resetFormData,
   } = useFormData();
-  const { fetchEventForDate } = useEventForDate(
+  const { fetchEventForDate, loadEventDirectly } = useEventForDate(
     role,
     studentId,
     selectedUser ?? "",
@@ -167,7 +167,30 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
       setIsEditable(false);
     }
 
-    fetchEventForDate(formattedDate);
+    // Cell click always opens a new task dialog
+    resetFormData(formattedDate);
+    setTaskModalOpen(true);
+  };
+
+  // Load a specific task when clicking its pill
+  const handleEventClick = async (event: CalendarEvent, date: Date) => {
+    const formattedDate = moment(date).format("YYYY-MM-DD");
+
+    const today = moment().startOf("day");
+    const dayBeforeYesterday = moment().subtract(2, "days").startOf("day");
+
+    if (
+      moment(date).isSame(today, "day") ||
+      moment(date).isBetween(dayBeforeYesterday, today, "day", "[]")
+    ) {
+      setIsEditable(true);
+    } else {
+      setIsEditable(false);
+    }
+
+    // Wait for event data to be loaded before opening the modal,
+    // so react-hook-form defaultValues are correct on mount
+    await loadEventDirectly(event, formattedDate);
     setTaskModalOpen(true);
   };
 
@@ -194,16 +217,15 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
                 color: styling.style.color,
               }}
               title={event.title}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEventClick(event, date);
+              }}
             >
               {event.title}
             </div>
           );
         })}
-        {dateEvents.length > 3 && (
-          <div className="text-xs px-2 py-1 text-gray-500 font-medium">
-            +{dateEvents.length - 3} more
-          </div>
-        )}
       </div>
     );
   };

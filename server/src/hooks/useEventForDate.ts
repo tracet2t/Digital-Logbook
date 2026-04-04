@@ -69,5 +69,28 @@ export const useEventForDate = (
     mutation.mutate(formattedDate);
   };
 
-  return { fetchEventForDate, isLoading: mutation.isPending };
+  //Load already-known event object:fetches its feedback then to Update form
+
+  const loadEventDirectly = async (event: any, formattedDate: string) => {
+    let feedbackData = null;
+    const shouldFetchFeedback =
+      (role === "mentor" && studentId !== selectedUser) || role === "student";
+
+    if (shouldFetchFeedback && event?.id) {
+      try {
+        const feedbackResponse = await fetch(
+          `http://localhost:3000/api/mentorFeedback?date=${formattedDate}&activityId=${event.id}`,
+        );
+        if (feedbackResponse.ok) {
+          feedbackData = await feedbackResponse.json();
+        }
+      } catch (error) {
+        console.error("Error fetching feedback:", error);
+      }
+    }
+
+    updateFormData(event, feedbackData, formattedDate);
+  };
+
+  return { fetchEventForDate, loadEventDirectly, isLoading: mutation.isPending };
 };
