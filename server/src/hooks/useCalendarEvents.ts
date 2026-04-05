@@ -23,11 +23,14 @@ export const useCalendarEvents = (
   studentId: string,
   role: string,
   selectedUser: string,
+  allMentees?: { id: string; name: string }[],
 ) => {
   const queryClient = useQueryClient();
 
+  const isAllMentees = selectedUser === "all-mentees";
+
   const buildUrl = () => {
-    if (!studentId || !role) return null;
+    if (!studentId || !role || isAllMentees) return null;
 
     if (role === "student") {
       return `http://localhost:3000/api/activity?studentId=${studentId}`;
@@ -50,8 +53,22 @@ export const useCalendarEvents = (
     isLoading,
     error,
   } = useQuery<CalendarEvent[]>({
-    queryKey: ["calendarEvents", studentId, role, selectedUser],
+    queryKey: isAllMentees
+      ? ["calendarEvents", studentId, role, "all-mentees", allMentees?.map((s) => s.id)]
+      : ["calendarEvents", studentId, role, selectedUser],
     queryFn: async (): Promise<CalendarEvent[]> => {
+      if (isAllMentees) {
+        if (!allMentees || allMentees.length === 0) return [];
+        const results = await Promise.all(
+          allMentees.map((mentee) =>
+            fetch(`http://localhost:3000/api/student?studentId=${mentee.id}`)
+              .then((r) => (r.ok ? r.json() : []))
+              .then((data) => convertToCalendarEvents(data)),
+          ),
+        );
+        return results.flat();
+      }
+
       if (!url) return [];
 
       try {
@@ -76,7 +93,9 @@ export const useCalendarEvents = (
         throw err;
       }
     },
-    enabled: !!url && !!selectedUser,
+    enabled: isAllMentees
+      ? !!studentId && !!role && (allMentees?.length ?? 0) > 0
+      : !!url && !!selectedUser,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
     retry: 1,
@@ -88,7 +107,9 @@ export const useCalendarEvents = (
 
   const invalidateCalendarCache = () => {
     queryClient.invalidateQueries({
-      queryKey: ["calendarEvents", studentId, role, selectedUser],
+      queryKey: isAllMentees
+        ? ["calendarEvents", studentId, role, "all-mentees"]
+        : ["calendarEvents", studentId, role, selectedUser],
     });
   };
 

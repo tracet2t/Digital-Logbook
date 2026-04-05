@@ -98,6 +98,67 @@ async function main() {
       },
     });
 
+    const student4 = await prisma.user.create({
+      data: {
+        firstName: "Emma",
+        lastName: "Davis",
+        email: "student4@gmail.com",
+        passwordHash: hashedPassword,
+        role: "student",
+        emailConfirmed: true,
+        isFirstTimeLogin: false,
+      },
+    });
+
+    const student5 = await prisma.user.create({
+      data: {
+        firstName: "Liam",
+        lastName: "Brown",
+        email: "student5@gmail.com",
+        passwordHash: hashedPassword,
+        role: "student",
+        emailConfirmed: true,
+        isFirstTimeLogin: false,
+      },
+    });
+
+    // Create 50 bulk students (student6–student55), assign to project1, add activity on 2026-04-04
+    const bulkFirstNames = [
+      "Oliver", "Sophia", "Noah", "Isabella", "William", "Mia", "James", "Charlotte", "Benjamin", "Amelia",
+      "Lucas", "Harper", "Henry", "Evelyn", "Alexander", "Abigail", "Mason", "Emily", "Ethan", "Elizabeth",
+      "Daniel", "Sofia", "Matthew", "Avery", "Aiden", "Ella", "Jackson", "Scarlett", "Sebastian", "Grace",
+      "Jack", "Chloe", "Owen", "Victoria", "Samuel", "Riley", "David", "Aria", "Joseph", "Lily",
+      "Carter", "Zoey", "Wyatt", "Penelope", "John", "Layla", "Luke", "Nora", "Gabriel", "Zoe",
+    ];
+    const bulkLastNames = [
+      "Martin", "Garcia", "Martinez", "Anderson", "Taylor", "Thomas", "Hernandez", "Moore", "Jackson", "Lee",
+      "Perez", "Thompson", "White", "Harris", "Sanchez", "Clark", "Ramirez", "Lewis", "Robinson", "Walker",
+      "Young", "Allen", "King", "Wright", "Scott", "Torres", "Nguyen", "Hill", "Flores", "Green",
+      "Adams", "Nelson", "Baker", "Hall", "Rivera", "Campbell", "Mitchell", "Carter", "Roberts", "Gomez",
+      "Phillips", "Evans", "Turner", "Diaz", "Parker", "Cruz", "Edwards", "Collins", "Reyes", "Stewart",
+    ];
+    const bulkNotes = [
+      "Implemented login flow", "Fixed UI bugs", "Wrote unit tests", "Reviewed pull requests", "Set up CI pipeline",
+      "Refactored database queries", "Documented API endpoints", "Optimized front-end performance", "Added accessibility features", "Deployed to staging",
+    ];
+
+    const bulkStudents = [];
+    for (let i = 0; i < 50; i++) {
+      const idx = i + 6;
+      const student = await prisma.user.create({
+        data: {
+          firstName: bulkFirstNames[i],
+          lastName: bulkLastNames[i],
+          email: `student${idx}@gmail.com`,
+          passwordHash: hashedPassword,
+          role: "student",
+          emailConfirmed: true,
+          isFirstTimeLogin: false,
+        },
+      });
+      bulkStudents.push(student);
+    }
+
     // Assign mentors to projects
 
     // Create Activities
@@ -275,6 +336,35 @@ async function main() {
       },
     });
 
+    const assignment4 = await prisma.projectAllocation.create({
+      data: {
+        projectId: project1.id,
+        studentId: student4.id,
+      },
+    });
+
+    const assignment5 = await prisma.projectAllocation.create({
+      data: {
+        projectId: project1.id,
+        studentId: student5.id,
+      },
+    });
+
+    // Assign all 50 bulk students to project1 and create one activity each on 2026-04-04
+    for (let i = 0; i < bulkStudents.length; i++) {
+      await prisma.projectAllocation.create({
+        data: { projectId: project1.id, studentId: bulkStudents[i].id },
+      });
+      await prisma.activity.create({
+        data: {
+          studentId: bulkStudents[i].id,
+          date: new Date("2026-04-04"),
+          timeSpent: Math.floor(Math.random() * 120) + 30,
+          notes: bulkNotes[i % bulkNotes.length],
+        },
+      });
+    }
+
     // Create ProjectTechnologies
     await prisma.projectTechnology.create({
       data: {
@@ -360,7 +450,8 @@ async function main() {
     console.log({
       admin: admin.email,
       mentors: [mentor1.email, mentor2.email],
-      students: [student1.email, student2.email, student3.email],
+      students: [student1.email, student2.email, student3.email, student4.email, student5.email,
+        `...and ${bulkStudents.length} bulk students (student6@gmail.com – student55@gmail.com)`],
       projects: [project1.name, project2.name],
       badges: [badge1.name, badge2.name],
     });

@@ -54,7 +54,11 @@ const MentorDashboard = () => {
     if (!selectedProject || !mentorId) return [];
     const mentorDisplay =
       mentorName && mentorName.trim().length > 0 ? mentorName : "Mentor";
-    return [{ id: mentorId, name: mentorDisplay }, ...fetchedStudents];
+    return [
+      { id: "all-mentees", name: "All Mentees" },
+      { id: mentorId, name: mentorDisplay },
+      ...fetchedStudents,
+    ];
   }, [selectedProject, fetchedStudents, mentorId, mentorName]);
 
   // Reset function — clearing overrides to null falls back to derived defaults
@@ -249,7 +253,10 @@ const MentorDashboard = () => {
               {/* Calendar Card Component */}
               <div className="rounded-2xl border border-slate-200 bg-white p-2 md:p-3 w-full flex-1 min-h-0 overflow-hidden flex flex-col">
                 <div className="flex-1 min-h-0">
-                  <RsuiteCalendar selectedUser={selectedUser || ""} />
+                  <RsuiteCalendar
+                    selectedUser={selectedUser || ""}
+                    allMentees={fetchedStudents}
+                  />
                 </div>
               </div>
             </div>
