@@ -446,6 +446,18 @@ async function main() {
       },
     });
 
+    // Create MenteeApplication
+    const menteeApplication1 = await prisma.menteeApplication.create({
+      data: {
+        fullName: "Alexander Hamilton",
+        email: "alex.hamilton@university.edu",
+        university: "State University",
+        degreeProgram: "B.S. Computer Science",
+        cvLink: "https://drive.google.com/file/d/example_cv_link/view?usp=sharing",
+        status: "pending",
+      },
+    });
+
     console.log("✅ Seed data created successfully!");
     console.log({
       admin: admin.email,
