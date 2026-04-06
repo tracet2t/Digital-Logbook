@@ -145,6 +145,7 @@ model ProjectAllocation {
   studentId String
 
   assignedAt DateTime @default(now())
+  timeAllocationStatus TimeAllocationStatus @default(inReview)
 
   project    Project  @relation(fields: [projectId], references: [id])
   student    User     @relation(fields: [studentId], references: [id], name: "StudentProjects")
@@ -241,4 +242,31 @@ model ProjectTechnology {
 
   @@unique([projectId, studentId, name])
   @@map("projectTechnologies")
+}
+
+enum TimeAllocationStatus {
+  inReview
+  accepted
+  rejected
+}
+
+model MenteeApplication {
+  id            String                    @id @default(uuid())
+  fullName      String
+  email         String                    @unique
+  university    String
+  degreeProgram String
+  cvLink        String
+  status        MenteeApplicationStatus   @default(pending)
+
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+
+  @@map("menteeApplications")
+}
+
+enum MenteeApplicationStatus {
+  pending
+  approved
+  rejected
 }

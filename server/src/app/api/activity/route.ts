@@ -33,7 +33,7 @@ export const POST = async (req: NextRequest) => {
     const userId = session.getId();
     const { date, timeSpent, notes } = await req.json();
 
-    if (!date || typeof timeSpent !== 'number' || timeSpent < 0 || !notes) {
+    if (!date || typeof timeSpent !== 'number' || timeSpent < 0) {
       return NextResponse.json({ message: "Invalid input data" }, { status: 400 });
     }
 

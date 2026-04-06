@@ -1,204 +1,168 @@
-// src/components/MentorStudentTaskDetailDialog.tsx
-'use client';
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { CalendarDays, Clock } from 'lucide-react';
+"use client";
+
+import React from "react";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CalendarDays, Clock } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+
+const activitySchema = z.object({
+  workingHours: z.coerce
+    .number()
+    .min(1, "Working hours must be at least 1")
+    .max(12, "Working hours cannot exceed 12"),
+  notes: z.string().max(300, "Notes cannot exceed 300 characters"),
+});
+
+type ActivityFormValues = z.infer<typeof activitySchema>;
 
 interface MentorStudentTaskDetailDialogProps {
-  taskModalOpen: boolean;
-  setTaskModalOpen: (open: boolean) => void;
-  role: string;
-  selectedUser: string;
-  studentId: string;
-  formData: { date: string };
-  workingHours: number;
-  setWorkingHours: (hours: number) => void;
-  notes: string;
-  setNotes: (notes: string) => void;
+  open: boolean;
+  date: string;
+  defaultWorkingHours: number;
+  defaultNotes: string;
   isEditable: boolean;
-  handleClose: () => void;
-  handleSubmit: () => void;
+  onSubmit: (workingHours: number, notes: string) => void;
+  onClose: () => void;
 }
 
-const MentorStudentTaskDetailDialog: React.FC<MentorStudentTaskDetailDialogProps> = ({
-  taskModalOpen,
-  setTaskModalOpen,
-  role,
-  selectedUser,
-  studentId,
-  formData,
-  workingHours,
-  setWorkingHours,
-  notes,
-  setNotes,
+const MentorStudentTaskDetailDialog: React.FC<
+  MentorStudentTaskDetailDialogProps
+> = ({
+  open,
+  date,
+  defaultWorkingHours,
+  defaultNotes,
   isEditable,
-  handleClose,
-  handleSubmit
+  onSubmit,
+  onClose,
 }) => {
-  const [showToast, setShowToast] = useState(false);
-  const [showHoursToast, setShowHoursToast] = useState(false);
+  const form = useForm<ActivityFormValues>({
+    resolver: zodResolver(activitySchema),
+    defaultValues: {
+      workingHours: defaultWorkingHours || 2,
+      notes: defaultNotes || "",
+    },
+  });
 
-  const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newNotes = e.target.value;
-    if (newNotes.length > 300) {
-      setShowToast(true);
-    }
-    setNotes(newNotes.substring(0, 300));
-  };
-
-  const handleWorkingHoursBlur = () => {
-    if (workingHours === 0) {
-      setShowHoursToast(true);
-      setWorkingHours(1);
-    }
-  };
-
-  const charCount = notes.length;
-  const isNearLimit = charCount >= 270;
+  const handleFormSubmit = form.handleSubmit((data) => {
+    onSubmit(data.workingHours, data.notes);
+  });
 
   return (
-    <>
-      {role === 'mentor' && selectedUser === studentId && (
-        <Dialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
-          <DialogContent className="sm:max-w-md rounded-2xl p-0 overflow-hidden shadow-xl border-0 bg-white">
-            {/* Header */}
-            <div className="px-6 pt-6 pb-4 border-b border-gray-100 bg-white">
-              <DialogHeader>
-                <div className="flex items-center gap-2">
-                  <DialogTitle className="text-xl font-semibold text-gray-900">
-                    Task Details
-                  </DialogTitle>
-                  {isEditable && (
-                    <Badge variant="secondary" className="text-xs font-medium bg-blue-50 text-blue-600 border-0">
-                      Editable
-                    </Badge>
-                  )}
-                </div>
-              </DialogHeader>
-            </div>
+    <AlertDialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) onClose();
+      }}
+    >
+      <AlertDialogContent className="!max-w-lg">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-xl font-semibold">
+            Task Details
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            {isEditable
+              ? "Edit your activity for this date."
+              : "View your activity details."}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
 
-            {/* Body */}
-            <div className="px-6 py-5 space-y-5 bg-white">
-              {/* Date & Working Hours row */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold uppercase tracking-wide text-gray-500 flex items-center gap-1.5">
-                    <CalendarDays className="w-3.5 h-3.5" />
-                    Date
-                  </Label>
-                  <Input
-                    type="date"
-                    value={formData.date}
-                    disabled
-                    className="text-sm text-gray-700 bg-gray-50 border-gray-200 rounded-lg cursor-not-allowed"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold uppercase tracking-wide text-gray-500 flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5" />
-                    Working Hours
-                  </Label>
-                  <Input
-                    type="number"
-                    value={workingHours}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (value === '') {
-                        setWorkingHours(0);
-                      } else {
-                        const hours = Number(value);
-                        if (!isNaN(hours)) {
-                          setWorkingHours(Math.max(1, Math.min(12, hours)));
-                        } else {
-                          setWorkingHours(1);
-                        }
-                      }
-                    }}
-                    onBlur={handleWorkingHoursBlur}
-                    placeholder="1–12"
-                    disabled={!isEditable}
-                    className="text-sm text-gray-700 bg-gray-50 border-gray-200 rounded-lg disabled:cursor-not-allowed"
-                  />
-                </div>
-              </div>
-
-              {/* Notes */}
+        <Form {...form}>
+          <form onSubmit={handleFormSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                    Notes
-                  </Label>
-                  <span className={`text-xs tabular-nums ${isNearLimit ? 'text-amber-500 font-medium' : 'text-gray-400'}`}>
-                    {charCount}/300
-                  </span>
-                </div>
-                <Textarea
-                  value={notes}
-                  onChange={handleNotesChange}
-                  placeholder="Enter notes here…"
-                  disabled={!isEditable}
-                  rows={4}
-                  className="text-sm text-gray-700 bg-gray-50 border-gray-200 rounded-lg resize-none disabled:cursor-not-allowed focus:ring-2 focus:ring-blue-500/20"
-                />
+                <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                  <CalendarDays className="w-3.5 h-3.5" />
+                  Date
+                </label>
+                <Input type="date" value={date} disabled />
               </div>
+
+              <FormField
+                control={form.control}
+                name="workingHours"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-semibold uppercase tracking-wide flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5" />
+                      Working Hours
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        disabled={!isEditable}
+                        placeholder="1–12"
+                        min={1}
+                        max={12}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
-            {/* Footer */}
-            <DialogFooter className="px-6 py-4 border-t border-gray-100 flex flex-row justify-end gap-2 bg-white">
-              <Button
-                variant="outline"
-                onClick={handleClose}
-                className="rounded-lg border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-gray-800"
-              >
-                Cancel
-              </Button>
-              {isEditable && (
-                <Button
-                  onClick={handleSubmit}
-                  className="rounded-lg bg-blue-600 text-white hover:bg-blue-700 px-6"
-                >
-                  Save changes
-                </Button>
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="flex items-center justify-between">
+                    <FormLabel className="text-xs font-semibold uppercase tracking-wide">
+                      Notes
+                    </FormLabel>
+                    <span className="text-xs text-muted-foreground">
+                      {field.value.length}/300
+                    </span>
+                  </div>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      placeholder="Enter notes here…"
+                      disabled={!isEditable}
+                      rows={4}
+                      maxLength={300}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+            />
+          </form>
+        </Form>
 
-      {/* Toast Notifications */}
-      {showToast && (
-        <div className="fixed right-4 top-4 z-50 rounded-md border border-amber-200 bg-white px-4 py-3 shadow-lg">
-          <p className="text-sm font-semibold text-amber-700">Character limit reached</p>
-          <p className="mt-1 text-sm text-slate-600">Notes cannot exceed 300 characters.</p>
-          <button
-            type="button"
-            className="mt-2 text-xs text-amber-700"
-            onClick={() => setShowToast(false)}
-          >
-            Dismiss
-          </button>
-        </div>
-      )}
-      {showHoursToast && (
-        <div className="fixed right-4 top-24 z-50 rounded-md border border-amber-200 bg-white px-4 py-3 shadow-lg">
-          <p className="text-sm font-semibold text-amber-700">Invalid working hours</p>
-          <p className="mt-1 text-sm text-slate-600">Please enter a value between 1 and 12.</p>
-          <button
-            type="button"
-            className="mt-2 text-xs text-amber-700"
-            onClick={() => setShowHoursToast(false)}
-          >
-            Dismiss
-          </button>
-        </div>
-      )}
-    </>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          {isEditable && (
+            <Button onClick={handleFormSubmit}>Save changes</Button>
+          )}
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 };
 

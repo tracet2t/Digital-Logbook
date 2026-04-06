@@ -83,7 +83,7 @@ interface TaskCalendarProps {
 
 const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [session, setSession] = useState(null);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [role, setRole] = useState<string>("");
@@ -103,13 +103,8 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   const {
     formData,
     workingHours,
-    setWorkingHours,
     notes,
-    setNotes,
     review,
-    setReview,
-    status,
-    setStatus,
     editingEvent,
     feedbackActivityId,
     updateFormData,
@@ -126,18 +121,13 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     role,
     studentId,
     selectedUser,
-    formData,
-    workingHours,
-    notes,
-    review,
-    status,
+    formData.date,
     editingEvent,
     feedbackActivityId,
     () => {
       setTaskModalOpen(false);
-      setSelectedDate(null);
+      setSelectedDate(undefined);
       resetFormData("");
-      // Delay refetch to avoid rapid re-renders and duplicate submissions
       setTimeout(() => {
         refetchEvents();
       }, 500);
@@ -182,64 +172,51 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
 
   const handleClose = () => {
     setTaskModalOpen(false);
-    setSelectedDate(null);
+    setSelectedDate(undefined);
   };
-
-  useEffect(() => {
-    if (status === "approved" || status === "rejected") {
-      handleSubmit();
-    }
-  }, [status]);
 
   return (
     <>
       <ToastProvider>
-        <MentorTaskDetailDialog
-          taskModalOpen={taskModalOpen}
-          setTaskModalOpen={setTaskModalOpen}
-          role={role}
-          selectedUser={selectedUser || ""}
-          studentId={studentId}
-          formData={formData}
-          workingHours={workingHours}
-          setWorkingHours={setWorkingHours}
-          notes={notes}
-          setNotes={setNotes}
-          /* look down here */
-          review={review}
-          setReview={setReview}
-          setStatus={setStatus}
-          handleClose={handleClose}
-        />
-        <MentorStudentTaskDetailDialog
-          taskModalOpen={taskModalOpen}
-          setTaskModalOpen={setTaskModalOpen}
-          role={role}
-          selectedUser={selectedUser || ""}
-          studentId={studentId}
-          formData={formData}
-          workingHours={workingHours}
-          setWorkingHours={setWorkingHours}
-          notes={notes}
-          setNotes={setNotes}
-          isEditable={isEditable}
-          handleClose={handleClose}
-          handleSubmit={handleSubmit}
-        />
-        <StudentTaskDetailDialog
-          taskModalOpen={taskModalOpen}
-          setTaskModalOpen={setTaskModalOpen}
-          role={role}
-          formData={formData}
-          workingHours={workingHours}
-          setWorkingHours={setWorkingHours}
-          notes={notes}
-          review={review}
-          setNotes={setNotes}
-          isEditable={isEditable}
-          handleClose={handleClose}
-          handleSubmit={handleSubmit}
-        />
+        {taskModalOpen && role === "mentor" && selectedUser !== studentId && (
+          <MentorTaskDetailDialog
+            open={taskModalOpen}
+            date={formData.date}
+            workingHours={workingHours}
+            notes={notes}
+            onSubmit={(reviewText, status) => {
+              handleSubmit({ review: reviewText, status });
+            }}
+            onClose={handleClose}
+          />
+        )}
+        {taskModalOpen && role === "mentor" && selectedUser === studentId && (
+          <MentorStudentTaskDetailDialog
+            open={taskModalOpen}
+            date={formData.date}
+            defaultWorkingHours={workingHours}
+            defaultNotes={notes}
+            isEditable={isEditable}
+            onSubmit={(wh, n) => {
+              handleSubmit({ workingHours: wh, notes: n });
+            }}
+            onClose={handleClose}
+          />
+        )}
+        {taskModalOpen && role === "student" && (
+          <StudentTaskDetailDialog
+            open={taskModalOpen}
+            date={formData.date}
+            defaultWorkingHours={workingHours}
+            defaultNotes={notes}
+            review={review}
+            isEditable={isEditable}
+            onSubmit={(wh, n) => {
+              handleSubmit({ workingHours: wh, notes: n });
+            }}
+            onClose={handleClose}
+          />
+        )}
 
         <div className="relative w-[90vw] h-[80vh] ">
           <BigCalendar

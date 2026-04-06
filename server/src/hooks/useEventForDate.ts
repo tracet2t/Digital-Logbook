@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 
 export const useEventForDate = (
   role: string,
@@ -12,8 +11,6 @@ export const useEventForDate = (
   ) => void,
   resetFormData: (formattedDate: string) => void,
 ) => {
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
-
   const buildUrlForRole = (formattedDate: string) => {
     if (role === "student") {
       return `http://localhost:3000/api/activity?date=${formattedDate}`;
@@ -24,70 +21,76 @@ export const useEventForDate = (
     return `http://localhost:3000/api/student?date=${formattedDate}&studentId=${selectedUser}`;
   };
 
-  // Fetch event for selected date using TanStack Query
-  const { data: eventData } = useQuery<any>({
-    queryKey: ["eventForDate", selectedDate, role, studentId, selectedUser],
-    queryFn: async () => {
-      if (!selectedDate) return null;
-
-      const url = buildUrlForRole(selectedDate);
+  const mutation = useMutation({
+    mutationFn: async (formattedDate: string) => {
+      // Fetch event for the date
+      const url = buildUrlForRole(formattedDate);
       const response = await fetch(url);
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch event");
-      }
-
+      if (!response.ok) throw new Error("Failed to fetch event");
       const data = await response.json();
-      return Array.isArray(data) && data.length > 0 ? data[0] : null;
-    },
-    enabled: !!selectedDate,
-    retry: 1,
-  });
+      const eventData = Array.isArray(data) && data.length > 0 ? data[0] : null;
 
-  // Determine if feedback should be fetched
-  const shouldFetchFeedback =
-    !!eventData &&
-    ((role === "mentor" && studentId !== selectedUser) || role === "student");
+      // Fetch feedback if needed (mentor reviewing student, or student viewing own)
+      let feedbackData = null;
+      const shouldFetchFeedback =
+        (role === "mentor" && studentId !== selectedUser) || role === "student";
 
-  // Fetch feedback if needed using TanStack Query
-  const { data: feedbackData } = useQuery<any>({
-    queryKey: ["eventFeedback", eventData?.id, selectedDate],
-    queryFn: async () => {
-      if (!eventData?.id || !selectedDate) return null;
-
-      try {
-        const response = await fetch(
-          `http://localhost:3000/api/mentorFeedback?date=${selectedDate}&activityId=${eventData.id}`,
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch feedback");
+      if (shouldFetchFeedback && eventData?.id) {
+        try {
+          const feedbackResponse = await fetch(
+            `http://localhost:3000/api/mentorFeedback?date=${formattedDate}&activityId=${eventData.id}`,
+          );
+          if (feedbackResponse.ok) {
+            feedbackData = await feedbackResponse.json();
+          }
+        } catch (error) {
+          console.error("Error fetching feedback:", error);
         }
+      }
 
-        return await response.json();
-      } catch (error) {
-        console.error("Error fetching feedback:", error);
-        return null;
+      return { eventData, feedbackData, formattedDate };
+    },
+    onSuccess: ({ eventData, feedbackData, formattedDate }) => {
+      if (eventData) {
+        updateFormData(eventData, feedbackData, formattedDate);
+      } else {
+        resetFormData(formattedDate);
       }
     },
-    enabled: shouldFetchFeedback,
-    retry: 1,
+    onError: (_error, formattedDate) => {
+      console.error("Error fetching event:", _error);
+      resetFormData(formattedDate);
+    },
   });
-
-  // Update form when event or feedback data changes
-  useEffect(() => {
-    if (selectedDate) {
-      if (eventData) {
-        updateFormData(eventData, feedbackData || null, selectedDate);
-      } else if (eventData === null) {
-        resetFormData(selectedDate);
-      }
-    }
-  }, [eventData, feedbackData, selectedDate, updateFormData, resetFormData]);
 
   const fetchEventForDate = (formattedDate: string) => {
-    setSelectedDate(formattedDate);
+    // Prevent race condition where role="" causes the wrong API endpoint
+    if (!role || !studentId) return;
+    mutation.mutate(formattedDate);
   };
 
-  return { fetchEventForDate };
+  //Load already-known event object:fetches its feedback then to Update form
+
+  const loadEventDirectly = async (event: any, formattedDate: string) => {
+    let feedbackData = null;
+    const shouldFetchFeedback =
+      (role === "mentor" && studentId !== selectedUser) || role === "student";
+
+    if (shouldFetchFeedback && event?.id) {
+      try {
+        const feedbackResponse = await fetch(
+          `http://localhost:3000/api/mentorFeedback?date=${formattedDate}&activityId=${event.id}`,
+        );
+        if (feedbackResponse.ok) {
+          feedbackData = await feedbackResponse.json();
+        }
+      } catch (error) {
+        console.error("Error fetching feedback:", error);
+      }
+    }
+
+    updateFormData(event, feedbackData, formattedDate);
+  };
+
+  return { fetchEventForDate, loadEventDirectly, isLoading: mutation.isPending };
 };

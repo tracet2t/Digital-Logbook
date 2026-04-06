@@ -16,10 +16,19 @@ export class ActivityRepository extends BaseRepository<Activity> {
   }
 
   async findByStudentId(studentId: string, date?: Date) {
+    // Use a date-range filter (start of day → start of next day) instead of exact
+    // DateTime equality to avoid timezone edge cases.
+    const dateFilter = date
+      ? {
+          gte: new Date(date.toISOString().slice(0, 10) + "T00:00:00.000Z"),
+          lt: new Date(date.toISOString().slice(0, 10) + "T23:59:59.999Z"),
+        }
+      : undefined;
+
     return this.modelClient.findMany({
       where: {
         studentId,
-        ...(date && { date }),
+        ...(dateFilter && { date: dateFilter }),
       },
       include: {
         feedback: {
@@ -38,25 +47,34 @@ export class ActivityRepository extends BaseRepository<Activity> {
     timeSpent: number,
     notes: string,
   ) {
+    // Do NOT pass `status` here — the column has DEFAULT 'pending' at the DB level.
+    // Passing it would throw PrismaClientValidationError until `prisma generate`
+    // is re-run after the 20260329124601_add_activity_status migration.
     return this.modelClient.create({
       data: {
         studentId,
         date,
         timeSpent,
         notes,
-        status: "pending",
       },
     });
   }
 
   /**
-   * Update activity status when mentor accepts/rejects
+   * Update activity status when mentor accepts/rejects.
+   * Uses a cast through unknown because the Prisma client was generated before
+   * the ActivityStatus migration — safe to remove cast after `prisma generate`.
    */
   async updateActivityStatus(
     id: string,
     status: "accepted" | "rejected" | "pending",
   ) {
-    return this.modelClient.update({
+    type UpdateFn = (args: {
+      where: { id: string };
+      data: { status: string };
+    }) => Promise<Record<string, unknown>>;
+
+    return (prisma.activity as unknown as { update: UpdateFn }).update({
       where: { id },
       data: { status },
     });
@@ -195,13 +213,21 @@ export class ActivityRepository extends BaseRepository<Activity> {
   }
 
   async getStudentFeedbacks(studentId: string, date?: string) {
+    const dateFilter = date
+      ? {
+          gte: new Date(date.slice(0, 10) + "T00:00:00.000Z"),
+          lt: new Date(date.slice(0, 10) + "T23:59:59.999Z"),
+        }
+      : undefined;
+
     return this.modelClient.findMany({
       where: {
         studentId: studentId,
-        ...(date && { date: new Date(date) }),
+        ...(dateFilter && { date: dateFilter }),
       },
       include: {
         feedback: {
+          orderBy: { createdAt: "asc" },
           select: {
             status: true,
             feedbackNotes: true,

@@ -1,9 +1,9 @@
 'use client';
 
-import { Button } from '@/components/ui/button'; 
+import { Button } from '@/components/ui/button';
 import React, { useState, useEffect } from 'react';
 import { getSessionOnClient } from "@/server_actions/getSession";
-import TaskCalendar from "@/components/calendar";
+import RsuiteCalendar from "@/components/rsuiteCalendar";
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -27,7 +27,7 @@ const StudentPage: React.FC = () => {
           setSession(data);
           setMentorName(`${data.fname} ${data.lname}`);
           setMentorId(data.id);
-          setSelectedUser(data.id); 
+          setSelectedUser(data.id);
         }
       })
       .catch((error) => {
@@ -81,7 +81,7 @@ const StudentPage: React.FC = () => {
                   {session ? session.email : 'Loading...'}
                 </p>
               </div>
-              
+
               {/* Logout Button */}
               <form action="/api/logout" method="post" className="mt-4">
                 <Button variant="blue" className="w-full border-black">Logout</Button>
@@ -95,7 +95,7 @@ const StudentPage: React.FC = () => {
         {/* Center the calendar with rounded corners */}
         <div className="bg-white p-4 rounded-xl shadow-lg w-full max-w-[95vw] min-h-[60vh]">
           <div className="flex justify-center items-center w-full">
-            <TaskCalendar selectedUser={selectedUser || ""}/>
+            <RsuiteCalendar selectedUser={selectedUser || ""} />
           </div>
         </div>
       </div>

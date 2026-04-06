@@ -1,108 +1,70 @@
 "use client";
 
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { useQuery } from "@tanstack/react-query";
+import React, { useCallback, useMemo, useState } from "react";
 
-import { getSessionOnClient } from "@/server_actions/getSession";
-import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation"; // Import useRouter hook
+import RsuiteCalendar from "@/app/mentor/calendar/RsuiteCalendar";
+import { useRouter } from "next/navigation";
 
+import { useSession } from "@/hooks/core/useSession";
 import {
   useMentorProjects,
   useProjectStudents,
 } from "@/hooks/mentor/useMentorFilter";
 import { Button } from "@/components/ui/button";
-// Adjust import path if necessary
 import { GenericCombobox } from "@/components/mentor/combobox";
 
-const RsuiteCalendar = dynamic(
-  () => import("@/app/mentor/calendar/RsuiteCalendar"),
-  {
-    ssr: false,
-  },
-);
-
 const MentorDashboard = () => {
-  const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  // User-selected overrides (null = use default from query data)
+  const [selectedUserOverride, setSelectedUser] = useState<string | null>(null);
   const [toast, setToast] = useState<{
     title: string;
     description: string;
   } | null>(null);
 
-  const [selectedProject, setSelectedProject] = useState<string | null>(null);
-  const [projectStudents, setProjectStudents] = useState<
-    { id: string; name: string }[]
-  >([]);
-  const prevStudentsRef = useRef<{ id: string; name: string }[]>([]);
+  const [selectedProjectOverride, setSelectedProject] = useState<string | null>(
+    null,
+  );
 
   // TanStack Query hooks
   const { data: mentorProjects = [], isLoading: projectsLoading } =
     useMentorProjects();
-  const { data: fetchedStudents = [] } = useProjectStudents(selectedProject);
 
-  const router = useRouter(); // Initialize router
+  // Shared session hook — cached across all components
+  const { data: sessionData } = useSession();
 
-  // Fetch Mentor Session Data with useQuery
-  const { data: sessionData } = useQuery({
-    queryKey: ["session"],
-    queryFn: async () => {
-      const data = await getSessionOnClient();
-      return data;
-    },
-  });
-
+  //to filter mentor from the session
   const session = sessionData || null;
   const mentorName = sessionData
     ? `${sessionData.fname} ${sessionData.lname}`
     : null;
   const mentorId = sessionData?.id || null;
 
-  // Initialize selected user with mentor ID
-  useEffect(() => {
-    if (mentorId && !selectedUser) setSelectedUser(mentorId);
-  }, [mentorId]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Derive effective values — defaults from query data, overridden by user selection.
+  // Eliminates the cascading useEffect init chain.
+  const selectedUser = selectedUserOverride ?? mentorId;
+  const selectedProject =
+    selectedProjectOverride ?? mentorProjects[0]?.id ?? null;
 
-  // Auto-select first project when mentor projects load
-  useEffect(() => {
-    if (mentorProjects.length > 0 && !selectedProject) {
-      setSelectedProject(mentorProjects[0].id);
-    }
-  }, [mentorProjects]); // eslint-disable-line react-hooks/exhaustive-deps
+  const { data: fetchedStudents = [] } = useProjectStudents(selectedProject);
 
-  // Update project students list when fetched students change
-  useEffect(() => {
-    if (selectedProject && mentorId) {
-      const mentorDisplay =
-        mentorName && mentorName.trim().length > 0 ? mentorName : "Mentor";
-      const newStudents = [
-        { id: mentorId, name: mentorDisplay },
-        ...fetchedStudents,
-      ];
+  const router = useRouter();
 
-      // Only update if data actually changed
-      if (
-        JSON.stringify(prevStudentsRef.current) !== JSON.stringify(newStudents)
-      ) {
-        setProjectStudents(newStudents);
-        prevStudentsRef.current = newStudents;
-      }
-    }
+  // Derive project students list from fetched data (replaces useEffect + useState)
+  const projectStudents = useMemo(() => {
+    if (!selectedProject || !mentorId) return [];
+    const mentorDisplay =
+      mentorName && mentorName.trim().length > 0 ? mentorName : "Mentor";
+    return [
+      { id: "all-mentees", name: "All Mentees" },
+      { id: mentorId, name: mentorDisplay },
+      ...fetchedStudents,
+    ];
   }, [selectedProject, fetchedStudents, mentorId, mentorName]);
 
-  // Reset function to clear filters
+  // Reset function — clearing overrides to null falls back to derived defaults
   const handleResetStudent = () => {
-    if (mentorId) {
-      setSelectedUser(mentorId);
-    }
-    if (mentorProjects.length > 0) {
-      setSelectedProject(mentorProjects[0].id);
-    }
+    setSelectedUser(null);
+    setSelectedProject(null);
   };
 
   // Memoized selected objects — prevents new reference on every render
@@ -291,7 +253,10 @@ const MentorDashboard = () => {
               {/* Calendar Card Component */}
               <div className="rounded-2xl border border-slate-200 bg-white p-2 md:p-3 w-full flex-1 min-h-0 overflow-hidden flex flex-col">
                 <div className="flex-1 min-h-0">
-                  <RsuiteCalendar selectedUser={selectedUser || ""} />
+                  <RsuiteCalendar
+                    selectedUser={selectedUser || ""}
+                    allMentees={fetchedStudents}
+                  />
                 </div>
               </div>
             </div>
