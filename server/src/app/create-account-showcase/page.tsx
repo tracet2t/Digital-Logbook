@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +25,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useOnboarding } from "@/hooks/onboarding/useOnboarding";
 
 const formSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters."),
@@ -45,7 +45,7 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 export default function CreateAccountShowcasePage() {
-  const router = useRouter();
+  const onboardingMutation = useOnboarding();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -58,9 +58,9 @@ export default function CreateAccountShowcasePage() {
     },
   });
 
-  const handleSubmit = (values: FormData) => {
-    // UI showcase only.
-    console.log("Create account showcase payload", values);
+  const handleSubmit = async (values: FormData) => {
+    await onboardingMutation.mutateAsync(values);
+    form.reset();
   };
 
   return (
@@ -250,9 +250,10 @@ export default function CreateAccountShowcasePage() {
                 <div className="space-y-4 pt-4">
                   <Button
                     type="submit"
+                    disabled={onboardingMutation.isPending}
                     className="h-12 w-full rounded-md bg-[#0a0d7a] text-[14px] font-bold uppercase tracking-[0.08em] text-white hover:bg-[#080a5f]"
                   >
-                    Create Mentee
+                    {onboardingMutation.isPending ? "Submitting..." : "Create Mentee"}
                   </Button>
                 </div>
               </form>
