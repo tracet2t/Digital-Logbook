@@ -20,6 +20,11 @@ import "@/styles/rsuiteCalendar.css";
 import MentorStudentTaskDetailDialog from "@/components/mentorStudentTaskDetailDialog";
 import MentorTaskDetailDialog from "@/components/mentorTaskDetailDialog";
 import StudentTaskDetailDialog from "@/components/studentTaskDetailDialog";
+import {
+  MenteeAvatarCell,
+  MenteeTaskTable,
+  type MenteeTaskRow,
+} from "@/app/mentor/calendar/AllMenteesCalendarView";
 
 interface CalendarEvent {
   id: string;
@@ -37,9 +42,10 @@ interface CalendarEvent {
 
 interface RsuiteCalendarProps {
   selectedUser?: string;
+  allMentees?: { id: string; name: string }[];
 }
 
-export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
+export default function RsuiteCalendar({ selectedUser, allMentees }: RsuiteCalendarProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [mounted, setMounted] = useState(false);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
@@ -49,6 +55,10 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
     description: string;
   } | null>(null);
 
+  // All-mentees table state
+  const [allMenteesTableDate, setAllMenteesTableDate] = useState<string | null>(null);
+  const [allMenteesTableMenteeId, setAllMenteesTableMenteeId] = useState<string | null>(null);
+
   // Shared session hook — cached across all components
   const { data: sessionData } = useSession();
 
@@ -56,7 +66,7 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
   const role = sessionData?.role || "";
 
   // Custom hooks
-  const { events } = useCalendarEvents(studentId, role, selectedUser || "");
+  const { events } = useCalendarEvents(studentId, role, selectedUser || "", allMentees);
 
   const {
     formData,
@@ -69,7 +79,7 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
     resetFormData,
   } = useFormData();
 
-  const { fetchEventForDate, isLoading: isEventLoading } = useEventForDate(
+  const { fetchEventForDate, loadEventDirectly, isLoading: isEventLoading } = useEventForDate(
     role,
     studentId,
     selectedUser || "",
@@ -122,8 +132,42 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
     handleDateClick(date);
   };
 
-  //to open model when date is clicked
+  // Avatar click: show filtered table for that mentee
+  const handleAvatarClick = (menteeId: string, dateKey: string) => {
+    setAllMenteesTableDate(dateKey);
+    setAllMenteesTableMenteeId(menteeId);
+  };
+
+  //to open model when date is clicked — always opens a new task dialog
   const handleDateClick = (date: Date) => {
+    const formattedDate = moment(date).format("YYYY-MM-DD");
+
+    if (selectedUser === "all-mentees") {
+      setAllMenteesTableDate(formattedDate);
+      setAllMenteesTableMenteeId(null);
+      return;
+    }
+
+    const today = moment().startOf("day");
+    const dayBeforeYesterday = moment().subtract(2, "days").startOf("day");
+
+    if (
+      moment(date).isSame(today, "day") ||
+      moment(date).isBetween(dayBeforeYesterday, today, "day", "[]")
+    ) {
+      setIsEditable(true);
+    } else {
+      setIsEditable(false);
+    }
+
+    // Cell click always opens a blank new task dialog
+    resetFormData(formattedDate);
+    setTaskModalOpen(true);
+  };
+
+  // Load a specific task when clicking its pill
+  const handleEventClick = async (event: CalendarEvent, date: Date) => {
+    if (selectedUser === "all-mentees") return;
     const formattedDate = moment(date).format("YYYY-MM-DD");
 
     const today = moment().startOf("day");
@@ -138,7 +182,8 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
       setIsEditable(false);
     }
 
-    fetchEventForDate(formattedDate);
+    // Wait for event data before opening modal so form defaultValues are correct
+    await loadEventDirectly(event, formattedDate);
     setTaskModalOpen(true);
   };
 
@@ -147,10 +192,48 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
     setSelectedDate(null);
   };
 
+  // Table rows for all-mentees table
+  const tableRows = useMemo<MenteeTaskRow[]>(() => {
+    if (!allMenteesTableDate || selectedUser !== "all-mentees") return [];
+    const dayEvents = events.filter(
+      (e) => moment(e.start).format("YYYY-MM-DD") === allMenteesTableDate,
+    );
+    const filteredEvents = allMenteesTableMenteeId
+      ? dayEvents.filter((e) => e.studentId === allMenteesTableMenteeId)
+      : dayEvents;
+    return filteredEvents.map((e) => {
+      const mentee = allMentees?.find((m) => m.id === e.studentId);
+      return {
+        name: mentee?.name ?? "Unknown",
+        task: e.title || "No Title",
+        status: e.status,
+        activityId: e.id,
+        studentId: e.studentId,
+        timeSpent: e.timeSpent ?? 0,
+        date: moment(e.start).format("YYYY-MM-DD"),
+      };
+    });
+  }, [allMenteesTableDate, allMenteesTableMenteeId, events, allMentees, selectedUser]);
+
   // Custom cell renderer to show events with grid layout
   const renderCell = (date: Date) => {
     const dateKey = moment(date).format("YYYY-MM-DD");
     const dateEvents = eventsByDate[dateKey] || [];
+
+    // All-mentees mode: show one avatar per mentee with tasks
+    if (selectedUser === "all-mentees") {
+      const uniqueMenteeIds = [
+        ...new Set(dateEvents.map((e) => e.studentId).filter(Boolean)),
+      ];
+      return (
+        <MenteeAvatarCell
+          dateKey={dateKey}
+          menteeIds={uniqueMenteeIds}
+          allMentees={allMentees ?? []}
+          onAvatarClick={handleAvatarClick}
+        />
+      );
+    }
 
     return (
       <div className="w-full flex flex-col gap-1 pt-1">
@@ -165,18 +248,38 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
                 color: styling.style.color,
               }}
               title={event.title}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEventClick(event, date);
+              }}
             >
               {event.title}
             </div>
           );
         })}
-        {dateEvents.length > 3 && (
-          <div className="text-xs px-2 py-1 text-gray-500 font-medium">
-            +{dateEvents.length - 3} more
-          </div>
-        )}
       </div>
     );
+  };
+
+  const selectedMenteeName = allMenteesTableMenteeId
+    ? (allMentees?.find((m) => m.id === allMenteesTableMenteeId)?.name ?? "Mentee")
+    : null;
+
+  // Row click in all-mentees table — load event and open MentorTaskDetailDialog
+  const handleTableRowClick = async (row: MenteeTaskRow) => {
+    const syntheticEvent = {
+      id: row.activityId,
+      title: row.task,
+      start: new Date(row.date),
+      end: new Date(row.date),
+      createdAt: new Date(),
+      studentId: row.studentId,
+      timeSpent: row.timeSpent,
+      notes: row.task,
+      status: row.status,
+    };
+    await loadEventDirectly(syntheticEvent, row.date);
+    setTaskModalOpen(true);
   };
 
   return (
@@ -194,6 +297,20 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
             />
           )}
         </div>
+
+        {/* All-mentees task table */}
+        {allMenteesTableDate && selectedUser === "all-mentees" && (
+          <MenteeTaskTable
+            date={allMenteesTableDate}
+            selectedMenteeName={selectedMenteeName}
+            tableRows={tableRows}
+            onRowClick={handleTableRowClick}
+            onClose={() => {
+              setAllMenteesTableDate(null);
+              setAllMenteesTableMenteeId(null);
+            }}
+          />
+        )}
 
         {/* Task Detail Dialogs - only mount after event data is loaded */}
         {taskModalOpen &&

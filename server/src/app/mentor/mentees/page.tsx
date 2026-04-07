@@ -2,24 +2,10 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 
-import {
-  Award,
-  Circle,
-  Search,
-  Star,
-  Users,
-  Zap,
-} from "lucide-react";
+import { Award, Circle, Search, Star, Users, Zap } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -87,7 +73,9 @@ export default function MenteesPage() {
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [selectedDialogRow, setSelectedDialogRow] = useState<MenteeRow | null>(null);
+  const [selectedDialogRow, setSelectedDialogRow] = useState<MenteeRow | null>(
+    null,
+  );
   const [refetchKey, setRefetchKey] = useState(0);
 
   useEffect(() => {
@@ -239,85 +227,97 @@ export default function MenteesPage() {
                 <TableBody>
                   {isLoading && (
                     <TableRow>
-                      <TableCell colSpan={4} className="p-8 text-center text-sm text-slate-500">
+                      <TableCell
+                        colSpan={4}
+                        className="p-8 text-center text-sm text-slate-500"
+                      >
                         Loading mentees…
                       </TableCell>
                     </TableRow>
                   )}
                   {!isLoading && fetchError && (
                     <TableRow>
-                      <TableCell colSpan={4} className="p-8 text-center text-sm text-red-500">
+                      <TableCell
+                        colSpan={4}
+                        className="p-8 text-center text-sm text-red-500"
+                      >
                         {fetchError}
                       </TableCell>
                     </TableRow>
                   )}
                   {!isLoading && !fetchError && visibleRows.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={4} className="p-8 text-center text-sm text-slate-500">
+                      <TableCell
+                        colSpan={4}
+                        className="p-8 text-center text-sm text-slate-500"
+                      >
                         No mentees found for this selection.
                       </TableCell>
                     </TableRow>
                   )}
-                  {!isLoading && !fetchError && visibleRows.map((row) => (
-                    <TableRow
-                      key={`${row.id}-${row.projectId}`}
-                      className="cursor-pointer hover:bg-slate-50 border-b border-[#e4e7ed]"
-                      onClick={() => setSelectedDialogRow(row)}
-                    >
-                      {/* Identity */}
-                      <TableCell className="px-5 py-4">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10 shrink-0 border border-[#d9dde5] bg-[#f5f7fb]">
-                            <AvatarFallback className="bg-[#e9edf5] text-xs font-bold text-[#0f1730]">
-                              {getInitials(row.name)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="min-w-0">
-                            <p className="truncate text-[17px] font-extrabold leading-tight text-[#111827]">
-                              {row.name}
-                            </p>
-                            <p className="mt-0.5 truncate text-[11px] font-bold uppercase tracking-wide text-slate-500">
-                              Project: {row.projectName}
-                            </p>
+                  {!isLoading &&
+                    !fetchError &&
+                    visibleRows.map((row) => (
+                      <TableRow
+                        key={`${row.id}-${row.projectId}`}
+                        className="cursor-pointer hover:bg-slate-50 border-b border-[#e4e7ed]"
+                        onClick={() => setSelectedDialogRow(row)}
+                      >
+                        {/* Identity */}
+                        <TableCell className="px-5 py-4">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10 shrink-0 border border-[#d9dde5] bg-[#f5f7fb]">
+                              <AvatarFallback className="bg-[#e9edf5] text-xs font-bold text-[#0f1730]">
+                                {getInitials(row.name)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="min-w-0">
+                              <p className="truncate text-[17px] font-extrabold leading-tight text-[#111827]">
+                                {row.name}
+                              </p>
+                              <p className="mt-0.5 truncate text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                                Project: {row.projectName}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      </TableCell>
+                        </TableCell>
 
-                      {/* Working hours */}
-                      <TableCell className="py-4">
-                        <p className="text-xl font-extrabold text-[#0b1459]">
-                          {row.workingHours}h
-                        </p>
-                        <p className="text-[10px] font-bold uppercase text-slate-500">
-                          Total
-                        </p>
-                      </TableCell>
+                        {/* Working hours */}
+                        <TableCell className="py-4">
+                          <p className="text-xl font-extrabold text-[#0b1459]">
+                            {row.workingHours}h
+                          </p>
+                          <p className="text-[10px] font-bold uppercase text-slate-500">
+                            Total
+                          </p>
+                        </TableCell>
 
-                      {/* Badges */}
-                      <TableCell className="py-4 text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          <BadgeIcon count={row.badgeCount} />
-                          {row.badgeCount > 0 && (
-                            <span className="text-xs font-bold text-[#0b1459]">
-                              {row.badgeCount}
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
+                        {/* Badges */}
+                        <TableCell className="py-4 text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <BadgeIcon count={row.badgeCount} />
+                            {row.badgeCount > 0 && (
+                              <span className="text-xs font-bold text-[#0b1459]">
+                                {row.badgeCount}
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
 
-                      {/* Status */}
-                      <TableCell className="py-4 text-center">
-                        <span
-                          className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-bold ${row.isActive
-                            ? "bg-emerald-100 text-emerald-700"
-                            : "bg-slate-200 text-slate-600"
+                        {/* Status */}
+                        <TableCell className="py-4 text-center">
+                          <span
+                            className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-bold ${
+                              row.isActive
+                                ? "bg-emerald-100 text-emerald-700"
+                                : "bg-slate-200 text-slate-600"
                             }`}
-                        >
-                          {row.isActive ? "ACTIVE" : "INACTIVE"}
-                        </span>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                          >
+                            {row.isActive ? "ACTIVE" : "INACTIVE"}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
                 </TableBody>
               </Table>
 
@@ -338,30 +338,18 @@ export default function MenteesPage() {
       </div>
 
       {/* Profile View Dialog */}
-      <Dialog
-        open={selectedDialogRow !== null}
-        onOpenChange={(open) => { if (!open) setSelectedDialogRow(null); }}
-      >
-        <DialogContent className="max-w-5xl w-full p-0">
-          {selectedDialogRow && (
-            <Suspense>
-              <MenteeProfileView
-                key={`${selectedDialogRow.id}-${selectedDialogRow.projectId}`}
-                initialStudentId={selectedDialogRow.id}
-                initialProjectId={selectedDialogRow.projectId}
-                onAllocationChange={() => setRefetchKey((k) => k + 1)}
-              />
-            </Suspense>
-          )}
-          <DialogFooter className="px-6 pb-5 pt-2">
-            <DialogClose asChild>
-              <Button variant="outline" className="min-w-[100px]">
-                Close
-              </Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {selectedDialogRow && (
+        <Suspense>
+          <MenteeProfileView
+            key={`${selectedDialogRow.id}-${selectedDialogRow.projectId}`}
+            initialStudentId={selectedDialogRow.id}
+            initialProjectId={selectedDialogRow.projectId}
+            onAllocationChange={() => setRefetchKey((k) => k + 1)}
+            isOpen={selectedDialogRow !== null}
+            onClose={() => setSelectedDialogRow(null)}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }

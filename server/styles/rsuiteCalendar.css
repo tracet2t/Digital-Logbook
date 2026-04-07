@@ -3,7 +3,8 @@
     vertical-align: top !important;
 }
 .rs-calendar-table-cell-content {
-    height: 90px !important;
+    min-height: 90px !important;
+    height: auto !important;
     padding: 4px 6px !important;
     display: flex !important;
     flex-direction: column !important;

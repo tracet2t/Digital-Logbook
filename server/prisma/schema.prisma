@@ -249,3 +249,24 @@ enum TimeAllocationStatus {
   accepted
   rejected
 }
+
+model MenteeApplication {
+  id            String                    @id @default(uuid())
+  fullName      String
+  email         String                    @unique
+  university    String
+  degreeProgram String
+  cvLink        String
+  status        MenteeApplicationStatus   @default(pending)
+
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+
+  @@map("menteeApplications")
+}
+
+enum MenteeApplicationStatus {
+  pending
+  approved
+  rejected
+}

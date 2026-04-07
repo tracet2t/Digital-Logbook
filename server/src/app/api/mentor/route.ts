@@ -48,6 +48,11 @@ export const POST = async (req: NextRequest) => {
             return NextResponse.json({ message: "Invalid input data" }, { status: 400 });
         }
 
+        const existingActivities = await mentorRepository.getMentorActivities(userId, new Date(date));
+        if (existingActivities.length >= 3) {
+            return NextResponse.json({ message: "Only 3 tasks can be added per day" }, { status: 400 });
+        }
+
         const newMentorActivity = await mentorRepository.createMentorActivity({
             mentorId: userId,
             date: new Date(date),

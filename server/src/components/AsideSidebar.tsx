@@ -68,7 +68,11 @@ function LogoHeader({
   const logoSrc = collapsed ? logo.collapsed : logo.expanded;
   return (
     <SidebarHeader className="p-0 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:items-center">
-      <div className="flex items-center justify-between group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:py-2">
+      <div
+        className={`flex items-center justify-between group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:py-2 ${
+          collapsed ? "" : "pt-2 pl-2"
+        }`}
+      >
         <Image
           src={logoSrc.src}
           alt="Digital Logbook"
@@ -98,7 +102,7 @@ function NavMenu({
   menu: MenuItem[];
 }) {
   return (
-    <SidebarContent>
+    <SidebarContent className="flex-1 overflow-auto">
       <SidebarGroup className="group-data-[collapsible=icon]:px-3">
         <SidebarGroupLabel className="text-[#737373] text-[11px] font-bold tracking-[0.1em] uppercase">
           Main Menu
@@ -155,7 +159,10 @@ export default function AsideSidebar({ menu, logo }: AsideSidebarProps) {
   };
 
   return (
-    <Sidebar collapsible="icon" className="relative">
+    <Sidebar
+      collapsible="icon"
+      className="sticky top-0 left-0 flex h-svh flex-col"
+    >
       <LogoHeader collapsed={collapsed} logo={logo} />
       <NavMenu
         pathname={pathname}
@@ -163,7 +170,11 @@ export default function AsideSidebar({ menu, logo }: AsideSidebarProps) {
         collapsed={collapsed}
         menu={menu}
       />
-      {user && <UserDropdown user={user} onNavigate={navigate} />}
+      {user && (
+        <div className="sticky bottom-0 left-0 bg-sidebar">
+          <UserDropdown user={user} onNavigate={navigate} />
+        </div>
+      )}
       <SidebarRail />
     </Sidebar>
   );
