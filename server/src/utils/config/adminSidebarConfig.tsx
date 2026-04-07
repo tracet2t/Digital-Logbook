@@ -4,6 +4,7 @@ import {
   FolderOpen,
   LayoutDashboard,
   Mail,
+  UserCheck,
   Users,
 } from "lucide-react";
 
@@ -12,6 +13,11 @@ import { LogoConfig, MenuItem } from "@/components/AsideSidebar";
 export const ADMIN_MENU_ITEMS: MenuItem[] = [
   { label: "Dashboard", icon: <LayoutDashboard size={18} />, href: "/admin" },
   { label: "Users", icon: <Users size={18} />, href: "/admin/users" },
+  {
+    label: "Onboarding",
+    icon: <UserCheck size={18} />,
+    href: "/admin/onboarding",
+  },
   { label: "Invitations", icon: <Mail size={18} />, href: "/admin/invitation" },
   {
     label: "Projects",
