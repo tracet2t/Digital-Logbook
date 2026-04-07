@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+
 import BaseRepository from "./baseRepository";
 
 type MenteeApplication = any;
@@ -12,7 +13,7 @@ type MenteeApplicationStatus = "pending" | "approved" | "rejected";
 
 export class OnboardingRepository extends BaseRepository<MenteeApplication> {
   constructor() {
-    super((prisma as any).menteeApplication);
+    super(prisma.menteeApplication);
   }
 
   /**
