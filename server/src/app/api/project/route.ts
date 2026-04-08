@@ -1,7 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import getSession from "@/server_actions/getSession";
 import { ProjectRepository } from "@/repositories/project_repository_impl";
-
+import getSession from "@/server_actions/getSession";
+import { NextRequest, NextResponse } from "next/server";
 
 const projectRepo = new ProjectRepository();
 
@@ -56,8 +55,7 @@ export async function POST(req: NextRequest) {
     if (userRole !== "superAdmin") {
       return NextResponse.json(
         {
-          message:
-            "Forbidden - Only super admins  can create projects",
+          message: "Forbidden - Only super admins  can create projects",
         },
         { status: 403 },
       );
@@ -103,7 +101,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     const userRole = session.getRole();
-    if (userRole !== "superAdmin" ) {
+    if (userRole !== "superAdmin") {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 

@@ -82,6 +82,7 @@ export const useUpdateOnboardingStatus = () => {
 export interface ApplicationAllocation {
   applicationId: string;
   projectId: string;
+  assignedAt: string;
 }
 
 export const useProjectApplicationAllocations = () => {
@@ -186,6 +187,124 @@ export const useUnassignMentee = () => {
     },
     onError: (error) => {
       toast.error(error.message || "Failed to remove mentee from project");
+    },
+  });
+};
+
+export const useUnassignedMentors = () => {
+  return useQuery<OnboardingApplication[]>({
+    queryKey: ["mentors"],
+    queryFn: async () => {
+      const response = await fetch("/api/onboarding/mentors", {
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || "Failed to fetch mentors");
+      }
+
+      return response.json();
+    },
+  });
+};
+
+// ---------------------------------------------------------------------------
+// Mentor allocation hooks
+// ---------------------------------------------------------------------------
+
+export interface MentorAllocation {
+  mentorId: string;
+  projectId: string;
+  assignedAt: string;
+}
+
+export const useMentorAllocations = () => {
+  return useQuery<MentorAllocation[]>({
+    queryKey: ["mentor-allocations"],
+    queryFn: async () => {
+      const response = await fetch("/api/onboarding/mentors/assign", {
+        cache: "no-store",
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(
+          errorData?.message || "Failed to fetch mentor allocations",
+        );
+      }
+      return response.json();
+    },
+  });
+};
+
+export const useAssignMentorToProject = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    { message: string; data: unknown },
+    Error,
+    { mentorId: string; projectId: string }
+  >({
+    mutationFn: async ({ mentorId, projectId }) => {
+      const response = await fetch("/api/onboarding/mentors/assign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mentorId, projectId }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(
+          errorData?.message || "Failed to assign mentor to project",
+        );
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      toast.success("Mentor assigned to project.");
+      queryClient.invalidateQueries({ queryKey: ["mentors"] });
+      queryClient.invalidateQueries({ queryKey: ["mentor-allocations"] });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to assign mentor to project");
+    },
+  });
+};
+
+export const useUnassignMentor = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    { message: string },
+    Error,
+    { mentorId: string; projectId: string }
+  >({
+    mutationFn: async ({ mentorId, projectId }) => {
+      const response = await fetch("/api/onboarding/mentors/assign", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mentorId, projectId }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(
+          errorData?.message || "Failed to remove mentor from project",
+        );
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      toast.success("Mentor removed from project.");
+      queryClient.invalidateQueries({ queryKey: ["mentors"] });
+      queryClient.invalidateQueries({ queryKey: ["mentor-allocations"] });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to remove mentor from project");
     },
   });
 };

@@ -58,10 +58,16 @@ export async function GET(_req: NextRequest) {
       .map((a) => ({
         applicationId: emailToAppId.get(a.student.email),
         projectId: a.projectId,
+        assignedAt: a.assignedAt.toISOString(),
       }))
       .filter(
-        (a): a is { applicationId: string; projectId: string } =>
-          !!a.applicationId,
+        (
+          a,
+        ): a is {
+          applicationId: string;
+          projectId: string;
+          assignedAt: string;
+        } => !!a.applicationId,
       );
 
     return NextResponse.json(result, { status: 200 });

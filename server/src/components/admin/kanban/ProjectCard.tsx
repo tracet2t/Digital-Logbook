@@ -1,7 +1,10 @@
 "use client";
 
 import { useDroppable } from "@dnd-kit/core";
-import { Briefcase, MoreHorizontal, UserX } from "lucide-react";
+import {
+  Briefcase,
+  UserX,
+} from "lucide-react";
 
 import { OnboardingApplication } from "@/hooks/admin/useAdminOnboarding";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -45,13 +48,8 @@ export function ProjectCard({
         >
           <Briefcase className="h-4 w-4" />
         </div>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className="text-slate-200 hover:text-slate-400"
-        >
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
+
+
       </div>
 
       <h4 className="mb-1 text-sm font-black uppercase tracking-tight text-[#000053]">

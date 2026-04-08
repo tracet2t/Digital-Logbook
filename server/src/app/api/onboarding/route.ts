@@ -1,8 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
-import { Role } from "@prisma/client";
-
 import { OnboardingRepository } from "@/repositories/onboarding_repository_impl";
 import getSession from "@/server_actions/getSession";
+import { Role } from "@prisma/client";
+import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +24,9 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     const fullName = String(body?.fullName ?? "").trim();
-    const email = String(body?.email ?? "").trim().toLowerCase();
+    const email = String(body?.email ?? "")
+      .trim()
+      .toLowerCase();
     const university = String(body?.university ?? "").trim();
     const degreeProgram = String(body?.degreeProgram ?? "").trim();
     const cvLink = String(body?.cvLink ?? "").trim();
@@ -65,7 +66,10 @@ export async function POST(req: NextRequest) {
     );
   } catch (error) {
     console.error("Error creating onboarding application:", error);
-    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
 
@@ -143,10 +147,11 @@ export async function GET(req: NextRequest) {
         );
       }
 
-      const applications = await onboardingRepository.getApplicationsByDateRange(
-        new Date(startDate),
-        new Date(endDate),
-      );
+      const applications =
+        await onboardingRepository.getApplicationsByDateRange(
+          new Date(startDate),
+          new Date(endDate),
+        );
       return NextResponse.json(applications, { status: 200 });
     }
 
@@ -156,7 +161,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(applications, { status: 200 });
   } catch (error) {
     console.error("Error fetching onboarding applications:", error);
-    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
 
@@ -173,7 +181,9 @@ export async function PATCH(req: NextRequest) {
 
     const body = await req.json();
     const id = String(body?.id ?? "").trim();
-    const status = String(body?.status ?? "").trim().toLowerCase();
+    const status = String(body?.status ?? "")
+      .trim()
+      .toLowerCase();
 
     if (!id || !status) {
       return NextResponse.json(
@@ -181,14 +191,12 @@ export async function PATCH(req: NextRequest) {
         { status: 400 },
       );
     }
-
     if (!isAllowedStatus(status)) {
       return NextResponse.json(
         { message: "Invalid status. Use pending, approved, or rejected" },
         { status: 400 },
       );
     }
-
     const existing = await onboardingRepository.getApplicationById(id);
     if (!existing) {
       return NextResponse.json(
@@ -198,16 +206,15 @@ export async function PATCH(req: NextRequest) {
     }
 
     const application = await onboardingRepository.updateStatus(id, status);
-
     return NextResponse.json(
-      {
-        message: "Application status updated successfully",
-        application,
-      },
+      { message: "Application status updated successfully", application },
       { status: 200 },
     );
   } catch (error) {
     console.error("Error updating onboarding application:", error);
-    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
