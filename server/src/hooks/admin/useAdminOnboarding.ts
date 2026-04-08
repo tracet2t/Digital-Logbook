@@ -104,6 +104,7 @@ export const useProjectApplicationAllocations = () => {
 
 export interface AssignMenteeResult {
   message: string;
+  invitationSent: boolean;
   user: {
     id: string;
     email: string;
@@ -139,7 +140,12 @@ export const useAssignMenteeToProject = () => {
 
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      if (data.invitationSent) {
+        toast.success("Mentee assigned to project. Invitation email sent.");
+      } else {
+        toast.success("Mentee assigned to project.");
+      }
       queryClient.invalidateQueries({ queryKey: ["onboarding-applications"] });
       queryClient.invalidateQueries({ queryKey: ["projects"] });
     },

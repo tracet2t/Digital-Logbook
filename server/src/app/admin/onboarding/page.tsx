@@ -11,13 +11,7 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import {
-  CheckCircle2,
-  Plus,
-  UserCheck,
-  UserRound,
-  XCircle,
-} from "lucide-react";
+import { CheckCircle2, Plus, UserCheck, UserRound } from "lucide-react";
 
 import {
   OnboardingApplication,
@@ -26,13 +20,31 @@ import {
   useProjectApplicationAllocations,
   useUnassignMentee,
 } from "@/hooks/admin/useAdminOnboarding";
-import { useGetProjects } from "@/hooks/projects";
+import { useCreateProject, useGetProjects } from "@/hooks/projects";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import { AdminPageLayout, PageHeader } from "@/components/admin";
 import {
   ApplicantDialog,
@@ -55,6 +67,12 @@ export default function AdminOnboardingPage() {
   const [viewingProfile, setViewingProfile] =
     useState<OnboardingApplication | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [showCreateProject, setShowCreateProject] = useState(false);
+  const [createProjectForm, setCreateProjectForm] = useState({
+    name: "",
+    description: "",
+    domain: "software",
+  });
 
   const initialized = useRef(false);
 
@@ -63,6 +81,8 @@ export default function AdminOnboardingPage() {
   const { data: allocations } = useProjectApplicationAllocations();
   const assignMentee = useAssignMenteeToProject();
   const unassignMentee = useUnassignMentee();
+  const { mutate: createProject, isPending: isCreatingProject } =
+    useCreateProject();
 
   // Require 8px movement before drag activates so clicks still work normally
   const sensors = useSensors(
@@ -202,7 +222,7 @@ export default function AdminOnboardingPage() {
               />
 
               {/* Stats row */}
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="grid gap-4 sm:grid-cols-3">
                 <StatCard
                   label="Total"
                   value={counts.total}
@@ -220,12 +240,6 @@ export default function AdminOnboardingPage() {
                   value={counts.approved}
                   icon={CheckCircle2}
                   tone="emerald"
-                />
-                <StatCard
-                  label="Rejected"
-                  value={counts.rejected}
-                  icon={XCircle}
-                  tone="rose"
                 />
               </div>
 
@@ -295,6 +309,14 @@ export default function AdminOnboardingPage() {
                         variant="ghost"
                         size="icon-sm"
                         className="bg-slate-50 text-slate-400 hover:bg-slate-100"
+                        onClick={() => {
+                          setCreateProjectForm({
+                            name: "",
+                            description: "",
+                            domain: "software",
+                          });
+                          setShowCreateProject(true);
+                        }}
                       >
                         <Plus className="h-3.5 w-3.5" />
                       </Button>
@@ -367,6 +389,101 @@ export default function AdminOnboardingPage() {
         application={viewingProfile}
         onClose={() => setViewingProfile(null)}
       />
+
+      {/* Create Project Dialog */}
+      <Dialog
+        open={showCreateProject}
+        onOpenChange={(open) => !open && setShowCreateProject(false)}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create New Project</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>Project Name</Label>
+              <Input
+                value={createProjectForm.name}
+                onChange={(e) =>
+                  setCreateProjectForm((f) => ({ ...f, name: e.target.value }))
+                }
+                placeholder="Enter project name"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Description (optional)</Label>
+              <Textarea
+                value={createProjectForm.description}
+                onChange={(e) =>
+                  setCreateProjectForm((f) => ({
+                    ...f,
+                    description: e.target.value,
+                  }))
+                }
+                rows={3}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Domain</Label>
+              <Select
+                value={createProjectForm.domain}
+                onValueChange={(v) =>
+                  setCreateProjectForm((f) => ({ ...f, domain: v }))
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[
+                    { value: "software", label: "Software" },
+                    { value: "film", label: "Film" },
+                    { value: "training", label: "Training" },
+                    { value: "research", label: "Research" },
+                    { value: "other", label: "Other" },
+                  ].map((d) => (
+                    <SelectItem key={d.value} value={d.value}>
+                      {d.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <DialogClose asChild>
+              <Button variant="outline" disabled={isCreatingProject}>
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button
+              className="bg-[#000053] text-white hover:bg-[#000053]"
+              disabled={isCreatingProject || !createProjectForm.name.trim()}
+              onClick={() => {
+                createProject(
+                  {
+                    name: createProjectForm.name,
+                    description: createProjectForm.description || undefined,
+                    domain: createProjectForm.domain,
+                  },
+                  {
+                    onSuccess: () => {
+                      setShowCreateProject(false);
+                      setCreateProjectForm({
+                        name: "",
+                        description: "",
+                        domain: "software",
+                      });
+                    },
+                  },
+                );
+              }}
+            >
+              {isCreatingProject ? "Creating…" : "Create Project"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

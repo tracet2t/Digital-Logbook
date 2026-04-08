@@ -1,15 +1,19 @@
+import { InvitationRepository } from "@/repositories/invitation_repository_impl";
 import { OnboardingRepository } from "@/repositories/onboarding_repository_impl";
 import { ProjectRepository } from "@/repositories/project_repository_impl";
 import getSession from "@/server_actions/getSession";
 import { Role } from "@prisma/client";
+import bcrypt from "bcrypt";
 import { NextRequest, NextResponse } from "next/server";
 
+import { sendEmail } from "@/lib/email";
 import prisma from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
 const onboardingRepo = new OnboardingRepository();
 const projectRepo = new ProjectRepository();
+const invitationRepo = new InvitationRepository();
 
 /**
  * GET /api/onboarding/assign
@@ -129,26 +133,89 @@ export async function POST(req: NextRequest) {
     });
 
     if (!user) {
+      // Generate a temporary password for the new user
+      const tempPassword = Math.random().toString(36).slice(-8);
+      const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
       user = await prisma.user.create({
         data: {
           email: application.email,
           firstName,
           lastName,
           role: Role.student,
+          passwordHash: hashedPassword,
           emailConfirmed: false,
           isFirstTimeLogin: true,
           isActive: true,
         },
       });
+    } else if (!user.passwordHash) {
+      // User existed (created by old code) but has no password — set one now
+      const tempPassword = Math.random().toString(36).slice(-8);
+      const hashedPassword = await bcrypt.hash(tempPassword, 10);
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: { passwordHash: hashedPassword },
+      });
     }
 
-    // 5. Assign the user to the project (idempotent)
+    // 5. Send invitation email if no un-accepted invitation exists for this email
+    let invitationSent = false;
+    const existingInvitation = await prisma.invitation.findFirst({
+      where: { email: application.email, accepted: false },
+    });
+
+    if (!existingInvitation) {
+      const invitedBy = session.getId();
+      if (!invitedBy) {
+        console.error("Cannot send invitation: session has no admin ID");
+      } else {
+        try {
+          // Re-generate a fresh temp password to include in the email
+          const emailTempPassword = Math.random().toString(36).slice(-8);
+          const emailHashedPassword = await bcrypt.hash(emailTempPassword, 10);
+          // Update the user's password to the one we'll send in the email
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { passwordHash: emailHashedPassword },
+          });
+
+          const invitation = await invitationRepo.createInvite({
+            email: application.email,
+            role: Role.student,
+            invitedBy,
+          });
+
+          const loginUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/create-account?token=${invitation.token}&email=${encodeURIComponent(application.email)}`;
+
+          await sendEmail({
+            email: application.email,
+            name: application.fullName,
+            tempPassword: emailTempPassword,
+            message: `Your registration was successful. Your temporary password is: ${emailTempPassword}`,
+            loginUrl,
+            token: invitation.token,
+          });
+
+          invitationSent = true;
+          console.log(`Invitation email sent to ${application.email}`);
+        } catch (emailError) {
+          console.error("Failed to send invitation email:", emailError);
+        }
+      }
+    } else {
+      console.log(
+        `Invitation already exists for ${application.email}, skipping email send`,
+      );
+    }
+
+    // 6. Assign the user to the project (idempotent)
     const allocationResult = await projectRepo.assignStudentToProject(
       projectId,
       user.id,
     );
 
-    // 6. Mark the application as approved
+    // 7. Mark the application as approved
     const updatedApplication = await onboardingRepo.updateStatus(
       applicationId,
       "approved",
@@ -159,6 +226,7 @@ export async function POST(req: NextRequest) {
         message: allocationResult.success
           ? "Mentee assigned to project successfully"
           : "Mentee was already assigned to this project",
+        invitationSent,
         user,
         application: updatedApplication,
         allocation: allocationResult.data ?? null,

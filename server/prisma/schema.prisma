@@ -105,7 +105,7 @@ model MentorActivity {
 model Invitation {
   id         String   @id @default(uuid())
   email      String
-  role       Role
+  role       Role @default(student)
   token      String   @unique
   invitedBy  String?
   projectId  String?
