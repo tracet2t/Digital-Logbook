@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import {
   ADMIN_LOGO_CONFIG,
   ADMIN_MENU_ITEMS,
 } from "@/utils/config/adminSidebarConfig";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Upload } from "lucide-react";
 import { z } from "zod";
 
 import {
@@ -42,6 +43,8 @@ const inviteSchema = z.object({
 });
 
 export default function InvitationsView() {
+  const router = useRouter();
+
   // State
   const [formData, setFormData] = useState({
     role: "",
@@ -210,13 +213,21 @@ export default function InvitationsView() {
                   </div>
                 </div>
 
-                {/* Create Button */}
-                <button
-                  onClick={() => setCreateOpen(true)}
-                  className="ml-auto inline-flex items-center justify-center gap-2 h-9 px-4 bg-[#000053] hover:bg-[#000053] text-white text-sm font-medium rounded-lg transition-colors shadow-m shrink-0 w-full sm:w-auto"
-                >
-                  <Plus size={15} /> Create Invitation
-                </button>
+                {/* Bulk Upload and Create Buttons */}
+                <div className="ml-auto flex flex-wrap gap-3 w-full sm:w-auto">
+                  <button
+                    onClick={() => router.push("/admin/invitation/bulk-upload")}
+                    className="inline-flex items-center justify-center gap-2 h-9 px-4 bg-[#000053] hover:bg-[#000053] text-white text-sm font-medium rounded-lg transition-colors shadow-m shrink-0 w-full sm:w-auto"
+                  >
+                    <Upload size={15} /> Bulk Upload
+                  </button>
+                  <button
+                    onClick={() => setCreateOpen(true)}
+                    className="inline-flex items-center justify-center gap-2 h-9 px-4 bg-[#000053] hover:bg-[#000053] text-white text-sm font-medium rounded-lg transition-colors shadow-m shrink-0 w-full sm:w-auto"
+                  >
+                    <Plus size={15} /> Create Invitation
+                  </button>
+                </div>
               </div>
 
               {/* Table */}
