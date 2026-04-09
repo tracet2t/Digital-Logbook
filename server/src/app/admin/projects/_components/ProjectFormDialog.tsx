@@ -1,7 +1,7 @@
 /**
  * ProjectFormDialog.tsx
  * Reusable dialog for both creating and editing a project.
- *
+ */
 
 "use client";
 
