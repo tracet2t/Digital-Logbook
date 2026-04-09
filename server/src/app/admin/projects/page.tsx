@@ -61,7 +61,12 @@ const DOMAIN_LABELS: Record<string, string> = {
   other: "Other",
 };
 const DOMAIN_OPTIONS = ["software", "film", "training", "research", "other"];
-const EMPTY_FORM = { name: "", description: "", domain: "software" as const };
+const EMPTY_FORM = {
+  name: "",
+  description: "",
+  domain: "software" as const,
+  batchNo: "",
+};
 
 export default function ProjectsPage() {
   const [page, setPage] = useState(1);
@@ -97,6 +102,7 @@ export default function ProjectsPage() {
         editForm.name,
         editForm.description,
         editForm.domain,
+        editForm.batchNo,
       );
       setEditProject(null);
       reload();
@@ -112,6 +118,7 @@ export default function ProjectsPage() {
         createForm.name,
         createForm.description,
         createForm.domain,
+        createForm.batchNo,
       );
       setShowCreate(false);
       setCreateForm(EMPTY_FORM);
@@ -240,6 +247,7 @@ export default function ProjectsPage() {
                     id: p.id,
                     name: p.name,
                     domain: p.domain,
+                    batchNo: p.batchNo,
                     mentors: p.mentors,
                     students: p.students,
                     createdBy: p.createdBy,
@@ -258,6 +266,7 @@ export default function ProjectsPage() {
                       name: project.name,
                       description: project.description || "",
                       domain: (project.domain as any) || "software",
+                      batchNo: (project as any).batchNo || "",
                     });
                   }}
                   onDelete={setDeleteId}
@@ -326,6 +335,11 @@ export default function ProjectsPage() {
                 <p className="text-lg font-bold">{viewProject.name}</p>
               </div>
               {viewProject.description && <p>{viewProject.description}</p>}
+              {(viewProject as any).batchNo && (
+                <p className="text-[12px] font-medium text-indigo-500">
+                  {(viewProject as any).batchNo}
+                </p>
+              )}
               <div className="grid grid-cols-2 gap-4 py-3 border-t border-b">
                 {["Domain", "Created Date", "Mentors", "Mentees"].map(
                   (l, i) => (
@@ -481,6 +495,16 @@ export default function ProjectsPage() {
                       </SelectTrigger>
                       <SelectContent>{renderSelectItems()}</SelectContent>
                     </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Batch No (optional)</Label>
+                    <Input
+                      value={d.form.batchNo}
+                      onChange={(e) =>
+                        d.setForm((f) => ({ ...f, batchNo: e.target.value }))
+                      }
+                      placeholder="e.g. Batch - 04"
+                    />
                   </div>
                 </div>
                 <DialogFooter className="gap-2">

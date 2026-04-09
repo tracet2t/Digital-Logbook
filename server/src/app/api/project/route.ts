@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { name, description, domain } = body;
+    const { name, description, domain, batchNo } = body;
 
     if (!name || !domain) {
       return NextResponse.json(
@@ -75,6 +75,7 @@ export async function POST(req: NextRequest) {
       name,
       description: description || undefined,
       domain,
+      batchNo: batchNo?.trim() || null,
       createdBy: userId,
     } as any);
 

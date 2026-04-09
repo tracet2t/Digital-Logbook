@@ -28,6 +28,7 @@ interface Project {
   id: string;
   name: string;
   description: string | null;
+  batchNo?: string | null;
 }
 
 interface KanbanBoardProps {

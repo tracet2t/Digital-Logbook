@@ -23,14 +23,15 @@ import {
   ApplicantDialog,
   CreateProjectDialog,
   KanbanBoard,
-  type ProjectFormState,
   StatCard,
+  type ProjectFormState,
 } from "@/components/admin/kanban";
 
 const EMPTY_FORM: ProjectFormState = {
   name: "",
   description: "",
   domain: "software",
+  batchNo: "",
 };
 
 // ---------------------------------------------------------------------------
@@ -237,6 +238,7 @@ export default function AdminOnboardingPage() {
               name: createProjectForm.name,
               description: createProjectForm.description || undefined,
               domain: createProjectForm.domain,
+              batchNo: createProjectForm.batchNo || undefined,
             },
             {
               onSuccess: () => {

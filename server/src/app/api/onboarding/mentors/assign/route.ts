@@ -74,6 +74,18 @@ export async function POST(req: NextRequest) {
 
     const result = await projectRepo.assignMentorToProject(projectId, mentorId);
 
+    // Sync the mentor's batchNo to match the project's batchNo
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: { batchNo: true },
+    });
+    if (project) {
+      await prisma.user.update({
+        where: { id: mentorId },
+        data: { batchNo: project.batchNo },
+      });
+    }
+
     return NextResponse.json(
       { message: result.message, data: result.data ?? null },
       { status: result.success ? 201 : 200 },
@@ -120,6 +132,12 @@ export async function DELETE(req: NextRequest) {
       projectId,
       mentorId,
     );
+
+    // Clear the mentor's batchNo
+    await prisma.user.update({
+      where: { id: mentorId },
+      data: { batchNo: null },
+    });
 
     return NextResponse.json(
       { message: result.message },

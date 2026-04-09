@@ -221,7 +221,15 @@ export async function POST(req: NextRequest) {
       user.id,
     );
 
-    // 7. Mark the application as approved
+    // 7. Sync the user's batchNo to match the project's batchNo
+    if (project.batchNo !== undefined) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { batchNo: project.batchNo },
+      });
+    }
+
+    // 8. Mark the application as approved
     const updatedApplication = await onboardingRepo.updateStatus(
       applicationId,
       "approved",
@@ -295,9 +303,15 @@ export async function DELETE(req: NextRequest) {
     if (user) {
       // 3. Remove the ProjectAllocation
       await projectRepo.removeStudentFromProject(projectId, user.id);
+
+      // 4. Clear the user's batchNo
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { batchNo: null },
+      });
     }
 
-    // 4. Reset application status back to pending
+    // 5. Reset application status back to pending
     const updatedApplication = await onboardingRepo.updateStatus(
       applicationId,
       "pending",

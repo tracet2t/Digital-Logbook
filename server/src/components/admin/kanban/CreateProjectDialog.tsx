@@ -34,6 +34,7 @@ export interface ProjectFormState {
   name: string;
   description: string;
   domain: string;
+  batchNo: string;
 }
 
 interface CreateProjectDialogProps {
@@ -97,6 +98,16 @@ export function CreateProjectDialog({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Batch No (optional)</Label>
+            <Input
+              value={form.batchNo}
+              onChange={(e) =>
+                onFormChange((f) => ({ ...f, batchNo: e.target.value }))
+              }
+              placeholder="e.g. Batch - 04"
+            />
           </div>
         </div>
         <DialogFooter className="gap-2">

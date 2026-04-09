@@ -1,13 +1,15 @@
 "use server";
 
-import prisma from "@/lib/prisma";
 import getSession from "@/server_actions/getSession";
+
+import prisma from "@/lib/prisma";
 
 export interface AdminProject {
   id: string;
   name: string;
   description: string;
   domain: string;
+  batchNo: string;
   mentors: number;
   students: number;
   createdBy: string;
@@ -63,6 +65,7 @@ export async function getAdminProjectStats(): Promise<AdminProjectStats> {
     name: p.name,
     description: p.description ?? "",
     domain: p.domain,
+    batchNo: p.batchNo ?? "",
     mentors: p.mentors.length,
     students: p.assignments.length,
     createdBy: creatorMap.get(p.createdBy) ?? p.createdBy,
@@ -93,6 +96,7 @@ export async function createProject(
   name: string,
   description: string,
   domain: string,
+  batchNo?: string,
 ): Promise<void> {
   const session = await getSession();
   const createdBy = session.getId();
@@ -102,6 +106,7 @@ export async function createProject(
       name: name.trim(),
       description: description.trim() || undefined,
       domain: domain as any,
+      batchNo: batchNo?.trim() || null,
       createdBy,
     },
   });
@@ -112,6 +117,7 @@ export async function updateProject(
   name: string,
   description: string,
   domain: string,
+  batchNo?: string,
 ): Promise<void> {
   await prisma.project.update({
     where: { id },
@@ -119,6 +125,7 @@ export async function updateProject(
       name: name.trim(),
       description: description.trim() || null,
       domain: domain as any,
+      batchNo: batchNo?.trim() || null,
     },
   });
 }

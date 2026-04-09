@@ -10,6 +10,7 @@ interface CreateProjectRequest {
   name: string;
   description?: string;
   domain: string;
+  batchNo?: string;
 }
 
 interface CreateProjectResponse {
@@ -20,6 +21,7 @@ interface CreateProjectResponse {
     name: string;
     description: string | null;
     domain: string;
+    batchNo: string | null;
     createdBy: string;
     createdAt: string;
     updatedAt: string;
@@ -53,6 +55,7 @@ interface Project {
   name: string;
   description: string | null;
   domain: string;
+  batchNo: string | null;
   createdBy: string;
   createdAt: string;
   updatedAt: string;

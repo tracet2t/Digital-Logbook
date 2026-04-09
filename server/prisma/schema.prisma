@@ -18,6 +18,7 @@ model User {
   isActive         Boolean          @default(true)
   isFirstTimeLogin Boolean          @default(true)
   invitedBy        String?
+  batchNo          String?
 
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
@@ -125,6 +126,7 @@ model Project {
   name        String
   description String?
   domain      ProjectDomain
+  batchNo     String?
 
   createdBy   String
 

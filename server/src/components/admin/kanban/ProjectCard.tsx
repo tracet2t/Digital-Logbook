@@ -1,10 +1,7 @@
 "use client";
 
 import { useDroppable } from "@dnd-kit/core";
-import {
-  Briefcase,
-  UserX,
-} from "lucide-react";
+import { Briefcase, UserX } from "lucide-react";
 
 import { OnboardingApplication } from "@/hooks/admin/useAdminOnboarding";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -13,7 +10,12 @@ import { Button } from "@/components/ui/button";
 import { getInitials } from "./utils";
 
 interface ProjectCardProps {
-  project: { id: string; name: string; description: string | null };
+  project: {
+    id: string;
+    name: string;
+    description: string | null;
+    batchNo?: string | null;
+  };
   assignedApplications: OnboardingApplication[];
   onUnassign: (appId: string) => void;
   onViewProfile: (app: OnboardingApplication) => void;
@@ -48,13 +50,16 @@ export function ProjectCard({
         >
           <Briefcase className="h-4 w-4" />
         </div>
-
-
       </div>
 
       <h4 className="mb-1 text-sm font-black uppercase tracking-tight text-[#000053]">
         {project.name}
       </h4>
+      {project.batchNo && (
+        <span className="inline-block mb-1 w-fit px-3 py-0.5 rounded-full bg-[#EBEBEB] text-[11px] font-semibold text-blue-600 leading-tight">
+          {project.batchNo}
+        </span>
+      )}
       {project.description && (
         <p className="mb-4 line-clamp-2 text-[10px] font-medium text-slate-400">
           {project.description}
