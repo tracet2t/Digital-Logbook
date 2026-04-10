@@ -2,7 +2,8 @@ import type { Config } from "@jest/types";
 
 const config: Config.InitialOptions = {
   preset: "ts-jest",
-  testEnvironment: "node",
+  testEnvironment: "jsdom",
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
 
   transform: {
     "\\.[jt]sx?$": ["babel-jest", { configFile: "./babel.config.testing.js" }],
