@@ -25,6 +25,7 @@ export async function GET() {
         lastName: true,
         role: true,
         isActive: true,
+        batchNo: true,
         createdAt: true,
       },
       orderBy: {

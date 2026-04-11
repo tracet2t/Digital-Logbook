@@ -12,6 +12,7 @@ export function useUsersAdmin() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | UserRole>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | UserStatus>("all");
+  const [batchFilter, setBatchFilter] = useState<"all" | string>("all");
   const [page, setPage] = useState(1);
 
   const [viewUser, setViewUser] = useState<UserRecord | null>(null);
@@ -138,11 +139,24 @@ export function useUsersAdmin() {
     setPendingStatus(user.status === "Active" ? "Inactive" : "Active");
   };
 
+  const batchOptions = useMemo(() => {
+    const seen = new Set<string>();
+    for (const u of users) {
+      if (u.batchNo) seen.add(u.batchNo);
+    }
+    return Array.from(seen).sort();
+  }, [users]);
+
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
       const isRoleMatch = roleFilter === "all" || user.role === roleFilter;
       const isStatusMatch =
         statusFilter === "all" || user.status === statusFilter;
+      const isBatchMatch =
+        batchFilter === "all" ||
+        (batchFilter === "__none__"
+          ? !user.batchNo
+          : user.batchNo === batchFilter);
       const query = search.trim().toLowerCase();
       const isSearchMatch =
         query.length === 0 ||
@@ -150,11 +164,14 @@ export function useUsersAdmin() {
         user.email.toLowerCase().includes(query) ||
         user.id.toLowerCase().includes(query);
 
-      return isRoleMatch && isStatusMatch && isSearchMatch;
+      return isRoleMatch && isStatusMatch && isBatchMatch && isSearchMatch;
     });
-  }, [users, roleFilter, statusFilter, search]);
+  }, [users, roleFilter, statusFilter, batchFilter, search]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / ITEMS_PER_PAGE));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredUsers.length / ITEMS_PER_PAGE),
+  );
   const safePage = Math.min(page, totalPages);
   const startIndex = (safePage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
@@ -166,10 +183,13 @@ export function useUsersAdmin() {
       search,
       roleFilter,
       statusFilter,
+      batchFilter,
+      batchOptions,
       page,
       setSearch,
       setRoleFilter,
       setStatusFilter,
+      setBatchFilter,
       setPage,
     },
     table: {

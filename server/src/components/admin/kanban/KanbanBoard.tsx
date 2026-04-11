@@ -11,7 +11,7 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { Plus } from "lucide-react";
+import { CheckSquare, Plus, Square } from "lucide-react";
 
 import { OnboardingApplication } from "@/hooks/admin/useAdminOnboarding";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -95,6 +95,27 @@ export function KanbanBoard({
               {bench.length} {benchBadgeText}
             </Badge>
           </div>
+          {/** Select All function :CheckBox */}
+          {!isLoading && bench.length > 0 && (
+            <button
+              type="button"
+              onClick={() =>
+                setSelectedIds((prev) => {
+                  const allSelected = bench.every((a) => prev.has(a.id));
+                  if (allSelected) return new Set();
+                  return new Set(bench.map((a) => a.id));
+                })
+              }
+              className="mb-2 flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-400 transition hover:bg-slate-50"
+            >
+              {bench.every((a) => selectedIds.has(a.id)) ? (
+                <CheckSquare className="h-3.5 w-3.5 text-[#000053]" />
+              ) : (
+                <Square className="h-3.5 w-3.5 text-slate-300" />
+              )}
+              Select All
+            </button>
+          )}
           <ScrollArea className="flex-1">
             <div className="space-y-2 pr-1">
               {isLoading && (

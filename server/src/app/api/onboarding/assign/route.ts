@@ -54,21 +54,17 @@ export async function GET(_req: NextRequest) {
 
     const emailToAppId = new Map(menteeApps.map((a) => [a.email, a.id]));
 
-    const result = allocations
-      .map((a) => ({
-        applicationId: emailToAppId.get(a.student.email),
-        projectId: a.projectId,
-        assignedAt: a.assignedAt.toISOString(),
-      }))
-      .filter(
-        (
-          a,
-        ): a is {
-          applicationId: string;
-          projectId: string;
-          assignedAt: string;
-        } => !!a.applicationId,
-      );
+    // For students without a MenteeApplication, use their User ID as the applicationId
+    const emailToUserId = new Map(
+      allocations.map((a) => [a.student.email, a.studentId]),
+    );
+
+    const result = allocations.map((a) => ({
+      applicationId:
+        emailToAppId.get(a.student.email) ?? emailToUserId.get(a.student.email),
+      projectId: a.projectId,
+      assignedAt: a.assignedAt.toISOString(),
+    }));
 
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
@@ -113,9 +109,49 @@ export async function POST(req: NextRequest) {
     // 1. Fetch the MenteeApplication
     const application = await onboardingRepo.getApplicationById(applicationId);
     if (!application) {
+      // Fallback: treat applicationId as a User ID (student created directly via invitation)
+      const directStudent = await prisma.user.findUnique({
+        where: { id: applicationId, role: Role.student },
+      });
+      if (!directStudent) {
+        return NextResponse.json(
+          { message: "Application not found" },
+          { status: 404 },
+        );
+      }
+
+      // Verify the project exists
+      const project = await projectRepo.getById(projectId);
+      if (!project) {
+        return NextResponse.json(
+          { message: "Project not found" },
+          { status: 404 },
+        );
+      }
+
+      const allocationResult = await projectRepo.assignStudentToProject(
+        projectId,
+        directStudent.id,
+      );
+
+      if (project.batchNo !== undefined) {
+        await prisma.user.update({
+          where: { id: directStudent.id },
+          data: { batchNo: project.batchNo },
+        });
+      }
+
       return NextResponse.json(
-        { message: "Application not found" },
-        { status: 404 },
+        {
+          message: allocationResult.success
+            ? "Mentee assigned to project successfully"
+            : "Mentee was already assigned to this project",
+          invitationSent: false,
+          user: directStudent,
+          application: null,
+          allocation: allocationResult.data ?? null,
+        },
+        { status: allocationResult.success ? 201 : 200 },
       );
     }
 
@@ -289,9 +325,26 @@ export async function DELETE(req: NextRequest) {
     // 1. Fetch the application to get the email
     const application = await onboardingRepo.getApplicationById(applicationId);
     if (!application) {
+      // Fallback: treat applicationId as a User ID (student created directly via invitation)
+      const directStudent = await prisma.user.findUnique({
+        where: { id: applicationId, role: Role.student },
+      });
+      if (!directStudent) {
+        return NextResponse.json(
+          { message: "Application not found" },
+          { status: 404 },
+        );
+      }
+
+      await projectRepo.removeStudentFromProject(projectId, directStudent.id);
+      await prisma.user.update({
+        where: { id: directStudent.id },
+        data: { batchNo: null },
+      });
+
       return NextResponse.json(
-        { message: "Application not found" },
-        { status: 404 },
+        { message: "Mentee removed from project", application: null },
+        { status: 200 },
       );
     }
 

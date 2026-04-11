@@ -3,6 +3,8 @@ import getSession from "@/server_actions/getSession";
 import { Role } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
+import prisma from "@/lib/prisma";
+
 export const dynamic = "force-dynamic";
 
 const onboardingRepository = new OnboardingRepository();
@@ -158,7 +160,39 @@ export async function GET(req: NextRequest) {
     const applications = await onboardingRepository.getAll({
       orderBy: { createdAt: "desc" },
     });
-    return NextResponse.json(applications, { status: 200 });
+
+    // Also include students created directly (via invitation) who have no MenteeApplication
+    const appEmails = new Set(
+      (applications as { email: string }[]).map((a) => a.email),
+    );
+    const directStudents = await prisma.user.findMany({
+      where: { role: Role.student, isActive: true },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+    const extraStudents = directStudents
+      .filter((u) => !appEmails.has(u.email))
+      .map((u) => ({
+        id: u.id,
+        fullName: `${u.firstName} ${u.lastName}`,
+        email: u.email,
+        university: "-",
+        degreeProgram: "-",
+        cvLink: "#",
+        status: "approved" as const,
+        createdAt: u.createdAt.toISOString(),
+        updatedAt: u.updatedAt.toISOString(),
+      }));
+
+    return NextResponse.json([...applications, ...extraStudents], {
+      status: 200,
+    });
   } catch (error) {
     console.error("Error fetching onboarding applications:", error);
     return NextResponse.json(

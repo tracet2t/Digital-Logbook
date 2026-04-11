@@ -6,6 +6,7 @@ import { Briefcase, UserX } from "lucide-react";
 import { OnboardingApplication } from "@/hooks/admin/useAdminOnboarding";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { getInitials } from "./utils";
 
@@ -65,39 +66,43 @@ export function ProjectCard({
           {project.description}
         </p>
       )}
-
-      <div className="flex flex-1 flex-col gap-1.5">
-        {assignedApplications.map((app) => (
-          <div
-            key={app.id}
-            onClick={() => onViewProfile(app)}
-            className="group/item flex cursor-pointer items-center justify-between rounded-xl border border-transparent bg-white px-3 py-2 shadow-sm transition hover:border-indigo-100"
-          >
-            <div className="flex min-w-0 items-center gap-2">
-              <Avatar className="h-7 w-7 shrink-0">
-                <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-[9px] font-bold text-white">
-                  {getInitials(app.fullName)}
-                </AvatarFallback>
-              </Avatar>
-              <span className="truncate text-[11px] font-bold text-slate-700">
-                {app.fullName}
-              </span>
+      {/** Scrollbar to kandban project card */}
+      <div className="flex flex-1 flex-col gap-1.5 overflow-hidden">
+        {assignedApplications.length > 0 ? (
+          <ScrollArea className="max-h-[220px] pr-1">
+            <div className="flex flex-col gap-1.5">
+              {assignedApplications.map((app) => (
+                <div
+                  key={app.id}
+                  onClick={() => onViewProfile(app)}
+                  className="group/item flex cursor-pointer items-center justify-between rounded-xl border border-transparent bg-white px-3 py-2 shadow-sm transition hover:border-indigo-100"
+                >
+                  <div className="flex min-w-0 items-center gap-2">
+                    <Avatar className="h-7 w-7 shrink-0">
+                      <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-[9px] font-bold text-white">
+                        {getInitials(app.fullName)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="truncate text-[11px] font-bold text-slate-700">
+                      {app.fullName}
+                    </span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onUnassign(app.id);
+                    }}
+                    className="opacity-0 hover:bg-rose-50 hover:text-rose-500 group-hover/item:opacity-100"
+                  >
+                    <UserX className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ))}
             </div>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                onUnassign(app.id);
-              }}
-              className="opacity-0 hover:bg-rose-50 hover:text-rose-500 group-hover/item:opacity-100"
-            >
-              <UserX className="h-3.5 w-3.5" />
-            </Button>
-          </div>
-        ))}
-
-        {assignedApplications.length === 0 && (
+          </ScrollArea>
+        ) : (
           <div
             className={[
               "flex flex-1 flex-col items-center justify-center rounded-2xl border-2 border-dashed py-8 transition",

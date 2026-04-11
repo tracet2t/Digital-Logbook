@@ -31,6 +31,8 @@ export default function UsersPage() {
               <UsersFilters
                 roleFilter={filters.roleFilter}
                 statusFilter={filters.statusFilter}
+                batchFilter={filters.batchFilter}
+                batchOptions={filters.batchOptions}
                 search={filters.search}
                 onRoleChange={(value) => {
                   filters.setRoleFilter(value);
@@ -38,6 +40,10 @@ export default function UsersPage() {
                 }}
                 onStatusChange={(value) => {
                   filters.setStatusFilter(value);
+                  filters.setPage(1);
+                }}
+                onBatchChange={(value) => {
+                  filters.setBatchFilter(value);
                   filters.setPage(1);
                 }}
                 onSearchChange={(value) => {

@@ -30,6 +30,7 @@ export function mapApiUserToRecord(user: ApiUserRecord): UserRecord {
     email: user.email,
     role: toUserRole(user.role),
     status: user.isActive ? "Active" : "Inactive",
+    batchNo: user.batchNo ?? null,
     createdAt: formatDate(user.createdAt),
   };
 }
