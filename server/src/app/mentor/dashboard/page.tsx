@@ -2,10 +2,10 @@
 
 import React from "react";
 
+import { useMentorDashboard } from "@/_hooks/mentor";
 import { BarChart3, Briefcase, Clock, Users } from "lucide-react";
 import Link from "next/link";
 
-import { useMentorDashboard } from "@/hooks/mentor";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import {
@@ -16,6 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { PageHeader } from "@/components/admin";
 
 function StatCard({
   label,
@@ -69,7 +70,19 @@ function StatusBadge({
   );
 }
 
-function MenteeRow({ initials, name, project, lastActivity, status }: { initials: string; name: string; project: string; lastActivity: string; status: "ACCEPTED" | "PENDING" | "REJECTED" }) {
+function MenteeRow({
+  initials,
+  name,
+  project,
+  lastActivity,
+  status,
+}: {
+  initials: string;
+  name: string;
+  project: string;
+  lastActivity: string;
+  status: "ACCEPTED" | "PENDING" | "REJECTED";
+}) {
   // Generate color based on initials
   const generateColor = (initials: string) => {
     const colors = [
@@ -119,12 +132,7 @@ export default function MentorDashboardPage() {
       <div className="w-full rounded-2xl border border-[#dbe5f4] bg-white shadow-sm">
         {/* Dashboard Header Area */}
         <div className="p-4 md:p-6">
-          <p className="text-xs uppercase tracking-[0.2em] text-slate-500 font-semibold">
-            DASHBOARD OVERVIEW
-          </p>
-          <h1 className="mt-1 text-3xl font-bold text-slate-900 tracking-tight">
-            Mentor Portal
-          </h1>
+          <PageHeader title="Mentor Portal" />
           <p className="mt-1 text-sm text-slate-500">
             Welcome back. Here is a summary of your mentorship activities.
           </p>
@@ -137,7 +145,8 @@ export default function MentorDashboardPage() {
           {error && (
             <div className="rounded-lg border border-red-200 bg-red-50 p-4">
               <p className="text-sm text-red-800">
-                {error.message || "Failed to load dashboard data. Please try again."}
+                {error.message ||
+                  "Failed to load dashboard data. Please try again."}
               </p>
             </div>
           )}

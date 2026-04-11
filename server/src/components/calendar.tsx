@@ -11,6 +11,10 @@ import {
 
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
+import { useCalendarEvents } from "@/_hooks/useCalendarEvents";
+import { useEventForDate } from "@/_hooks/useEventForDate";
+import { useFormData } from "@/_hooks/useFormData";
+import { useSubmission } from "@/_hooks/useSubmission";
 import { getSessionOnClient } from "@/server_actions/getSession";
 
 import {
@@ -18,10 +22,6 @@ import {
   convertToCalendarEventsMentor,
   eventPropGetter,
 } from "@/lib/calenderUtils";
-import { useCalendarEvents } from "@/hooks/useCalendarEvents";
-import { useEventForDate } from "@/hooks/useEventForDate";
-import { useFormData } from "@/hooks/useFormData";
-import { useSubmission } from "@/hooks/useSubmission";
 // Adjust the import path according to your project structure
 
 import { Button } from "@/components/ui/button";
