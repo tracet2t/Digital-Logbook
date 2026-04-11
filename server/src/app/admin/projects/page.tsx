@@ -13,10 +13,10 @@ import {
 import ProjectsStats from "@/components/admin-dashboard/ProjectsStats";
 import ProjectsTable from "@/components/admin-dashboard/ProjectsTable";
 
-import ProjectFormDialog from "./_components/ProjectFormDialog";
-import ViewProjectDialog from "./_components/ViewProjectDialog";
+import ProjectFormDialog from "@/components/admin/ProjectFormDialog";
+import ViewProjectDialog from "@/components/admin/ViewProjectDialog";
 import { DOMAIN_ICONS, DOMAIN_LABELS, ITEMS_PER_PAGE } from "./_constants";
-import { useProjectsPage } from "./_hooks/useProjectsPage";
+import { useProjectsPage } from "@/hooks/projects/useProjectsPage";
 
 export default function ProjectsPage() {
   const {
