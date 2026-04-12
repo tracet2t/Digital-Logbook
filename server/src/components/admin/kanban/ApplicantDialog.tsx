@@ -35,11 +35,11 @@ export function ApplicantDialog({
   return (
     <Dialog open={!!application} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-md border-[#d9dde5] bg-white p-0">
-        <div className="h-20 bg-gradient-to-r from-[#7C3AED] to-[#000053]" />
+        <div className="h-20 bg-[#000053]" />
         <div className="px-6 pb-6">
           <div className="-mt-8 mb-4 flex items-start justify-between">
             <Avatar className="h-16 w-16 border-[3px] border-white shadow">
-              <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-base font-black text-white">
+              <AvatarFallback className="bg-[#000053] text-base font-black text-white">
                 {getInitials(application.fullName)}
               </AvatarFallback>
             </Avatar>

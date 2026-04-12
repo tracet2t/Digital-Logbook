@@ -8,6 +8,8 @@ import {
   DragOverlay,
   DragStartEvent,
   PointerSensor,
+  pointerWithin,
+  useDroppable,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
@@ -78,15 +80,28 @@ export function KanbanBoard({
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   );
 
+  const { setNodeRef: setBenchRef, isOver: isBenchOver } = useDroppable({
+    id: "BENCH",
+  });
+
   return (
     <DndContext
       sensors={sensors}
+      collisionDetection={pointerWithin}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-6 overflow-hidden rounded-[2.5rem] border border-[#e4e7ed] bg-white p-6">
+      <div className="flex flex-row gap-2 rounded-[2.5rem] border border-[#e4e7ed] bg-white p-2 sm:gap-3 sm:p-3 lg:gap-6 lg:p-6 2xl:overflow-hidden 2xl:h-[calc(100dvh-22rem)]">
         {/* Bench */}
-        <div className="flex w-64 shrink-0 flex-col border-r border-slate-100 pr-6">
+        <div
+          ref={setBenchRef}
+          className={[
+            "flex w-32 shrink-0 flex-col rounded-2xl border-r pr-2 transition sm:w-40 sm:pr-3 md:w-44 lg:w-64 lg:pr-6",
+            isBenchOver
+              ? "border-indigo-300 bg-indigo-50/60"
+              : "border-slate-100",
+          ].join(" ")}
+        >
           <div className="mb-4 flex items-center justify-between">
             <h3 className="text-[10px] font-black uppercase tracking-[0.22em] text-[#000053]">
               {benchLabel}
@@ -116,7 +131,7 @@ export function KanbanBoard({
               Select All
             </button>
           )}
-          <ScrollArea className="flex-1">
+          <ScrollArea className="max-h-64 sm:max-h-80 lg:max-h-none 2xl:flex-1">
             <div className="space-y-2 pr-1">
               {isLoading && (
                 <div className="space-y-2">
@@ -154,8 +169,8 @@ export function KanbanBoard({
         </div>
 
         {/* Assignment panel */}
-        <div className="min-w-0 flex-1">
-          <div className="mb-5 flex items-center justify-between">
+        <div className="flex min-w-0 flex-1 flex-col 2xl:overflow-hidden">
+          <div className="mb-3 flex items-center justify-between sm:mb-4 lg:mb-5">
             <h3 className="text-[10px] font-black uppercase tracking-[0.22em] text-[#000053]">
               {assignmentLabel}
             </h3>
@@ -177,7 +192,8 @@ export function KanbanBoard({
               No projects found. Create a project first.
             </p>
           ) : (
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
+            <div className="2xl:flex-1 2xl:overflow-y-auto">
+            <div className="grid grid-cols-3 gap-1.5 pb-2 pr-1 sm:gap-2 lg:grid-cols-2 lg:gap-4 xl:grid-cols-3">
               {projects.map((project) => {
                 const assignedIds =
                   assignments[project.id] ?? new Set<string>();
@@ -194,6 +210,7 @@ export function KanbanBoard({
                   />
                 );
               })}
+            </div>
             </div>
           )}
         </div>
