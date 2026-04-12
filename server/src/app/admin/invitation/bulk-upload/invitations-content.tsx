@@ -1,12 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 
-import {
-  ADMIN_LOGO_CONFIG,
-  ADMIN_MENU_ITEMS,
-} from "@/utils/config/adminSidebarConfig";
 import { Plus, Search, Upload } from "lucide-react";
 import { z } from "zod";
 
@@ -18,9 +13,7 @@ import {
 } from "@/_hooks/admin/useInvitation";
 import { useGetProjects } from "@/hooks/projects";
 import { Card } from "@/components/ui/card";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import PageHeader from "@/components/admin/PageHeader";
-import AsideSidebar from "@/components/AsideSidebar";
 import ChangeStatusDialog from "@/components/Invitations/dialogs/ChangeStatusDialog";
 import CreateInvitationDialog from "@/components/Invitations/dialogs/CreateInvitationDialog";
 import DeleteInvitationDialog from "@/components/Invitations/dialogs/DeleteDialog";
@@ -42,8 +35,17 @@ const inviteSchema = z.object({
   project: z.string().min(1, { message: "Project is required" }),
 });
 
-export default function InvitationsView() {
-  const router = useRouter();
+interface InvitationsMainContentProps {
+  onBulkUploadClick?: () => void;
+}
+
+/**
+ * Invitations content component (without sidebar wrapper)
+ * Used in the tabbed interface for bulk upload page
+ */
+export default function InvitationsMainContent({
+  onBulkUploadClick,
+}: InvitationsMainContentProps) {
 
   // State
   const [formData, setFormData] = useState({
@@ -169,127 +171,122 @@ export default function InvitationsView() {
   };
 
   return (
-    <SidebarProvider>
-      <AsideSidebar menu={ADMIN_MENU_ITEMS} logo={ADMIN_LOGO_CONFIG} />
-      <SidebarInset className="bg-[#f5f7fb]">
-        <div className="flex-1 p-5 md:p-8">
-          <Card className="overflow-hidden border-[#d9dde5] bg-white">
-            <div className="space-y-4 p-4 md:p-5">
-              {/* Header */}
-              <div>
-                <PageHeader
-                  title="Invitations"
-                  subtitle="Manage organizational access and track member onboarding."
-                />
-              </div>
+    <div className="flex-1 p-5 md:p-8 bg-[#f5f7fb] min-h-screen">
+      <Card className="overflow-hidden border-[#d9dde5] bg-white">
+        <div className="space-y-4 p-4 md:p-5">
+          {/* Header */}
+          <div>
+            <PageHeader
+              title="Invitations"
+              subtitle="Manage organizational access and track member onboarding."
+            />
+          </div>
 
-              {/* Stats Cards */}
-              <InvitationsStats
-                loading={isInvLoading}
-                total={totalInvitations}
-                pending={pendingCount}
-                accepted={acceptedCount}
-                expired={expiredCount}
-              />
+          {/* Stats Cards */}
+          <InvitationsStats
+            loading={isInvLoading}
+            total={totalInvitations}
+            pending={pendingCount}
+            accepted={acceptedCount}
+            expired={expiredCount}
+          />
 
-              {/* Search and Create Button Bar */}
-              <div className="flex flex-wrap items-end gap-3 rounded-lg border border-[#e4e7ed] bg-[#f8fafc] p-3">
-                <div className="w-full sm:w-auto space-y-1">
-                  <p className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">
-                    Search
-                  </p>
-                  <div className="relative">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                    <input
-                      className="h-8 w-full sm:w-[280px] rounded-lg border border-[#dbe0e8] bg-white pl-9 pr-3 text-sm text-slate-700 outline-none transition focus:border-slate-400"
-                      type="search"
-                      value={search}
-                      onChange={(event) => {
-                        setSearch(event.target.value);
-                        setPage(1);
-                      }}
-                      placeholder="Search by email, role, or project..."
-                    />
-                  </div>
-                </div>
-
-                {/* Bulk Upload and Create Buttons */}
-                <div className="ml-auto flex flex-wrap gap-3 w-full sm:w-auto">
-                  <button
-                    onClick={() => router.push("/admin/invitation/bulk-upload")}
-                    className="inline-flex items-center justify-center gap-2 h-9 px-4 bg-[#000053] hover:bg-[#000053] text-white text-sm font-medium rounded-lg transition-colors shadow-m shrink-0 w-full sm:w-auto"
-                  >
-                    <Upload size={15} /> Bulk Upload
-                  </button>
-                  <button
-                    onClick={() => setCreateOpen(true)}
-                    className="inline-flex items-center justify-center gap-2 h-9 px-4 bg-[#000053] hover:bg-[#000053] text-white text-sm font-medium rounded-lg transition-colors shadow-m shrink-0 w-full sm:w-auto"
-                  >
-                    <Plus size={15} /> Create Invitation
-                  </button>
-                </div>
-              </div>
-
-              {/* Table */}
-              <div className="overflow-hidden rounded-lg border border-[#e4e7ed]">
-                <InvitationsTable
-                  data={pagedInvitations}
-                  loading={isInvLoading}
-                  error={isInvError || false}
-                  onView={setViewInv}
-                  onChangeStatus={(inv) => {
-                    setChangeStatusInv(inv);
-                    setSelectedStatus(inv.status);
+          {/* Search and Create Button Bar */}
+          <div className="flex flex-wrap items-end gap-3 rounded-lg border border-[#e4e7ed] bg-[#f8fafc] p-3">
+            <div className="w-full sm:w-auto space-y-1">
+              <p className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">
+                Search
+              </p>
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  className="h-8 w-full sm:w-[280px] rounded-lg border border-[#dbe0e8] bg-white pl-9 pr-3 text-sm text-slate-700 outline-none transition focus:border-slate-400"
+                  type="search"
+                  value={search}
+                  onChange={(event) => {
+                    setSearch(event.target.value);
+                    setPage(1);
                   }}
-                  onDelete={setDeleteId}
+                  placeholder="Search by email, role, or project..."
                 />
-
-                {/* Pagination Footer */}
-                <div className="flex flex-col gap-3 border-t border-[#e4e7ed] px-4 py-3 sm:flex-row sm:items-center sm:justify-between bg-white">
-                  <p className="text-sm text-slate-500">
-                    Showing {startCount} to {endCount} of {totalInvitations}{" "}
-                    invitations
-                  </p>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => goToPage(currentPage - 1)}
-                      disabled={currentPage === 1}
-                      className="h-8 px-3 rounded border border-[#dbe0e8] text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      Previous
-                    </button>
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                        (pageNum) => (
-                          <button
-                            key={pageNum}
-                            onClick={() => goToPage(pageNum)}
-                            className={`h-8 w-8 rounded text-sm font-medium transition-colors ${
-                              currentPage === pageNum
-                                ? "bg-[#000053] text-white hover:bg-[#000053]"
-                                : "border border-[#dbe0e8] text-slate-700 hover:bg-slate-50"
-                            }`}
-                          >
-                            {pageNum}
-                          </button>
-                        ),
-                      )}
-                    </div>
-                    <button
-                      onClick={() => goToPage(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                      className="h-8 px-3 rounded border border-[#dbe0e8] text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      Next
-                    </button>
-                  </div>
-                </div>
               </div>
             </div>
-          </Card>
+
+            {/* Bulk Upload and Create Buttons */}
+            <div className="ml-auto flex flex-wrap gap-3 w-full sm:w-auto">
+              <button
+                onClick={onBulkUploadClick}
+                className="inline-flex items-center justify-center gap-2 h-9 px-4 bg-[#000053] hover:bg-[#000053] text-white text-sm font-medium rounded-lg transition-colors shadow-m shrink-0 w-full sm:w-auto"
+              >
+                <Upload size={15} /> Bulk Upload
+              </button>
+              <button
+                onClick={() => setCreateOpen(true)}
+                className="inline-flex items-center justify-center gap-2 h-9 px-4 bg-[#000053] hover:bg-[#000053] text-white text-sm font-medium rounded-lg transition-colors shadow-m shrink-0 w-full sm:w-auto"
+              >
+                <Plus size={15} /> Create Invitation
+              </button>
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="overflow-hidden rounded-lg border border-[#e4e7ed]">
+            <InvitationsTable
+              data={pagedInvitations}
+              loading={isInvLoading}
+              error={isInvError || false}
+              onView={setViewInv}
+              onChangeStatus={(inv) => {
+                setChangeStatusInv(inv);
+                setSelectedStatus(inv.status);
+              }}
+              onDelete={setDeleteId}
+            />
+
+            {/* Pagination Footer */}
+            <div className="flex flex-col gap-3 border-t border-[#e4e7ed] px-4 py-3 sm:flex-row sm:items-center sm:justify-between bg-white">
+              <p className="text-sm text-slate-500">
+                Showing {startCount} to {endCount} of {totalInvitations}{" "}
+                invitations
+              </p>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="h-8 px-3 rounded border border-[#dbe0e8] text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Previous
+                </button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (pageNum) => (
+                      <button
+                        key={pageNum}
+                        onClick={() => goToPage(pageNum)}
+                        className={`h-8 w-8 rounded text-sm font-medium transition-colors ${
+                          currentPage === pageNum
+                            ? "bg-[#000053] text-white hover:bg-[#000053]"
+                            : "border border-[#dbe0e8] text-slate-700 hover:bg-slate-50"
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    ),
+                  )}
+                </div>
+                <button
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="h-8 px-3 rounded border border-[#dbe0e8] text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      </SidebarInset>
+      </Card>
 
       {/* Dialogs */}
       <CreateInvitationDialog
@@ -332,6 +329,6 @@ export default function InvitationsView() {
         }
         isDeleting={isDeleting}
       />
-    </SidebarProvider>
+    </div>
   );
 }
