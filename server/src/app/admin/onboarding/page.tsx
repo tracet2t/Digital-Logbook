@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 
-import { CheckCircle2, UserCheck, UserRound } from "lucide-react";
-
 import {
   useAssignMenteeToProject,
   useAssignMentorToProject,
@@ -13,9 +11,11 @@ import {
   useUnassignedMentors,
   useUnassignMentee,
   useUnassignMentor,
-} from "@/hooks/admin/useAdminOnboarding";
-import { useKanbanBoard } from "@/hooks/admin/useKanbanBoard";
-import { useCreateProject, useGetProjects } from "@/hooks/projects";
+} from "@/_hooks/admin/useAdminOnboarding";
+import { useKanbanBoard } from "@/_hooks/admin/useKanbanBoard";
+import { useCreateProject, useGetProjects } from "@/_hooks/projects";
+import { CheckCircle2, UserCheck, UserRound } from "lucide-react";
+
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminPageLayout, PageHeader } from "@/components/admin";
