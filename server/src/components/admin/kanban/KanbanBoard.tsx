@@ -193,24 +193,24 @@ export function KanbanBoard({
             </p>
           ) : (
             <div className="2xl:flex-1 2xl:overflow-y-auto">
-            <div className="grid grid-cols-3 gap-1.5 pb-2 pr-1 sm:gap-2 lg:grid-cols-2 lg:gap-4 xl:grid-cols-3">
-              {projects.map((project) => {
-                const assignedIds =
-                  assignments[project.id] ?? new Set<string>();
-                const assignedApps = applications.filter((a) =>
-                  assignedIds.has(a.id),
-                );
-                return (
-                  <ProjectCard
-                    key={project.id}
-                    project={project}
-                    assignedApplications={assignedApps}
-                    onUnassign={(appId) => handleUnassign(project.id, appId)}
-                    onViewProfile={onViewProfile}
-                  />
-                );
-              })}
-            </div>
+              <div className="grid grid-cols-3 gap-1.5 pb-2 pr-1 sm:gap-2 lg:grid-cols-2 lg:gap-4 xl:grid-cols-3">
+                {projects.map((project) => {
+                  const assignedIds =
+                    assignments[project.id] ?? new Set<string>();
+                  const assignedApps = applications.filter((a) =>
+                    assignedIds.has(a.id),
+                  );
+                  return (
+                    <ProjectCard
+                      key={project.id}
+                      project={project}
+                      assignedApplications={assignedApps}
+                      onUnassign={(appId) => handleUnassign(project.id, appId)}
+                      onViewProfile={onViewProfile}
+                    />
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
