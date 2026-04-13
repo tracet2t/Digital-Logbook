@@ -1,10 +1,10 @@
 "use client";
 
+import { OnboardingApplication } from "@/_hooks/admin/useAdminOnboarding";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { CheckSquare, Square } from "lucide-react";
 
-import { OnboardingApplication } from "@/hooks/admin/useAdminOnboarding";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 
@@ -38,7 +38,7 @@ export function BenchCard({
       {...listeners}
       onClick={onClick}
       className={[
-        "group flex w-full cursor-grab items-center gap-3 rounded-2xl border p-3 transition active:cursor-grabbing",
+        "group flex w-full min-w-0 cursor-grab items-center gap-3 rounded-2xl border p-3 transition active:cursor-grabbing",
         isDragging ? "opacity-40 ring-2 ring-indigo-300" : "",
         selected
           ? "border-[#000053] bg-[#000053] text-white shadow-md"
