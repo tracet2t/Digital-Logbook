@@ -38,7 +38,7 @@ export function BenchCard({
       {...listeners}
       onClick={onClick}
       className={[
-        "group flex cursor-grab items-center gap-3 rounded-2xl border p-3 transition active:cursor-grabbing",
+        "group flex w-full cursor-grab items-center gap-3 rounded-2xl border p-3 transition active:cursor-grabbing",
         isDragging ? "opacity-40 ring-2 ring-indigo-300" : "",
         selected
           ? "border-[#000053] bg-[#000053] text-white shadow-md"
