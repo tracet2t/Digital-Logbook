@@ -2,6 +2,7 @@
 
 import { Dispatch, SetStateAction } from "react";
 
+import { OnboardingApplication } from "@/_hooks/admin/useAdminOnboarding";
 import {
   DndContext,
   DragEndEvent,
@@ -15,7 +16,6 @@ import {
 } from "@dnd-kit/core";
 import { CheckSquare, Plus, Square } from "lucide-react";
 
-import { OnboardingApplication } from "@/hooks/admin/useAdminOnboarding";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
