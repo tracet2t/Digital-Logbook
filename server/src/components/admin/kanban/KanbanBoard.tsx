@@ -91,18 +91,18 @@ export function KanbanBoard({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex flex-row gap-2 rounded-[2.5rem] border border-[#e4e7ed] bg-white p-2 sm:gap-3 sm:p-3 lg:gap-6 lg:p-6 2xl:overflow-hidden 2xl:h-[calc(100dvh-22rem)]">
+      <div className="flex flex-row gap-2 rounded-2xl border border-[#e4e7ed] bg-white p-2 sm:gap-3 sm:p-3 lg:gap-6 lg:p-6 2xl:overflow-hidden 2xl:h-[calc(100dvh-22rem)]">
         {/* Bench */}
         <div
           ref={setBenchRef}
           className={[
-            "flex w-32 shrink-0 flex-col rounded-2xl border-r pr-2 transition sm:w-40 sm:pr-3 md:w-44 lg:w-64 lg:pr-6",
+            "flex w-40 shrink-0 flex-col rounded-2xl border-r pl-1 pr-1 transition sm:w-48 sm:pl-2 sm:pr-1 md:w-56 lg:w-64 lg:pl-0 lg:pr-2",
             isBenchOver
               ? "border-indigo-300 bg-indigo-50/60"
               : "border-slate-100",
           ].join(" ")}
         >
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4 flex items-center justify-between pr-2 sm:pr-3 lg:pr-6">
             <h3 className="text-[10px] font-black uppercase tracking-[0.22em] text-[#000053]">
               {benchLabel}
             </h3>
@@ -112,27 +112,29 @@ export function KanbanBoard({
           </div>
           {/** Select All function :CheckBox */}
           {!isLoading && bench.length > 0 && (
-            <button
-              type="button"
-              onClick={() =>
-                setSelectedIds((prev) => {
-                  const allSelected = bench.every((a) => prev.has(a.id));
-                  if (allSelected) return new Set();
-                  return new Set(bench.map((a) => a.id));
-                })
-              }
-              className="mb-2 flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-400 transition hover:bg-slate-50"
-            >
-              {bench.every((a) => selectedIds.has(a.id)) ? (
-                <CheckSquare className="h-3.5 w-3.5 text-[#000053]" />
-              ) : (
-                <Square className="h-3.5 w-3.5 text-slate-300" />
-              )}
-              Select All
-            </button>
+            <div className="pr-2 sm:pr-3 lg:pr-6">
+              <button
+                type="button"
+                onClick={() =>
+                  setSelectedIds((prev) => {
+                    const allSelected = bench.every((a) => prev.has(a.id));
+                    if (allSelected) return new Set();
+                    return new Set(bench.map((a) => a.id));
+                  })
+                }
+                className="mb-2 flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-400 transition hover:bg-slate-50"
+              >
+                {bench.every((a) => selectedIds.has(a.id)) ? (
+                  <CheckSquare className="h-3.5 w-3.5 text-[#000053]" />
+                ) : (
+                  <Square className="h-3.5 w-3.5 text-slate-300" />
+                )}
+                Select All
+              </button>
+            </div>
           )}
           <ScrollArea className="max-h-64 sm:max-h-80 lg:max-h-none 2xl:flex-1">
-            <div className="space-y-2 pr-1">
+            <div className="space-y-2 pl-1 pr-5 sm:pr-6 lg:pr-8">
               {isLoading && (
                 <div className="space-y-2">
                   <Skeleton className="h-14 rounded-2xl" />

@@ -47,7 +47,7 @@ function DraggableAssignedRow({
       {...listeners}
       onClick={() => onViewProfile(app)}
       className={[
-        "group/item flex h-8 cursor-grab items-center justify-between rounded-xl border border-transparent bg-white px-2 py-1 shadow-sm transition active:cursor-grabbing hover:border-indigo-100 sm:h-9 sm:px-3 sm:py-1.5 lg:h-10",
+        "group/item flex h-8 cursor-grab items-center justify-between rounded-2xl border border-transparent bg-white px-2 py-1 shadow-sm transition active:cursor-grabbing hover:border-indigo-100 sm:h-9 sm:px-3 sm:py-1.5 lg:h-10",
         isDragging ? "opacity-40 ring-2 ring-indigo-300" : "",
       ].join(" ")}
     >
@@ -88,7 +88,7 @@ export function ProjectCard({
     <div
       ref={setNodeRef}
       className={[
-        "group flex h-[175px] min-w-0 flex-col rounded-3xl border p-2 transition max-sm:h-[155px] sm:h-[185px] md:h-[175px] sm:p-2.5 lg:h-auto lg:min-h-[280px] lg:p-5",
+        "group flex h-[175px] min-w-0 flex-col rounded-2xl border p-2 transition max-sm:h-[155px] sm:h-[185px] md:h-[175px] sm:p-2.5 lg:h-auto lg:min-h-[280px] lg:p-5",
         isOver
           ? "border-indigo-300 bg-indigo-50/50"
           : "border-[#e4e7ed] bg-slate-50/50 hover:border-slate-200",
