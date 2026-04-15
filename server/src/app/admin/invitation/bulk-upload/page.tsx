@@ -6,12 +6,13 @@ import {
   ADMIN_LOGO_CONFIG,
   ADMIN_MENU_ITEMS,
 } from "@/utils/config/adminSidebarConfig";
+
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-import AsideSidebar from "@/components/AsideSidebar";
-import InvitationsMainContent from "./invitations-content";
 import { BulkUploadTabs } from "@/components/admin/Invitations/BulkUploadTabs";
+import AsideSidebar from "@/components/AsideSidebar";
+
+import InvitationsMainContent from "./invitations-content";
 
 export default function BulkUploadPage() {
   const [activeTab, setActiveTab] = useState("bulk-upload");
@@ -57,7 +58,10 @@ export default function BulkUploadPage() {
                 />
               </TabsContent>
 
-              <TabsContent value="bulk-upload" className="mt-0 h-full p-5 md:p-8">
+              <TabsContent
+                value="bulk-upload"
+                className="mt-0 h-full p-5 md:p-8"
+              >
                 <BulkUploadTabs onCancel={handleCancel} />
               </TabsContent>
             </div>

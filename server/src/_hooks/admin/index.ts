@@ -24,6 +24,7 @@ export { useResetUserPassword, useBulkUploadUsers } from "./useAdminSystem";
 
 // Invitation Hook
 export { useInvitation } from "./useInvitation";
+export { useBulkSendInvitations } from "./useBulkInvitation";
 
 // Onboarding Approval Hooks
 export {

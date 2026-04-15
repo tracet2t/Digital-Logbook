@@ -1,9 +1,20 @@
 "use client";
 
 import React from "react";
+
 import { AlertCircle } from "lucide-react";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -12,15 +23,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 
 interface BulkUploadStep2Props {
   fileInfo: {
@@ -34,11 +36,20 @@ interface BulkUploadStep2Props {
     role: string;
     project: string;
   };
-  onFieldMappingChange: (field: "email" | "role" | "project", column: string) => void;
+  onFieldMappingChange: (
+    field: "email" | "role" | "project",
+    column: string,
+  ) => void;
   previewData: Record<string, any>[];
   onBack?: () => void;
   onCancel?: () => void;
   onSubmit?: () => void;
+  isSubmitting?: boolean;
+  progress?: {
+    current: number;
+    total: number;
+    percentage: number;
+  };
 }
 
 const getRoleBadgeColor = (role: string) => {
@@ -55,7 +66,7 @@ const formatFileSize = (bytes: number): string => {
   const k = 1024;
   const sizes = ["Bytes", "KB", "MB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + " " + sizes[i];
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
 };
 
 export function BulkUploadStep2({
@@ -67,6 +78,8 @@ export function BulkUploadStep2({
   onBack = () => {},
   onCancel = () => {},
   onSubmit = () => {},
+  isSubmitting = false,
+  progress = { current: 0, total: 0, percentage: 0 },
 }: BulkUploadStep2Props) {
   return (
     <div className="space-y-6 w-full">
@@ -155,9 +168,7 @@ export function BulkUploadStep2({
                 </p>
                 <Select
                   value={fieldMapping.role}
-                  onValueChange={(value) =>
-                    onFieldMappingChange("role", value)
-                  }
+                  onValueChange={(value) => onFieldMappingChange("role", value)}
                 >
                   <SelectTrigger className="h-9 border-[#dbe0e8]">
                     <SelectValue placeholder="Select column" />
@@ -251,7 +262,9 @@ export function BulkUploadStep2({
                         {row[fieldMapping.role]?.split(" ")[1] || "-"}
                       </TableCell>
                       <TableCell className="px-4 py-3">
-                        <Badge className={getRoleBadgeColor(row[fieldMapping.role])}>
+                        <Badge
+                          className={getRoleBadgeColor(row[fieldMapping.role])}
+                        >
                           {row[fieldMapping.role]?.toUpperCase() || "-"}
                         </Badge>
                       </TableCell>
@@ -262,7 +275,10 @@ export function BulkUploadStep2({
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="px-4 py-8 text-center text-slate-500">
+                    <TableCell
+                      colSpan={5}
+                      className="px-4 py-8 text-center text-slate-500"
+                    >
                       No preview data available
                     </TableCell>
                   </TableRow>
@@ -282,6 +298,31 @@ export function BulkUploadStep2({
           </Alert>
         </div>
       </div>
+
+      {/* Progress Bar */}
+      {isSubmitting && (
+        <Card className="p-6 border-[#d9dde5]">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold text-slate-900">
+                Sending Invitations...
+              </p>
+              <p className="text-sm text-slate-600">
+                {progress.current} / {progress.total}
+              </p>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+              <div
+                className="bg-[#000053] h-full transition-all duration-300 ease-out"
+                style={{ width: `${progress.percentage}%` }}
+              />
+            </div>
+            <p className="text-xs text-slate-500 text-center">
+              {progress.percentage}% Complete
+            </p>
+          </div>
+        </Card>
+      )}
 
       {/* Buttons */}
       <div className="flex items-center justify-between gap-3 pt-6 border-t border-[#e4e7ed]">
@@ -304,9 +345,10 @@ export function BulkUploadStep2({
 
         <Button
           onClick={onSubmit}
-          className="px-6 h-10 bg-[#000053] hover:bg-[#000053] text-white font-semibold"
+          disabled={isSubmitting}
+          className="px-6 h-10 bg-[#000053] hover:bg-[#000053] text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          UPLOAD & SEND INVITATIONS →
+          {isSubmitting ? "SENDING..." : "UPLOAD & SEND INVITATIONS"} →
         </Button>
       </div>
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+
 import * as XLSX from "xlsx";
 
 interface FieldMapping {
@@ -10,7 +11,7 @@ interface FieldMapping {
 }
 
 interface BulkUploadState {
-  currentStep: 1 | 2;
+  currentStep: 1 | 2 | 3;
   uploadedFile: File | null;
   excelData: Record<string, any>[];
   fieldMapping: FieldMapping;
@@ -49,7 +50,10 @@ export function useBulkUpload() {
           const data = event.target?.result;
           const workbook = XLSX.read(data, { type: "array" });
           const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-          const rows = XLSX.utils.sheet_to_json(worksheet) as Record<string, any>[];
+          const rows = XLSX.utils.sheet_to_json(worksheet) as Record<
+            string,
+            any
+          >[];
           resolve(rows);
         } catch (err) {
           reject(new Error("Failed to parse Excel file"));
@@ -66,11 +70,21 @@ export function useBulkUpload() {
 
   const handleFileUpload = async (file: File) => {
     // Validate file format
-    const validFormats = [".xlsx", ".xls", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.ms-excel"];
+    const validFormats = [
+      ".xlsx",
+      ".xls",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.ms-excel",
+    ];
     const fileExtension = file.name.substring(file.name.lastIndexOf("."));
-    
-    if (!validFormats.some(format => file.type === format || fileExtension.toLowerCase() === format)) {
-      setState(prev => ({
+
+    if (
+      !validFormats.some(
+        (format) =>
+          file.type === format || fileExtension.toLowerCase() === format,
+      )
+    ) {
+      setState((prev) => ({
         ...prev,
         error: "Invalid file format. Please upload .xlsx or .xls files only.",
       }));
@@ -80,14 +94,14 @@ export function useBulkUpload() {
     // Validate file size (5MB)
     const maxSize = 5 * 1024 * 1024; // 5MB
     if (file.size > maxSize) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         error: "File size exceeds 5MB limit.",
       }));
       return;
     }
 
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       isLoading: true,
       error: null,
@@ -97,7 +111,7 @@ export function useBulkUpload() {
       const data = await parseExcelFile(file);
 
       if (data.length === 0) {
-        setState(prev => ({
+        setState((prev) => ({
           ...prev,
           error: "Excel file is empty.",
           isLoading: false,
@@ -106,7 +120,7 @@ export function useBulkUpload() {
       }
 
       if (data.length > 500) {
-        setState(prev => ({
+        setState((prev) => ({
           ...prev,
           error: "Excel file exceeds 500 rows limit.",
           isLoading: false,
@@ -117,7 +131,7 @@ export function useBulkUpload() {
       const previewRows = data.slice(0, 5);
       const columns = Object.keys(data[0] || {});
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         uploadedFile: file,
         excelData: data,
@@ -136,7 +150,7 @@ export function useBulkUpload() {
         },
       }));
     } catch (err) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         error: err instanceof Error ? err.message : "Failed to process file",
         isLoading: false,
@@ -145,7 +159,7 @@ export function useBulkUpload() {
   };
 
   const handleFieldMapping = (field: keyof FieldMapping, column: string) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       fieldMapping: {
         ...prev.fieldMapping,
@@ -154,8 +168,8 @@ export function useBulkUpload() {
     }));
   };
 
-  const goToStep = (step: 1 | 2) => {
-    setState(prev => ({
+  const goToStep = (step: 1 | 2 | 3) => {
+    setState((prev) => ({
       ...prev,
       currentStep: step,
     }));
