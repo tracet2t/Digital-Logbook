@@ -24,6 +24,7 @@ import {
   MentorTeamCard,
   RecentActivityCard,
 } from "./MenteeProfileSections";
+import { MenteeWarningCard } from "./MenteeWarningCard";
 import {
   AssignmentDecision,
   FeedbackRecord,
@@ -348,6 +349,8 @@ function MenteeProfileView({
                   <MentorTeamCard mentorTeam={mentorTeam} />
                 </div>
               </div>
+
+              <MenteeWarningCard studentId={selectedStudentId} />
               <div className="flex justify-end pt-4 border-t border-[#e3ebf8]">
                 <DialogClose asChild>
                   <Button variant="outline" className="min-w-[100px]">
