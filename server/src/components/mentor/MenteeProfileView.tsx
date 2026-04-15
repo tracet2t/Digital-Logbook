@@ -268,22 +268,14 @@ function MenteeProfileView({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent
-        className="flex flex-col max-h-[90vh] max-w-5xl w-full p-0"
-      >
-        <div
-          className="flex min-h-0 flex-1 flex-col bg-[#f5f7fb] p-4 md:p-6"
-        >
-          <div
-            className="flex min-h-0 flex-1 flex-col rounded-2xl border border-[#dbe5f4] bg-white shadow-sm"
-          >
+      <DialogContent className="flex flex-col max-h-[90vh] max-w-5xl w-full p-0">
+        <div className="flex min-h-0 flex-1 flex-col bg-[#f5f7fb] p-4 md:p-6">
+          <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-[#dbe5f4] bg-white shadow-sm">
             <MenteeHeader mentorName={mentorName} />
 
             <div className="border-t border-dashed border-[#86a8df]" />
 
-            <div
-              className="flex-1 overflow-y-auto space-y-4 p-4 md:space-y-6 md:p-6"
-            >
+            <div className="flex-1 overflow-y-auto space-y-4 p-4 md:space-y-6 md:p-6">
               <Card className="rounded-2xl border-[#e3ebf8] shadow-sm">
                 <CardContent className="space-y-4 p-4 md:space-y-5 md:p-5">
                   <div className="flex flex-col gap-3 md:flex-row md:items-center">
