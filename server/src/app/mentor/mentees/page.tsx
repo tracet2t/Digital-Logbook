@@ -14,14 +14,7 @@ import {
 } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -359,32 +352,18 @@ export default function MenteesPage() {
       </div>
 
       {/* Profile View Dialog */}
-      <Dialog
-        open={selectedDialogRow !== null}
-        onOpenChange={(open) => {
-          if (!open) setSelectedDialogRow(null);
-        }}
-      >
-        <DialogContent className="max-w-5xl w-full p-0">
-          {selectedDialogRow && (
-            <Suspense>
-              <MenteeProfileView
-                key={`${selectedDialogRow.id}-${selectedDialogRow.projectId}`}
-                initialStudentId={selectedDialogRow.id}
-                initialProjectId={selectedDialogRow.projectId}
-                onAllocationChange={() => setRefetchKey((k) => k + 1)}
-              />
-            </Suspense>
-          )}
-          <DialogFooter className="px-6 pb-5 pt-2">
-            <DialogClose asChild>
-              <Button variant="outline" className="min-w-[100px]">
-                Close
-              </Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {selectedDialogRow && (
+        <Suspense>
+          <MenteeProfileView
+            key={`${selectedDialogRow.id}-${selectedDialogRow.projectId}`}
+            initialStudentId={selectedDialogRow.id}
+            initialProjectId={selectedDialogRow.projectId}
+            onAllocationChange={() => setRefetchKey((k) => k + 1)}
+            isOpen={true}
+            onClose={() => setSelectedDialogRow(null)}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }

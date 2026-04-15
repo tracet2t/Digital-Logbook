@@ -265,7 +265,14 @@ function MenteeProfileView({
   const summaryStatus = getSummaryStatus(assignmentDecision);
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open && onClose) {
+          onClose();
+        }
+      }}
+    >
       <DialogContent className="max-w-5xl w-full p-0">
         <div className="flex-grow flex flex-col w-full bg-[#f5f7fb] p-4 md:p-6">
           <div className="w-full flex-1 rounded-2xl border border-[#dbe5f4] bg-white shadow-sm">
