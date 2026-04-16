@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties, MouseEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { WarningCategory } from "@prisma/client";
@@ -18,6 +19,9 @@ type Props = {
   studentId: string;
   name: string;
   initials: string;
+  className?: string;
+  style?: CSSProperties;
+  onClick?: (e: MouseEvent<HTMLSpanElement>) => void;
 };
 
 // Severity order: high > medium > low > none
@@ -46,7 +50,14 @@ const RING_CLASS: Record<WarningCategory, string> = {
 };
 
 // Avatar that shows a coloured ring matching the student's highest warning severity
-export function MenteeAvatar({ studentId, name, initials }: Props) {
+export function MenteeAvatar({
+  studentId,
+  name,
+  initials,
+  className,
+  style,
+  onClick,
+}: Props) {
   const { data: warnings = [] } = useQuery<WarningStatusItem[]>({
     queryKey: ["warning-status", studentId],
     queryFn: async () => {
@@ -66,8 +77,11 @@ export function MenteeAvatar({ studentId, name, initials }: Props) {
       className={cn(
         "h-10 w-10 shrink-0 border border-[#d9dde5] bg-[#f5f7fb]",
         severity ? RING_CLASS[severity] : undefined,
+        className,
       )}
       title={severity ? `${severity} warning` : name}
+      style={style}
+      onClick={onClick}
     >
       <AvatarFallback className="bg-[#e9edf5] text-xs font-bold text-[#0f1730]">
         {initials}

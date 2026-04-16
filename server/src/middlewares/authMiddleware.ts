@@ -35,7 +35,7 @@ export function withAuthMiddleware(middleware: NextMiddleware): NextMiddleware {
       );
       headers.append(
         "Set-Cookie",
-        `token=${token}; expires=Thu, 01 Jan 1970 00:00:00 UTC; Path=/; HttpOnly`,
+        "token=; Max-Age=0; expires=Thu, 01 Jan 1970 00:00:00 UTC; Path=/; HttpOnly",
       );
       return NextResponse.redirect(`${process.env.BASE_URL}/login`, {
         status: 303,

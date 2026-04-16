@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 
-import { useInvitation } from "@/hooks/admin";
+import { useInvitation } from "@/_hooks/admin";
 
 export function TestInvitation() {
   const { mutate, isPending } = useInvitation();

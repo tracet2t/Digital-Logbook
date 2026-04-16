@@ -19,7 +19,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-import { DOMAIN_ICONS, DOMAIN_LABELS } from "../_constants";
+import { DOMAIN_ICONS, DOMAIN_LABELS } from "@/app/admin/projects/_constants";
 
 interface ViewProjectDialogProps {
   project: AdminProject | null;

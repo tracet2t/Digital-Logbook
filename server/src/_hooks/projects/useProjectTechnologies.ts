@@ -1,6 +1,7 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
 import { toast } from "sonner";
 
 // Fetch technologies for a project
@@ -9,7 +10,7 @@ export function useGetProjectTechnologies(projectId: string | null) {
     queryKey: ["project", projectId, "technologies"],
     queryFn: async () => {
       const res = await fetch(
-        `/api/project/technologies?projectId=${projectId}`
+        `/api/project/technologies?projectId=${projectId}`,
       );
       if (!res.ok) throw new Error("Failed to fetch project technologies");
       return res.json();
@@ -24,7 +25,7 @@ export function useGetStudentTechnologies(studentId: string | null) {
     queryKey: ["student", studentId, "technologies"],
     queryFn: async () => {
       const res = await fetch(
-        `/api/project/technologies?studentId=${studentId}`
+        `/api/project/technologies?studentId=${studentId}`,
       );
       if (!res.ok) throw new Error("Failed to fetch student technologies");
       return res.json();
@@ -67,7 +68,9 @@ export function useUpsertStudentTechnology() {
     },
     onError: (error) => {
       toast.error(
-        error instanceof Error ? error.message : "Failed to save technology rating"
+        error instanceof Error
+          ? error.message
+          : "Failed to save technology rating",
       );
     },
   });
@@ -106,7 +109,7 @@ export function useRemoveStudentTechnology() {
     },
     onError: (error) => {
       toast.error(
-        error instanceof Error ? error.message : "Failed to remove technology"
+        error instanceof Error ? error.message : "Failed to remove technology",
       );
     },
   });

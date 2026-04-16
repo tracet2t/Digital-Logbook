@@ -29,7 +29,7 @@ import {
   DOMAIN_LABELS,
   DOMAIN_OPTIONS,
   type ProjectFormValues,
-} from "../_constants";
+} from "@/app/admin/projects/_constants";
 
 interface ProjectFormDialogProps {
   open: boolean;

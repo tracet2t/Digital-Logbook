@@ -21,7 +21,7 @@ import {
   EMPTY_FORM,
   ITEMS_PER_PAGE,
   type ProjectFormValues,
-} from "../_constants";
+} from "@/app/admin/projects/_constants";
 
 export function useProjectsPage() {
   const [page, setPage] = useState(1);

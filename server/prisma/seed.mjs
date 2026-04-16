@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, WarningCategory } from "@prisma/client";
 import bcrypt from "bcrypt";
 
 
@@ -567,21 +567,21 @@ async function main() {
       data: {
         studentId: student1.id,
         comment: "Absent without notified",
-        warningType: "Low warning",
+        warningType: WarningCategory.low,
       },
     });
     const warningStatus2 = await prisma.warningStatus.create({
       data: {
         studentId: student1.id,
         comment: "Missed the Demonstration",
-        warningType: "Medium warning",
+        warningType: WarningCategory.medium,
       },
     });
     const warningStatus3 = await prisma.warningStatus.create({
       data: {
         studentId: student1.id,
         comment: "Disregard the Instructions and Harm the Production",
-        warningType: "Severe warning",
+        warningType: WarningCategory.high,
       },
     });
 

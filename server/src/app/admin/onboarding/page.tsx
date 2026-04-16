@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 
-import { CheckCircle2, UserCheck, UserRound } from "lucide-react";
-
 import {
   useAssignMenteeToProject,
   useAssignMentorToProject,
@@ -13,9 +11,11 @@ import {
   useUnassignedMentors,
   useUnassignMentee,
   useUnassignMentor,
-} from "@/hooks/admin/useAdminOnboarding";
-import { useKanbanBoard } from "@/hooks/admin/useKanbanBoard";
-import { useCreateProject, useGetProjects } from "@/hooks/projects";
+} from "@/_hooks/admin/useAdminOnboarding";
+import { useKanbanBoard } from "@/_hooks/admin/useKanbanBoard";
+import { useCreateProject, useGetProjects } from "@/_hooks/projects";
+import { CheckCircle2, UserCheck, UserRound } from "lucide-react";
+
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminPageLayout, PageHeader } from "@/components/admin";
@@ -27,6 +27,7 @@ import {
   type ProjectFormState,
 } from "@/components/admin/kanban";
 
+// blank slate for the "create project" form — we always reset to this before opening the dialog
 const EMPTY_FORM: ProjectFormState = {
   name: "",
   description: "",
@@ -39,17 +40,25 @@ const EMPTY_FORM: ProjectFormState = {
 // ---------------------------------------------------------------------------
 
 export default function AdminOnboardingPage() {
+  // controls whether the "create project" dialog is visible
   const [showCreateProject, setShowCreateProject] = useState(false);
+  // holds the current values typed into the create-project form
   const [createProjectForm, setCreateProjectForm] =
     useState<ProjectFormState>(EMPTY_FORM);
 
+  // fetch all pending/approved mentee applications for the bench
   const { data: applications = [], isLoading } = useOnboardingApplications();
+  // fetch mentors who haven't been assigned to a project yet
   const { data: mentorApplications = [], isLoading: mentorLoading } =
     useUnassignedMentors();
+  // all existing projects — used to populate the kanban columns
   const { data: projects = [], isLoading: projectsLoading } = useGetProjects();
+  // current mentee-to-project assignments (so we know who's already placed)
   const { data: allocations } = useProjectApplicationAllocations();
+  // same but for mentors
   const { data: mentorAllocations } = useMentorAllocations();
 
+  // mutation hooks for dragging mentees/mentors onto or off of a project
   const assignMentee = useAssignMenteeToProject();
   const unassignMentee = useUnassignMentee();
   const assignMentor = useAssignMentorToProject();
@@ -57,6 +66,9 @@ export default function AdminOnboardingPage() {
   const { mutate: createProject, isPending: isCreatingProject } =
     useCreateProject();
 
+  // set up the kanban board state for the mentee tab —
+  // maps existing allocations into the shape the hook expects, then wires
+  // the assign/unassign callbacks to the actual API mutations
   const menteeBoard = useKanbanBoard({
     allocations: allocations?.map(({ applicationId, projectId }) => ({
       id: applicationId,
@@ -69,6 +81,7 @@ export default function AdminOnboardingPage() {
       unassignMentee.mutate({ applicationId: id, projectId }, { onError }),
   });
 
+  // same board setup but for the mentor tab
   const mentorBoard = useKanbanBoard({
     allocations: mentorAllocations?.map(({ mentorId, projectId }) => ({
       id: mentorId,
@@ -81,18 +94,21 @@ export default function AdminOnboardingPage() {
       unassignMentor.mutate({ mentorId: id, projectId }, { onError }),
   });
 
+  // quick summary numbers shown in the stat cards at the top of the mentee tab
   const menteeCounts = {
     total: applications.length,
     pending: applications.filter((a) => a.status === "pending").length,
     approved: applications.filter((a) => a.status === "approved").length,
   };
 
+  // same counts for the mentor tab
   const mentorCounts = {
     total: mentorApplications.length,
     pending: mentorApplications.filter((a) => a.status === "pending").length,
     approved: mentorApplications.filter((a) => a.status === "approved").length,
   };
 
+  // reset the form and pop open the create-project dialog
   const openCreateProject = () => {
     setCreateProjectForm(EMPTY_FORM);
     setShowCreateProject(true);
@@ -218,6 +234,7 @@ export default function AdminOnboardingPage() {
         </div>
       </AdminPageLayout>
 
+      {/* profile viewer — shared between both tabs, only one opens at a time */}
       <ApplicantDialog
         application={menteeBoard.viewingProfile}
         onClose={() => menteeBoard.setViewingProfile(null)}
@@ -227,6 +244,7 @@ export default function AdminOnboardingPage() {
         onClose={() => mentorBoard.setViewingProfile(null)}
       />
 
+      {/* create project dialog — on success, close it and wipe the form */}
       <CreateProjectDialog
         open={showCreateProject}
         onOpenChange={setShowCreateProject}
@@ -236,6 +254,7 @@ export default function AdminOnboardingPage() {
           createProject(
             {
               name: createProjectForm.name,
+              // only send optional fields if they have a value
               description: createProjectForm.description || undefined,
               domain: createProjectForm.domain,
               batchNo: createProjectForm.batchNo || undefined,

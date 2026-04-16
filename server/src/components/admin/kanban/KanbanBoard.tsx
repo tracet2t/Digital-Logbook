@@ -2,6 +2,7 @@
 
 import { Dispatch, SetStateAction } from "react";
 
+import { OnboardingApplication } from "@/_hooks/admin/useAdminOnboarding";
 import {
   DndContext,
   DragEndEvent,
@@ -15,7 +16,6 @@ import {
 } from "@dnd-kit/core";
 import { CheckSquare, Plus, Square } from "lucide-react";
 
-import { OnboardingApplication } from "@/hooks/admin/useAdminOnboarding";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -91,18 +91,18 @@ export function KanbanBoard({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex flex-row gap-2 rounded-2xl border border-[#e4e7ed] bg-white p-2 sm:gap-3 sm:p-3 lg:gap-6 lg:p-6 2xl:overflow-hidden 2xl:h-[calc(100dvh-22rem)]">
+      <div className="flex flex-row gap-2 rounded-2xl border border-[#e4e7ed] bg-white p-2 sm:gap-3 sm:p-3 lg:gap-6 lg:p-6 2xl:gap-4 2xl:p-4 3xl:gap-3 3xl:p-3 2xl:overflow-hidden 2xl:h-[calc(100dvh-22rem)] w-full">
         {/* Bench */}
         <div
           ref={setBenchRef}
           className={[
-            "flex w-40 shrink-0 flex-col rounded-2xl border-r pl-1 pr-1 transition sm:w-48 sm:pl-2 sm:pr-1 md:w-56 lg:w-64 lg:pl-0 lg:pr-2",
+            "flex w-48 shrink-0 flex-col rounded-2xl border-r pl-2 pr-1 transition sm:w-56 sm:pl-2 sm:pr-1 md:w-60 lg:w-72 lg:pl-2 lg:pr-2 2xl:w-72 3xl:w-80",
             isBenchOver
               ? "border-indigo-300 bg-indigo-50/60"
               : "border-slate-100",
           ].join(" ")}
         >
-          <div className="mb-4 flex items-center justify-between pr-2 sm:pr-3 lg:pr-6">
+          <div className="mb-4 flex items-center justify-between pr-3 sm:pr-4 lg:pr-6">
             <h3 className="text-[10px] font-black uppercase tracking-[0.22em] text-[#000053]">
               {benchLabel}
             </h3>
@@ -112,7 +112,7 @@ export function KanbanBoard({
           </div>
           {/** Select All function :CheckBox */}
           {!isLoading && bench.length > 0 && (
-            <div className="pr-2 sm:pr-3 lg:pr-6">
+            <div className="pr-3 sm:pr-4 lg:pr-6">
               <button
                 type="button"
                 onClick={() =>
@@ -134,7 +134,7 @@ export function KanbanBoard({
             </div>
           )}
           <ScrollArea className="max-h-64 sm:max-h-80 lg:max-h-none 2xl:flex-1">
-            <div className="space-y-2 pl-1 pr-5 sm:pr-6 lg:pr-8">
+            <div className="space-y-2 pr-3 sm:pr-4 lg:pr-6">
               {isLoading && (
                 <div className="space-y-2">
                   <Skeleton className="h-14 rounded-2xl" />
@@ -195,7 +195,7 @@ export function KanbanBoard({
             </p>
           ) : (
             <div className="2xl:flex-1 2xl:overflow-y-auto">
-              <div className="grid grid-cols-3 gap-1.5 pb-2 pr-1 sm:gap-2 lg:grid-cols-2 lg:gap-4 xl:grid-cols-3">
+              <div className="grid grid-cols-2 gap-1.5 pb-2 pr-1 sm:gap-2 sm:grid-cols-3 lg:grid-cols-3 lg:gap-3 xl:grid-cols-4 2xl:grid-cols-4 2xl:gap-3 3xl:grid-cols-5 3xl:gap-3 4xl:grid-cols-6 4xl:gap-3">
                 {projects.map((project) => {
                   const assignedIds =
                     assignments[project.id] ?? new Set<string>();

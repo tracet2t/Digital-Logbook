@@ -3,21 +3,23 @@
 import React, { useMemo, useState } from "react";
 
 import {
+  useChangeInvitationStatus,
+  useDeleteInvitation,
+  useInvitation,
+  useRecentInvitations,
+} from "@/_hooks/admin/useInvitation";
+import { useGetProjects } from "@/_hooks/projects";
+import {
   ADMIN_LOGO_CONFIG,
   ADMIN_MENU_ITEMS,
 } from "@/utils/config/adminSidebarConfig";
 import { Plus, Search } from "lucide-react";
 import { z } from "zod";
 
-import {
-  useChangeInvitationStatus,
-  useDeleteInvitation,
-  useInvitation,
-  useRecentInvitations,
-} from "@/hooks/admin/useInvitation";
-import { useGetProjects } from "@/hooks/projects";
 import { Card } from "@/components/ui/card";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BulkUploadTabs } from "@/components/admin/Invitations/BulkUploadTabs";
 import PageHeader from "@/components/admin/PageHeader";
 import AsideSidebar from "@/components/AsideSidebar";
 import ChangeStatusDialog from "@/components/Invitations/dialogs/ChangeStatusDialog";
@@ -38,7 +40,7 @@ const inviteSchema = z.object({
   firstName: z.string().min(2, { message: "Must be at least 2 characters" }),
   lastName: z.string().min(2, { message: "Must be at least 2 characters" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
-  project: z.string().optional(),
+  project: z.string().min(1, { message: "Project is required" }),
 });
 
 export default function InvitationsView() {
@@ -103,7 +105,7 @@ export default function InvitationsView() {
         firstName: formData.firstName,
         lastName: formData.lastName,
         role: formData.role as "student" | "mentor" | "superAdmin",
-        projectId: formData.project || undefined,
+        projectId: formData.project,
       },
       {
         onSuccess: () => {
@@ -171,110 +173,137 @@ export default function InvitationsView() {
       <SidebarInset className="bg-[#f5f7fb]">
         <div className="flex-1 p-5 md:p-8">
           <Card className="overflow-hidden border-[#d9dde5] bg-white">
-            <div className="space-y-4 p-4 md:p-5">
+            <div className="space-y-6 p-4 md:p-5">
               {/* Header */}
-              <div>
-                <PageHeader
-                  title="Invitations"
-                  subtitle="Manage organizational access and track member onboarding."
-                />
-              </div>
-
-              {/* Stats Cards */}
-              <InvitationsStats
-                loading={isInvLoading}
-                total={totalInvitations}
-                pending={pendingCount}
-                accepted={acceptedCount}
-                expired={expiredCount}
+              <PageHeader
+                title="Invitations"
+                subtitle="Manage organizational access and track member onboarding."
               />
 
-              {/* Search and Create Button Bar */}
-              <div className="flex flex-wrap items-end gap-3 rounded-lg border border-[#e4e7ed] bg-[#f8fafc] p-3">
-                <div className="w-full sm:w-auto space-y-1">
-                  <p className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">
-                    Search
-                  </p>
-                  <div className="relative">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                    <input
-                      className="h-8 w-full sm:w-[280px] rounded-lg border border-[#dbe0e8] bg-white pl-9 pr-3 text-sm text-slate-700 outline-none transition focus:border-slate-400"
-                      type="search"
-                      value={search}
-                      onChange={(event) => {
-                        setSearch(event.target.value);
-                        setPage(1);
-                      }}
-                      placeholder="Search by email, role, or project..."
-                    />
-                  </div>
-                </div>
+              {/* Tabs */}
+              <Tabs defaultValue="invitations" className="flex-col gap-0">
+                <TabsList className="mb-6 w-fit rounded-xl bg-slate-100 p-1">
+                  <TabsTrigger
+                    value="invitations"
+                    className="rounded-lg px-5 py-1.5 text-sm font-medium text-slate-500 data-[state=active]:bg-white data-[state=active]:font-semibold data-[state=active]:text-[#000053] data-[state=active]:shadow-sm"
+                  >
+                    Invitations
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="bulk-upload"
+                    className="rounded-lg px-5 py-1.5 text-sm font-medium text-slate-500 data-[state=active]:bg-white data-[state=active]:font-semibold data-[state=active]:text-[#000053] data-[state=active]:shadow-sm"
+                  >
+                    Bulk Upload
+                  </TabsTrigger>
+                </TabsList>
 
-                {/* Create Button */}
-                <button
-                  onClick={() => setCreateOpen(true)}
-                  className="ml-auto inline-flex items-center justify-center gap-2 h-9 px-4 bg-[#000053] hover:bg-[#000053] text-white text-sm font-medium rounded-lg transition-colors shadow-m shrink-0 w-full sm:w-auto"
-                >
-                  <Plus size={15} /> Create Invitation
-                </button>
-              </div>
+                {/* Invitations Tab Content */}
+                <TabsContent value="invitations" className="space-y-4">
+                  {/* Stats Cards */}
+                  <InvitationsStats
+                    loading={isInvLoading}
+                    total={totalInvitations}
+                    pending={pendingCount}
+                    accepted={acceptedCount}
+                    expired={expiredCount}
+                  />
 
-              {/* Table */}
-              <div className="overflow-hidden rounded-lg border border-[#e4e7ed]">
-                <InvitationsTable
-                  data={pagedInvitations}
-                  loading={isInvLoading}
-                  error={isInvError || false}
-                  onView={setViewInv}
-                  onChangeStatus={(inv) => {
-                    setChangeStatusInv(inv);
-                    setSelectedStatus(inv.status);
-                  }}
-                  onDelete={setDeleteId}
-                />
-
-                {/* Pagination Footer */}
-                <div className="flex flex-col gap-3 border-t border-[#e4e7ed] px-4 py-3 sm:flex-row sm:items-center sm:justify-between bg-white">
-                  <p className="text-sm text-slate-500">
-                    Showing {startCount} to {endCount} of {totalInvitations}{" "}
-                    invitations
-                  </p>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => goToPage(currentPage - 1)}
-                      disabled={currentPage === 1}
-                      className="h-8 px-3 rounded border border-[#dbe0e8] text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      Previous
-                    </button>
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                        (pageNum) => (
-                          <button
-                            key={pageNum}
-                            onClick={() => goToPage(pageNum)}
-                            className={`h-8 w-8 rounded text-sm font-medium transition-colors ${
-                              currentPage === pageNum
-                                ? "bg-[#000053] text-white hover:bg-[#000053]"
-                                : "border border-[#dbe0e8] text-slate-700 hover:bg-slate-50"
-                            }`}
-                          >
-                            {pageNum}
-                          </button>
-                        ),
-                      )}
+                  {/* Search and Create Button Bar */}
+                  <div className="flex flex-wrap items-end gap-3 rounded-lg border border-[#e4e7ed] bg-[#f8fafc] p-3">
+                    <div className="w-full sm:w-auto space-y-1">
+                      <p className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">
+                        Search
+                      </p>
+                      <div className="relative">
+                        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                        <input
+                          className="h-8 w-full sm:w-[280px] rounded-lg border border-[#dbe0e8] bg-white pl-9 pr-3 text-sm text-slate-700 outline-none transition focus:border-slate-400"
+                          type="search"
+                          value={search}
+                          onChange={(event) => {
+                            setSearch(event.target.value);
+                            setPage(1);
+                          }}
+                          placeholder="Search by email, role, or project..."
+                        />
+                      </div>
                     </div>
-                    <button
-                      onClick={() => goToPage(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                      className="h-8 px-3 rounded border border-[#dbe0e8] text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      Next
-                    </button>
+
+                    {/* Create Button */}
+                    <div className="ml-auto flex flex-wrap gap-3 w-full sm:w-auto">
+                      <button
+                        onClick={() => setCreateOpen(true)}
+                        className="inline-flex items-center justify-center gap-2 h-9 px-4 bg-[#000053] hover:bg-[#000053] text-white text-sm font-medium rounded-lg transition-colors shadow-m shrink-0 w-full sm:w-auto"
+                      >
+                        <Plus size={15} /> Create Invitation
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </div>
+
+                  {/* Table */}
+                  <div className="overflow-hidden rounded-lg border border-[#e4e7ed]">
+                    <InvitationsTable
+                      data={pagedInvitations}
+                      loading={isInvLoading}
+                      error={isInvError || false}
+                      onView={setViewInv}
+                      onChangeStatus={(inv) => {
+                        setChangeStatusInv(inv);
+                        setSelectedStatus(inv.status);
+                      }}
+                      onDelete={setDeleteId}
+                    />
+
+                    {/* Pagination Footer */}
+                    <div className="flex flex-col gap-3 border-t border-[#e4e7ed] px-4 py-3 sm:flex-row sm:items-center sm:justify-between bg-white">
+                      <p className="text-sm text-slate-500">
+                        Showing {startCount} to {endCount} of {totalInvitations}{" "}
+                        invitations
+                      </p>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => goToPage(currentPage - 1)}
+                          disabled={currentPage === 1}
+                          className="h-8 px-3 rounded border border-[#dbe0e8] text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          Previous
+                        </button>
+                        <div className="flex items-center gap-1">
+                          {Array.from(
+                            { length: totalPages },
+                            (_, i) => i + 1,
+                          ).map((pageNum) => (
+                            <button
+                              key={pageNum}
+                              onClick={() => goToPage(pageNum)}
+                              className={`h-8 w-8 rounded text-sm font-medium transition-colors ${
+                                currentPage === pageNum
+                                  ? "bg-[#000053] text-white hover:bg-[#000053]"
+                                  : "border border-[#dbe0e8] text-slate-700 hover:bg-slate-50"
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          ))}
+                        </div>
+                        <button
+                          onClick={() => goToPage(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                          className="h-8 px-3 rounded border border-[#dbe0e8] text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* Bulk Upload Tab Content */}
+                <TabsContent value="bulk-upload" className="space-y-4">
+                  <BulkUploadTabs />
+                </TabsContent>
+              </Tabs>
             </div>
           </Card>
         </div>

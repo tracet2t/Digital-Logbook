@@ -11,16 +11,19 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { MenteeAvatar } from "@/components/mentor/MenteeAvatar";
 
 // ─── Shared types ──────────────────────────────────────────────────────────
 
 export interface MenteeItem {
   id: string;
   name: string;
+  avatar?: string;
 }
 
 export interface MenteeTaskRow {
   name: string;
+  avatar?: string;
   task: string;
   status: "pending" | "approved" | "rejected";
   activityId: string;
@@ -69,18 +72,17 @@ export function MenteeAvatarCell({
           return (
             <Tooltip key={menteeId}>
               <TooltipTrigger asChild>
-                <Avatar
+                <MenteeAvatar
+                  studentId={menteeId}
+                  name={name}
+                  initials={getInitials(name)}
                   className="h-8 w-8 border-2 border-white cursor-pointer hover:z-10 transition-transform hover:-translate-y-0.5"
                   style={{ marginLeft: i === 0 ? 0 : "-6px", zIndex: i }}
                   onClick={(e) => {
                     e.stopPropagation();
                     onAvatarClick(menteeId, dateKey);
                   }}
-                >
-                  <AvatarFallback className="bg-indigo-600 text-white text-[11px] font-bold">
-                    {getInitials(name)}
-                  </AvatarFallback>
-                </Avatar>
+                />
               </TooltipTrigger>
               <TooltipContent side="top">{name}</TooltipContent>
             </Tooltip>
@@ -166,7 +168,14 @@ export function MenteeTaskTable({
               onClick={() => onRowClick(row)}
             >
               <td className="py-2.5 px-5 text-slate-700 font-medium">
-                {row.name}
+                <div className="flex items-center gap-3">
+                  <MenteeAvatar
+                    studentId={row.studentId}
+                    name={row.name}
+                    initials={getInitials(row.name)}
+                  />
+                  <span>{row.name}</span>
+                </div>
               </td>
               <td className="py-2.5 px-5 text-slate-600">{row.task}</td>
               <td className="py-2.5 px-5">
