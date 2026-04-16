@@ -2,26 +2,27 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { WarningCategory } from "@prisma/client";
 import { toast } from "sonner";
 
 type WarningStatusItem = {
   id: string;
   studentId: string;
   comment: string;
-  warningType: string | null;
+  warningType: WarningCategory | null;
 };
 
 interface CreateWarningPayload {
   studentId: string;
   comment: string;
-  warningType?: string | null;
+  warningType?: WarningCategory | null;
 }
 
 interface CreateWarningResponse {
   id: string;
   studentId: string;
   comment: string;
-  warningType: string | null;
+  warningType: WarningCategory | null;
 }
 
 /**

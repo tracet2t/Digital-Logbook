@@ -275,12 +275,18 @@ enum MenteeApplicationStatus {
   rejected
 }
 
+enum WarningCategory {
+  low
+  medium
+  high
+}
+
 model WarningStatus {
-  id          String   @id @default(uuid())
-  studentId   String     
+  id          String          @id @default(uuid())
+  studentId   String
   comment     String
-  warningType String?
-  student       User     @relation(fields: [studentId], references: [id])
+  warningType WarningCategory?
+  student     User            @relation(fields: [studentId], references: [id])
 
   @@map("warningStatuses")
 }

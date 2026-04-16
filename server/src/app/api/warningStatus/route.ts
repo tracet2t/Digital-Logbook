@@ -1,6 +1,9 @@
 import { WarningStatusRepository } from "@/repositories/warningStatus_repository_impl";
 import getSession from "@/server_actions/getSession";
+import { WarningCategory } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
+
+const VALID_WARNING_CATEGORIES = Object.values(WarningCategory);
 
 const warningStatusRepository = new WarningStatusRepository();
 
@@ -57,10 +60,16 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
+    // Validate warningType against the enum if provided
+    const resolvedWarningType =
+      warningType && VALID_WARNING_CATEGORIES.includes(warningType)
+        ? (warningType as WarningCategory)
+        : null;
+
     const warning = await warningStatusRepository.createWarningStatus({
       studentId,
       comment,
-      warningType,
+      warningType: resolvedWarningType,
     });
 
     return NextResponse.json(warning, { status: 201 });

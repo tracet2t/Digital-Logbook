@@ -1,4 +1,4 @@
-import { WarningStatus } from "@prisma/client";
+import { WarningCategory, WarningStatus } from "@prisma/client";
 
 import prisma from "@/lib/prisma";
 
@@ -19,7 +19,7 @@ export class WarningStatusRepository extends BaseRepository<WarningStatus> {
   async createWarningStatus(data: {
     studentId: string;
     comment: string;
-    warningType?: string | null;
+    warningType?: WarningCategory | null;
   }) {
     return this.modelClient.create({
       data: {

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { WarningCategory } from "@prisma/client";
 import { AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -16,26 +17,27 @@ type MenteeWarningCardProps = {
   onShowWarningFormChange: (value: boolean) => void;
 };
 
-type WarningType = "Low warning" | "Medium warning" | "High warning";
+// Maps Prisma enum values to human-readable display labels
+const WARNING_LABELS: Record<WarningCategory, string> = {
+  low: "Low warning",
+  medium: "Medium warning",
+  high: "High warning",
+};
 
-const WARNING_TYPES: WarningType[] = [
-  "Low warning",
-  "Medium warning",
-  "High warning",
-];
+const WARNING_TYPES: WarningCategory[] = ["low", "medium", "high"];
 
 // Returns button styles based on the selected warning type.
 function getWarningTypeButtonClass(
-  currentType: WarningType,
-  selectedType: WarningType,
+  currentType: WarningCategory,
+  selectedType: WarningCategory,
 ) {
-  if (currentType === "Low warning") {
+  if (currentType === "low") {
     return selectedType === currentType
       ? "bg-yellow-100 text-yellow-800 border-yellow-400"
       : "bg-white text-yellow-700 border-yellow-300 hover:bg-yellow-50";
   }
 
-  if (currentType === "Medium warning") {
+  if (currentType === "medium") {
     return selectedType === currentType
       ? "bg-orange-100 text-orange-800 border-orange-400"
       : "bg-white text-orange-700 border-orange-300 hover:bg-orange-50";
@@ -53,7 +55,7 @@ export function MenteeWarningCard({
   onShowWarningFormChange,
 }: MenteeWarningCardProps) {
   const [warningComment, setWarningComment] = useState("");
-  const [warningType, setWarningType] = useState<WarningType>("Low warning");
+  const [warningType, setWarningType] = useState<WarningCategory>("low");
   const cardRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -89,7 +91,7 @@ export function MenteeWarningCard({
       {
         onSuccess: () => {
           setWarningComment("");
-          setWarningType("Low warning");
+          setWarningType("low");
         },
       },
     );
@@ -155,7 +157,7 @@ export function MenteeWarningCard({
                         warningType,
                       )}`}
                     >
-                      {type}
+                      {WARNING_LABELS[type]}
                     </button>
                   ))}
                 </div>
