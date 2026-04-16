@@ -93,7 +93,7 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
     }
 
     // Send bulk invitations
-    const result = await sendBulkInvitations(invitations, (res) => {
+    await sendBulkInvitations(invitations, (res) => {
       setSubmissionResult(res);
       if (res.success > 0) {
         goToStep(3); // Show results step
