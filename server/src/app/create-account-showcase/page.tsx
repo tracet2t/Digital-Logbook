@@ -1,9 +1,7 @@
 "use client";
 
+import { useOnboarding } from "@/_hooks/onboarding/useOnboarding";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-
 import {
   BookOpenText,
   GraduationCap,
@@ -13,6 +11,8 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,7 +25,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useOnboarding } from "@/hooks/onboarding/useOnboarding";
 
 const formSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters."),
@@ -38,7 +37,7 @@ const formSchema = z.object({
     .refine(
       (value) =>
         value.includes("drive.google.com") || value.includes("docs.google.com"),
-      "Use a Google Drive or Docs link for the CV."
+      "Use a Google Drive or Docs link for the CV.",
     ),
 });
 
@@ -239,8 +238,8 @@ export default function CreateAccountShowcasePage() {
                         </div>
                       </FormControl>
                       <FormDescription className="text-[12px] text-[#9aa0aa]">
-                        Ensure the link visibility is set to &quot;Anyone with the
-                        link&quot;.
+                        Ensure the link visibility is set to &quot;Anyone with
+                        the link&quot;.
                       </FormDescription>
                       <FormMessage className="text-[12px]" />
                     </FormItem>
@@ -253,15 +252,20 @@ export default function CreateAccountShowcasePage() {
                     disabled={onboardingMutation.isPending}
                     className="h-12 w-full rounded-md bg-[#0a0d7a] text-[14px] font-bold uppercase tracking-[0.08em] text-white hover:bg-[#080a5f]"
                   >
-                    {onboardingMutation.isPending ? "Submitting..." : "Create Mentee"}
+                    {onboardingMutation.isPending
+                      ? "Submitting..."
+                      : "Create Mentee"}
                   </Button>
                 </div>
               </form>
             </Form>
 
             <p className="mt-10 text-center text-[14px] text-[#7f848d]">
-              Already have an account? {" "}
-              <Link href="/login" className="font-semibold text-[#0a0d7a] hover:underline">
+              Already have an account?{" "}
+              <Link
+                href="/login"
+                className="font-semibold text-[#0a0d7a] hover:underline"
+              >
                 Log in here
               </Link>
             </p>
