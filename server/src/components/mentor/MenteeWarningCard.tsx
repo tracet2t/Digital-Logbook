@@ -1,16 +1,16 @@
 "use client";
 
-import { useState } from "react";
 import { AlertCircle } from "lucide-react";
+import { useState } from "react";
 
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   useCreateWarning,
   useWarningStatusList,
 } from "@/hooks/mentor/mentee/warninStatus";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 
+//StudentId prop
 type MenteeWarningCardProps = {
   studentId?: string | null;
 };
@@ -19,8 +19,7 @@ export function MenteeWarningCard({ studentId }: MenteeWarningCardProps) {
   const [warningComment, setWarningComment] = useState("");
   const [warningType, setWarningType] = useState("Low warning");
 
-  const { data: warnings = [], isLoading: warningsLoading } =
-    useWarningStatusList(studentId);
+  useWarningStatusList(studentId);
 
   const createWarningMutation = useCreateWarning();
 
