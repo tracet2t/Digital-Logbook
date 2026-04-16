@@ -4,7 +4,6 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 
 import { Award, Circle, Search, Star, Users, Zap } from "lucide-react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import {
   Table,
@@ -16,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import { FilterBar, PageHeader } from "@/components/admin";
 import AdminPagination from "@/components/admin/AdminPagination";
+import { MenteeAvatar } from "@/components/mentor/MenteeAvatar";
 import MenteeProfileView from "@/components/mentor/MenteeProfileView";
 
 type MenteeRow = {
@@ -266,11 +266,11 @@ export default function MenteesPage() {
                         {/* Identity */}
                         <TableCell className="px-5 py-4">
                           <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10 shrink-0 border border-[#d9dde5] bg-[#f5f7fb]">
-                              <AvatarFallback className="bg-[#e9edf5] text-xs font-bold text-[#0f1730]">
-                                {getInitials(row.name)}
-                              </AvatarFallback>
-                            </Avatar>
+                            <MenteeAvatar
+                              studentId={row.id}
+                              name={row.name}
+                              initials={getInitials(row.name)}
+                            />
                             <div className="min-w-0">
                               <p className="truncate text-[17px] font-extrabold leading-tight text-[#111827]">
                                 {row.name}
