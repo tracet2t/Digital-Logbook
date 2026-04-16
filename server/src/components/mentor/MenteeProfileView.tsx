@@ -1,20 +1,21 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
 
-import { useMenteeTimeAllocation } from "@/_hooks/mentor/useMenteeTimeAllocation";
+import { getSessionOnClient } from "@/server_actions/getSession";
+import { useSearchParams } from "next/navigation";
+
 import {
   useMentorProjects,
   useProjectStudents,
 } from "@/_hooks/mentor/useMentorFilter";
-import { getSessionOnClient } from "@/server_actions/getSession";
-import { useSearchParams } from "next/navigation";
+import { useMenteeTimeAllocation } from "@/_hooks/mentor/useMenteeTimeAllocation";
 
+import { GenericCombobox } from "@/components/mentor/combobox";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
-import { GenericCombobox } from "@/components/mentor/combobox";
 
 import {
   AssignmentCard,
@@ -34,6 +35,7 @@ import {
   StudentActivity,
   StudentOption,
 } from "./menteeProfileView.helpers";
+import { MenteeWarningCard } from "./MenteeWarningCard";
 
 type MenteeProfileViewProps = {
   initialStudentId?: string;
@@ -62,6 +64,7 @@ function MenteeProfileView({
   );
   const [assignmentDecision, setAssignmentDecision] =
     useState<AssignmentDecision>("inReview");
+  const [warningExpanded, setWarningExpanded] = useState(false);
 
   const { data: sessionData } = useQuery({
     queryKey: ["mentor-session-profile"],
@@ -265,22 +268,15 @@ function MenteeProfileView({
   const summaryStatus = getSummaryStatus(assignmentDecision);
 
   return (
-    <Dialog
-      open={isOpen}
-      onOpenChange={(open) => {
-        if (!open && onClose) {
-          onClose();
-        }
-      }}
-    >
-      <DialogContent className="max-w-5xl w-full p-0">
-        <div className="flex-grow flex flex-col w-full bg-[#f5f7fb] p-4 md:p-6">
-          <div className="w-full flex-1 rounded-2xl border border-[#dbe5f4] bg-white shadow-sm">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="flex flex-col max-h-[90vh] max-w-5xl w-full p-0">
+        <div className="flex min-h-0 flex-1 flex-col bg-[#f5f7fb] p-4 md:p-6">
+          <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-[#dbe5f4] bg-white shadow-sm">
             <MenteeHeader mentorName={mentorName} />
 
             <div className="border-t border-dashed border-[#86a8df]" />
 
-            <div className="space-y-4 p-4 md:space-y-6 md:p-6">
+            <div className="flex-1 overflow-y-auto space-y-4 p-4 md:space-y-6 md:p-6">
               <Card className="rounded-2xl border-[#e3ebf8] shadow-sm">
                 <CardContent className="space-y-4 p-4 md:space-y-5 md:p-5">
                   <div className="flex flex-col gap-3 md:flex-row md:items-center">
@@ -354,13 +350,21 @@ function MenteeProfileView({
                   <MentorTeamCard mentorTeam={mentorTeam} />
                 </div>
               </div>
-              <div className="flex justify-end pt-4 border-t border-[#e3ebf8]">
-                <DialogClose asChild>
-                  <Button variant="outline" className="min-w-[100px]">
-                    Close
-                  </Button>
-                </DialogClose>
-              </div>
+
+              <MenteeWarningCard
+                studentId={selectedStudentId}
+                showWarningForm={warningExpanded}
+                onShowWarningFormChange={setWarningExpanded}
+              />
+            </div>
+
+            {/* Close button — fixed footer, always visible */}
+            <div className="flex justify-end border-t border-[#e3ebf8] bg-white p-4">
+              <DialogClose asChild>
+                <Button variant="outline" className="min-w-[100px]">
+                  Close
+                </Button>
+              </DialogClose>
             </div>
           </div>
         </div>

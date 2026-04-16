@@ -31,6 +31,8 @@ model User {
 
   badges           UserBadge[]
 
+  warningStatuses  WarningStatus[]
+
   invitationsSent  Invitation[]     @relation("InvitationSender")
 
   projectAllocations ProjectAllocation[] @relation(name: "StudentProjects")
@@ -271,4 +273,20 @@ enum MenteeApplicationStatus {
   pending
   approved
   rejected
+}
+
+enum WarningCategory {
+  low
+  medium
+  high
+}
+
+model WarningStatus {
+  id          String          @id @default(uuid())
+  studentId   String
+  comment     String
+  warningType WarningCategory?
+  student     User            @relation(fields: [studentId], references: [id])
+
+  @@map("warningStatuses")
 }

@@ -5,6 +5,7 @@ import React from "react";
 import moment from "moment";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { AvatarImage } from "@/components/ui/avatar";
 import {
   Tooltip,
   TooltipContent,
@@ -17,10 +18,12 @@ import {
 export interface MenteeItem {
   id: string;
   name: string;
+  avatar?: string;
 }
 
 export interface MenteeTaskRow {
   name: string;
+  avatar?: string;
   task: string;
   status: "pending" | "approved" | "rejected";
   activityId: string;
@@ -166,7 +169,17 @@ export function MenteeTaskTable({
               onClick={() => onRowClick(row)}
             >
               <td className="py-2.5 px-5 text-slate-700 font-medium">
-                {row.name}
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-8 w-8 border border-slate-200">
+                    {row.avatar ? (
+                      <AvatarImage src={row.avatar} alt={row.name} />
+                    ) : null}
+                    <AvatarFallback className="bg-slate-100 text-xs font-semibold text-slate-700">
+                      {getInitials(row.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span>{row.name}</span>
+                </div>
               </td>
               <td className="py-2.5 px-5 text-slate-600">{row.task}</td>
               <td className="py-2.5 px-5">
