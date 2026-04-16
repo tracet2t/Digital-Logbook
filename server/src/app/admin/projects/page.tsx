@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import { useProjectsPage } from "@/_hooks/projects/useProjectsPage";
 import { Plus } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
@@ -12,11 +13,10 @@ import {
 } from "@/components/admin";
 import ProjectsStats from "@/components/admin-dashboard/ProjectsStats";
 import ProjectsTable from "@/components/admin-dashboard/ProjectsTable";
-
 import ProjectFormDialog from "@/components/admin/ProjectFormDialog";
 import ViewProjectDialog from "@/components/admin/ViewProjectDialog";
+
 import { DOMAIN_ICONS, DOMAIN_LABELS, ITEMS_PER_PAGE } from "./_constants";
-import { useProjectsPage } from "@/hooks/projects/useProjectsPage";
 
 export default function ProjectsPage() {
   const {

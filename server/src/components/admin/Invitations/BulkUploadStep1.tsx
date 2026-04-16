@@ -1,11 +1,14 @@
 "use client";
 
 import React from "react";
-import { Download, CheckCircle } from "lucide-react";
+
+import { CheckCircle, Download } from "lucide-react";
+import * as XLSX from "xlsx";
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+
 import { DragDropZone } from "./DragDropZone";
-import * as XLSX from "xlsx";
 
 interface BulkUploadStep1Props {
   onFileUpload: (file: File) => void;
@@ -91,17 +94,17 @@ export function BulkUploadStep1({
   return (
     <div className="space-y-6 w-full">
       {/* Page Header */}
-      <div className="text-center space-y-2">
+      {/* <div className="text-center space-y-2">
         <h1 className="text-3xl font-bold text-slate-900">
           Bulk Upload Invitations
         </h1>
         <p className="text-slate-600">
           Upload an Excel file to send multiple invitations at once
         </p>
-      </div>
+      </div> */}
 
       {/* Stats Section - Moved to Top */}
-      <div className="grid grid-cols-3 gap-6">
+      {/* <div className="grid grid-cols-3 gap-6">
         <Card className="p-6 border-[#d9dde5] text-center space-y-2">
           <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
             Current Queue
@@ -127,14 +130,14 @@ export function BulkUploadStep1({
           </p>
           <p className="text-sm text-slate-600">Uploaded 2 hours ago</p>
         </Card>
-      </div>
+      </div> */}
 
       {/* Step Indicator */}
-      <div className="text-center">
+      {/* <div className="text-center">
         <span className="text-sm font-bold text-[#FF6B6B] uppercase tracking-wide">
           Step 1 of 2
         </span>
-      </div>
+      </div> */}
 
       {/* Drag Drop Zone */}
       <Card className="p-8 border-[#d9dde5]">
@@ -168,7 +171,10 @@ export function BulkUploadStep1({
             "Double check email formatting before uploading.",
           ].map((guideline, idx) => (
             <div key={idx} className="flex gap-3">
-              <CheckCircle size={20} className="text-[#22C55E] flex-shrink-0 mt-0.5" />
+              <CheckCircle
+                size={20}
+                className="text-[#22C55E] flex-shrink-0 mt-0.5"
+              />
               <span className="text-sm text-slate-700">{guideline}</span>
             </div>
           ))}

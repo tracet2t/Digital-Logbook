@@ -3,8 +3,7 @@
 import React, { useState } from "react";
 
 import { useBulkSendInvitations } from "@/_hooks/admin/useBulkInvitation";
-
-import { useBulkUpload } from "@/hooks/useBulkUpload";
+import { useBulkUpload } from "@/_hooks/useBulkUpload";
 
 import { BulkUploadStep1 } from "./BulkUploadStep1";
 import { BulkUploadStep2 } from "./BulkUploadStep2";
