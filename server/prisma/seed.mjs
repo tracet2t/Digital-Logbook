@@ -1,11 +1,16 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, WarningCategory } from "@prisma/client";
 import bcrypt from "bcrypt";
+
+
+
+
 
 const prisma = new PrismaClient();
 
 async function main() {
   // Clear existing data in reverse order of dependencies
   await prisma.projectTechnology.deleteMany();
+  await prisma.warningStatus.deleteMany();
   await prisma.userBadge.deleteMany();
   await prisma.badge.deleteMany();
   await prisma.projectAllocation.deleteMany();
@@ -558,6 +563,28 @@ async function main() {
       },
     });
 
+    const warningStatus1 = await prisma.warningStatus.create({
+      data: {
+        studentId: student1.id,
+        comment: "Absent without notified",
+        warningType: WarningCategory.low,
+      },
+    });
+    const warningStatus2 = await prisma.warningStatus.create({
+      data: {
+        studentId: student1.id,
+        comment: "Missed the Demonstration",
+        warningType: WarningCategory.medium,
+      },
+    });
+    const warningStatus3 = await prisma.warningStatus.create({
+      data: {
+        studentId: student1.id,
+        comment: "Disregard the Instructions and Harm the Production",
+        warningType: WarningCategory.high,
+      },
+    });
+
     console.log("✅ Seed data created successfully!");
     console.log({
       admin: admin.email,
@@ -572,6 +599,7 @@ async function main() {
       ],
       projects: [project1.name, project2.name],
       badges: [badge1.name, badge2.name],
+      warnings: [warningStatus1.comment],
     });
   } catch (error) {
     console.error("❌ Error seeding data:", error);

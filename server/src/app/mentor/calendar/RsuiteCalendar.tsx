@@ -205,6 +205,7 @@ export default function RsuiteCalendar({ selectedUser, allMentees }: RsuiteCalen
       const mentee = allMentees?.find((m) => m.id === e.studentId);
       return {
         name: mentee?.name ?? "Unknown",
+        avatar: mentee?.avatar,
         task: e.title || "No Title",
         status: e.status,
         activityId: e.id,
