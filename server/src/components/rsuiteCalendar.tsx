@@ -244,11 +244,6 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
             />
           )}
         </div>
-        {selectedDate && (
-          <p className="mt-2 text-sm font-semibold text-gray-700">
-            Selected: {selectedDate.toDateString()}
-          </p>
-        )}
 
         {/* Task Detail Dialogs - only mount the relevant one */}
         {taskModalOpen && role === "mentor" && selectedUser !== studentId && (
