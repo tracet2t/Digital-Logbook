@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 import { useLogout } from "@/_hooks/core/useLogout";
 import { WarningCategory } from "@prisma/client";
-import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, LogOut, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -39,9 +39,16 @@ type WarningStatusItem = {
   warningType: WarningCategory | null;
 };
 
-const SEVERITY_ORDER: (WarningCategory | null)[] = ["high", "medium", "low", null];
+const SEVERITY_ORDER: (WarningCategory | null)[] = [
+  "high",
+  "medium",
+  "low",
+  null,
+];
 
-function getHighestSeverity(types: (WarningCategory | null)[]): WarningCategory | null {
+function getHighestSeverity(
+  types: (WarningCategory | null)[],
+): WarningCategory | null {
   for (const level of SEVERITY_ORDER) {
     if (types.includes(level)) return level;
   }
@@ -78,16 +85,19 @@ export default function UserDropdown({
   const { data: warnings = [] } = useQuery<WarningStatusItem[]>({
     queryKey: ["warning-status", user.id],
     queryFn: async () => {
-      const res = await fetch(`/api/warningStatus?studentId=${encodeURIComponent(user.id)}`);
+      const res = await fetch(
+        `/api/warningStatus?studentId=${encodeURIComponent(user.id)}`,
+      );
       if (!res.ok) throw new Error("Failed to fetch warnings");
       return res.json();
     },
     enabled: user.role === "student" && Boolean(user.id),
   });
 
-  const severity = user.role === "student"
-    ? getHighestSeverity(warnings.map((w) => w.warningType))
-    : null;
+  const severity =
+    user.role === "student"
+      ? getHighestSeverity(warnings.map((w) => w.warningType))
+      : null;
 
   const handleLogoutClick = () => {
     setShowLogoutDialog(true);
