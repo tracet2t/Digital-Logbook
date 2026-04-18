@@ -3,9 +3,12 @@
 import { useState } from "react";
 
 import { useLogout } from "@/_hooks/core/useLogout";
+import { WarningCategory } from "@prisma/client";
+import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, LogOut, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   SidebarFooter,
@@ -23,11 +26,33 @@ import {
 } from "@/components/dropdown-menu";
 
 interface UserInfo {
+  id: string;
   fname: string;
   lname: string;
   role: string;
   email: string;
 }
+
+type WarningStatusItem = {
+  id: string;
+  studentId: string;
+  warningType: WarningCategory | null;
+};
+
+const SEVERITY_ORDER: (WarningCategory | null)[] = ["high", "medium", "low", null];
+
+function getHighestSeverity(types: (WarningCategory | null)[]): WarningCategory | null {
+  for (const level of SEVERITY_ORDER) {
+    if (types.includes(level)) return level;
+  }
+  return null;
+}
+
+const RING_CLASS: Record<WarningCategory, string> = {
+  low: "ring-2 ring-yellow-400",
+  medium: "ring-[3px] ring-orange-400",
+  high: "ring-[3px] ring-red-500",
+};
 
 const ROLE_LABELS: Record<string, string> = {
   superAdmin: "Super Admin",
@@ -49,6 +74,20 @@ export default function UserDropdown({
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const { logout, isPending } = useLogout();
   const router = useRouter();
+
+  const { data: warnings = [] } = useQuery<WarningStatusItem[]>({
+    queryKey: ["warning-status", user.id],
+    queryFn: async () => {
+      const res = await fetch(`/api/warningStatus?studentId=${encodeURIComponent(user.id)}`);
+      if (!res.ok) throw new Error("Failed to fetch warnings");
+      return res.json();
+    },
+    enabled: user.role === "student" && Boolean(user.id),
+  });
+
+  const severity = user.role === "student"
+    ? getHighestSeverity(warnings.map((w) => w.warningType))
+    : null;
 
   const handleLogoutClick = () => {
     setShowLogoutDialog(true);
@@ -73,7 +112,13 @@ export default function UserDropdown({
                   size="lg"
                   className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground "
                 >
-                  <Avatar className="h-8 w-8 shrink-0">
+                  <Avatar
+                    className={cn(
+                      "h-8 w-8 shrink-0",
+                      severity ? RING_CLASS[severity] : undefined,
+                    )}
+                    title={severity ? `${severity} warning` : fullName}
+                  >
                     <AvatarImage src={undefined} alt={fullName} />
                     <AvatarFallback className="bg-[#000053] text-white text-xs font-bold">
                       {getInitials(user.fname, user.lname)}

@@ -43,6 +43,7 @@ export interface LogoConfig {
 }
 
 interface UserInfo {
+  id: string;
   fname: string;
   lname: string;
   role: string;
