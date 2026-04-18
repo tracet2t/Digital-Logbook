@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { useCreateWarning } from "@/_hooks/mentor/warninStatus";
+import { useCreateWarning } from "@/_hooks/mentor/useWarningStatus";
 import { WarningCategory } from "@prisma/client";
 import { AlertCircle } from "lucide-react";
 import { toast } from "sonner";
