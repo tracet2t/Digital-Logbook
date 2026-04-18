@@ -6,7 +6,7 @@ import { WarningCategory } from "@prisma/client";
 import { AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
-import { useCreateWarning } from "@/hooks/mentor/mentee/warninStatus";
+import { useCreateWarning } from "@/_hooks/mentor/warninStatus";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
