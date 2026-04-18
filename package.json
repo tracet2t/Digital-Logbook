@@ -2,6 +2,7 @@
   "dependencies": {
     "@orpc/client": "^1.13.14",
     "@orpc/server": "^1.13.14",
+    "@scalar/api-reference-react": "^0.9.24",
     "zod": "^4.3.6"
   }
 }
