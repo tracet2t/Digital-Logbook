@@ -53,17 +53,11 @@ const MentorDashboard = () => {
 
   const router = useRouter();
 
-  // Derive project students list from fetched data (replaces useEffect + useState)
+  // Derive project students list from fetched data (replaces useEffect + setState)
   const projectStudents = useMemo(() => {
     if (!selectedProject || !mentorId) return [];
-    const mentorDisplay =
-      mentorName && mentorName.trim().length > 0 ? mentorName : "Mentor";
-    return [
-      { id: "all-mentees", name: "All Mentees" },
-      { id: mentorId, name: mentorDisplay },
-      ...fetchedStudents,
-    ];
-  }, [selectedProject, fetchedStudents, mentorId, mentorName]);
+    return [{ id: "all-mentees", name: "All Mentees" }, ...fetchedStudents];
+  }, [selectedProject, fetchedStudents, mentorId]);
 
   // Reset function — clearing overrides to null falls back to derived defaults
   const handleResetStudent = () => {
@@ -182,7 +176,11 @@ const MentorDashboard = () => {
                       variant="default"
                       size="lg"
                       onClick={handleReport}
-                      disabled={mentorId === selectedUser || isExporting}
+                      disabled={
+                        !selectedUser ||
+                        selectedUser === "all-mentees" ||
+                        isExporting
+                      }
                     >
                       {isExporting ? "Generating..." : "Generate Report"}
                     </Button>
