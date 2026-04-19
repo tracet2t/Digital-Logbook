@@ -66,7 +66,7 @@ export default function ConfirmDeleteDialog({
             disabled={isPending}
             onClick={onConfirm}
           >
-            {isPending ? "Deleting…" : confirmLabel}
+            {isPending ? "Logging out…" : confirmLabel}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

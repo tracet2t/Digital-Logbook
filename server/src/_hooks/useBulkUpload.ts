@@ -6,6 +6,8 @@ import * as XLSX from "xlsx";
 
 interface FieldMapping {
   email: string;
+  firstName: string;
+  lastName: string;
   role: string;
   project: string;
 }
@@ -31,9 +33,11 @@ export function useBulkUpload() {
     uploadedFile: null,
     excelData: [],
     fieldMapping: {
-      email: "",
-      role: "",
-      project: "",
+      email: "none",
+      firstName: "none",
+      lastName: "none",
+      role: "none",
+      project: "none",
     },
     previewData: [],
     isLoading: false,
@@ -145,8 +149,10 @@ export function useBulkUpload() {
         error: null,
         fieldMapping: {
           email: columns[0] || "",
-          role: columns[1] || "",
-          project: columns[2] || "",
+          firstName: columns[1] || "",
+          lastName: columns[2] || "",
+          role: columns[3] || "",
+          project: columns[4] || "",
         },
       }));
     } catch (err) {
@@ -181,9 +187,11 @@ export function useBulkUpload() {
       uploadedFile: null,
       excelData: [],
       fieldMapping: {
-        email: "",
-        role: "",
-        project: "",
+        email: "none",
+        firstName: "none",
+        lastName: "none",
+        role: "none",
+        project: "none",
       },
       previewData: [],
       isLoading: false,
