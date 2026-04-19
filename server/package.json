@@ -29,6 +29,7 @@
     "@orpc/openapi": "^1.13.14",
     "@orpc/react": "^1.13.14",
     "@orpc/server": "^1.13.14",
+    "@orpc/zod": "^1.13.14",
     "@popperjs/core": "^2.11.8",
     "@prisma/client": "^5.19.1",
     "@radix-ui/react-alert-dialog": "^1.1.1",

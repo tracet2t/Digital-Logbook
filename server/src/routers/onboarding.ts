@@ -54,12 +54,22 @@ const superAdminProcedure = authedProcedure.use(superAdminMiddleware);
 
 // Onboarding procedures
 export const createApplication = publicProcedure
+  .route({
+    method: "POST",
+    path: "/onboarding/applications",
+    summary: "Create mentee application",
+    description:
+      "Submit a new mentee application with personal details and CV. The application will be created with 'pending' status and can be reviewed by Super Admin.",
+    tags: ["onboarding"],
+  })
   .input(createApplicationSchema)
   .output(
-    z.object({
-      message: z.string(),
-      application: applicationSchema,
-    }),
+    z
+      .object({
+        message: z.string().describe("Success message"),
+        application: applicationSchema,
+      })
+      .describe("Application creation response"),
   )
   .handler(async ({ input }) => {
     // Check if application already exists
@@ -107,6 +117,13 @@ export const getApplicationById = publicProcedure
   });
 
 export const getApplicationByEmail = publicProcedure
+  .route({
+    method: "GET",
+    path: "/onboarding/applications/by-email",
+    summary: "Get application by email",
+    description: "Find a mentee application using email address",
+    tags: ["onboarding"],
+  })
   .input(getApplicationByEmailSchema)
   .output(applicationSchema)
   .handler(async ({ input }) => {
@@ -126,6 +143,14 @@ export const getApplicationByEmail = publicProcedure
   });
 
 export const getApplicationsByStatus = publicProcedure
+  .route({
+    method: "GET",
+    path: "/onboarding/applications/by-status",
+    summary: "Get applications by status",
+    description:
+      "Filter applications by their current status (pending, approved, rejected)",
+    tags: ["onboarding"],
+  })
   .input(getApplicationsByStatusSchema)
   .output(z.array(applicationSchema))
   .handler(async ({ input }) => {
@@ -139,6 +164,13 @@ export const getApplicationsByStatus = publicProcedure
   });
 
 export const searchApplications = publicProcedure
+  .route({
+    method: "GET",
+    path: "/onboarding/applications/search",
+    summary: "Search applications",
+    description: "Search applications by name, email, or university",
+    tags: ["onboarding"],
+  })
   .input(searchApplicationsSchema)
   .output(z.array(applicationSchema))
   .handler(async ({ input }) => {
@@ -154,6 +186,13 @@ export const searchApplications = publicProcedure
   });
 
 export const getApplicationsByDateRange = publicProcedure
+  .route({
+    method: "GET",
+    path: "/onboarding/applications/by-date-range",
+    summary: "Get applications by date range",
+    description: "Retrieve applications created within a specific date range",
+    tags: ["onboarding"],
+  })
   .input(getApplicationsByDateRangeSchema)
   .output(z.array(applicationSchema))
   .handler(async ({ input }) => {
@@ -170,14 +209,26 @@ export const getApplicationsByDateRange = publicProcedure
   });
 
 export const getApplicationSummary = publicProcedure
+  .route({
+    method: "GET",
+    path: "/onboarding/applications/summary",
+    summary: "Get application statistics",
+    description:
+      "Get count of applications grouped by status (pending, approved, rejected). Useful for dashboard metrics.",
+    tags: ["onboarding"],
+  })
   .output(
-    z.object({
-      counts: z.object({
-        pending: z.number(),
-        approved: z.number(),
-        rejected: z.number(),
-      }),
-    }),
+    z
+      .object({
+        counts: z
+          .object({
+            pending: z.number().describe("Number of pending applications"),
+            approved: z.number().describe("Number of approved applications"),
+            rejected: z.number().describe("Number of rejected applications"),
+          })
+          .describe("Application counts grouped by status"),
+      })
+      .describe("Application summary statistics"),
   )
   .handler(async () => {
     const counts = await onboardingRepository.getApplicationCountByStatus();
@@ -185,6 +236,14 @@ export const getApplicationSummary = publicProcedure
   });
 
 export const getAllApplications = publicProcedure
+  .route({
+    method: "GET",
+    path: "/onboarding/applications",
+    summary: "Get all applications",
+    description:
+      "Retrieve all mentee applications including approved students. Returns applications ordered by creation date (newest first).",
+    tags: ["onboarding"],
+  })
   .output(z.array(applicationSchema))
   .handler(async () => {
     const applications = await onboardingRepository.getAll({
@@ -231,10 +290,12 @@ export const getAllApplications = publicProcedure
 export const updateApplicationStatus = superAdminProcedure
   .input(updateApplicationStatusSchema)
   .output(
-    z.object({
-      message: z.string(),
-      application: applicationSchema,
-    }),
+    z
+      .object({
+        message: z.string().describe("Status update confirmation message"),
+        application: applicationSchema,
+      })
+      .describe("Application status update response"),
   )
   .handler(async ({ input }) => {
     const existing = await onboardingRepository.getApplicationById(input.id);

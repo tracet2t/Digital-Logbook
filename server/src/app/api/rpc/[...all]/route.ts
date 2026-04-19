@@ -1,6 +1,8 @@
 import { router } from "@/routers";
+import { SmartCoercionPlugin } from "@orpc/json-schema";
 import { onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
+import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +12,11 @@ const handler = new RPCHandler(router, {
     onError((error) => {
       // Log errors for debugging
       console.error("oRPC Error:", error);
+    }),
+  ],
+  plugins: [
+    new SmartCoercionPlugin({
+      schemaConverters: [new ZodToJsonSchemaConverter()],
     }),
   ],
 });
