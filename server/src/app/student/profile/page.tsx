@@ -1,8 +1,11 @@
-import { ChevronRight, FileBadge2, GraduationCap, ScrollText, ShieldAlert, Sparkles } from "lucide-react";
+import { FileBadge2, GraduationCap, ScrollText, ShieldAlert, Sparkles } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
 export const metadata = {
@@ -22,13 +25,13 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 export default function MenteeProfileUIPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-blue-50 to-white px-3 py-5 text-slate-900 sm:px-6 sm:py-8 lg:px-8">
-      <div className="mx-auto max-w-5xl">
+    <main className="min-h-screen bg-gradient-to-b from-blue-50 to-white px-3 py-5 text-slate-900 sm:px-6 sm:py-8 lg:px-10 xl:px-14 2xl:px-20">
+      <div className="mx-auto w-full max-w-[96rem]">
         <div className="rounded-2xl border-2 border-blue-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.08)] overflow-hidden">
           <section className="border-b border-dashed border-blue-300 bg-[#f3f5f8]">
             <div className="h-20 w-full bg-[#02066f] sm:h-24" />
 
-            <div className="px-4 pb-6 sm:px-6 lg:px-8">
+            <div className="px-4 pb-6 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
               <div className="-mt-10 grid items-center gap-4 sm:-mt-9 md:grid-cols-[auto,minmax(0,1fr)] md:gap-5">
                 <div className="relative mx-auto sm:mx-0">
                   <Avatar className="h-20 w-20 ring-4 ring-[#e9edf2] shadow-lg sm:h-24 sm:w-24 md:h-28 md:w-28">
@@ -41,7 +44,6 @@ export default function MenteeProfileUIPage() {
                       AS
                     </AvatarFallback>
                   </Avatar>
-                  <span className="absolute bottom-1 right-1 h-3.5 w-3.5 rounded-full border-2 border-[#f3f5f8] bg-emerald-500" />
                 </div>
 
                 <div className="min-w-0 pt-6 text-center sm:pt-8 md:pt-14 md:text-left">
@@ -50,7 +52,7 @@ export default function MenteeProfileUIPage() {
                       ALEX STERLING
                     </h1>
 
-                    <Badge className="relative z-20 h-6 shrink-0 rounded-full border border-[#02066f] bg-white px-3 text-[0.55rem] font-extrabold uppercase tracking-[0.18em] text-[#02066f] shadow-sm hover:bg-slate-50">
+                    <Badge className="relative z-20 h-6 shrink-0 rounded-full border border-black bg-white px-3 text-[0.55rem] font-extrabold uppercase tracking-[0.18em] text-black shadow-sm hover:bg-slate-50">
                       Active Mentee
                     </Badge>
                   </div>
@@ -61,9 +63,9 @@ export default function MenteeProfileUIPage() {
                 </div>
               </div>
 
-              <div className="mt-5 border-t border-slate-300" />
+              <Separator className="mt-5 bg-slate-300" />
 
-              <div className="mt-5 grid gap-6 text-center md:grid-cols-3 md:gap-8 md:text-left">
+              <div className="mt-5 grid gap-6 text-center md:grid-cols-3 md:gap-8 xl:grid-cols-3 2xl:gap-10 md:text-left">
                 <div>
                   <p className="text-[0.58rem] font-black uppercase tracking-[0.2em] text-slate-400">
                     Batch Info
@@ -92,10 +94,10 @@ export default function MenteeProfileUIPage() {
             </div>
           </section>
 
-          <div className="space-y-6 p-3 sm:p-6 lg:p-8">
+          <div className="space-y-6 p-3 sm:p-6 lg:p-8 xl:p-10 2xl:p-12">
             <section>
               <SectionLabel>Achievements</SectionLabel>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 2xl:gap-6">
                 {[
                   {
                     icon: <FileBadge2 className="h-6 w-6" />,
@@ -122,7 +124,7 @@ export default function MenteeProfileUIPage() {
                     iconColor: "text-yellow-600",
                   },
                 ].map((item) => (
-                  <div
+                  <Card
                     key={item.label}
                     className="flex flex-col items-center justify-center gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md sm:p-6"
                   >
@@ -134,7 +136,7 @@ export default function MenteeProfileUIPage() {
                     <p className="text-center text-xs font-black uppercase tracking-[0.25em] text-slate-900">
                       {item.label}
                     </p>
-                  </div>
+                  </Card>
                 ))}
               </div>
             </section>
@@ -146,70 +148,52 @@ export default function MenteeProfileUIPage() {
                 </h2>
               </div>
               
-              <div className="overflow-x-auto rounded-lg border border-slate-200 bg-slate-50">
-                <table className="w-full min-w-[640px]">
-                  <thead>
-                    <tr className="border-b border-slate-200 bg-white">
-                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-[0.22em] text-slate-500 sm:px-6 sm:py-4">
+              <Card className="overflow-hidden rounded-lg border border-slate-200 bg-slate-50 shadow-none">
+                <Table className="table-fixed">
+                  <TableHeader className="bg-white">
+                    <TableRow className="border-b border-slate-200 hover:bg-white">
+                      <TableHead className="h-auto w-[58%] px-4 py-3 text-left text-xs font-bold uppercase tracking-[0.22em] text-slate-500 sm:px-6 sm:py-4 lg:w-[62%]">
                         Task Detail
-                      </th>
-                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-[0.22em] text-slate-500 sm:px-6 sm:py-4">
-                        Deadline
-                      </th>
-                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-[0.22em] text-slate-500 sm:px-6 sm:py-4">
-                        Status
-                      </th>
-                      <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-[0.22em] text-slate-500 sm:px-6 sm:py-4">
-                        
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                      </TableHead>
+                      <TableHead className="h-auto px-4 py-3 text-left text-xs font-bold uppercase tracking-[0.22em] text-slate-500 sm:px-6 sm:py-4">
+                        Technologies
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {[
                       {
                         title: "Metadata Scrubbing: Heritage Vol 1",
                         subtitle: "Log Entry #202",
-                        deadline: "Oct 12, 2024",
-                        status: "IN PROGRESS",
-                        statusColor: "border-cyan-500 text-cyan-600 bg-cyan-50",
+                        technologies: "React, Prisma, PostgreSQL",
                       },
                       {
-                        title: "Database Schema Mapping",
-                        subtitle: "Blueprint Phase",
-                        deadline: "Oct 15, 2024",
-                        status: "PENDING REVIEW",
-                        statusColor: "border-red-500 text-red-600 bg-red-50",
+                        title: "Historical Data Set v4.2 Uploaded",
+                        subtitle: "Log Entry #219",
+                        technologies: "Next.js, TypeScript, Tailwind CSS",
                       },
                     ].map((task, idx) => (
-                      <tr key={idx} className="border-b border-slate-200 bg-white transition hover:bg-slate-50">
-                        <td className="px-4 py-4 sm:px-6 sm:py-5">
+                      <TableRow key={idx} className="border-b border-slate-200 bg-white transition hover:bg-slate-50">
+                        <TableCell className="px-4 py-4 sm:px-6 sm:py-5">
                           <p className="font-bold text-slate-900">{task.title}</p>
                           <p className="mt-1 text-sm text-slate-500">{task.subtitle}</p>
-                        </td>
-                        <td className="px-4 py-4 text-center text-sm text-slate-600 sm:px-6 sm:py-5">
-                          {task.deadline}
-                        </td>
-                        <td className="px-4 py-4 text-center sm:px-6 sm:py-5">
-                          <span className={cn("inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.2em]", task.statusColor)}>
-                            {task.status}
-                          </span>
-                        </td>
-                        <td className="px-4 py-4 text-right sm:px-6 sm:py-5">
-                          <ChevronRight className="inline h-5 w-5 text-slate-400" />
-                        </td>
-                      </tr>
+                        </TableCell>
+                        <TableCell className="break-words px-4 py-4 text-left text-sm text-slate-600 sm:px-6 sm:py-5">
+                          {task.technologies}
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                  </TableBody>
+                </Table>
+              </Card>
             </section>
 
             <section className="border-t-4 border-blue-300 pt-6">
-              <div className="mb-6 grid gap-6 lg:grid-cols-[0.7fr_1.3fr]">
+              <div className="mb-6 grid gap-6 lg:grid-cols-[0.7fr_1.3fr] xl:gap-8 2xl:gap-12">
                 {/* Status Indicators Column */}
                 <div className="space-y-2">
                   <h2 className="mb-4 text-sm font-black uppercase tracking-[0.28em] text-slate-900">
-                    Status Indicators
+                    Warning Received
                   </h2>
                   <div className="space-y-2">
                     {[
@@ -270,7 +254,7 @@ export default function MenteeProfileUIPage() {
                 </h2>
               </div>
               
-              <div className="relative pl-8 sm:pl-10">
+              <div className="relative pl-8 sm:pl-10 lg:pl-12 2xl:pl-14">
                 {/* Vertical line */}
                 <div className="absolute left-2.5 top-6 bottom-0 w-0.5 bg-gradient-to-b from-blue-900 via-emerald-500 to-slate-300" />
 
@@ -338,9 +322,6 @@ export default function MenteeProfileUIPage() {
           </div>
         </div>
 
-        <p className="mt-4 text-center text-[0.68rem] font-semibold uppercase tracking-[0.38em] text-slate-400">
-          Standalone shadcn mentee profile showcase
-        </p>
       </div>
     </main>
   );
