@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
 	Clock,
 	CheckCircle2,
@@ -44,6 +44,27 @@ type ActivityRow = {
 	hours: number;
 	status: ActivityStatus;
 };
+
+function getVisiblePageNumbers(
+	totalPages: number,
+	currentPage: number,
+	maxVisibleButtons: number,
+) {
+	if (totalPages <= maxVisibleButtons) {
+		return Array.from({ length: totalPages }, (_, index) => index + 1);
+	}
+
+	const halfWindow = Math.floor(maxVisibleButtons / 2);
+	let start = Math.max(1, currentPage - halfWindow);
+	let end = start + maxVisibleButtons - 1;
+
+	if (end > totalPages) {
+		end = totalPages;
+		start = end - maxVisibleButtons + 1;
+	}
+
+	return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+}
 
 // Mock data for analytics and activity feed
 const analytics = [
@@ -186,7 +207,40 @@ export default function StudentDashboardPage() {
 	const [page, setPage] = useState(1);
 	const [selectedActivity, setSelectedActivity] = useState<ActivityRow | null>(null);
 	const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+	const [viewportWidth, setViewportWidth] = useState(0);
 	const totalPages = Math.ceil(totalActivities / pageSize);
+
+	useEffect(() => {
+		const updateViewportWidth = () => {
+			setViewportWidth(window.innerWidth);
+		};
+
+		updateViewportWidth();
+		window.addEventListener("resize", updateViewportWidth);
+
+		return () => window.removeEventListener("resize", updateViewportWidth);
+	}, []);
+
+	const maxVisiblePageButtons = useMemo(() => {
+		if (viewportWidth >= 1536) {
+			return 3;
+		}
+
+		if (viewportWidth >= 1280) {
+			return 4;
+		}
+
+		if (viewportWidth < 768) {
+			return 4;
+		}
+
+		return 6;
+	}, [viewportWidth]);
+
+	const visiblePageNumbers = useMemo(
+		() => getVisiblePageNumbers(totalPages, page, maxVisiblePageButtons),
+		[page, totalPages, maxVisiblePageButtons],
+	);
 
 	const handleViewDetails = (item: ActivityRow) => {
 		setSelectedActivity(item);
@@ -204,8 +258,8 @@ export default function StudentDashboardPage() {
 	const paginatedFeed = activityFeed;
 
 	return (
-		<div className="w-full min-h-screen bg-[#f1f1f9] p-2 sm:p-4 md:p-8">
-			<div className="w-full mx-auto px-0">
+		<div className="w-full min-h-screen bg-[#f1f1f9] px-2 py-2 sm:px-4 sm:py-4 md:px-6 md:py-6 xl:px-8 2xl:px-10">
+			<div className="w-full mx-auto">
 				{/* Header */}
 				<div className="mb-4 sm:mb-6">
 					<PageHeader
@@ -215,7 +269,7 @@ export default function StudentDashboardPage() {
 				</div>
 
 				{/* Analytics Cards */}
-				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
+				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 xl:gap-5 mb-6 sm:mb-8">
 					{analytics.map((item) => (
 						<Card key={item.label} className="flex flex-col justify-between p-4 sm:p-5 bg-white border border-[#e3ebf8] shadow-sm h-full rounded-xl">
 							<div className="flex items-center justify-between">
@@ -234,7 +288,7 @@ export default function StudentDashboardPage() {
 				</div>
 
 				{/* Activity Feed */}
-				<Card className="p-0 border-[#e3ebf8] shadow-sm rounded-2xl">
+				<Card className="p-0 border-[#e3ebf8] shadow-sm rounded-2xl w-full">
 					<div className="flex items-center justify-between px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
 						<div>
 							<h2 className="text-[17px] sm:text-[18px] font-bold text-[#0A0A0A] leading-tight">Activity Feed</h2>
@@ -244,7 +298,7 @@ export default function StudentDashboardPage() {
 					</div>
 					<CardContent className="p-0">
 						{/* Desktop / tablet table */}
-						<div className="hidden md:block overflow-x-auto">
+						<div className="hidden md:block w-full overflow-x-auto min-h-[260px] xl:min-h-[320px] 2xl:min-h-[380px]">
 							<Table>
 								<TableHeader>
 									<TableRow className="border-b border-[#e3ebf8]">
@@ -314,18 +368,18 @@ export default function StudentDashboardPage() {
 							))}
 						</div>
 
-						<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-4 py-3 border-t border-[#e3ebf8] bg-[#fafbfc] rounded-b-2xl">
+						<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-4 py-3 xl:px-6 border-t border-[#e3ebf8] bg-[#fafbfc] rounded-b-2xl">
 							<span className="text-xs text-[#737373] whitespace-nowrap">Showing {paginatedFeed.length} of {totalActivities} activities</span>
-							<div className="flex justify-center sm:justify-end">
+							<div className="flex justify-center sm:justify-end w-full sm:w-auto overflow-x-auto">
 								<Pagination>
-									<PaginationContent>
+									<PaginationContent className="flex-nowrap">
 										<PaginationItem>
 											<PaginationPrevious size="default" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} />
 										</PaginationItem>
-										{[...Array(totalPages)].map((_, i) => (
-											<PaginationItem key={i}>
-												<PaginationLink size="default" isActive={page === i + 1} onClick={() => setPage(i + 1)}>
-													{i + 1}
+										{visiblePageNumbers.map((pageNumber) => (
+											<PaginationItem key={pageNumber}>
+												<PaginationLink size="default" isActive={page === pageNumber} onClick={() => setPage(pageNumber)}>
+													{pageNumber}
 												</PaginationLink>
 											</PaginationItem>
 										))}
