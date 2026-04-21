@@ -64,7 +64,7 @@ const RING_CLASS: Record<WarningCategory, string> = {
 const ROLE_LABELS: Record<string, string> = {
   superAdmin: "Super Admin",
   mentor: "Mentor",
-  student: "Student",
+  student: "Mentee",
 };
 
 const getInitials = (f: string, l: string) =>
