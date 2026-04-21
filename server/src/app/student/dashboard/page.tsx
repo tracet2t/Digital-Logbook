@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useState } from "react";
 import {
 	Clock,
 	CheckCircle2,
@@ -34,6 +34,7 @@ import {
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { PageHeader } from "@/components/admin";
 import { useIsMobile } from "@/_hooks/use-mobile";
+import { useMenteeDashboard } from "@/_hooks/mentee";
 import TableActionMenu from "@/components/admin/TableActionMenu";
 
 type ActivityStatus = "APPROVED" | "PENDING" | "REJECTED";
@@ -45,74 +46,20 @@ type ActivityRow = {
 	status: ActivityStatus;
 };
 
-function getVisiblePageNumbers(
-	totalPages: number,
-	currentPage: number,
-	maxVisibleButtons: number,
-) {
-	if (totalPages <= maxVisibleButtons) {
-		return Array.from({ length: totalPages }, (_, index) => index + 1);
-	}
-
-	const halfWindow = Math.floor(maxVisibleButtons / 2);
-	let start = Math.max(1, currentPage - halfWindow);
-	let end = start + maxVisibleButtons - 1;
-
-	if (end > totalPages) {
-		end = totalPages;
-		start = end - maxVisibleButtons + 1;
-	}
-
-	return Array.from({ length: end - start + 1 }, (_, index) => start + index);
-}
-
-// Mock data for analytics and activity feed
-const analytics = [
+const analyticsMeta = [
 	{
 		label: "TOTAL HOURS LOGGED",
-		value: 124.5,
 		icon: <Clock className="h-6 w-6 text-[#000053]" />,
 	},
 	{
 		label: "TASKS COMPLETED",
-		value: 42,
 		icon: <ListChecks className="h-6 w-6 text-[#000053]" />,
 	},
 	{
 		label: "PENDING APPROVALS",
-		value: 7,
 		icon: <CheckCircle2 className="h-6 w-6 text-[#000053]" />,
 	},
 ];
-
-const activityFeed: ActivityRow[] = [
-	{
-		feedback: "Great job on your research!",
-		date: "Oct 24, 2023",
-		hours: 4.5,
-		status: "APPROVED",
-	},
-	{
-		feedback: "Database structure needs improvement.",
-		date: "Oct 23, 2023",
-		hours: 6.0,
-		status: "PENDING",
-	},
-	{
-		feedback: "Please revise the documentation.",
-		date: "Oct 21, 2023",
-		hours: 2.0,
-		status: "REJECTED",
-	},
-	{
-		feedback: "Security audit passed successfully.",
-		date: "Oct 20, 2023",
-		hours: 5.5,
-		status: "APPROVED",
-	},
-];
-
-const totalActivities = 24;
 const pageSize = 4;
 
 function StatusBadge({ status }: { status: ActivityStatus }) {
@@ -207,40 +154,11 @@ export default function StudentDashboardPage() {
 	const [page, setPage] = useState(1);
 	const [selectedActivity, setSelectedActivity] = useState<ActivityRow | null>(null);
 	const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-	const [viewportWidth, setViewportWidth] = useState(0);
-	const totalPages = Math.ceil(totalActivities / pageSize);
 
-	useEffect(() => {
-		const updateViewportWidth = () => {
-			setViewportWidth(window.innerWidth);
-		};
+	const { data, isLoading, error } = useMenteeDashboard(page, pageSize);
 
-		updateViewportWidth();
-		window.addEventListener("resize", updateViewportWidth);
-
-		return () => window.removeEventListener("resize", updateViewportWidth);
-	}, []);
-
-	const maxVisiblePageButtons = useMemo(() => {
-		if (viewportWidth >= 1536) {
-			return 3;
-		}
-
-		if (viewportWidth >= 1280) {
-			return 4;
-		}
-
-		if (viewportWidth < 768) {
-			return 4;
-		}
-
-		return 6;
-	}, [viewportWidth]);
-
-	const visiblePageNumbers = useMemo(
-		() => getVisiblePageNumbers(totalPages, page, maxVisiblePageButtons),
-		[page, totalPages, maxVisiblePageButtons],
-	);
+	const totalPages = data?.pagination.totalPages ?? 1;
+	const totalActivities = data?.pagination.totalItems ?? 0;
 
 	const handleViewDetails = (item: ActivityRow) => {
 		setSelectedActivity(item);
@@ -254,8 +172,25 @@ export default function StudentDashboardPage() {
 		}
 	};
 
-	// For now, just use the mock data for the current page
-	const paginatedFeed = activityFeed;
+	const paginatedFeed: ActivityRow[] = data?.activities ?? [];
+
+	const analytics = [
+		{
+			label: analyticsMeta[0].label,
+			value: data?.stats.totalHoursLogged ?? 0,
+			icon: analyticsMeta[0].icon,
+		},
+		{
+			label: analyticsMeta[1].label,
+			value: data?.stats.tasksCompleted ?? 0,
+			icon: analyticsMeta[1].icon,
+		},
+		{
+			label: analyticsMeta[2].label,
+			value: data?.stats.pendingApprovals ?? 0,
+			icon: analyticsMeta[2].icon,
+		},
+	];
 
 	return (
 		<div className="w-full min-h-screen bg-[#f1f1f9] px-2 py-2 sm:px-4 sm:py-4 md:px-6 md:py-6 xl:px-8 2xl:px-10">
@@ -297,6 +232,12 @@ export default function StudentDashboardPage() {
 						{/* Removed filter icon and View All button */}
 					</div>
 					<CardContent className="p-0">
+						{error && (
+							<div className="mx-4 mb-3 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 sm:mx-6">
+								{error.message || "Failed to load dashboard data."}
+							</div>
+						)}
+
 						{/* Desktop / tablet table */}
 						<div className="hidden md:block w-full overflow-x-auto min-h-[260px] xl:min-h-[320px] 2xl:min-h-[380px]">
 							<Table>
@@ -310,33 +251,62 @@ export default function StudentDashboardPage() {
 									</TableRow>
 								</TableHeader>
 								<TableBody>
-									{paginatedFeed.map((item, idx) => (
-										<TableRow key={idx} className="border-b border-[#e3ebf8] hover:bg-[#f5f7fb] transition-colors">
-											<TableCell className="font-semibold text-[15px] text-[#0A0A0A] pl-6">{item.feedback}</TableCell>
-											<TableCell className="text-[15px] text-[#737373]">{item.date}</TableCell>
-											<TableCell className="text-[15px] font-bold text-[#000053]">{item.hours} hrs</TableCell>
-											<TableCell><StatusBadge status={item.status} /></TableCell>
-											<TableCell className="text-right pr-6">
-												<TableActionMenu
-													ariaLabel={`Actions for activity on ${item.date}`}
-													items={[
-														{
-															label: "View",
-															icon: <Eye className="h-4 w-4 text-[#000053]" />,
-															onSelect: () => handleViewDetails(item),
-														},
-													]}
-												/>
-											</TableCell>
-										</TableRow>
-									))}
+									{isLoading
+										? [...Array(pageSize)].map((_, idx) => (
+											<TableRow key={idx} className="border-b border-[#e3ebf8]">
+												<TableCell className="pl-6 py-4" colSpan={5}>
+													<div className="h-4 w-full animate-pulse rounded bg-slate-200" />
+												</TableCell>
+											</TableRow>
+										))
+										: paginatedFeed.length === 0
+											? (
+												<TableRow>
+													<TableCell className="py-8 text-center text-sm text-[#737373]" colSpan={5}>
+														No activities found.
+													</TableCell>
+												</TableRow>
+											)
+											: paginatedFeed.map((item, idx) => (
+												<TableRow key={idx} className="border-b border-[#e3ebf8] hover:bg-[#f5f7fb] transition-colors">
+													<TableCell className="font-semibold text-[15px] text-[#0A0A0A] pl-6">{item.feedback}</TableCell>
+													<TableCell className="text-[15px] text-[#737373]">{item.date}</TableCell>
+													<TableCell className="text-[15px] font-bold text-[#000053]">{item.hours} hrs</TableCell>
+													<TableCell><StatusBadge status={item.status} /></TableCell>
+													<TableCell className="text-right pr-6">
+														<TableActionMenu
+															ariaLabel={`Actions for activity on ${item.date}`}
+															items={[
+																{
+																	label: "View",
+																	icon: <Eye className="h-4 w-4 text-[#000053]" />,
+																	onSelect: () => handleViewDetails(item),
+																},
+															]}
+														/>
+													</TableCell>
+												</TableRow>
+											))}
 								</TableBody>
 							</Table>
 						</div>
 
 						{/* Mobile card list */}
 						<div className="md:hidden px-3 pb-3 space-y-3">
-							{paginatedFeed.map((item, idx) => (
+							{isLoading
+								? [...Array(pageSize)].map((_, idx) => (
+									<div key={idx} className="rounded-xl border border-[#e3ebf8] bg-white p-3">
+										<div className="h-4 w-3/4 animate-pulse rounded bg-slate-200" />
+										<div className="mt-3 h-4 w-1/2 animate-pulse rounded bg-slate-200" />
+									</div>
+								))
+								: paginatedFeed.length === 0
+									? (
+										<div className="rounded-xl border border-dashed border-[#d4dceb] bg-white p-4 text-sm text-[#737373] text-center">
+											No activities found.
+										</div>
+									)
+									: paginatedFeed.map((item, idx) => (
 								<div key={idx} className="rounded-xl border border-[#e3ebf8] bg-white p-3">
 									<div className="flex items-start justify-between gap-3">
 										<p className="text-[14px] font-semibold text-[#0A0A0A] leading-snug">{item.feedback}</p>
@@ -369,17 +339,21 @@ export default function StudentDashboardPage() {
 						</div>
 
 						<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-4 py-3 xl:px-6 border-t border-[#e3ebf8] bg-[#fafbfc] rounded-b-2xl">
-							<span className="text-xs text-[#737373] whitespace-nowrap">Showing {paginatedFeed.length} of {totalActivities} activities</span>
+							<span className="text-xs text-[#737373] whitespace-nowrap">
+								{isLoading
+									? "Loading activities..."
+									: `Showing ${paginatedFeed.length} of ${totalActivities} activities`}
+							</span>
 							<div className="flex justify-center sm:justify-end w-full sm:w-auto overflow-x-auto">
 								<Pagination>
-									<PaginationContent className="flex-nowrap">
+									<PaginationContent className="flex-wrap sm:flex-nowrap justify-center">
 										<PaginationItem>
 											<PaginationPrevious size="default" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} />
 										</PaginationItem>
-										{visiblePageNumbers.map((pageNumber) => (
-											<PaginationItem key={pageNumber}>
-												<PaginationLink size="default" isActive={page === pageNumber} onClick={() => setPage(pageNumber)}>
-													{pageNumber}
+										{[...Array(totalPages)].map((_, i) => (
+											<PaginationItem key={i}>
+												<PaginationLink size="default" isActive={page === i + 1} onClick={() => setPage(i + 1)}>
+													{i + 1}
 												</PaginationLink>
 											</PaginationItem>
 										))}
