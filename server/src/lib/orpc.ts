@@ -1,6 +1,7 @@
 import type { AppRouter } from "@/routers";
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
+import type { RouterClient } from "@orpc/server";
 
 const link = new RPCLink({
   url: () => {
@@ -22,5 +23,5 @@ const link = new RPCLink({
  * Note: The TypeScript compiler shows type errors due to oRPC's complex type system,
  * but the client works correctly at runtime with full type inference and safety.
  */
-// @ts-ignore - oRPC's type system causes TS errors but runtime behavior is correct
-export const orpcClient = createORPCClient<AppRouter>(link);
+export const orpcClient: RouterClient<AppRouter> =
+  globalThis.$client ?? createORPCClient(link);

@@ -10,7 +10,7 @@ import {
   updateApplicationStatusSchema,
 } from "@/schemas/onboarding.schema";
 import getSession from "@/server_actions/getSession";
-import { os } from "@orpc/server";
+import { ORPCError, os } from "@orpc/server";
 import { Role } from "@prisma/client";
 import { z } from "zod";
 
@@ -24,7 +24,7 @@ const authMiddleware = os.middleware(async ({ next }) => {
   const session = await getSession();
 
   if (!session || !session.isAuthenticated()) {
-    throw new Error("Unauthorized");
+    throw new ORPCError("Unauthorized");
   }
 
   return next({
@@ -41,18 +41,20 @@ const superAdminMiddleware = os.middleware(async ({ context, next }) => {
   const userRole = (context as any).userRole;
 
   if (userRole !== Role.superAdmin) {
-    throw new Error("Forbidden: Super Admin access required");
+    throw new ORPCError("Forbidden: Super Admin access required");
   }
 
   return next();
 });
 
 // Base procedures
+//to implement middleware to protect routes
 const publicProcedure = os;
 const authedProcedure = publicProcedure.use(authMiddleware);
 const superAdminProcedure = authedProcedure.use(superAdminMiddleware);
 
 // Onboarding procedures
+// this is a public procedure
 export const createApplication = publicProcedure
   .route({
     method: "POST",
@@ -61,6 +63,12 @@ export const createApplication = publicProcedure
     description:
       "Submit a new mentee application with personal details and CV. The application will be created with 'pending' status and can be reviewed by Super Admin.",
     tags: ["onboarding"],
+  })
+  .errors({
+    CONFLICT: {
+      message: "An application with the provided email already exists",
+      status: 409,
+    },
   })
   .input(createApplicationSchema)
   .output(
@@ -71,14 +79,14 @@ export const createApplication = publicProcedure
       })
       .describe("Application creation response"),
   )
-  .handler(async ({ input }) => {
+  .handler(async ({ input, errors }) => {
     // Check if application already exists
     const existing = await onboardingRepository.findByEmail(
       input.email.toLowerCase(),
     );
 
     if (existing) {
-      throw new Error("An application with this email already exists");
+      throw errors.CONFLICT();
     }
 
     const application = await onboardingRepository.createApplication({
@@ -100,13 +108,19 @@ export const createApplication = publicProcedure
   });
 
 export const getApplicationById = publicProcedure
+  .errors({
+    NOT_FOUND: {
+      message: "Application not found",
+      status: 404,
+    },
+  })
   .input(getApplicationByIdSchema)
   .output(applicationSchema)
-  .handler(async ({ input }) => {
+  .handler(async ({ input, errors }) => {
     const application = await onboardingRepository.getApplicationById(input.id);
 
     if (!application) {
-      throw new Error("Application not found");
+      throw errors.NOT_FOUND();
     }
 
     return {
@@ -124,15 +138,21 @@ export const getApplicationByEmail = publicProcedure
     description: "Find a mentee application using email address",
     tags: ["onboarding"],
   })
+  .errors({
+    NOT_FOUND: {
+      message: "Application not found",
+      status: 404,
+    },
+  })
   .input(getApplicationByEmailSchema)
   .output(applicationSchema)
-  .handler(async ({ input }) => {
+  .handler(async ({ input, errors }) => {
     const application = await onboardingRepository.findByEmail(
       input.email.toLowerCase(),
     );
 
     if (!application) {
-      throw new Error("Application not found");
+      throw errors.NOT_FOUND();
     }
 
     return {
@@ -288,6 +308,12 @@ export const getAllApplications = publicProcedure
   });
 
 export const updateApplicationStatus = superAdminProcedure
+  .errors({
+    NOT_FOUND: {
+      message: "Application not found",
+      status: 404,
+    },
+  })
   .input(updateApplicationStatusSchema)
   .output(
     z
@@ -297,11 +323,11 @@ export const updateApplicationStatus = superAdminProcedure
       })
       .describe("Application status update response"),
   )
-  .handler(async ({ input }) => {
+  .handler(async ({ input, errors }) => {
     const existing = await onboardingRepository.getApplicationById(input.id);
 
     if (!existing) {
-      throw new Error("Application not found");
+      throw errors.NOT_FOUND();
     }
 
     const application = await onboardingRepository.updateStatus(
