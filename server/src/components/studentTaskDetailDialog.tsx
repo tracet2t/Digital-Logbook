@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useCallback, useRef, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Code2, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -15,7 +16,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
   Form,
   FormControl,
@@ -25,13 +35,200 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
+
+const TECH_STACK_OPTIONS = [
+  "React",
+  "Next.js",
+  "Vue.js",
+  "Angular",
+  "Svelte",
+  "TypeScript",
+  "JavaScript",
+  "Python",
+  "Java",
+  "Go",
+  "Rust",
+  "C#",
+  "PHP",
+  "Node.js",
+  "Express",
+  "NestJS",
+  "FastAPI",
+  "Django",
+  "Spring Boot",
+  "PostgreSQL",
+  "MySQL",
+  "MongoDB",
+  "Redis",
+  "SQLite",
+  "AWS",
+  "Azure",
+  "GCP",
+  "Docker",
+  "Kubernetes",
+  "GraphQL",
+  "REST API",
+  "Prisma",
+  "TanStack Query",
+  "Tailwind CSS",
+  "Figma",
+  "Git",
+  "CI/CD",
+];
+
+interface TechStackInputProps {
+  value: string[];
+  onChange: (value: string[]) => void;
+  disabled?: boolean;
+}
+
+function TechStackInput({ value, onChange, disabled }: TechStackInputProps) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const addTag = useCallback(
+    (tag: string) => {
+      const trimmed = tag.trim();
+      if (trimmed && !value.includes(trimmed)) {
+        onChange([...value, trimmed]);
+      }
+      setSearch("");
+    },
+    [value, onChange],
+  );
+
+  const removeTag = (tag: string) => {
+    onChange(value.filter((t) => t !== tag));
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && search.trim()) {
+      e.preventDefault();
+      addTag(search);
+    }
+  };
+
+  const filtered = TECH_STACK_OPTIONS.filter(
+    (opt) =>
+      opt.toLowerCase().includes(search.toLowerCase()) && !value.includes(opt),
+  );
+
+  const showCustomAdd =
+    search.trim() &&
+    !TECH_STACK_OPTIONS.some(
+      (opt) => opt.toLowerCase() === search.toLowerCase(),
+    ) &&
+    !value.includes(search.trim());
+
+  return (
+    <div className="space-y-2">
+      {/* Selected tags */}
+      {value.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {value.map((tag) => (
+            <Badge
+              key={tag}
+              variant="wip"
+              className="flex items-center gap-1 pr-1"
+            >
+              {tag}
+              {!disabled && (
+                <button
+                  type="button"
+                  onClick={() => removeTag(tag)}
+                  className="ml-0.5 rounded-full hover:bg-blue-200 p-0.5"
+                >
+                  <X size={11} />
+                </button>
+              )}
+            </Badge>
+          ))}
+        </div>
+      )}
+
+      {/* Search / dropdown */}
+      {!disabled && (
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className="flex w-full items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground focus:outline-none"
+              onClick={() => {
+                setOpen(true);
+                setTimeout(() => inputRef.current?.focus(), 0);
+              }}
+            >
+              <Code2 size={14} />
+              Search or add technology...
+            </button>
+          </PopoverTrigger>
+          <PopoverContent
+            className="w-[--radix-popover-trigger-width] p-0"
+            align="start"
+          >
+            <Command shouldFilter={false}>
+              <CommandInput
+                ref={inputRef}
+                placeholder="Search or add technology..."
+                value={search}
+                onValueChange={setSearch}
+                onKeyDown={handleKeyDown}
+              />
+              <CommandList>
+                {showCustomAdd && (
+                  <CommandGroup heading="Custom">
+                    <CommandItem
+                      value={search}
+                      onSelect={() => {
+                        addTag(search);
+                        setOpen(false);
+                      }}
+                    >
+                      Add &ldquo;{search}&rdquo;
+                    </CommandItem>
+                  </CommandGroup>
+                )}
+                {filtered.length > 0 && (
+                  <CommandGroup heading="Suggestions">
+                    {filtered.map((opt) => (
+                      <CommandItem
+                        key={opt}
+                        value={opt}
+                        onSelect={() => {
+                          addTag(opt);
+                          setOpen(false);
+                        }}
+                      >
+                        {opt}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
+                {!showCustomAdd && filtered.length === 0 && (
+                  <CommandEmpty>No results found.</CommandEmpty>
+                )}
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      )}
+    </div>
+  );
+}
 
 const activitySchema = z.object({
   workingHours: z.coerce
     .number()
     .min(1, "Working hours must be at least 1")
     .max(12, "Working hours cannot exceed 12"),
+  techStack: z.array(z.string()).default([]),
   notes: z.string().max(300, "Notes cannot exceed 300 characters"),
 });
 
@@ -62,6 +259,7 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
     resolver: zodResolver(activitySchema),
     defaultValues: {
       workingHours: defaultWorkingHours || 2,
+      techStack: [],
       notes: defaultNotes || "",
     },
   });
@@ -77,7 +275,6 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
         if (!isOpen) onClose();
       }}
     >
-      
       <AlertDialogContent className="!max-w-lg">
         <AlertDialogHeader>
           <AlertDialogTitle>Task Details</AlertDialogTitle>
@@ -109,6 +306,24 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
                       placeholder="Enter working hours"
                       min={1}
                       max={12}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="techStack"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Technology Stack</FormLabel>
+                  <FormControl>
+                    <TechStackInput
+                      value={field.value}
+                      onChange={field.onChange}
+                      disabled={!isEditable}
                     />
                   </FormControl>
                   <FormMessage />
