@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     if (user.role === "student") {
       redirectUrl = !user.emailConfirmed
         ? `${baseUrl}/reset-password`
-        : `${baseUrl}/student`;
+        : `${baseUrl}/student/dashboard`;
     } else if (user.role === "mentor") {
       redirectUrl = `${baseUrl}/mentor`;
     } else if (user.role === "superAdmin") {

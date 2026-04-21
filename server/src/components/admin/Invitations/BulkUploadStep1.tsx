@@ -133,11 +133,11 @@ export function BulkUploadStep1({
       </div> */}
 
       {/* Step Indicator */}
-      {/* <div className="text-center">
+      <div className="text-center">
         <span className="text-sm font-bold text-[#FF6B6B] uppercase tracking-wide">
           Step 1 of 2
         </span>
-      </div> */}
+      </div>
 
       {/* Drag Drop Zone */}
       <Card className="p-8 border-[#d9dde5]">

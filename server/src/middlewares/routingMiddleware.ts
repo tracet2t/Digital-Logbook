@@ -32,7 +32,7 @@ export function withRoleBasedRoutingMiddleware(
     }
 
     if (role === "student" && request.nextUrl.pathname === "/") {
-      return NextResponse.redirect(`${process.env.BASE_URL}/student`);
+      return NextResponse.redirect(`${process.env.BASE_URL}/student/dashboard`);
     }
 
     if (role === "mentor" && request.nextUrl.pathname === "/") {
