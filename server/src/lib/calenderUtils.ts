@@ -9,6 +9,7 @@ interface CalendarEvent {
   studentId: string;
   timeSpent?: number;
   notes?: string;
+  technologies?: string[];
   status: "pending" | "approved" | "rejected"; // Added "no-status" for undefined cases
 }
 
@@ -19,6 +20,7 @@ interface StudentEventData {
   notes?: string;
   timeSpent?: number;
   studentId?: string;
+  technologies?: string[];
   feedback?: { status?: "pending" | "approved" | "rejected" }[];
 }
 
@@ -48,6 +50,7 @@ export const convertToCalendarEvents = (data: StudentEventData[]): CalendarEvent
       studentId: item.studentId || '',
       timeSpent: item.timeSpent,
       notes: item.notes,
+      technologies: item.technologies ?? [],
     };
   });
 };

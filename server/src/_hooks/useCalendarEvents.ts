@@ -16,6 +16,7 @@ interface CalendarEvent {
   studentId: string;
   timeSpent?: number;
   notes?: string;
+  technologies?: string[];
   status: "pending" | "approved" | "rejected";
 }
 

@@ -49,6 +49,7 @@ interface CalendarEvent {
   studentId: string;
   timeSpent?: number;
   notes?: string;
+  technologies?: string[];
   status: "pending" | "approved" | "rejected";
 }
 
@@ -80,6 +81,7 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
     workingHours,
     notes,
     review,
+    technologies,
     editingEvent,
     feedbackActivityId,
     updateFormData,
@@ -277,10 +279,11 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
             date={formData.date}
             defaultWorkingHours={workingHours}
             defaultNotes={notes}
+            defaultTechStack={technologies}
             review={review}
             isEditable={isEditable}
-            onSubmit={(wh, n) => {
-              handleSubmit({ workingHours: wh, notes: n });
+            onSubmit={(wh, n, techs) => {
+              handleSubmit({ workingHours: wh, notes: n, technologies: techs });
             }}
             onClose={handleClose}
           />

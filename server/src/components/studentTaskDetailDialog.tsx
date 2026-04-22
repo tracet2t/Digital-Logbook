@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
+import { TECH_STACK_OPTIONS } from "@/app/student/_constants_tech_stacks";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Code2, X } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -41,46 +42,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-
-const TECH_STACK_OPTIONS = [
-  "React",
-  "Next.js",
-  "Vue.js",
-  "Angular",
-  "Svelte",
-  "TypeScript",
-  "JavaScript",
-  "Python",
-  "Java",
-  "Go",
-  "Rust",
-  "C#",
-  "PHP",
-  "Node.js",
-  "Express",
-  "NestJS",
-  "FastAPI",
-  "Django",
-  "Spring Boot",
-  "PostgreSQL",
-  "MySQL",
-  "MongoDB",
-  "Redis",
-  "SQLite",
-  "AWS",
-  "Azure",
-  "GCP",
-  "Docker",
-  "Kubernetes",
-  "GraphQL",
-  "REST API",
-  "Prisma",
-  "TanStack Query",
-  "Tailwind CSS",
-  "Figma",
-  "Git",
-  "CI/CD",
-];
 
 interface TechStackInputProps {
   value: string[];
@@ -239,9 +200,14 @@ interface StudentTaskDetailDialogProps {
   date: string;
   defaultWorkingHours: number;
   defaultNotes: string;
+  defaultTechStack?: string[];
   review: string;
   isEditable: boolean;
-  onSubmit: (workingHours: number, notes: string) => void;
+  onSubmit: (
+    workingHours: number,
+    notes: string,
+    technologies: string[],
+  ) => void;
   onClose: () => void;
 }
 
@@ -250,6 +216,7 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
   date,
   defaultWorkingHours,
   defaultNotes,
+  defaultTechStack,
   review,
   isEditable,
   onSubmit,
@@ -259,13 +226,24 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
     resolver: zodResolver(activitySchema),
     defaultValues: {
       workingHours: defaultWorkingHours || 2,
-      techStack: [],
+      techStack: defaultTechStack ?? [],
       notes: defaultNotes || "",
     },
   });
 
+  // Re-populate form whenever the dialog opens with new task data
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        workingHours: defaultWorkingHours || 2,
+        techStack: defaultTechStack ?? [],
+        notes: defaultNotes || "",
+      });
+    }
+  }, [open, defaultWorkingHours, defaultNotes, defaultTechStack, form]);
+
   const handleFormSubmit = form.handleSubmit((data) => {
-    onSubmit(data.workingHours, data.notes);
+    onSubmit(data.workingHours, data.notes, data.techStack);
   });
 
   return (
