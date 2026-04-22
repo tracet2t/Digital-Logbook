@@ -63,7 +63,7 @@ const StudentPage: React.FC = () => {
 
           {/* Popup Screen */}
           {isPopupOpen && (
-            <div className="absolute right-0 top-[100%] z-50 mt-2 w-[min(250px,85vw)] rounded-lg bg-gradient-to-t from-blue-100 via-blue-200 to-blue-300 p-4 shadow-lg sm:p-6">
+            <div className="absolute right-0 top-[100%] z-50 mt-2 w-[250px] max-w-[85vw] rounded-lg bg-gradient-to-t from-blue-100 via-blue-200 to-blue-300 p-4 shadow-lg sm:p-6">
               {/* Large Avatar */}
               <div className="flex justify-center mb-4">
                 <Avatar className="w-24 h-24">
@@ -91,9 +91,9 @@ const StudentPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="mx-auto flex w-full max-w-[95vw] flex-1 flex-col items-center justify-start pb-2 sm:justify-center sm:pb-0">
+      <div className="mx-auto flex w-full max-w-[95vw] flex-1 flex-col items-center justify-center pb-2 sm:pb-0">
         {/* Center the calendar with rounded corners */}
-        <div className="w-full max-w-[95vw] rounded-xl bg-white p-3 shadow-lg sm:p-4">
+        <div className="w-full max-w-[95vw] min-h-[60vh] rounded-xl bg-white p-3 shadow-lg sm:p-4">
           <div className="flex w-full items-center justify-center overflow-x-auto">
             <TaskCalendar selectedUser={selectedUser || ""}/>
           </div>
