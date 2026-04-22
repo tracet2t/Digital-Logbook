@@ -169,6 +169,7 @@ export class ActivityRepository extends BaseRepository<Activity> {
     date: Date,
     timeSpent: number,
     notes: string,
+    technologies: string[] = [],
   ) {
     // Do NOT pass `status` here — the column has DEFAULT 'pending' at the DB level.
     // Passing it would throw PrismaClientValidationError until `prisma generate`
@@ -179,6 +180,7 @@ export class ActivityRepository extends BaseRepository<Activity> {
         date,
         timeSpent,
         notes,
+        technologies,
       },
     });
   }
@@ -311,7 +313,7 @@ export class ActivityRepository extends BaseRepository<Activity> {
   async updateActivity(
     id: string,
     studentId: string,
-    data: { timeSpent?: number; notes?: string },
+    data: { timeSpent?: number; notes?: string; technologies?: string[] },
   ) {
     return this.modelClient.update({
       where: {
