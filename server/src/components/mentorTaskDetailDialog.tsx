@@ -9,6 +9,7 @@ import {
   Clock,
   FileText,
   MessageSquare,
+  Tag,
   XCircle,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -23,6 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -50,6 +52,7 @@ interface MentorTaskDetailDialogProps {
   date: string;
   workingHours: number;
   notes: string;
+  technologies?: string[];
   onSubmit: (review: string, status: "approved" | "rejected") => void;
   onClose: () => void;
 }
@@ -59,6 +62,7 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
   date,
   workingHours,
   notes,
+  technologies,
   onSubmit,
   onClose,
 }) => {
@@ -121,6 +125,30 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
               rows={3}
               placeholder="No activity recorded"
             />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+              <Tag className="w-3.5 h-3.5" />
+              Technology Stack
+            </label>
+            {technologies && technologies.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5">
+                {technologies.map((tech) => (
+                  <Badge
+                    key={tech}
+                    variant="secondary"
+                    className="text-xs px-2 py-0.5 bg-[#000053]/10 text-[#000053] border border-[#000053]/20"
+                  >
+                    {tech}
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground italic">
+                No stack specified
+              </p>
+            )}
           </div>
 
           <Form {...form}>

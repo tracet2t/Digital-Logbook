@@ -254,6 +254,7 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
             date={formData.date}
             workingHours={workingHours}
             notes={notes}
+            technologies={technologies}
             onSubmit={(reviewText, status) => {
               handleSubmit({ review: reviewText, status });
             }}

@@ -105,6 +105,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     workingHours,
     notes,
     review,
+    technologies,
     editingEvent,
     feedbackActivityId,
     updateFormData,
@@ -184,6 +185,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
             date={formData.date}
             workingHours={workingHours}
             notes={notes}
+            technologies={technologies}
             onSubmit={(reviewText, status) => {
               handleSubmit({ review: reviewText, status });
             }}
