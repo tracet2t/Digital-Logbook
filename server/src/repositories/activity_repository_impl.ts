@@ -32,6 +32,15 @@ export class ActivityRepository extends BaseRepository<Activity> {
     return "PENDING";
   }
 
+  private extractTaskName(notes?: string | null): string {
+    const firstLine = notes?.split(/\r?\n/)[0]?.trim();
+    if (!firstLine) {
+      return "Untitled Task";
+    }
+
+    return firstLine;
+  }
+
   async getMenteeDashboardData(
     studentId: string,
     page: number,
@@ -43,6 +52,7 @@ export class ActivityRepository extends BaseRepository<Activity> {
       pendingApprovals: number;
     };
     activities: Array<{
+      taskName: string;
       feedback: string;
       date: string;
       hours: number;
@@ -113,6 +123,7 @@ export class ActivityRepository extends BaseRepository<Activity> {
         const latestFeedback = activity.feedback[0];
 
         return {
+          taskName: this.extractTaskName(activity.notes),
           feedback:
             latestFeedback?.feedbackNotes?.trim() ||
             activity.notes?.trim() ||

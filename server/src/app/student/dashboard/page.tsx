@@ -42,6 +42,7 @@ import {
 type ActivityStatus = "APPROVED" | "PENDING" | "REJECTED";
 
 type ActivityRow = {
+  taskName: string;
   feedback: string;
   date: string;
   hours: number;
@@ -74,8 +75,14 @@ function ActivityDetailsContent({ activity }: { activity: ActivityRow }) {
         </div>
       </div>
       <div className="rounded-lg border border-[#e3ebf8] p-4">
+        <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#737373]">Task Name</p>
+        <p className="mt-2 text-[15px] text-[#0A0A0A] leading-relaxed">{activity.taskName}</p>
+      </div>
+      <div className="rounded-lg border border-[#e3ebf8] p-4">
         <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#737373]">Feedback</p>
-        <p className="mt-2 text-[15px] text-[#0A0A0A] leading-relaxed">{activity.feedback}</p>
+        <p className="mt-2 text-[15px] text-[#0A0A0A] leading-relaxed">
+          {activity.status === "PENDING" ? "-" : activity.feedback}
+        </p>
       </div>
       <div className="rounded-lg border border-[#e3ebf8] p-4">
         <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#737373]">Status</p>
@@ -204,7 +211,7 @@ export default function StudentDashboardPage() {
                 <TableHeader>
                   <TableRow className="border-b border-[#e3ebf8]">
                     <TableHead className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#737373] h-10 pl-6">
-                      Feedback
+                      Task Name
                     </TableHead>
                     <TableHead className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#737373] h-10">
                       Date
@@ -215,6 +222,9 @@ export default function StudentDashboardPage() {
                     <TableHead className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#737373] h-10">
                       Status
                     </TableHead>
+                    <TableHead className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#737373] h-10">
+                      Feedback
+                    </TableHead>
                     <TableHead className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#737373] h-10 text-right pr-6">
                       Actions
                     </TableHead>
@@ -222,7 +232,7 @@ export default function StudentDashboardPage() {
                 </TableHeader>
                 <TableBody>
                   <TableStateRows
-                    colSpan={5}
+                    colSpan={6}
                     loading={isLoading}
                     error={error?.message}
                     empty={!isLoading && activities.length === 0}
@@ -235,7 +245,7 @@ export default function StudentDashboardPage() {
                       className="border-b border-[#e3ebf8] hover:bg-[#f5f7fb] transition-colors"
                     >
                       <TableCell className="font-semibold text-[15px] text-[#0A0A0A] pl-6">
-                        {item.feedback}
+                        {item.taskName}
                       </TableCell>
                       <TableCell className="text-[15px] text-[#737373]">{item.date}</TableCell>
                       <TableCell className="text-[15px] font-bold text-[#000053]">
@@ -243,6 +253,9 @@ export default function StudentDashboardPage() {
                       </TableCell>
                       <TableCell>
                         <AdminStatusBadge status={item.status.toLowerCase()} />
+                      </TableCell>
+                      <TableCell className="text-[15px] text-[#0A0A0A]">
+                        {item.status === "PENDING" ? "-" : item.feedback}
                       </TableCell>
                       <TableCell className="text-right pr-6">
                         <TableActionMenu
@@ -280,7 +293,7 @@ export default function StudentDashboardPage() {
                   <div key={idx} className="rounded-xl border border-[#e3ebf8] bg-white p-3">
                     <div className="flex items-start justify-between gap-3">
                       <p className="text-[14px] font-semibold text-[#0A0A0A] leading-snug">
-                        {item.feedback}
+                        {item.taskName}
                       </p>
                       <TableActionMenu
                         ariaLabel={`Actions for activity on ${item.date}`}
@@ -305,6 +318,12 @@ export default function StudentDashboardPage() {
                     </div>
                     <div className="mt-3">
                       <AdminStatusBadge status={item.status.toLowerCase()} />
+                    </div>
+                    <div className="mt-3">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-[#737373]">Feedback</p>
+                      <p className="mt-1 text-[13px] text-[#0A0A0A]">
+                        {item.status === "PENDING" ? "-" : item.feedback}
+                      </p>
                     </div>
                   </div>
                 ))

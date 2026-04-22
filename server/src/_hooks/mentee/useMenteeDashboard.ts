@@ -11,6 +11,7 @@ export interface MenteeDashboardStats {
 }
 
 export interface MenteeDashboardActivity {
+  taskName: string;
   feedback: string;
   date: string;
   hours: number;
