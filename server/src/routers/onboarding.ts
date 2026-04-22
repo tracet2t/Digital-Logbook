@@ -1,12 +1,14 @@
 import { OnboardingRepository } from "@/repositories/onboarding_repository_impl";
 import {
   applicationSchema,
+  createApplicationResponseSchema,
   createApplicationSchema,
   getApplicationByEmailSchema,
   getApplicationByIdSchema,
   getApplicationsByDateRangeSchema,
   getApplicationsByStatusSchema,
   searchApplicationsSchema,
+  updateApplicationStatusResponseSchema,
   updateApplicationStatusSchema,
 } from "@/schemas/onboarding.schema";
 import getSession from "@/server_actions/getSession";
@@ -62,7 +64,7 @@ export const createApplication = publicProcedure
     summary: "Create mentee application",
     description:
       "Submit a new mentee application with personal details and CV. The application will be created with 'pending' status and can be reviewed by Super Admin.",
-    tags: ["onboarding"],
+    tags: ["Onboarding"],
   })
   .errors({
     CONFLICT: {
@@ -71,14 +73,7 @@ export const createApplication = publicProcedure
     },
   })
   .input(createApplicationSchema)
-  .output(
-    z
-      .object({
-        message: z.string().describe("Success message"),
-        application: applicationSchema,
-      })
-      .describe("Application creation response"),
-  )
+  .output(createApplicationResponseSchema)
   .handler(async ({ input, errors }) => {
     // Check if application already exists
     const existing = await onboardingRepository.findByEmail(
@@ -108,6 +103,13 @@ export const createApplication = publicProcedure
   });
 
 export const getApplicationById = publicProcedure
+  .route({
+    method: "GET",
+    path: "/onboarding/applications/:id",
+    summary: "Get application by ID",
+    description: "Retrieve a mentee application using its unique ID",
+    tags: ["Onboarding"],
+  })
   .errors({
     NOT_FOUND: {
       message: "Application not found",
@@ -117,7 +119,15 @@ export const getApplicationById = publicProcedure
   .input(getApplicationByIdSchema)
   .output(applicationSchema)
   .handler(async ({ input, errors }) => {
+    // console.log("🔍 getApplicationById - Received input:", input);
+    // console.log("🔍 getApplicationById - Looking for ID:", input.id);
+
     const application = await onboardingRepository.getApplicationById(input.id);
+
+    // console.log(
+    //   "🔍 getApplicationById - Found application:",
+    //   application ? "✓ YES" : "✗ NO",
+    // );
 
     if (!application) {
       throw errors.NOT_FOUND();
@@ -136,7 +146,7 @@ export const getApplicationByEmail = publicProcedure
     path: "/onboarding/applications/by-email",
     summary: "Get application by email",
     description: "Find a mentee application using email address",
-    tags: ["onboarding"],
+    tags: ["Onboarding"],
   })
   .errors({
     NOT_FOUND: {
@@ -169,7 +179,7 @@ export const getApplicationsByStatus = publicProcedure
     summary: "Get applications by status",
     description:
       "Filter applications by their current status (pending, approved, rejected)",
-    tags: ["onboarding"],
+    tags: ["Onboarding"],
   })
   .input(getApplicationsByStatusSchema)
   .output(z.array(applicationSchema))
@@ -189,7 +199,7 @@ export const searchApplications = publicProcedure
     path: "/onboarding/applications/search",
     summary: "Search applications",
     description: "Search applications by name, email, or university",
-    tags: ["onboarding"],
+    tags: ["Onboarding"],
   })
   .input(searchApplicationsSchema)
   .output(z.array(applicationSchema))
@@ -211,7 +221,7 @@ export const getApplicationsByDateRange = publicProcedure
     path: "/onboarding/applications/by-date-range",
     summary: "Get applications by date range",
     description: "Retrieve applications created within a specific date range",
-    tags: ["onboarding"],
+    tags: ["Onboarding"],
   })
   .input(getApplicationsByDateRangeSchema)
   .output(z.array(applicationSchema))
@@ -235,7 +245,7 @@ export const getApplicationSummary = publicProcedure
     summary: "Get application statistics",
     description:
       "Get count of applications grouped by status (pending, approved, rejected). Useful for dashboard metrics.",
-    tags: ["onboarding"],
+    tags: ["Onboarding"],
   })
   .output(
     z
@@ -255,14 +265,14 @@ export const getApplicationSummary = publicProcedure
     return { counts };
   });
 
-export const getAllApplications = publicProcedure
+export const getAllApplications = authedProcedure
   .route({
     method: "GET",
     path: "/onboarding/applications",
     summary: "Get all applications",
     description:
       "Retrieve all mentee applications including approved students. Returns applications ordered by creation date (newest first).",
-    tags: ["onboarding"],
+    tags: ["Onboarding"],
   })
   .output(z.array(applicationSchema))
   .handler(async () => {
@@ -308,6 +318,14 @@ export const getAllApplications = publicProcedure
   });
 
 export const updateApplicationStatus = superAdminProcedure
+  .route({
+    method: "PATCH",
+    path: "/onboarding/applications/:id/status",
+    summary: "Update application status",
+    description:
+      "Update the status of a mentee application (approve/reject). Requires Super Admin role.",
+    tags: ["Onboarding"],
+  })
   .errors({
     NOT_FOUND: {
       message: "Application not found",
@@ -315,14 +333,7 @@ export const updateApplicationStatus = superAdminProcedure
     },
   })
   .input(updateApplicationStatusSchema)
-  .output(
-    z
-      .object({
-        message: z.string().describe("Status update confirmation message"),
-        application: applicationSchema,
-      })
-      .describe("Application status update response"),
-  )
+  .output(updateApplicationStatusResponseSchema)
   .handler(async ({ input, errors }) => {
     const existing = await onboardingRepository.getApplicationById(input.id);
 

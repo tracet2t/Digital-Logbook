@@ -47,7 +47,7 @@ const openAPIHandler = new OpenAPIHandler(router, {
         ],
         tags: [
           {
-            name: "onboarding",
+            name: "Onboarding",
             description: "Mentee application and onboarding management",
           },
         ],

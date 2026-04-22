@@ -109,6 +109,21 @@ export const applicationSchema = z
   })
   .describe("Mentee application object");
 
+// Response schemas
+export const createApplicationResponseSchema = z
+  .object({
+    message: z.string().describe("Success message"),
+    application: applicationSchema,
+  })
+  .describe("Application creation response");
+
+export const updateApplicationStatusResponseSchema = z
+  .object({
+    message: z.string().describe("Status update confirmation message"),
+    application: applicationSchema,
+  })
+  .describe("Application status update response");
+
 // Type inference from schemas
 export type CreateApplicationInput = z.infer<typeof createApplicationSchema>;
 export type Application = z.infer<typeof applicationSchema>;
