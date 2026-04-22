@@ -41,18 +41,18 @@ const StudentPage: React.FC = () => {
   };
 
   return (
-    <div className="gap-5 flex flex-col bg-[#f1f1f9] min-h-screen">
+    <div className="flex min-h-screen flex-col gap-3 bg-[#f1f1f9] px-3 py-3 sm:gap-5 sm:px-0 sm:py-0">
       {/* Top Bar with Logo, Avatar, and Logout */}
-      <div className="flex gap-1 justify-between items-center p-4 bg-gradient-to-t from-blue-50 via-blue-75 to-blue-100 shadow-md h-[10vh] w-full max-w-[95vw] mx-auto mt-[15px] rounded-lg">
+      <div className="mx-auto mt-1 flex w-full max-w-[95vw] items-center justify-between gap-2 rounded-lg bg-gradient-to-t from-blue-50 via-blue-75 to-blue-100 px-3 py-3 shadow-md sm:mt-[15px] sm:gap-4 sm:p-4">
         <Image
           src="/logo.png"
           alt="Logo"
           width={200}
           height={40}
-          className="mt-[-0px]"
+          className="h-auto w-[140px] sm:w-[180px] md:w-[200px]"
         />
 
-        <div className="flex items-center gap-4 mt-[0px] relative mr-[15px]">
+        <div className="relative flex items-center gap-3 sm:mr-[15px] sm:gap-4">
           {/* Avatar */}
           <div onClick={togglePopup} className="cursor-pointer">
             <Avatar>
@@ -63,7 +63,7 @@ const StudentPage: React.FC = () => {
 
           {/* Popup Screen */}
           {isPopupOpen && (
-            <div className="absolute top-[100%] right-0 mt-2 bg-gradient-to-t from-blue-100 via-blue-200 to-blue-300 shadow-md shadow-lg p-6 rounded-lg z-50 w-[250px]">
+            <div className="absolute right-0 top-[100%] z-50 mt-2 w-[min(250px,85vw)] rounded-lg bg-gradient-to-t from-blue-100 via-blue-200 to-blue-300 p-4 shadow-lg sm:p-6">
               {/* Large Avatar */}
               <div className="flex justify-center mb-4">
                 <Avatar className="w-24 h-24">
@@ -91,10 +91,10 @@ const StudentPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-grow flex flex-col items-center justify-center mt-[-15px] w-full max-w-[95vw] mx-auto">
+      <div className="mx-auto flex w-full max-w-[95vw] flex-1 flex-col items-center justify-start pb-2 sm:justify-center sm:pb-0">
         {/* Center the calendar with rounded corners */}
-        <div className="bg-white p-4 rounded-xl shadow-lg w-full max-w-[95vw] min-h-[60vh]">
-          <div className="flex justify-center items-center w-full">
+        <div className="w-full max-w-[95vw] rounded-xl bg-white p-3 shadow-lg sm:p-4">
+          <div className="flex w-full items-center justify-center overflow-x-auto">
             <TaskCalendar selectedUser={selectedUser || ""}/>
           </div>
         </div>
