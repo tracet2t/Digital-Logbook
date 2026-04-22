@@ -55,7 +55,13 @@ export const useCalendarEvents = (
     error,
   } = useQuery<CalendarEvent[]>({
     queryKey: isAllMentees
-      ? ["calendarEvents", studentId, role, "all-mentees", allMentees?.map((s) => s.id)]
+      ? [
+          "calendarEvents",
+          studentId,
+          role,
+          "all-mentees",
+          allMentees?.map((s) => s.id),
+        ]
       : ["calendarEvents", studentId, role, selectedUser],
     queryFn: async (): Promise<CalendarEvent[]> => {
       if (isAllMentees) {
