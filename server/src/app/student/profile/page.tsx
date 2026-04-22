@@ -13,50 +13,50 @@ export const metadata = {
 export default function MenteeProfileUIPage() {
   const sectionDividerClass = "border-slate-200";
   const horizontalDividerClass = "h-px w-full bg-slate-200";
-  const contentBleedClass = "-mx-2 xs:-mx-3 sm:-mx-6 md:-mx-7 lg:-mx-8 xl:-mx-10 2xl:-mx-12 px-2 xs:px-3 sm:px-6 md:px-7 lg:px-8 xl:px-10 2xl:px-12";
+  const contentBleedClass = "-mx-5 sm:-mx-8 lg:-mx-10 px-5 sm:px-8 lg:px-10";
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-blue-50 to-white px-3 py-4 text-slate-900 sm:px-5 sm:py-6 md:px-6 md:py-8 lg:px-8 xl:px-10 2xl:px-12">
-      <div className="mx-auto w-full max-w-none">
-        <div className="overflow-hidden rounded-xl border-2 border-blue-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:rounded-2xl">
+    <main className="min-h-screen bg-slate-50 px-3 py-4 text-slate-900 sm:px-6 sm:py-8 lg:px-10 lg:py-10">
+      <div className="mx-auto w-full max-w-6xl">
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_18px_56px_rgba(15,23,42,0.08)] sm:rounded-2xl">
           <section className={cn("border-b bg-white", sectionDividerClass)}>
             {/* Header separator line */}
             <div className={horizontalDividerClass} />
 
-            <div className="px-3 py-4 xs:px-4 sm:px-6 sm:py-5 md:px-7 lg:px-8 xl:px-10 2xl:px-12">
+            <div className="px-5 py-5 sm:px-8 sm:py-6 lg:px-10 lg:py-7">
               {/* Header with avatar, name, and buttons */}
-              <div className="flex flex-col gap-4 xs:gap-5 sm:gap-6">
+              <div className="flex flex-col gap-5 sm:gap-6">
                 {/* Main header row: Avatar + Name/Email + Buttons */}
-                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                  <div className="flex min-w-0 items-start gap-3 xs:gap-4 sm:gap-5 md:flex-1">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="flex min-w-0 items-start gap-4 sm:gap-5 lg:flex-1">
                     <div className="relative flex-shrink-0">
-                      <Avatar className="h-20 w-20 border border-slate-200 shadow-sm xs:h-24 xs:w-24 sm:h-28 sm:w-28 md:h-[7rem] md:w-[7rem]">
+                      <Avatar className="h-20 w-20 border border-slate-200 shadow-sm sm:h-24 sm:w-24 lg:h-28 lg:w-28">
                         <AvatarImage
                           src="https://i.pravatar.cc/160?img=12"
                           alt="Alex Sterling"
                           className="h-full w-full object-cover object-center"
                         />
-                        <AvatarFallback className="bg-gradient-to-br from-slate-700 to-slate-500 text-lg font-bold text-white xs:text-xl sm:text-2xl md:text-3xl">
+                        <AvatarFallback className="bg-gradient-to-br from-slate-700 to-slate-500 text-lg font-bold text-white sm:text-xl lg:text-2xl">
                           AS
                         </AvatarFallback>
                       </Avatar>
-                      <span className="absolute bottom-1 right-1 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-500 xs:h-4 xs:w-4" />
+                      <span className="absolute bottom-1 right-1 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-500 sm:h-4 sm:w-4" />
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 xs:gap-2">
-                        <h1 className="text-lg font-bold leading-tight text-slate-900 xs:text-xl sm:text-2xl sm:font-extrabold md:text-3xl">
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <h1 className="text-xl font-extrabold leading-tight text-slate-900 sm:text-2xl lg:text-[2rem]">
                           ALEX STERLING
                         </h1>
-                        <Pencil className="h-3.5 w-3.5 flex-shrink-0 text-slate-400 xs:h-4 xs:w-4 sm:h-5 sm:w-5" />
+                        <Pencil className="h-4 w-4 flex-shrink-0 text-slate-400 sm:h-5 sm:w-5" />
                       </div>
-                      <p className="mt-0.5 text-xs text-slate-500 xs:mt-1 xs:text-sm sm:text-base">
+                      <p className="mt-1 text-sm text-slate-500 sm:text-base">
                         alex.sterling@logbook.org
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:justify-end">
+                  <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto lg:justify-end">
                     <Badge className="rounded-full border border-slate-300 bg-slate-50 px-2.5 py-1 text-center text-[0.7rem] font-bold uppercase tracking-[0.08em] text-slate-600 sm:px-3 sm:py-1.5 sm:text-[0.78rem]">
                       Active Mentee
                     </Badge>
@@ -69,7 +69,7 @@ export default function MenteeProfileUIPage() {
                 </div>
 
                 {/* Batch, Projects, Mentor info row */}
-                <div className="grid grid-cols-1 gap-3 pt-3 sm:grid-cols-2 sm:gap-5 sm:pt-4 xl:grid-cols-3 xl:gap-8">
+                <div className="grid grid-cols-1 gap-4 border-t border-slate-200 pt-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 lg:gap-8">
                   <div>
                     <p className="text-[0.62rem] font-black uppercase tracking-[0.1em] text-slate-400 sm:text-[0.7rem] sm:tracking-[0.12em]">
                       Batch Info
@@ -104,13 +104,13 @@ export default function MenteeProfileUIPage() {
             </div>
           </section>
 
-          <div className="space-y-4 p-2 xs:space-y-6 xs:p-3 sm:p-6 md:p-7 lg:p-8 xl:p-10 2xl:p-12">
-            <section>
+          <div className="space-y-0 px-5 py-5 sm:px-8 sm:py-6 lg:px-10 lg:py-8">
+            <section className="pb-6 lg:pb-8">
               <h2 className="text-[0.72rem] font-black uppercase tracking-[0.16em] text-slate-400 sm:text-[0.8rem]">
                 Achievements &amp; Badges
               </h2>
 
-              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 2xl:grid-cols-4">
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {[
                   {
                     icon: <FileBadge2 className="h-3.5 w-3.5" />,
@@ -133,7 +133,7 @@ export default function MenteeProfileUIPage() {
                     iconColor: "text-[#eab308]",
                   },
                 ].map((item) => (
-                  <div key={item.label} className="flex items-center gap-3">
+                  <div key={item.label} className="flex min-h-11 items-center gap-3 rounded-md border border-slate-200 px-3">
                     <span className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-300 bg-slate-100">
                       <span className={item.iconColor}>{item.icon}</span>
                     </span>
@@ -145,10 +145,10 @@ export default function MenteeProfileUIPage() {
               </div>
             </section>
 
-            <section className={cn("border-t pt-4 xs:pt-6", sectionDividerClass, contentBleedClass)}>
-              <div className="mb-4 grid gap-4 xs:mb-6 xs:gap-6 xl:grid-cols-[0.82fr_1.18fr] xl:gap-10">
+            <section className={cn("border-t py-6 lg:py-8", sectionDividerClass, contentBleedClass)}>
+              <div className="grid gap-6 lg:grid-cols-[0.82fr_1.18fr] lg:gap-10">
                 <div>
-                  <h2 className="mb-3 text-[0.7rem] font-black uppercase tracking-[0.14em] text-slate-400 xs:mb-5 sm:text-[0.8rem]">
+                  <h2 className="mb-4 text-[0.7rem] font-black uppercase tracking-[0.14em] text-slate-400 sm:text-[0.8rem]">
                     Status Indicators
                   </h2>
 
@@ -188,13 +188,13 @@ export default function MenteeProfileUIPage() {
                     ))}
                   </div>
 
-                  <p className="mt-6 text-[0.72rem] text-slate-500">
+                  <p className="mt-5 text-[0.72rem] text-slate-500">
                     The status was updated by Dr. Chen following the last sprint review.
                   </p>
                 </div>
 
                 <div>
-                  <h3 className="mb-3 text-[0.7rem] font-black uppercase tracking-[0.14em] text-slate-400 xs:mb-5 sm:text-[0.8rem]">
+                  <h3 className="mb-4 text-[0.7rem] font-black uppercase tracking-[0.14em] text-slate-400 sm:text-[0.8rem]">
                     Latest Mentor Comment
                   </h3>
                   <p className="text-4xl leading-none text-slate-300">&ldquo;</p>
@@ -208,15 +208,15 @@ export default function MenteeProfileUIPage() {
               </div>
             </section>
 
-            <section className={cn("border-y py-4 xs:py-6 lg:py-7", sectionDividerClass, contentBleedClass)}>
+            <section className={cn("border-y py-6 lg:py-8", sectionDividerClass, contentBleedClass)}>
               <h2 className="text-[0.7rem] font-black uppercase tracking-[0.14em] text-slate-400 sm:text-[0.8rem]">
                 Latest Tasks
               </h2>
 
-              <div className="relative mt-4 pl-7 xs:mt-6 xs:pl-9 sm:pl-11">
+              <div className="relative mt-5 pl-7 sm:mt-6 sm:pl-10">
                 <div className="absolute left-3 top-2 bottom-2 w-px bg-slate-200" />
 
-                <div className="space-y-8">
+                <div className="space-y-7">
                   {[
                     {
                       dotWrapClass: "border-slate-300 bg-slate-100",
@@ -255,16 +255,16 @@ export default function MenteeProfileUIPage() {
                       approverInitials: "SC",
                     },
                   ].map((item) => (
-                    <div key={item.title} className="relative grid gap-3 xs:gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-start xl:gap-8">
-                      <div className={cn("absolute left-[-1.75rem] top-0.5 flex h-4 w-4 items-center justify-center rounded-full border text-[0.6rem] font-bold xs:left-[-2.25rem] xs:h-5 xs:w-5 xs:text-[0.7rem]", item.dotWrapClass, item.dotClass)}>
+                    <div key={item.title} className="relative grid gap-3 sm:gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start lg:gap-8">
+                      <div className={cn("absolute left-[-1.75rem] top-0.5 flex h-4 w-4 items-center justify-center rounded-full border text-[0.6rem] font-bold sm:left-[-2.1rem] sm:h-5 sm:w-5 sm:text-[0.7rem]", item.dotWrapClass, item.dotClass)}>
                         {item.dotSymbol}
                       </div>
 
                       <div>
-                        <h3 className="text-base font-black leading-tight tracking-[-0.01em] text-slate-900 xs:text-lg sm:text-[1.37rem] md:text-[1.42rem]">
+                        <h3 className="text-base font-black leading-tight tracking-[-0.01em] text-slate-900 sm:text-lg md:text-[1.28rem]">
                           {item.title}
                         </h3>
-                        <p className="mt-1 text-xs text-slate-500 xs:mt-1.5 xs:text-sm">
+                        <p className="mt-1.5 text-xs text-slate-500 sm:text-sm">
                           {item.description}
                         </p>
                         <div className="mt-2.5 flex flex-wrap gap-1.5">
@@ -279,11 +279,11 @@ export default function MenteeProfileUIPage() {
                         </div>
                       </div>
 
-                      <div className="text-left xl:min-w-[12rem] xl:text-right">
+                      <div className="text-left lg:min-w-[12rem] lg:text-right">
                         <p className="text-[0.62rem] font-black uppercase tracking-[0.12em] text-slate-400 sm:text-[0.68rem]">
                           {item.time}
                         </p>
-                        <div className="mt-1 flex items-center justify-start gap-1.5 xs:mt-2 xs:gap-2 xl:justify-end">
+                        <div className="mt-2 flex items-center justify-start gap-2 lg:justify-end">
                           <div>
                             <p className="text-[0.68rem] font-black text-slate-800 sm:text-[0.74rem]">
                               {item.approver}
@@ -303,9 +303,9 @@ export default function MenteeProfileUIPage() {
               </div>
             </section>
 
-            <section className="flex justify-center pt-3 xs:pt-4 sm:pt-6">
-              <Button className="h-10 w-full rounded-md bg-[#050b73] px-4 text-[0.64rem] font-black uppercase tracking-[0.12em] text-white shadow-[0_6px_16px_rgba(5,11,115,0.3)] hover:bg-[#040860] xs:px-5 md:h-11 md:w-auto md:px-7 md:text-[0.68rem] md:tracking-[0.14em] md:shadow-[0_8px_18px_rgba(5,11,115,0.35)]">
-                <FileText className="mr-1.5 h-3 w-3 xs:mr-2 xs:h-3.5 xs:w-3.5" />
+            <section className="flex justify-center pt-6">
+              <Button className="h-10 w-full rounded-md bg-[#050b73] px-4 text-[0.64rem] font-black uppercase tracking-[0.12em] text-white shadow-[0_6px_16px_rgba(5,11,115,0.3)] hover:bg-[#040860] sm:w-auto sm:px-6 md:h-11 md:px-7 md:text-[0.68rem] md:tracking-[0.14em] md:shadow-[0_8px_18px_rgba(5,11,115,0.35)]">
+                <FileText className="mr-1.5 h-3 w-3 sm:mr-2 sm:h-3.5 sm:w-3.5" />
                 Generate PDF Full Profile Report
               </Button>
             </section>
