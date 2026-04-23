@@ -19,7 +19,11 @@ export class ActivityRepository extends BaseRepository<Activity> {
     activityStatus: string,
     feedbackStatus?: string,
   ): "APPROVED" | "PENDING" | "REJECTED" {
-    const normalized = (feedbackStatus ?? activityStatus ?? "pending").toLowerCase();
+    const normalized = (
+      feedbackStatus ??
+      activityStatus ??
+      "pending"
+    ).toLowerCase();
 
     if (normalized === "accepted" || normalized === "approved") {
       return "APPROVED";
@@ -164,6 +168,7 @@ export class ActivityRepository extends BaseRepository<Activity> {
         studentId,
         ...(dateFilter && { date: dateFilter }),
       },
+      orderBy: { createdAt: "desc" },
       include: {
         feedback: {
           select: {
