@@ -15,6 +15,140 @@ export class ActivityRepository extends BaseRepository<Activity> {
     super(prisma.activity);
   }
 
+  private mapMenteeDashboardStatus(
+    activityStatus: string,
+    feedbackStatus?: string,
+  ): "APPROVED" | "PENDING" | "REJECTED" {
+    const normalized = (feedbackStatus ?? activityStatus ?? "pending").toLowerCase();
+
+    if (normalized === "accepted" || normalized === "approved") {
+      return "APPROVED";
+    }
+
+    if (normalized === "rejected") {
+      return "REJECTED";
+    }
+
+    return "PENDING";
+  }
+
+  private extractTaskName(notes?: string | null): string {
+    const firstLine = notes?.split(/\r?\n/)[0]?.trim();
+    if (!firstLine) {
+      return "Untitled Task";
+    }
+
+    return firstLine;
+  }
+
+  async getMenteeDashboardData(
+    studentId: string,
+    page: number,
+    pageSize: number,
+  ): Promise<{
+    stats: {
+      totalHoursLogged: number;
+      tasksCompleted: number;
+      pendingApprovals: number;
+    };
+    activities: Array<{
+      taskName: string;
+      feedback: string;
+      date: string;
+      hours: number;
+      status: "APPROVED" | "PENDING" | "REJECTED";
+    }>;
+    pagination: {
+      page: number;
+      pageSize: number;
+      totalItems: number;
+      totalPages: number;
+    };
+  }> {
+    const safePage = Math.max(1, page);
+    const safePageSize = Math.max(1, pageSize);
+    const skip = (safePage - 1) * safePageSize;
+
+    const [
+      totalHoursAggregate,
+      completedCount,
+      pendingCount,
+      totalItems,
+      activities,
+    ] = await prisma.$transaction([
+      prisma.activity.aggregate({
+        where: { studentId },
+        _sum: { timeSpent: true },
+      }),
+      prisma.activity.count({
+        where: { studentId, status: "accepted" },
+      }),
+      prisma.activity.count({
+        where: { studentId, status: "pending" },
+      }),
+      prisma.activity.count({
+        where: { studentId },
+      }),
+      prisma.activity.findMany({
+        where: { studentId },
+        orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+        skip,
+        take: safePageSize,
+        select: {
+          date: true,
+          timeSpent: true,
+          notes: true,
+          status: true,
+          feedback: {
+            orderBy: { createdAt: "desc" },
+            take: 1,
+            select: {
+              status: true,
+              feedbackNotes: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    const totalPages = Math.max(1, Math.ceil(totalItems / safePageSize));
+
+    return {
+      stats: {
+        totalHoursLogged: totalHoursAggregate._sum.timeSpent ?? 0,
+        tasksCompleted: completedCount,
+        pendingApprovals: pendingCount,
+      },
+      activities: activities.map((activity) => {
+        const latestFeedback = activity.feedback[0];
+
+        return {
+          taskName: this.extractTaskName(activity.notes),
+          feedback:
+            latestFeedback?.feedbackNotes?.trim() ||
+            activity.notes?.trim() ||
+            "No feedback available",
+          date: activity.date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "2-digit",
+            year: "numeric",
+          }),
+          hours: activity.timeSpent,
+          status: this.mapMenteeDashboardStatus(
+            activity.status,
+            latestFeedback?.status,
+          ),
+        };
+      }),
+      pagination: {
+        page: safePage,
+        pageSize: safePageSize,
+        totalItems,
+        totalPages,
+      },
+    };
+  }
+
   async findByStudentId(studentId: string, date?: Date) {
     // Use a date-range filter (start of day → start of next day) instead of exact
     // DateTime equality to avoid timezone edge cases.
@@ -46,6 +180,7 @@ export class ActivityRepository extends BaseRepository<Activity> {
     date: Date,
     timeSpent: number,
     notes: string,
+    technologies: string[] = [],
   ) {
     // Do NOT pass `status` here — the column has DEFAULT 'pending' at the DB level.
     // Passing it would throw PrismaClientValidationError until `prisma generate`
@@ -56,6 +191,7 @@ export class ActivityRepository extends BaseRepository<Activity> {
         date,
         timeSpent,
         notes,
+        technologies,
       },
     });
   }
@@ -188,7 +324,7 @@ export class ActivityRepository extends BaseRepository<Activity> {
   async updateActivity(
     id: string,
     studentId: string,
-    data: { timeSpent?: number; notes?: string },
+    data: { timeSpent?: number; notes?: string; technologies?: string[] },
   ) {
     return this.modelClient.update({
       where: {

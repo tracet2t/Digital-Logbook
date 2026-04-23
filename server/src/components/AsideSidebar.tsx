@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 
 import { getSessionOnClient } from "@/server_actions/getSession";
 import Image from "next/image";
@@ -43,6 +43,7 @@ export interface LogoConfig {
 }
 
 interface UserInfo {
+  id: string;
   fname: string;
   lname: string;
   role: string;
@@ -146,6 +147,20 @@ export default function AsideSidebar({ menu, logo }: AsideSidebarProps) {
   const { setOpenMobile, state } = useSidebar();
   const collapsed = state === "collapsed";
   const [user, setUser] = useState<UserInfo | null>(null);
+  const uniqueMenu = useMemo(() => {
+    const seen = new Set<string>();
+
+    return menu.filter((item) => {
+      const key = `${item.href}::${item.label}`;
+
+      if (seen.has(key)) {
+        return false;
+      }
+
+      seen.add(key);
+      return true;
+    });
+  }, [menu]);
 
   useEffect(() => {
     getSessionOnClient().then((s) => {
@@ -168,7 +183,7 @@ export default function AsideSidebar({ menu, logo }: AsideSidebarProps) {
         pathname={pathname}
         onNavigate={navigate}
         collapsed={collapsed}
-        menu={menu}
+        menu={uniqueMenu}
       />
       {user && (
         <div className="sticky bottom-0 left-0 bg-sidebar">

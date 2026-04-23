@@ -49,6 +49,7 @@ interface CalendarEvent {
   studentId: string;
   timeSpent?: number;
   notes?: string;
+  technologies?: string[];
   status: "pending" | "approved" | "rejected";
 }
 
@@ -80,6 +81,7 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
     workingHours,
     notes,
     review,
+    technologies,
     editingEvent,
     feedbackActivityId,
     updateFormData,
@@ -244,11 +246,6 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
             />
           )}
         </div>
-        {selectedDate && (
-          <p className="mt-2 text-sm font-semibold text-gray-700">
-            Selected: {selectedDate.toDateString()}
-          </p>
-        )}
 
         {/* Task Detail Dialogs - only mount the relevant one */}
         {taskModalOpen && role === "mentor" && selectedUser !== studentId && (
@@ -257,6 +254,7 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
             date={formData.date}
             workingHours={workingHours}
             notes={notes}
+            technologies={technologies}
             onSubmit={(reviewText, status) => {
               handleSubmit({ review: reviewText, status });
             }}
@@ -282,10 +280,11 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
             date={formData.date}
             defaultWorkingHours={workingHours}
             defaultNotes={notes}
+            defaultTechStack={technologies}
             review={review}
             isEditable={isEditable}
-            onSubmit={(wh, n) => {
-              handleSubmit({ workingHours: wh, notes: n });
+            onSubmit={(wh, n, techs) => {
+              handleSubmit({ workingHours: wh, notes: n, technologies: techs });
             }}
             onClose={handleClose}
           />

@@ -1,0 +1,36 @@
+import { Calendar, LayoutDashboard, User } from "lucide-react";
+
+import { LogoConfig, MenuItem } from "@/components/AsideSidebar";
+
+export const STUDENT_MENU_ITEMS: MenuItem[] = [
+  {
+    label: "Dashboard",
+    icon: <LayoutDashboard size={18} />,
+    href: "/student/dashboard",
+  },
+  {
+    label: "Calendar",
+    icon: <Calendar size={18} />,
+    href: "/student",
+  },
+  {
+    label: "Profile",
+    icon: <User size={18} />,
+    href: "/student/profile",
+  },
+];
+
+export const STUDENT_LOGO_CONFIG: LogoConfig = {
+  expanded: {
+    src: "/logo.png",
+    width: 240,
+    height: 60,
+    className: "h-auto w-full max-w-[144px] shrink-0",
+  },
+  collapsed: {
+    src: "/logo - small.png",
+    width: 49,
+    height: 40,
+    className: "h-10 w-auto shrink-0",
+  },
+};

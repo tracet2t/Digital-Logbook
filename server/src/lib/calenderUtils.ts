@@ -9,6 +9,7 @@ interface CalendarEvent {
   studentId: string;
   timeSpent?: number;
   notes?: string;
+  technologies?: string[];
   status: "pending" | "approved" | "rejected"; // Added "no-status" for undefined cases
 }
 
@@ -19,6 +20,7 @@ interface StudentEventData {
   notes?: string;
   timeSpent?: number;
   studentId?: string;
+  technologies?: string[];
   feedback?: { status?: "pending" | "approved" | "rejected" }[];
 }
 
@@ -33,7 +35,9 @@ interface MentorEventData {
 }
 
 // Converts raw data to CalendarEvent for students
-export const convertToCalendarEvents = (data: StudentEventData[]): CalendarEvent[] => {
+export const convertToCalendarEvents = (
+  data: StudentEventData[],
+): CalendarEvent[] => {
   return data.map((item) => {
     const startDate = new Date(item.date);
     const endDate = new Date(item.date);
@@ -45,15 +49,18 @@ export const convertToCalendarEvents = (data: StudentEventData[]): CalendarEvent
       end: endDate,
       status: item.feedback?.[0]?.status || "pending",
       createdAt: new Date(),
-      studentId: item.studentId || '',
+      studentId: item.studentId || "",
       timeSpent: item.timeSpent,
       notes: item.notes,
+      technologies: item.technologies ?? [],
     };
   });
 };
 
 // Converts raw data to CalendarEvent for mentors
-export const convertToCalendarEventsMentor = (data: MentorEventData[]): CalendarEvent[] => {
+export const convertToCalendarEventsMentor = (
+  data: MentorEventData[],
+): CalendarEvent[] => {
   return data.map((item) => {
     const startDate = new Date(item.date);
     const endDate = new Date(item.date);
@@ -65,7 +72,7 @@ export const convertToCalendarEventsMentor = (data: MentorEventData[]): Calendar
       end: endDate,
       status: item.status || "pending",
       createdAt: new Date(),
-      studentId: item.studentId || '',
+      studentId: item.studentId || "",
       timeSpent: item.workingHours,
       notes: item.activities,
     };

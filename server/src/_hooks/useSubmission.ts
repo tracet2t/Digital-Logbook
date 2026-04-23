@@ -6,6 +6,7 @@ export interface SubmitFormValues {
   notes?: string;
   review?: string;
   status?: string;
+  technologies?: string[];
 }
 
 interface SubmitPayload {
@@ -43,6 +44,7 @@ export const useSubmission = (
             date,
             timeSpent: formValues.workingHours,
             notes: formValues.notes,
+            technologies: formValues.technologies ?? [],
             ...(evt && { id: evt.id }),
           };
           break;
@@ -116,6 +118,7 @@ export const useSubmission = (
       queryClient.invalidateQueries({ queryKey: ["mentor-dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["mentee-activities"] });
       queryClient.invalidateQueries({ queryKey: ["mentee-feedback-history"] });
+      queryClient.invalidateQueries({ queryKey: ["mentee-dashboard"] });
       onSuccess();
     },
     onError: (error) => {

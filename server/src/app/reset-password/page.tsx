@@ -94,7 +94,7 @@ const ResetPasswordPage = () => {
                     description: "Password updated successfully",
                     variant: 'default'
                 });
-                router.push('/student'); // Redirect to the student page
+                router.push('/student/dashboard'); // Redirect to the student dashboard page
             }
         } catch (error) {
             setToastData({
