@@ -310,15 +310,15 @@ export default function RsuiteCalendar({
 
   return (
     <>
-      <div className="flex h-full min-h-0 flex-col p-0 w-full overflow-hidden">
-        <div className="bg-white rounded-lg shadow-lg p-3 md:p-4 w-full h-full min-h-0 overflow-hidden">
+      <div className="flex w-full flex-col p-0 overflow-y-auto sm:h-full sm:min-h-0">
+        <div className="bg-white rounded-lg shadow-lg p-3 md:p-4 w-full overflow-hidden sm:h-full sm:min-h-0">
           {mounted && (
             <Calendar
               value={selectedDate || new Date()}
               onChange={handleDateChange}
               onSelect={handleSelect}
               compact={false}
-              className="h-full"
+              className="h-auto sm:h-full"
               renderCell={renderCell}
             />
           )}
