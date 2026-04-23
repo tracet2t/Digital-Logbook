@@ -1,4 +1,7 @@
 import "./index.css";
+import "../lib/orpc.server"; // for SSR pre-rendering
+
+// Rest of the code
 
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
