@@ -120,6 +120,21 @@ export function KanbanBoard({
               {filteredBench.length} {benchBadgeText}
             </Badge>
           </div>
+          {/* Bench search */}
+          {!isLoading && onBenchSearchChange && (
+            <div className="mb-2 pr-3 sm:pr-4 lg:pr-6">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="search"
+                  value={benchSearch}
+                  onChange={(e) => onBenchSearchChange(e.target.value)}
+                  placeholder="Search by name..."
+                  className="h-8 w-full rounded-lg border border-[#dbe0e8] bg-white pl-8 pr-3 text-[11px] text-slate-700 outline-none transition focus:border-slate-400"
+                />
+              </div>
+            </div>
+          )}
           {/** Select All function :CheckBox */}
           {!isLoading && bench.length > 0 && (
             <div className="pr-3 sm:pr-4 lg:pr-6">
@@ -141,21 +156,6 @@ export function KanbanBoard({
                 )}
                 Select All
               </button>
-            </div>
-          )}
-          {/* Bench search */}
-          {!isLoading && onBenchSearchChange && (
-            <div className="mb-2 pr-3 sm:pr-4 lg:pr-6">
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="search"
-                  value={benchSearch}
-                  onChange={(e) => onBenchSearchChange(e.target.value)}
-                  placeholder="Search by name..."
-                  className="h-8 w-full rounded-lg border border-[#dbe0e8] bg-white pl-8 pr-3 text-[11px] text-slate-700 outline-none transition focus:border-slate-400"
-                />
-              </div>
             </div>
           )}
           <ScrollArea className="max-h-64 sm:max-h-80 lg:max-h-none 2xl:flex-1">
