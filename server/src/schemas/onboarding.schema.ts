@@ -36,7 +36,7 @@ export const getApplicationByIdSchema = z
       .min(1, "ID is required")
       .describe("Unique identifier of the application"),
   })
-  .describe("Get application by ID");
+  .describe("Get application by ID - Path parameter");
 
 export const getApplicationByEmailSchema = z
   .object({
@@ -45,7 +45,7 @@ export const getApplicationByEmailSchema = z
       .email("Invalid email address")
       .describe("Email address to search for"),
   })
-  .describe("Get application by email address");
+  .describe("Get application by email - Query parameter");
 
 export const getApplicationsByStatusSchema = z
   .object({
@@ -53,7 +53,7 @@ export const getApplicationsByStatusSchema = z
       .enum(["pending", "approved", "rejected"])
       .describe("Application status filter (pending, approved, or rejected)"),
   })
-  .describe("Filter applications by status");
+  .describe("Filter applications by status - Query parameter");
 
 export const searchApplicationsSchema = z
   .object({
@@ -62,7 +62,7 @@ export const searchApplicationsSchema = z
       .min(1, "Search term is required")
       .describe("Search term for name, email, or university"),
   })
-  .describe("Search applications");
+  .describe("Search applications - Query parameter");
 
 export const getApplicationsByDateRangeSchema = z
   .object({
@@ -71,15 +71,15 @@ export const getApplicationsByDateRangeSchema = z
       .refine((val) => !isNaN(new Date(val).getTime()), {
         message: "Invalid start date",
       })
-      .describe("Start date in ISO format"),
+      .describe("Start date in ISO format (YYYY-MM-DD)"),
     endDate: z
       .string()
       .refine((val) => !isNaN(new Date(val).getTime()), {
         message: "Invalid end date",
       })
-      .describe("End date in ISO format"),
+      .describe("End date in ISO format (YYYY-MM-DD)"),
   })
-  .describe("Get applications within date range");
+  .describe("Get applications within date range - Query parameters");
 
 export const updateApplicationStatusSchema = z
   .object({

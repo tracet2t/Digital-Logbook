@@ -6,6 +6,8 @@ export const dynamic = "force-dynamic";
 
 // Create the OpenAPI handler with your router
 // This enables both RPC-style (dot notation) and REST-style (path-based) endpoints
+// RPC-style (/api/rpc.users.list) --> REST-style (/api/rpc/users/list) endpoints
+
 const handler = new OpenAPIHandler(router, {
   interceptors: [
     onError((error) => {
