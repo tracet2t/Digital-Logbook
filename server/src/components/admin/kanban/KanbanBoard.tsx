@@ -1,6 +1,6 @@
 "use client";
 
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useMemo } from "react";
 
 import { OnboardingApplication } from "@/_hooks/admin/useAdminOnboarding";
 import {
@@ -14,7 +14,7 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { CheckSquare, Plus, Square } from "lucide-react";
+import { CheckSquare, Plus, Search, Square } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -53,6 +53,8 @@ interface KanbanBoardProps {
   dragCount: number;
   onViewProfile: (app: OnboardingApplication) => void;
   onAddProject: () => void;
+  benchSearch?: string;
+  onBenchSearchChange?: (value: string) => void;
 }
 
 export function KanbanBoard({
@@ -75,6 +77,8 @@ export function KanbanBoard({
   dragCount,
   onViewProfile,
   onAddProject,
+  benchSearch = "",
+  onBenchSearchChange,
 }: KanbanBoardProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -83,6 +87,12 @@ export function KanbanBoard({
   const { setNodeRef: setBenchRef, isOver: isBenchOver } = useDroppable({
     id: "BENCH",
   });
+
+  const filteredBench = useMemo(() => {
+    if (!benchSearch.trim()) return bench;
+    const q = benchSearch.toLowerCase();
+    return bench.filter((a) => a.fullName.toLowerCase().includes(q));
+  }, [bench, benchSearch]);
 
   return (
     <DndContext
@@ -107,7 +117,7 @@ export function KanbanBoard({
               {benchLabel}
             </h3>
             <Badge className="rounded-full border-0 bg-indigo-50 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-indigo-500 hover:bg-indigo-50">
-              {bench.length} {benchBadgeText}
+              {filteredBench.length} {benchBadgeText}
             </Badge>
           </div>
           {/** Select All function :CheckBox */}
@@ -133,6 +143,21 @@ export function KanbanBoard({
               </button>
             </div>
           )}
+          {/* Bench search */}
+          {!isLoading && onBenchSearchChange && (
+            <div className="mb-2 pr-3 sm:pr-4 lg:pr-6">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="search"
+                  value={benchSearch}
+                  onChange={(e) => onBenchSearchChange(e.target.value)}
+                  placeholder="Search by name..."
+                  className="h-8 w-full rounded-lg border border-[#dbe0e8] bg-white pl-8 pr-3 text-[11px] text-slate-700 outline-none transition focus:border-slate-400"
+                />
+              </div>
+            </div>
+          )}
           <ScrollArea className="max-h-64 sm:max-h-80 lg:max-h-none 2xl:flex-1">
             <div className="space-y-2 pr-3 sm:pr-4 lg:pr-6">
               {isLoading && (
@@ -142,13 +167,13 @@ export function KanbanBoard({
                   <Skeleton className="h-14 rounded-2xl" />
                 </div>
               )}
-              {!isLoading && bench.length === 0 && (
+              {!isLoading && filteredBench.length === 0 && (
                 <div className="rounded-2xl border border-dashed border-slate-100 px-3 py-8 text-center">
                   <p className="text-[10px] text-slate-400">{benchEmptyText}</p>
                 </div>
               )}
               {!isLoading &&
-                bench.map((app) => (
+                filteredBench.map((app) => (
                   <BenchCard
                     key={app.id}
                     application={app}

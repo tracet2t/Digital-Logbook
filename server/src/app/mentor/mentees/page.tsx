@@ -24,8 +24,8 @@ import {
 } from "@/components/ui/table";
 import { FilterBar, PageHeader } from "@/components/admin";
 import AdminPagination from "@/components/admin/AdminPagination";
-import { MenteeAvatar } from "@/components/mentor/MenteeAvatar";
 import { GenericCombobox } from "@/components/mentor/combobox";
+import { MenteeAvatar } from "@/components/mentor/MenteeAvatar";
 import MenteeProfileView from "@/components/mentor/MenteeProfileView";
 
 type MenteeRow = {
@@ -80,6 +80,7 @@ export default function MenteesPage() {
     pendingReviews: 0,
   });
   const [selectedProject, setSelectedProject] = useState<string>("all");
+  const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -131,9 +132,16 @@ export default function MenteesPage() {
     selectedProject === "all" ? "All Projects" : selectedProject;
 
   const filteredRows = useMemo(() => {
-    if (!selectedProject || selectedProject === "all") return allRows;
-    return allRows.filter((row) => row.projectName === selectedProject);
-  }, [allRows, selectedProject]);
+    let rows = allRows;
+    if (selectedProject && selectedProject !== "all") {
+      rows = rows.filter((row) => row.projectName === selectedProject);
+    }
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      rows = rows.filter((row) => row.name.toLowerCase().includes(q));
+    }
+    return rows;
+  }, [allRows, selectedProject, search]);
 
   const totalPages = Math.max(
     1,
@@ -216,6 +224,14 @@ export default function MenteesPage() {
                     )}
                   />
                 </FilterBar.Field>
+                <FilterBar.Search
+                  value={search}
+                  onChange={(value) => {
+                    setSearch(value);
+                    setPage(1);
+                  }}
+                  placeholder="Search by name..."
+                />
               </FilterBar>
             </Card>
 
