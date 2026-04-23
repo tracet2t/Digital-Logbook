@@ -1,13 +1,16 @@
 import React from "react";
 
-import Image from "next/image";
-
 import {
   MENTOR_LOGO_CONFIG,
   MENTOR_MENU_ITEMS,
 } from "@/utils/config/mentorSidebarConfig";
+import Image from "next/image";
 
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 import AsideSidebar from "@/components/AsideSidebar";
 
 interface AdminPageLayoutProps {

@@ -1,13 +1,16 @@
 "use client";
 
-import Image from "next/image";
-
 import {
   ADMIN_LOGO_CONFIG,
   ADMIN_MENU_ITEMS,
 } from "@/utils/config/adminSidebarConfig";
+import Image from "next/image";
 
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 import AsideSidebar from "@/components/AsideSidebar";
 
 interface AdminPageLayoutProps {
