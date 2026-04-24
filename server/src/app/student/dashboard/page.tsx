@@ -315,10 +315,7 @@ export default function StudentDashboardPage() {
                                 icon: (
                                   <Eye className="h-4 w-4 text-[#000053]" />
                                 ),
-                                onSelect: (e) => {
-                                  e.stopPropagation();
-                                  openDetails(item);
-                                },
+                                onSelect: () => openDetails(item),
                               },
                             ]}
                           />
