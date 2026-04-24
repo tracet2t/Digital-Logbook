@@ -16,14 +16,13 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -78,21 +77,21 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
   };
 
   return (
-    <AlertDialog
+    <Dialog
       open={open}
       onOpenChange={(isOpen) => {
         if (!isOpen) onClose();
       }}
     >
-      <AlertDialogContent className="w-[calc(100%-1rem)] max-w-md sm:!max-w-2xl">
-        <AlertDialogHeader>
-          <AlertDialogTitle className="text-xl font-semibold">
+      <DialogContent className="w-[calc(100%-1rem)] max-w-md sm:!max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold">
             Mentor Task Review
-          </AlertDialogTitle>
-          <AlertDialogDescription>
+          </DialogTitle>
+          <DialogDescription>
             Review the student&apos;s activity and provide feedback.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+          </DialogDescription>
+        </DialogHeader>
 
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -137,7 +136,7 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
                 {technologies.map((tech) => (
                   <Badge
                     key={tech}
-                    variant="secondary"
+                    variant="default"
                     className="text-xs px-2 py-0.5 bg-[#000053]/10 text-[#000053] border border-[#000053]/20"
                   >
                     {tech}
@@ -181,8 +180,10 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
           </Form>
         </div>
 
-        <AlertDialogFooter>
-          <AlertDialogCancel>Close</AlertDialogCancel>
+        <div className="flex flex-row-reverse gap-2 mt-6">
+          <DialogClose asChild>
+            <Button variant="outline">Close</Button>
+          </DialogClose>
           <Button
             onClick={() => handleAction("approved")}
             className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
@@ -198,9 +199,9 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
             <XCircle className="w-4 h-4" />
             Reject
           </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

@@ -8,15 +8,6 @@ import { Code2, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +18,14 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -247,21 +246,21 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
   });
 
   return (
-    <AlertDialog
+    <Dialog
       open={open}
       onOpenChange={(isOpen) => {
         if (!isOpen) onClose();
       }}
     >
-      <AlertDialogContent className="!max-w-lg">
-        <AlertDialogHeader>
-          <AlertDialogTitle>Task Details</AlertDialogTitle>
-          <AlertDialogDescription>
+      <DialogContent className="!max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Task Details</DialogTitle>
+          <DialogDescription>
             {isEditable
               ? "Edit your activity for this date."
               : "View your activity details."}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+          </DialogDescription>
+        </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={handleFormSubmit} className="space-y-4">
@@ -339,12 +338,14 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
           </form>
         </Form>
 
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+        <div className="flex flex-row-reverse gap-2 mt-6">
+          <DialogClose asChild>
+            <Button variant="outline">Cancel</Button>
+          </DialogClose>
           {isEditable && <Button onClick={handleFormSubmit}>Save</Button>}
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
