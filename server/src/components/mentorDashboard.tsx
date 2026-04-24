@@ -166,7 +166,7 @@ const MentorDashboard = () => {
         {/* Main Content Area */}
         <div className="gap-5 flex flex-col bg-[#f1f1f9] min-h-screen flex-1 overflow-hidden">
           {/* Main Content */}
-          <div className="flex-grow flex flex-col w-full px-4 pt-4">
+          <div className="flex-grow flex flex-col w-full px-4 pt-4 pb-4 sm:pb-0">
             <div className="rounded-xl border-slate-300 bg-white p-6 shadow-lg w-full flex-1">
               {/* Super parent card header */}
               {/* Controls and Calendar inside super parent card */}
@@ -181,6 +181,7 @@ const MentorDashboard = () => {
                     <Button
                       variant="default"
                       size="lg"
+                      className="h-8 px-2 text-xs sm:h-9 sm:px-2.5 sm:text-sm"
                       onClick={handleReport}
                       disabled={mentorId === selectedUser || isExporting}
                     >
@@ -189,7 +190,7 @@ const MentorDashboard = () => {
                     <Button
                       variant="default"
                       size="lg"
-                      className="bg-[#000053] text-white hover:bg-[#23236c]"
+                      className="h-8 px-2 text-xs sm:h-9 sm:px-2.5 sm:text-sm bg-[#000053] text-white hover:bg-[#23236c]"
                       onClick={handleBulkReportClick} // Handle Bulk Report click
                     >
                       Bulk Report
@@ -197,8 +198,8 @@ const MentorDashboard = () => {
                   </div>
                 </div>
                 {/* Sub-card: Report Buttons */}
-                <div className="rounded-xl border border-slate-200 bg-white p-2 flex flex-row items-center justify-between gap-4">
-                  <div className="flex flex-row items-center gap-4">
+                <div className="rounded-xl border border-slate-200 bg-white p-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex min-w-0 flex-col gap-2 sm:flex-1 sm:flex-row sm:items-center">
                     {!projectsLoading && session ? (
                       <>
                         <GenericCombobox
@@ -208,7 +209,7 @@ const MentorDashboard = () => {
                           itemToStringValue={projectToString}
                           renderItem={renderProject}
                           placeholder="Select Project"
-                          className="combobox-styled"
+                          className="combobox-styled w-full sm:min-w-0 sm:flex-1 sm:w-[200px]"
                         />
                         <GenericCombobox
                           items={projectStudents}
@@ -217,7 +218,7 @@ const MentorDashboard = () => {
                           itemToStringValue={studentToString}
                           renderItem={renderStudent}
                           placeholder="Select Student"
-                          className="combobox-styled"
+                          className="combobox-styled w-full sm:min-w-0 sm:flex-1 sm:w-[200px]"
                         />
                       </>
                     ) : (
@@ -227,7 +228,7 @@ const MentorDashboard = () => {
                   <Button
                     variant="outline"
                     onClick={handleResetStudent}
-                    className="reset-button-styled"
+                    className="reset-button-styled w-full h-8 px-2 text-xs sm:w-auto sm:shrink-0 sm:h-9 sm:px-2.5 sm:text-sm"
                   >
                     Clear Filters
                   </Button>

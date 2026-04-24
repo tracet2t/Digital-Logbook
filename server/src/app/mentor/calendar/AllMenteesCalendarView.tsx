@@ -146,65 +146,70 @@ export function MenteeTaskTable({
           ✕
         </button>
       </div>
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="bg-slate-50 border-b border-slate-200">
-            <th className="text-left py-2.5 px-5 font-semibold text-slate-600 w-1/3">
-              Name
-            </th>
-            <th className="text-left py-2.5 px-5 font-semibold text-slate-600">
-              Task
-            </th>
-            <th className="text-left py-2.5 px-5 font-semibold text-slate-600 w-28">
-              Status
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {tableRows.map((row, i) => (
-            <tr
-              key={i}
-              className="border-b border-slate-100 hover:bg-indigo-50 cursor-pointer transition-colors"
-              onClick={() => onRowClick(row)}
-            >
-              <td className="py-2.5 px-5 text-slate-700 font-medium">
-                <div className="flex items-center gap-3">
-                  <MenteeAvatar
-                    studentId={row.studentId}
-                    name={row.name}
-                    initials={getInitials(row.name)}
-                  />
-                  <span>{row.name}</span>
-                </div>
-              </td>
-              <td className="py-2.5 px-5 text-slate-600">{row.task}</td>
-              <td className="py-2.5 px-5">
-                <span
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${
-                    row.status === "approved"
-                      ? "bg-green-100 text-green-700"
-                      : row.status === "rejected"
-                        ? "bg-red-100 text-red-700"
-                        : "bg-blue-100 text-blue-700"
-                  }`}
-                >
-                  {row.status}
-                </span>
-              </td>
+      <div
+        className="max-h-[55vh] overflow-auto overscroll-contain"
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-slate-50 border-b border-slate-200">
+              <th className="text-left py-2.5 px-5 font-semibold text-slate-600 w-1/3">
+                Name
+              </th>
+              <th className="text-left py-2.5 px-5 font-semibold text-slate-600">
+                Task
+              </th>
+              <th className="text-left py-2.5 px-5 font-semibold text-slate-600 w-28">
+                Status
+              </th>
             </tr>
-          ))}
-          {tableRows.length === 0 && (
-            <tr>
-              <td
-                colSpan={3}
-                className="py-8 text-center text-slate-400 text-sm"
+          </thead>
+          <tbody>
+            {tableRows.map((row, i) => (
+              <tr
+                key={i}
+                className="border-b border-slate-100 hover:bg-indigo-50 cursor-pointer transition-colors"
+                onClick={() => onRowClick(row)}
               >
-                No tasks for this date.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+                <td className="py-2.5 px-5 text-slate-700 font-medium">
+                  <div className="flex items-center gap-3">
+                    <MenteeAvatar
+                      studentId={row.studentId}
+                      name={row.name}
+                      initials={getInitials(row.name)}
+                    />
+                    <span>{row.name}</span>
+                  </div>
+                </td>
+                <td className="py-2.5 px-5 text-slate-600">{row.task}</td>
+                <td className="py-2.5 px-5">
+                  <span
+                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${
+                      row.status === "approved"
+                        ? "bg-green-100 text-green-700"
+                        : row.status === "rejected"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-blue-100 text-blue-700"
+                    }`}
+                  >
+                    {row.status}
+                  </span>
+                </td>
+              </tr>
+            ))}
+            {tableRows.length === 0 && (
+              <tr>
+                <td
+                  colSpan={3}
+                  className="py-8 text-center text-slate-400 text-sm"
+                >
+                  No tasks for this date.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

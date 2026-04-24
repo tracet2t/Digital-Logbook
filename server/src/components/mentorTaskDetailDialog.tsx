@@ -84,7 +84,7 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
         if (!isOpen) onClose();
       }}
     >
-      <AlertDialogContent className="!max-w-2xl">
+      <AlertDialogContent className="w-[calc(100%-1rem)] max-w-md sm:!max-w-2xl">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-xl font-semibold">
             Mentor Task Review
