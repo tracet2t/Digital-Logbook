@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/admin";
 import { GenericCombobox } from "@/components/mentor/combobox";
+import { useGenerateMenteePDF } from "@/components/reports/useGenerateMenteePDF";
 
 const MentorDashboard = () => {
   // User-selected overrides (null = use default from query data)
@@ -21,6 +22,8 @@ const MentorDashboard = () => {
     title: string;
     description: string;
   } | null>(null);
+
+  const { isExporting, generatePDF } = useGenerateMenteePDF();
 
   const [selectedProjectOverride, setSelectedProject] = useState<string | null>(
     null,
@@ -116,63 +119,44 @@ const MentorDashboard = () => {
     [selectedUser],
   );
 
-  //Bulk report generate
+  //Bulk report generate — downloads CSV directly
   const handleBulkReportClick = async () => {
     try {
-      const response = await fetch("/api/generateReport", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Report Generation Job ID:", data.jobId);
-        router.push("/mentor/bulkreport"); // Redirect to bulk report page
-      } else {
-        console.error("Failed to generate report.");
-      }
-    } catch (error) {
-      console.error("Error generating bulk report:", error);
-    }
-  };
-  //Handle Report function
-  const handleReport = async () => {
-    try {
-      const response = await fetch(`/api/report?studentId=${selectedUser}`);
+      const response = await fetch("/api/bulkReport?format=csv");
       if (!response.ok) {
-        throw new Error("Failed to generate report");
+        console.error("Failed to download bulk report.");
+        return;
       }
-      const contentDisposition = response.headers.get("Content-Disposition");
-      const filenameMatch =
-        contentDisposition && contentDisposition.match(/filename="(.+)"/);
-      const filename = filenameMatch
-        ? filenameMatch[1]
-        : "mentee_activity_report.csv";
-
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = filename;
+      a.download = `mentee_bulk_report_${new Date().toISOString().slice(0, 10)}.csv`;
       document.body.appendChild(a);
       a.click();
       a.remove();
-
-      // Show toast on successful report download
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading bulk report:", error);
+    }
+  };
+  //Handle Report function — generates PDF for selected mentee
+  const handleReport = async () => {
+    if (!selectedUser) return;
+    try {
+      await generatePDF(selectedUser);
       setToast({
         title: "Report Generated",
-        description: "Mentee report has been downloaded successfully!",
+        description: "Mentee PDF report has been downloaded successfully!",
       });
-      setTimeout(() => setToast(null), 3000); // Hide toast after 3 seconds
+      setTimeout(() => setToast(null), 3000);
     } catch (error) {
-      console.error("Failed to download report:", error);
+      console.error("Failed to generate PDF report:", error);
       setToast({
         title: "Error",
-        description: "Failed to download the report. Please try again.",
+        description: "Failed to generate the report. Please try again.",
       });
-      setTimeout(() => setToast(null), 3000); // Hide toast after 3 seconds
+      setTimeout(() => setToast(null), 3000);
     }
   };
 
@@ -199,9 +183,9 @@ const MentorDashboard = () => {
                       size="lg"
                       className="h-8 px-2 text-xs sm:h-9 sm:px-2.5 sm:text-sm"
                       onClick={handleReport}
-                      disabled={mentorId === selectedUser}
+                      disabled={mentorId === selectedUser || isExporting}
                     >
-                      Generate Report
+                      {isExporting ? "Generating..." : "Generate Report"}
                     </Button>
                     <Button
                       variant="default"

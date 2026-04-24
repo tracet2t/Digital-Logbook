@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
 import getSession from "@/server_actions/getSession";
+import { parse } from "json2csv";
+import { NextRequest, NextResponse } from "next/server";
+
 import prisma from "@/lib/prisma";
-import { Activity, MentorFeedback } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,7 @@ export const GET = async (req: NextRequest) => {
 
     const url = new URL(req.url);
     const mentorId = url.searchParams.get("mentorId") || userId;
+    const format = url.searchParams.get("format");
 
     // Fetch students via project assignments for this mentor's projects
     const projects = await prisma.project.findMany({
@@ -65,18 +67,55 @@ export const GET = async (req: NextRequest) => {
       );
     }
 
-    const reports = assignments.flatMap((assignment) => {
-      const activities = assignment.student?.activities || [];
-
+    const rows = assignments.flatMap((assignment) => {
+      const student = assignment.student;
+      const activities = student?.activities || [];
       return activities.map((activity) => ({
-        id: activity.id,
-        generatedAt: activity.date.toISOString(),
-        status: activity.feedback.length
+        studentId: student?.id ?? "",
+        studentFirstName: student?.firstName ?? "",
+        studentLastName: student?.lastName ?? "",
+        activityId: activity.id,
+        activityDate: new Date(activity.date).toLocaleDateString(),
+        timeSpent: activity.timeSpent,
+        notes: activity.notes ?? "",
+        feedbackStatus: activity.feedback.length
           ? activity.feedback[0].status
           : "No Feedback",
-        link: `/downloads/${activity.id}.csv`,
+        feedbackNotes: activity.feedback.length
+          ? (activity.feedback[0].feedbackNotes ?? "")
+          : "",
       }));
     });
+
+    if (format === "csv") {
+      const fields = [
+        "studentId",
+        "studentFirstName",
+        "studentLastName",
+        "activityId",
+        "activityDate",
+        "timeSpent",
+        "notes",
+        "feedbackStatus",
+        "feedbackNotes",
+      ];
+      const csv = parse(rows, { fields });
+      return new NextResponse(csv, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/csv",
+          "Content-Disposition": `attachment; filename="mentee_bulk_report_${new Date().toISOString().slice(0, 10)}.csv"`,
+        },
+      });
+    }
+
+    // Default JSON response (legacy)
+    const reports = rows.map((r) => ({
+      id: r.activityId,
+      generatedAt: r.activityDate,
+      status: r.feedbackStatus,
+      link: `/downloads/${r.activityId}.csv`,
+    }));
 
     return NextResponse.json({ reports });
   } catch (error) {

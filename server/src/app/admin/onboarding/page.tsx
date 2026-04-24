@@ -45,6 +45,10 @@ export default function AdminOnboardingPage() {
   // holds the current values typed into the create-project form
   const [createProjectForm, setCreateProjectForm] =
     useState<ProjectFormState>(EMPTY_FORM);
+  // bench search for filtering mentee bench by name
+  const [benchSearch, setBenchSearch] = useState("");
+  // bench search for filtering mentor bench by name
+  const [mentorBenchSearch, setMentorBenchSearch] = useState("");
 
   // fetch all pending/approved mentee applications for the bench
   const { data: applications = [], isLoading } = useOnboardingApplications();
@@ -182,6 +186,8 @@ export default function AdminOnboardingPage() {
                     dragCount={menteeBoard.dragCount}
                     onViewProfile={menteeBoard.setViewingProfile}
                     onAddProject={openCreateProject}
+                    benchSearch={benchSearch}
+                    onBenchSearchChange={setBenchSearch}
                   />
                 </TabsContent>
 
@@ -226,6 +232,8 @@ export default function AdminOnboardingPage() {
                     dragCount={mentorBoard.dragCount}
                     onViewProfile={mentorBoard.setViewingProfile}
                     onAddProject={openCreateProject}
+                    benchSearch={mentorBenchSearch}
+                    onBenchSearchChange={setMentorBenchSearch}
                   />
                 </TabsContent>
               </Tabs>
