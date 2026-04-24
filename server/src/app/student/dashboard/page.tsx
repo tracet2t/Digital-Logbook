@@ -6,9 +6,11 @@ import { useMenteeDashboard } from "@/_hooks/mentee";
 import { useIsMobile } from "@/_hooks/use-mobile";
 import { CheckCircle2, Clock, Eye, ListChecks } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -54,9 +56,18 @@ type ActivityRow = {
 const PAGE_SIZE = 7;
 
 const ANALYTICS_META = [
-  { label: "TOTAL HOURS LOGGED", icon: <Clock className="h-6 w-6 text-[#000053]" /> },
-  { label: "TASKS COMPLETED",    icon: <ListChecks className="h-6 w-6 text-[#000053]" /> },
-  { label: "PENDING APPROVALS",  icon: <CheckCircle2 className="h-6 w-6 text-[#000053]" /> },
+  {
+    label: "TOTAL HOURS LOGGED",
+    icon: <Clock className="h-6 w-6 text-[#000053]" />,
+  },
+  {
+    label: "TASKS COMPLETED",
+    icon: <ListChecks className="h-6 w-6 text-[#000053]" />,
+  },
+  {
+    label: "PENDING APPROVALS",
+    icon: <CheckCircle2 className="h-6 w-6 text-[#000053]" />,
+  },
 ];
 
 // ─── Activity Details ─────────────────────────────────────────────────────────
@@ -66,26 +77,42 @@ function ActivityDetailsContent({ activity }: { activity: ActivityRow }) {
     <div className="space-y-4 text-sm">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="rounded-lg border border-[#e3ebf8] bg-[#f8fafe] p-3">
-          <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#737373]">Date</p>
-          <p className="mt-1 text-[15px] font-semibold text-[#0A0A0A]">{activity.date}</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#737373]">
+            Date
+          </p>
+          <p className="mt-1 text-[15px] font-semibold text-[#0A0A0A]">
+            {activity.date}
+          </p>
         </div>
         <div className="rounded-lg border border-[#e3ebf8] bg-[#f8fafe] p-3">
-          <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#737373]">Hours Logged</p>
-          <p className="mt-1 text-[15px] font-semibold text-[#0A0A0A]">{activity.hours} hrs</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#737373]">
+            Hours Logged
+          </p>
+          <p className="mt-1 text-[15px] font-semibold text-[#0A0A0A]">
+            {activity.hours} hrs
+          </p>
         </div>
       </div>
       <div className="rounded-lg border border-[#e3ebf8] p-4">
-        <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#737373]">Task Name</p>
-        <p className="mt-2 text-[15px] text-[#0A0A0A] leading-relaxed">{activity.taskName}</p>
+        <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#737373]">
+          Task Name
+        </p>
+        <p className="mt-2 text-[15px] text-[#0A0A0A] leading-relaxed">
+          {activity.taskName}
+        </p>
       </div>
       <div className="rounded-lg border border-[#e3ebf8] p-4">
-        <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#737373]">Feedback</p>
+        <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#737373]">
+          Feedback
+        </p>
         <p className="mt-2 text-[15px] text-[#0A0A0A] leading-relaxed">
           {activity.status === "PENDING" ? "-" : activity.feedback}
         </p>
       </div>
       <div className="rounded-lg border border-[#e3ebf8] p-4">
-        <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#737373]">Status</p>
+        <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#737373]">
+          Status
+        </p>
         <div className="mt-2">
           <AdminStatusBadge status={activity.status.toLowerCase()} />
         </div>
@@ -110,10 +137,15 @@ function ActivityDetailsViewer({
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="h-[85vh] overflow-y-auto rounded-t-2xl border-[#e3ebf8]">
+        <SheetContent
+          side="bottom"
+          className="h-[85vh] overflow-y-auto rounded-t-2xl border-[#e3ebf8]"
+        >
           <SheetHeader>
             <SheetTitle>Activity Details</SheetTitle>
-            <SheetDescription>Complete information for the selected activity log.</SheetDescription>
+            <SheetDescription>
+              Complete information for the selected activity log.
+            </SheetDescription>
           </SheetHeader>
           <div className="mt-6">
             <ActivityDetailsContent activity={activity} />
@@ -125,12 +157,21 @@ function ActivityDetailsViewer({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg border-[#e3ebf8]">
+      <DialogContent className="w-full max-w-[95vw] sm:max-w-lg border-[#e3ebf8] p-2 sm:p-6">
         <DialogHeader>
           <DialogTitle>Activity Details</DialogTitle>
-          <DialogDescription>Complete information for the selected activity log.</DialogDescription>
+          <DialogDescription>
+            Complete information for the selected activity log.
+          </DialogDescription>
         </DialogHeader>
         <ActivityDetailsContent activity={activity} />
+        <div className="flex justify-end mt-4">
+          <DialogClose asChild>
+            <Button variant="outline" size="lg" className="w-full sm:w-auto">
+              Close
+            </Button>
+          </DialogClose>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -140,19 +181,21 @@ function ActivityDetailsViewer({
 
 export default function StudentDashboardPage() {
   const [page, setPage] = useState(1);
-  const [selectedActivity, setSelectedActivity] = useState<ActivityRow | null>(null);
+  const [selectedActivity, setSelectedActivity] = useState<ActivityRow | null>(
+    null,
+  );
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   const { data, isLoading, error } = useMenteeDashboard(page, PAGE_SIZE);
 
-  const totalPages      = data?.pagination.totalPages ?? 1;
+  const totalPages = data?.pagination.totalPages ?? 1;
   const totalActivities = data?.pagination.totalItems ?? 0;
   const activities: ActivityRow[] = data?.activities ?? [];
 
   const analytics = [
     { ...ANALYTICS_META[0], value: data?.stats.totalHoursLogged ?? 0 },
-    { ...ANALYTICS_META[1], value: data?.stats.tasksCompleted    ?? 0 },
-    { ...ANALYTICS_META[2], value: data?.stats.pendingApprovals  ?? 0 },
+    { ...ANALYTICS_META[1], value: data?.stats.tasksCompleted ?? 0 },
+    { ...ANALYTICS_META[2], value: data?.stats.pendingApprovals ?? 0 },
   ];
 
   const openDetails = (item: ActivityRow) => {
@@ -239,38 +282,49 @@ export default function StudentDashboardPage() {
                     loadingMessage="Loading activities..."
                     emptyMessage="No activities found."
                   />
-                  {!isLoading && activities.map((item, idx) => (
-                    <TableRow
-                      key={idx}
-                      className="border-b border-[#e3ebf8] hover:bg-[#f5f7fb] transition-colors"
-                    >
-                      <TableCell className="font-semibold text-[15px] text-[#0A0A0A] pl-6">
-                        {item.taskName}
-                      </TableCell>
-                      <TableCell className="text-[15px] text-[#737373]">{item.date}</TableCell>
-                      <TableCell className="text-[15px] font-bold text-[#000053]">
-                        {item.hours} hrs
-                      </TableCell>
-                      <TableCell>
-                        <AdminStatusBadge status={item.status.toLowerCase()} />
-                      </TableCell>
-                      <TableCell className="text-[15px] text-[#0A0A0A]">
-                        {item.status === "PENDING" ? "-" : item.feedback}
-                      </TableCell>
-                      <TableCell className="text-right pr-6">
-                        <TableActionMenu
-                          ariaLabel={`Actions for activity on ${item.date}`}
-                          items={[
-                            {
-                              label: "View",
-                              icon: <Eye className="h-4 w-4 text-[#000053]" />,
-                              onSelect: () => openDetails(item),
-                            },
-                          ]}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {!isLoading &&
+                    activities.map((item, idx) => (
+                      <TableRow
+                        key={idx}
+                        className="border-b border-[#e3ebf8] hover:bg-[#f5f7fb] transition-colors cursor-pointer"
+                        onClick={() => openDetails(item)}
+                      >
+                        <TableCell className="font-semibold text-[15px] text-[#0A0A0A] pl-6">
+                          {item.taskName}
+                        </TableCell>
+                        <TableCell className="text-[15px] text-[#737373]">
+                          {item.date}
+                        </TableCell>
+                        <TableCell className="text-[15px] font-bold text-[#000053]">
+                          {item.hours} hrs
+                        </TableCell>
+                        <TableCell>
+                          <AdminStatusBadge
+                            status={item.status.toLowerCase()}
+                          />
+                        </TableCell>
+                        <TableCell className="text-[15px] text-[#0A0A0A]">
+                          {item.status === "PENDING" ? "-" : item.feedback}
+                        </TableCell>
+                        <TableCell className="text-right pr-6">
+                          <TableActionMenu
+                            ariaLabel={`Actions for activity on ${item.date}`}
+                            items={[
+                              {
+                                label: "View",
+                                icon: (
+                                  <Eye className="h-4 w-4 text-[#000053]" />
+                                ),
+                                onSelect: (e) => {
+                                  e.stopPropagation();
+                                  openDetails(item);
+                                },
+                              },
+                            ]}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
                 </TableBody>
               </Table>
             </div>
@@ -279,7 +333,10 @@ export default function StudentDashboardPage() {
             <div className="md:hidden px-3 pb-3 space-y-3">
               {isLoading ? (
                 [...Array(PAGE_SIZE)].map((_, idx) => (
-                  <div key={idx} className="rounded-xl border border-[#e3ebf8] bg-white p-3">
+                  <div
+                    key={idx}
+                    className="rounded-xl border border-[#e3ebf8] bg-white p-3"
+                  >
                     <div className="h-4 w-3/4 animate-pulse rounded bg-slate-200" />
                     <div className="mt-3 h-4 w-1/2 animate-pulse rounded bg-slate-200" />
                   </div>
@@ -290,7 +347,10 @@ export default function StudentDashboardPage() {
                 </div>
               ) : (
                 activities.map((item, idx) => (
-                  <div key={idx} className="rounded-xl border border-[#e3ebf8] bg-white p-3">
+                  <div
+                    key={idx}
+                    className="rounded-xl border border-[#e3ebf8] bg-white p-3"
+                  >
                     <div className="flex items-start justify-between gap-3">
                       <p className="text-[14px] font-semibold text-[#0A0A0A] leading-snug">
                         {item.taskName}
@@ -308,19 +368,29 @@ export default function StudentDashboardPage() {
                     </div>
                     <div className="mt-3 grid grid-cols-2 gap-3">
                       <div>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-[#737373]">Date</p>
-                        <p className="mt-1 text-[13px] text-[#0A0A0A]">{item.date}</p>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-[#737373]">
+                          Date
+                        </p>
+                        <p className="mt-1 text-[13px] text-[#0A0A0A]">
+                          {item.date}
+                        </p>
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-[#737373]">Hours</p>
-                        <p className="mt-1 text-[13px] font-semibold text-[#000053]">{item.hours} hrs</p>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-[#737373]">
+                          Hours
+                        </p>
+                        <p className="mt-1 text-[13px] font-semibold text-[#000053]">
+                          {item.hours} hrs
+                        </p>
                       </div>
                     </div>
                     <div className="mt-3">
                       <AdminStatusBadge status={item.status.toLowerCase()} />
                     </div>
                     <div className="mt-3">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-[#737373]">Feedback</p>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-[#737373]">
+                        Feedback
+                      </p>
                       <p className="mt-1 text-[13px] text-[#0A0A0A]">
                         {item.status === "PENDING" ? "-" : item.feedback}
                       </p>
