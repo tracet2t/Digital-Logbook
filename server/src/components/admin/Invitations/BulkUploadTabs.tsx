@@ -38,6 +38,11 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
   } = useBulkSendInvitations();
   const [submissionResult, setSubmissionResult] = useState<any>(null);
 
+  const handleFileUploadAndAdvance = async (file: File) => {
+    await handleFileUpload(file);
+    goToStep(2);
+  };
+
   const handlePreviewValidate = () => {
     goToStep(2);
   };
@@ -118,8 +123,7 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
     <div className="w-full">
       {currentStep === 1 ? (
         <BulkUploadStep1
-          onFileUpload={handleFileUpload}
-          onNext={handlePreviewValidate}
+          onFileUpload={handleFileUploadAndAdvance}
           uploadedFile={uploadedFile}
           error={error}
           isLoading={isLoading}

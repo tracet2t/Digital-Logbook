@@ -5,14 +5,12 @@ import React from "react";
 import { CheckCircle, Download } from "lucide-react";
 import * as XLSX from "xlsx";
 
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 import { DragDropZone } from "./DragDropZone";
 
 interface BulkUploadStep1Props {
   onFileUpload: (file: File) => void;
-  onNext: () => void;
   uploadedFile: File | null;
   error: string | null;
   isLoading: boolean;
@@ -72,7 +70,6 @@ const downloadSampleTemplate = () => {
 
 interface BulkUploadStep1Props {
   onFileUpload: (file: File) => void;
-  onNext: () => void;
   uploadedFile: File | null;
   error: string | null;
   isLoading: boolean;
@@ -80,17 +77,10 @@ interface BulkUploadStep1Props {
 
 export function BulkUploadStep1({
   onFileUpload,
-  onNext,
   uploadedFile,
   error,
   isLoading,
 }: BulkUploadStep1Props) {
-  const handlePreviewClick = () => {
-    if (uploadedFile) {
-      onNext();
-    }
-  };
-
   return (
     <div className="space-y-6 w-full">
       {/* Page Header */}
@@ -180,24 +170,6 @@ export function BulkUploadStep1({
           ))}
         </div>
       </Card>
-
-      {/* Buttons */}
-      <div className="flex items-center justify-between gap-3 pt-4">
-        <Button
-          variant="outline"
-          className="px-6 h-10 border-[#d9dde5] text-slate-700 hover:bg-slate-50"
-        >
-          Back
-        </Button>
-
-        <Button
-          onClick={handlePreviewClick}
-          disabled={!uploadedFile || isLoading}
-          className="px-6 h-10 bg-[#000053] hover:bg-[#000053] text-white font-semibold"
-        >
-          Preview & Validate
-        </Button>
-      </div>
     </div>
   );
 }
