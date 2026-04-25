@@ -66,7 +66,7 @@ export function BenchCard({
         <AvatarFallback
           className={[
             "text-[10px] font-bold",
-            selected ? "bg-white/20 text-white" : "bg-[#eef2ff] text-[#4338ca]",
+            selected ? "bg-white/20 text-white" : "bg-[#000053] text-white",
           ].join(" ")}
         >
           {getInitials(application.fullName)}
