@@ -85,7 +85,10 @@ export function MenteeAvatarCell({
                 name={name}
                 initials={getInitials(name)}
                 className={`${sizeClass} aspect-square flex-shrink-0 border-2 border-white cursor-pointer hover:z-10 transition-transform hover:-translate-y-0.5`}
-                style={{ marginLeft: i === 0 ? 0 : `-${overlapPx}px`, zIndex: i }}
+                style={{
+                  marginLeft: i === 0 ? 0 : `-${overlapPx}px`,
+                  zIndex: i,
+                }}
                 onClick={(e) => {
                   e.stopPropagation();
                   onAvatarClick(menteeId, dateKey);
@@ -101,9 +104,14 @@ export function MenteeAvatarCell({
           <TooltipTrigger asChild>
             <Avatar
               className={`${sizeClass} aspect-square flex-shrink-0 border-2 border-white cursor-default`}
-              style={{ marginLeft: `-${overlapPx}px`, zIndex: visibleIds.length }}
+              style={{
+                marginLeft: `-${overlapPx}px`,
+                zIndex: visibleIds.length,
+              }}
             >
-              <AvatarFallback className={`bg-slate-400 text-white ${textClass} font-bold`}>
+              <AvatarFallback
+                className={`bg-slate-400 text-white ${textClass} font-bold`}
+              >
                 +{extraCount}
               </AvatarFallback>
             </Avatar>
@@ -148,7 +156,13 @@ export function MenteeAvatarCell({
         </div>
         {/* Desktop: max 4 avatars */}
         <div className="hidden sm:flex">
-          {renderAvatars(desktopVisible, desktopExtra, "h-8 w-8", "text-[11px]", 6)}
+          {renderAvatars(
+            desktopVisible,
+            desktopExtra,
+            "h-8 w-8",
+            "text-[11px]",
+            6,
+          )}
         </div>
       </div>
     </TooltipProvider>
