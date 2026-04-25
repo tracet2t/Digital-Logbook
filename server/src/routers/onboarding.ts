@@ -53,7 +53,12 @@ const superAdminMiddleware = os.middleware(async ({ context, next }) => {
 //to implement middleware to protect routes
 const publicProcedure = os;
 const authedProcedure = publicProcedure.use(authMiddleware);
-const superAdminProcedure = authedProcedure.use(superAdminMiddleware);
+const superAdminProcedure = authedProcedure.use(superAdminMiddleware).errors({
+  FORBIDDEN: {
+    message: "Forbidden: Super Admin access required",
+    status: 403,
+  },
+});
 
 // Onboarding procedures
 // this is a public procedure
