@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import moment from "moment";
 
@@ -12,6 +12,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { MenteeAvatar } from "@/components/mentor/MenteeAvatar";
+import { AdminPagination } from "@/components/admin";
 
 // ─── Shared types ──────────────────────────────────────────────────────────
 
@@ -171,6 +172,9 @@ export function MenteeAvatarCell({
 
 // ─── MenteeTaskTable ───────────────────────────────────────────────────────
 
+const TASK_ITEMS_PER_PAGE_DESKTOP = 5;
+const TASK_ITEMS_PER_PAGE_MOBILE = 3;
+
 interface MenteeTaskTableProps {
   date: string;
   selectedMenteeName: string | null;
@@ -186,6 +190,27 @@ export function MenteeTaskTable({
   onClose,
   onRowClick,
 }: MenteeTaskTableProps) {
+  const [page, setPage] = useState(1);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  // Reset to page 1 when date or mentee changes
+  useEffect(() => {
+    setPage(1);
+  }, [date, selectedMenteeName]);
+
+  const itemsPerPage = isMobile ? TASK_ITEMS_PER_PAGE_MOBILE : TASK_ITEMS_PER_PAGE_DESKTOP;
+  const totalPages = Math.max(1, Math.ceil(tableRows.length / itemsPerPage));
+  const safePage = Math.min(page, totalPages);
+  const visibleRows = tableRows.slice((safePage - 1) * itemsPerPage, safePage * itemsPerPage);
+
   return (
     <div className="mt-4 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
       <div className="flex items-center justify-between px-5 py-3 border-b border-slate-200 bg-slate-50">
@@ -226,7 +251,7 @@ export function MenteeTaskTable({
             </tr>
           </thead>
           <tbody>
-            {tableRows.map((row, i) => (
+            {visibleRows.map((row, i) => (
               <tr
                 key={i}
                 className="border-b border-slate-100 hover:bg-indigo-50 cursor-pointer transition-colors"
@@ -271,6 +296,16 @@ export function MenteeTaskTable({
           </tbody>
         </table>
       </div>
+      {tableRows.length > 0 && (
+        <AdminPagination
+          page={safePage}
+          totalPages={totalPages}
+          total={tableRows.length}
+          itemsPerPage={itemsPerPage}
+          itemLabel="tasks"
+          onPageChange={setPage}
+        />
+      )}
     </div>
   );
 }
