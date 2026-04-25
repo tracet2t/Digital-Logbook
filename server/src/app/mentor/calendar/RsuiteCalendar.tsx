@@ -114,7 +114,6 @@ export default function RsuiteCalendar({
     feedbackActivityId,
     () => {
       setTaskModalOpen(false);
-      setSelectedDate(null);
       resetFormData("");
     },
     (title, description) => {
@@ -213,7 +212,6 @@ export default function RsuiteCalendar({
 
   const handleClose = () => {
     setTaskModalOpen(false);
-    setSelectedDate(null);
   };
 
   // Table rows for all-mentees table
