@@ -1,6 +1,6 @@
 import "server-only";
 
-import { router } from "@/routers";
+import { router } from "@/routers/index";
 import { createRouterClient } from "@orpc/server";
 import { headers } from "next/headers";
 

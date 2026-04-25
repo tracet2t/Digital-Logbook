@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client/extension";
 
 export default abstract class BaseRepository<T> {
-  constructor(protected modelClient: PrismaClient) { }
+  constructor(protected modelClient: PrismaClient) {}
 
   getAll(options: Record<string, any> = {}): Promise<Array<T>> {
     return this.modelClient.findMany(options);
@@ -11,27 +11,26 @@ export default abstract class BaseRepository<T> {
     return this.modelClient.findUnique({
       where: {
         id,
-      }
+      },
     });
   }
 
-  create(entity: Omit<T, 'id'>): Promise<T> {
+  create(entity: Omit<T, "id">): Promise<T> {
     return this.modelClient.create({
-      data: entity
+      data: entity,
     });
   }
 
-  update(id: string | number, data: Partial<Omit<T, 'id'>>): Promise<T> {
+  update(id: string | number, data: Partial<Omit<T, "id">>): Promise<T> {
     return this.modelClient.update({
       where: { id },
-      data
+      data,
     });
   }
 
   delete(id: string | number): Promise<T> {
     return this.modelClient.delete({
-      where: { id }
+      where: { id },
     });
   }
 }
-
