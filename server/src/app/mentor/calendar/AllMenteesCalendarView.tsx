@@ -11,8 +11,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { MenteeAvatar } from "@/components/mentor/MenteeAvatar";
 import { AdminPagination } from "@/components/admin";
+import { MenteeAvatar } from "@/components/mentor/MenteeAvatar";
 
 // ─── Shared types ──────────────────────────────────────────────────────────
 
@@ -111,7 +111,7 @@ export function MenteeAvatarCell({
               }}
             >
               <AvatarFallback
-                className={`bg-slate-400 text-white ${textClass} font-bold`}
+                className={`bg-[#000053] text-white ${textClass} font-bold`}
               >
                 +{extraCount}
               </AvatarFallback>
@@ -206,10 +206,15 @@ export function MenteeTaskTable({
     setPage(1);
   }, [date, selectedMenteeName]);
 
-  const itemsPerPage = isMobile ? TASK_ITEMS_PER_PAGE_MOBILE : TASK_ITEMS_PER_PAGE_DESKTOP;
+  const itemsPerPage = isMobile
+    ? TASK_ITEMS_PER_PAGE_MOBILE
+    : TASK_ITEMS_PER_PAGE_DESKTOP;
   const totalPages = Math.max(1, Math.ceil(tableRows.length / itemsPerPage));
   const safePage = Math.min(page, totalPages);
-  const visibleRows = tableRows.slice((safePage - 1) * itemsPerPage, safePage * itemsPerPage);
+  const visibleRows = tableRows.slice(
+    (safePage - 1) * itemsPerPage,
+    safePage * itemsPerPage,
+  );
 
   return (
     <div className="mt-4 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">

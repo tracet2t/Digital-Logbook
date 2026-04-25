@@ -83,7 +83,7 @@ export function MenteeAvatar({
       style={style}
       onClick={onClick}
     >
-      <AvatarFallback className="bg-[#e9edf5] text-xs font-bold text-[#0f1730]">
+      <AvatarFallback className="bg-[#000053] text-xs font-bold text-white">
         {initials}
       </AvatarFallback>
     </Avatar>
