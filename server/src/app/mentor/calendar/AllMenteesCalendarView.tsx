@@ -50,7 +50,8 @@ interface MenteeAvatarCellProps {
   onAvatarClick: (menteeId: string, dateKey: string) => void;
 }
 
-const MAX_VISIBLE = 4;
+const MAX_VISIBLE_MOBILE = 1;
+const MAX_VISIBLE_DESKTOP = 4;
 
 export function MenteeAvatarCell({
   dateKey,
@@ -60,49 +61,109 @@ export function MenteeAvatarCell({
 }: MenteeAvatarCellProps) {
   if (menteeIds.length === 0) return null;
 
-  const visibleIds = menteeIds.slice(0, MAX_VISIBLE);
-  const extraCount = menteeIds.length - visibleIds.length;
+  const mobileVisible = menteeIds.slice(0, MAX_VISIBLE_MOBILE);
+  const mobileExtra = menteeIds.length - mobileVisible.length;
+  const desktopVisible = menteeIds.slice(0, MAX_VISIBLE_DESKTOP);
+  const desktopExtra = menteeIds.length - desktopVisible.length;
+
+  const renderAvatars = (
+    visibleIds: string[],
+    extraCount: number,
+    sizeClass: string,
+    textClass: string,
+    overlapPx: number,
+  ) => (
+    <div className="flex flex-nowrap items-center">
+      {visibleIds.map((menteeId, i) => {
+        const mentee = allMentees.find((m) => m.id === menteeId);
+        const name = mentee?.name ?? "Unknown";
+        return (
+          <Tooltip key={menteeId}>
+            <TooltipTrigger asChild>
+              <MenteeAvatar
+                studentId={menteeId}
+                name={name}
+                initials={getInitials(name)}
+                className={`${sizeClass} aspect-square flex-shrink-0 border-2 border-white cursor-pointer hover:z-10 transition-transform hover:-translate-y-0.5`}
+                style={{
+                  marginLeft: i === 0 ? 0 : `-${overlapPx}px`,
+                  zIndex: i,
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAvatarClick(menteeId, dateKey);
+                }}
+              />
+            </TooltipTrigger>
+            <TooltipContent side="top">{name}</TooltipContent>
+          </Tooltip>
+        );
+      })}
+      {extraCount > 0 && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Avatar
+              className={`${sizeClass} aspect-square flex-shrink-0 border-2 border-white cursor-default`}
+              style={{
+                marginLeft: `-${overlapPx}px`,
+                zIndex: visibleIds.length,
+              }}
+            >
+              <AvatarFallback
+                className={`bg-slate-400 text-white ${textClass} font-bold`}
+              >
+                +{extraCount}
+              </AvatarFallback>
+            </Avatar>
+          </TooltipTrigger>
+          <TooltipContent side="top">{extraCount} more</TooltipContent>
+        </Tooltip>
+      )}
+    </div>
+  );
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="flex items-center pt-1" style={{ gap: 0 }}>
-        {visibleIds.map((menteeId, i) => {
-          const mentee = allMentees.find((m) => m.id === menteeId);
-          const name = mentee?.name ?? "Unknown";
-          return (
-            <Tooltip key={menteeId}>
-              <TooltipTrigger asChild>
-                <MenteeAvatar
-                  studentId={menteeId}
-                  name={name}
-                  initials={getInitials(name)}
-                  className="h-8 w-8 border-2 border-white cursor-pointer hover:z-10 transition-transform hover:-translate-y-0.5"
-                  style={{ marginLeft: i === 0 ? 0 : "-6px", zIndex: i }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onAvatarClick(menteeId, dateKey);
-                  }}
-                />
-              </TooltipTrigger>
-              <TooltipContent side="top">{name}</TooltipContent>
-            </Tooltip>
-          );
-        })}
-        {extraCount > 0 && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Avatar
-                className="h-8 w-8 border-2 border-white cursor-default"
-                style={{ marginLeft: "-6px", zIndex: visibleIds.length }}
-              >
-                <AvatarFallback className="bg-slate-400 text-white text-[11px] font-bold">
-                  +{extraCount}
-                </AvatarFallback>
-              </Avatar>
-            </TooltipTrigger>
-            <TooltipContent side="top">{extraCount} more</TooltipContent>
-          </Tooltip>
-        )}
+      <div className="w-full pt-1">
+        {/* Mobile: avatar stacked above +X count */}
+        <div className="flex sm:hidden flex-col items-center gap-0.5">
+          {mobileVisible.map((menteeId) => {
+            const mentee = allMentees.find((m) => m.id === menteeId);
+            const name = mentee?.name ?? "Unknown";
+            return (
+              <Tooltip key={menteeId}>
+                <TooltipTrigger asChild>
+                  <MenteeAvatar
+                    studentId={menteeId}
+                    name={name}
+                    initials={getInitials(name)}
+                    className="h-5 w-5 aspect-square flex-shrink-0 border-2 border-white cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onAvatarClick(menteeId, dateKey);
+                    }}
+                  />
+                </TooltipTrigger>
+                <TooltipContent side="top">{name}</TooltipContent>
+              </Tooltip>
+            );
+          })}
+          {mobileExtra > 0 && (
+            <span className="text-[9px] font-bold text-slate-500 leading-none">
+              +{mobileExtra}
+            </span>
+          )}
+        </div>
+        {/* Desktop: max 4 avatars */}
+        <div className="hidden sm:flex">
+          {renderAvatars(
+            desktopVisible,
+            desktopExtra,
+            "h-8 w-8",
+            "text-[11px]",
+            6,
+          )}
+        </div>
       </div>
     </TooltipProvider>
   );
