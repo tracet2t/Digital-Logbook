@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { ORPCError } from "@orpc/client";
 import { toast } from "sonner";
 
 import { orpcClient } from "@/lib/orpc";
@@ -39,10 +40,13 @@ type CreateApplicationResponse = {
 export const useOnboarding = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<CreateApplicationResponse, Error, CreateApplicationInput>({
+  return useMutation<
+    CreateApplicationResponse,
+    unknown,
+    CreateApplicationInput
+  >({
     mutationFn: async (data) => {
       // Call the oRPC procedure - fully type-safe at runtime!
-      // @ts-ignore - oRPC type inference works at runtime
       const result = await orpcClient.onboarding.createApplication(data);
       return result;
     },
@@ -51,8 +55,12 @@ export const useOnboarding = () => {
       // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: ["onboarding-applications"] });
     },
-    onError: (error) => {
-      toast.error(error.message || "Failed to submit onboarding application");
+    onError: (error: unknown) => {
+      if (error instanceof ORPCError) {
+        toast.error(error.message || "Failed to submit onboarding application");
+      } else {
+        toast.error("An unexpected error occurred");
+      }
     },
   });
 };
@@ -64,7 +72,6 @@ export const useGetAllApplications = () => {
   return useQuery({
     queryKey: ["onboarding-applications"],
     queryFn: async () => {
-      // @ts-ignore - oRPC type inference works at runtime
       const result = await orpcClient.onboarding.getAllApplications();
       return result;
     },
@@ -78,7 +85,6 @@ export const useApplicationSummary = () => {
   return useQuery({
     queryKey: ["onboarding-summary"],
     queryFn: async () => {
-      // @ts-ignore - oRPC type inference works at runtime
       const result = await orpcClient.onboarding.getApplicationSummary();
       return result;
     },
@@ -94,7 +100,6 @@ export const useApplicationsByStatus = (
   return useQuery({
     queryKey: ["onboarding-applications", status],
     queryFn: async () => {
-      // @ts-ignore - oRPC type inference works at runtime
       const result = await orpcClient.onboarding.getApplicationsByStatus({
         status,
       });
@@ -110,7 +115,6 @@ export const useApplicationById = (id: string) => {
   return useQuery({
     queryKey: ["onboarding-application", id],
     queryFn: async () => {
-      // @ts-ignore - oRPC type inference works at runtime
       const result = await orpcClient.onboarding.getApplicationById({ id });
       return result;
     },
@@ -125,7 +129,6 @@ export const useSearchApplications = (search: string) => {
   return useQuery({
     queryKey: ["onboarding-applications", "search", search],
     queryFn: async () => {
-      // @ts-ignore - oRPC type inference works at runtime
       const result = await orpcClient.onboarding.searchApplications({ search });
       return result;
     },
@@ -144,7 +147,6 @@ export const useUpdateApplicationStatus = () => {
       id: string;
       status: "pending" | "approved" | "rejected";
     }) => {
-      // @ts-ignore - oRPC type inference works at runtime
       const result = await orpcClient.onboarding.updateApplicationStatus(data);
       return result;
     },
@@ -152,8 +154,17 @@ export const useUpdateApplicationStatus = () => {
       toast.success("Application status updated successfully!");
       queryClient.invalidateQueries({ queryKey: ["onboarding-applications"] });
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to update application status");
+    onError: (error: unknown) => {
+      if (error instanceof ORPCError) {
+        toast.error(error.message || "Failed to update application status");
+      } else {
+        toast.error("An unexpected error occurred");
+      }
     },
   });
 };
+
+// isDefinedError only works when the error comes from a safe()
+// call with full type inference. In TanStack
+// Query's onError, the error is unknown, so it can't narrow.
+// The correct approach here is instanceof ORPCError:

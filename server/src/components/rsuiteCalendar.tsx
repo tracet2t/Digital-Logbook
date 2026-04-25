@@ -198,7 +198,6 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
 
   const handleClose = () => {
     setTaskModalOpen(false);
-    setSelectedDate(undefined);
   };
 
   // Custom cell renderer to show events with grid layout

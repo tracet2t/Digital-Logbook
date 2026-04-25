@@ -1,5 +1,36 @@
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
+## 🚀 API Testing & Documentation
+
+This project includes **three powerful ways** to test and document your oRPC API:
+
+### 🎮 [oRPC Playground](http://localhost:3000/playground) - **Recommended for Development**
+Interactive, visual interface for testing oRPC procedures
+- ✨ Beautiful modern UI with call history
+- ⚡ Real-time execution with performance metrics
+- 🎯 Type-safe with auto-generated forms
+- 📊 Track and replay procedure calls
+
+📖 **Guide**: [PLAYGROUND_GUIDE.md](./PLAYGROUND_GUIDE.md)
+
+### 📖 [OpenAPI/Swagger](http://localhost:3000/api-docs) - **For Documentation**
+Industry-standard API documentation
+- 📄 OpenAPI 3.0 spec at `/api/openapi.json`
+- 🔧 Import to Postman, Insomnia, etc.
+- 🌍 Share with frontend teams and partners
+- 🤖 Generate client SDKs
+
+📖 **Guide**: [OPENAPI_GUIDE.md](./OPENAPI_GUIDE.md)
+
+### 🧪 [Classic Test Page](http://localhost:3000/api-test)
+Simple, traditional testing interface
+- 🔵 Quick button-click testing
+- 📝 Minimal UI for fast workflows
+
+📊 **Comparison**: [API_TESTING_COMPARISON.md](./API_TESTING_COMPARISON.md)
+
+---
+
 ## Getting Started
 
 First, run the development server:
@@ -36,6 +67,7 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
 
 # PostgreSQL Password
+
 password: postgres
 
 check this to manual setup of PostgreSQL([PostgreSQL](https://www.prisma.io/dataguide/postgresql/setting-up-a-local-postgresql-database#setting-up-postgresql-on-windows))
