@@ -1,4 +1,4 @@
-import { router } from "@/routers";
+import { router } from "@/routers/index";
 import getSession from "@/server_actions/getSession";
 import { SmartCoercionPlugin } from "@orpc/json-schema";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";

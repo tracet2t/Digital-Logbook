@@ -1,4 +1,5 @@
 import { OnboardingRepository } from "@/repositories/onboarding_repository_impl";
+import { commonErrors, createProcedures } from "@/routers/middleware";
 import {
   applicationSchema,
   createApplicationResponseSchema,
@@ -11,8 +12,6 @@ import {
   updateApplicationStatusResponseSchema,
   updateApplicationStatusSchema,
 } from "@/schemas/onboarding.schema";
-import getSession from "@/server_actions/getSession";
-import { ORPCError, os } from "@orpc/server";
 import { Role } from "@prisma/client";
 import { z } from "zod";
 
@@ -21,47 +20,25 @@ import prisma from "@/lib/prisma";
 // Initialize repository
 const onboardingRepository = new OnboardingRepository();
 
-// Middleware for authentication
-const authMiddleware = os.middleware(async ({ next }) => {
-  const session = await getSession();
+// Create procedures with authentication middleware
+const { publicProcedure, authedProcedure, superAdminProcedure } =
+  createProcedures();
 
-  if (!session || !session.isAuthenticated()) {
-    throw new ORPCError("Unauthorized");
-  }
-
-  return next({
-    context: {
-      session,
-      userId: session.getId(),
-      userRole: session.getRole(),
-    },
-  });
-});
-
-// Middleware for super admin check (requires auth context)
-const superAdminMiddleware = os.middleware(async ({ context, next }) => {
-  const userRole = (context as any).userRole;
-
-  if (userRole !== Role.superAdmin) {
-    throw new ORPCError("Forbidden: Super Admin access required");
-  }
-
-  return next();
-});
-
-// Base procedures
-//to implement middleware to protect routes
-const publicProcedure = os;
-const authedProcedure = publicProcedure.use(authMiddleware);
-const superAdminProcedure = authedProcedure.use(superAdminMiddleware).errors({
-  FORBIDDEN: {
-    message: "Forbidden: Super Admin access required",
-    status: 403,
+/**
+ * Domain-specific error definitions for onboarding
+ * These extend the common errors with more specific messages
+ */
+const onboardingErrors = {
+  APPLICATION_NOT_FOUND: {
+    message: "Application not found",
+    status: 404,
   },
-});
+  DUPLICATE_EMAIL: {
+    message: "An application with the provided email already exists",
+    status: 409,
+  },
+} as const;
 
-// Onboarding procedures
-// this is a public procedure
 export const createApplication = publicProcedure
   .route({
     method: "POST",
@@ -72,10 +49,7 @@ export const createApplication = publicProcedure
     tags: ["Onboarding"],
   })
   .errors({
-    CONFLICT: {
-      message: "An application with the provided email already exists",
-      status: 409,
-    },
+    CONFLICT: onboardingErrors.DUPLICATE_EMAIL,
   })
   .input(createApplicationSchema)
   .output(createApplicationResponseSchema)
@@ -107,6 +81,10 @@ export const createApplication = publicProcedure
     };
   });
 
+/**
+ * Get application by ID
+ * Public endpoint - useful for tracking application status
+ */
 export const getApplicationById = publicProcedure
   .route({
     method: "GET",
@@ -116,23 +94,12 @@ export const getApplicationById = publicProcedure
     tags: ["Onboarding"],
   })
   .errors({
-    NOT_FOUND: {
-      message: "Application not found",
-      status: 404,
-    },
+    NOT_FOUND: onboardingErrors.APPLICATION_NOT_FOUND,
   })
   .input(getApplicationByIdSchema)
   .output(applicationSchema)
   .handler(async ({ input, errors }) => {
-    // console.log("🔍 getApplicationById - Received input:", input);
-    // console.log("🔍 getApplicationById - Looking for ID:", input.id);
-
     const application = await onboardingRepository.getApplicationById(input.id);
-
-    // console.log(
-    //   "🔍 getApplicationById - Found application:",
-    //   application ? "✓ YES" : "✗ NO",
-    // );
 
     if (!application) {
       throw errors.NOT_FOUND();
@@ -145,6 +112,10 @@ export const getApplicationById = publicProcedure
     };
   });
 
+/**
+ * Get application by email
+ * Public endpoint - allows applicants to check their application status
+ */
 export const getApplicationByEmail = publicProcedure
   .route({
     method: "GET",
@@ -154,10 +125,7 @@ export const getApplicationByEmail = publicProcedure
     tags: ["Onboarding"],
   })
   .errors({
-    NOT_FOUND: {
-      message: "Application not found",
-      status: 404,
-    },
+    NOT_FOUND: onboardingErrors.APPLICATION_NOT_FOUND,
   })
   .input(getApplicationByEmailSchema)
   .output(applicationSchema)
@@ -177,6 +145,10 @@ export const getApplicationByEmail = publicProcedure
     };
   });
 
+/**
+ * Get applications by status
+ * Public endpoint - filter applications by their current status
+ */
 export const getApplicationsByStatus = publicProcedure
   .route({
     method: "GET",
@@ -198,6 +170,10 @@ export const getApplicationsByStatus = publicProcedure
     }));
   });
 
+/**
+ * Search applications
+ * Public endpoint - search applications by name, email, or university
+ */
 export const searchApplications = publicProcedure
   .route({
     method: "GET",
@@ -220,6 +196,10 @@ export const searchApplications = publicProcedure
     }));
   });
 
+/**
+ * Get applications by date range
+ * Public endpoint - retrieve applications within a specific date range
+ */
 export const getApplicationsByDateRange = publicProcedure
   .route({
     method: "GET",
@@ -243,6 +223,10 @@ export const getApplicationsByDateRange = publicProcedure
     }));
   });
 
+/**
+ * Get application statistics
+ * Public endpoint - retrieve summary counts by status
+ */
 export const getApplicationSummary = publicProcedure
   .route({
     method: "GET",
@@ -270,13 +254,17 @@ export const getApplicationSummary = publicProcedure
     return { counts };
   });
 
+/**
+ * Get all applications (Authenticated)
+ * Requires authentication - retrieve all applications with student data
+ */
 export const getAllApplications = authedProcedure
   .route({
     method: "GET",
     path: "/onboarding/applications",
     summary: "Get all applications",
     description:
-      "Retrieve all mentee applications including approved students. Returns applications ordered by creation date (newest first).",
+      "Retrieve all mentee applications including approved students. Returns applications ordered by creation date (newest first). Requires authentication.",
     tags: ["Onboarding"],
   })
   .output(z.array(applicationSchema))
@@ -322,6 +310,10 @@ export const getAllApplications = authedProcedure
     return [...formattedApps, ...extraStudents];
   });
 
+/**
+ * Update application status (Super Admin only)
+ * Requires Super Admin role - approve or reject applications
+ */
 export const updateApplicationStatus = superAdminProcedure
   .route({
     method: "PATCH",
@@ -332,10 +324,8 @@ export const updateApplicationStatus = superAdminProcedure
     tags: ["Onboarding"],
   })
   .errors({
-    NOT_FOUND: {
-      message: "Application not found",
-      status: 404,
-    },
+    NOT_FOUND: onboardingErrors.APPLICATION_NOT_FOUND,
+    FORBIDDEN: commonErrors.FORBIDDEN,
   })
   .input(updateApplicationStatusSchema)
   .output(updateApplicationStatusResponseSchema)
