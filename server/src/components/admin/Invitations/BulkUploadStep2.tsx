@@ -388,19 +388,19 @@ export function BulkUploadStep2({
       )}
 
       {/* Buttons */}
-      <div className="flex items-center justify-between gap-3 pt-6 border-t border-[#e4e7ed]">
-        <div className="flex gap-3">
+      <div className="flex flex-col gap-3 pt-6 border-t border-[#e4e7ed] sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
           <Button
             onClick={onBack}
             variant="outline"
-            className="px-6 h-10 border-[#d9dde5] text-slate-700 hover:bg-slate-50"
+            className="h-10 w-full border-[#d9dde5] px-6 text-slate-700 hover:bg-slate-50 sm:w-auto"
           >
             ← Back to Upload
           </Button>
           <Button
             onClick={onCancel}
             variant="outline"
-            className="px-6 h-10 border-[#d9dde5] text-slate-700 hover:bg-slate-50"
+            className="h-10 w-full border-[#d9dde5] px-6 text-slate-700 hover:bg-slate-50 sm:w-auto"
           >
             Cancel
           </Button>
@@ -409,7 +409,7 @@ export function BulkUploadStep2({
         <Button
           onClick={onSubmit}
           disabled={isSubmitting}
-          className="px-6 h-10 bg-[#000053] hover:bg-[#000053] text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          className="h-10 w-full bg-[#000053] px-6 font-semibold text-white hover:bg-[#000053] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
         >
           {isSubmitting ? "SENDING..." : "UPLOAD & SEND INVITATIONS"} →
         </Button>
