@@ -166,6 +166,12 @@ export default function RsuiteCalendar({
       return;
     }
 
+    // Mentor viewing a mentee's calendar: only open if there are tasks on that day
+    if (role === "mentor" && selectedUser !== studentId) {
+      const hasEvents = (eventsByDate[formattedDate] ?? []).length > 0;
+      if (!hasEvents) return;
+    }
+
     const today = moment().startOf("day");
     const dayBeforeYesterday = moment().subtract(2, "days").startOf("day");
 
