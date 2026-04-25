@@ -56,7 +56,7 @@ export function CreateProjectDialog({
 }: CreateProjectDialogProps) {
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onOpenChange(false)}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="w-[calc(100%-2.5rem)] max-w-[22rem] sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Create New Project</DialogTitle>
         </DialogHeader>
