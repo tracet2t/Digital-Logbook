@@ -10,7 +10,27 @@ export const dynamic = "force-dynamic";
 const handler = new RPCHandler(router, {
   interceptors: [
     onError((error) => {
-      console.error("oRPC Error:", error);
+      // Only log unexpected errors with full stack trace
+      // Expected business logic errors (validation, conflicts) are logged minimally
+      const expectedErrors = [
+        "CONFLICT",
+        "BAD_REQUEST",
+        "NOT_FOUND",
+        "UNAUTHORIZED",
+        "FORBIDDEN",
+      ];
+
+      // Type guard to check if error has code property
+      const errorCode = (error as any)?.code;
+      const errorMessage = (error as any)?.message;
+
+      if (errorCode && !expectedErrors.includes(errorCode)) {
+        // Unexpected server errors - log with full details
+        console.error("🔴 Unexpected oRPC Error:", error);
+      } else if (errorCode) {
+        // Expected errors - minimal logging
+        console.log(`ℹ️  [${errorCode}] ${errorMessage}`);
+      }
     }),
   ],
 });
