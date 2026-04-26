@@ -1,6 +1,10 @@
 import { router } from "@/routers/index";
-import { OpenAPIHandler } from "@orpc/openapi/fetch";
+//import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { onError } from "@orpc/server";
+
+import "@orpc/server/fetch";
+
+import { RPCHandler } from "@orpc/server/fetch";
 
 export const dynamic = "force-dynamic";
 
@@ -8,7 +12,7 @@ export const dynamic = "force-dynamic";
 // This enables both RPC-style (dot notation) and REST-style (path-based) endpoints
 // RPC-style (/api/rpc.users.list) --> REST-style (/api/rpc/users/list) endpoints
 
-const handler = new OpenAPIHandler(router, {
+const handler = new RPCHandler(router, {
   interceptors: [
     onError((error) => {
       // Log errors for debugging
@@ -22,7 +26,7 @@ async function handleRequest(request: Request) {
     const { response } = await handler.handle(request, {
       prefix: "/api/rpc",
       context: {
-        request, // Pass request to context for middleware access
+        request, // Passed request to context for middleware access
       },
     });
 
