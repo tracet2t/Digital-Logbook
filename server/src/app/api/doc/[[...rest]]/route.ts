@@ -77,6 +77,7 @@ const openAPIHandler = new OpenAPIHandler(router, {
   ],
 });
 
+//authentication middleware to protect the playground - only super admin can access
 async function handleRequest(request: Request) {
   // Authentication check - Only Super Admin can access
   try {
@@ -132,6 +133,7 @@ async function handleRequest(request: Request) {
   }
 
   // User is authenticated as Super Admin, proceed with request
+  //this will let you access the rest apis
   try {
     const { response } = await openAPIHandler.handle(request, {
       prefix: "/api/doc",
