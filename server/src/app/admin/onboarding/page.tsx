@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import {
   useAssignMenteeToProject,
@@ -56,7 +56,8 @@ export default function AdminOnboardingPage() {
   const { data: mentorApplications = [], isLoading: mentorLoading } =
     useUnassignedMentors();
   // all existing projects — used to populate the kanban columns
-  const { data: projectsData = [], isLoading: projectsLoading } = useGetProjects();
+  const { data: projectsData = [], isLoading: projectsLoading } =
+    useGetProjects();
   // Local state for project order (sortable)
   const [projects, setProjects] = useState<Project[]>([]);
 

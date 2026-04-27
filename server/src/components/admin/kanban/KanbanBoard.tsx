@@ -4,17 +4,17 @@ import { Dispatch, SetStateAction, useMemo, useState } from "react";
 
 import { OnboardingApplication } from "@/_hooks/admin/useAdminOnboarding";
 import {
+  closestCenter,
   DndContext,
   DragEndEvent,
   DragOverlay,
   DragStartEvent,
   PointerSensor,
-  closestCenter,
   useDroppable,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { SortableContext, arrayMove } from "@dnd-kit/sortable";
+import { arrayMove, SortableContext } from "@dnd-kit/sortable";
 import { CheckSquare, Plus, Search, Square } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -266,7 +266,9 @@ export function KanbanBoard({
                         key={project.id}
                         project={project}
                         assignedApplications={assignedApps}
-                        onUnassign={(appId) => handleUnassign(project.id, appId)}
+                        onUnassign={(appId) =>
+                          handleUnassign(project.id, appId)
+                        }
                         onViewProfile={onViewProfile}
                       />
                     );
@@ -280,47 +282,47 @@ export function KanbanBoard({
 
       <DragOverlay>
         {/* Project card drag overlay with defensive checks */}
-        {activeProjectId
-          ? (() => {
-              const project = projects.find((p) => p.id === activeProjectId);
-              if (!project) return null;
-              // Defensive: ensure assignments and applications are available
-              const assignedIds = assignments?.[project.id] ?? new Set<string>();
-              const assignedApps = Array.isArray(applications)
-                ? applications.filter((a) => assignedIds.has(a.id))
-                : [];
-              return (
-                <ProjectCard
-                  project={project}
-                  assignedApplications={assignedApps}
-                  onUnassign={() => {}}
-                  onViewProfile={() => {}}
-                />
-              );
-            })()
-          : activeApplication && typeof activeApplication === 'object' && activeApplication.fullName
-          ? (
-              <div className="flex w-56 cursor-grabbing items-center gap-3 rounded-2xl border border-[#000053] bg-[#000053] p-3 shadow-2xl">
-                <Avatar className="h-9 w-9 shrink-0">
-                  <AvatarFallback className="bg-white/20 text-[10px] font-bold text-white">
-                    {getInitials(activeApplication.fullName)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-bold text-white">
-                    {dragCount > 1
-                      ? `Moving ${dragCount} profiles`
-                      : activeApplication.fullName}
-                  </p>
-                  <p className="truncate text-[10px] italic text-indigo-200">
-                    {dragCount > 1
-                      ? "Drop on a project"
-                      : formatDate(activeApplication.createdAt)}
-                  </p>
-                </div>
-              </div>
-            )
-          : null}
+        {activeProjectId ? (
+          (() => {
+            const project = projects.find((p) => p.id === activeProjectId);
+            if (!project) return null;
+            // Defensive: ensure assignments and applications are available
+            const assignedIds = assignments?.[project.id] ?? new Set<string>();
+            const assignedApps = Array.isArray(applications)
+              ? applications.filter((a) => assignedIds.has(a.id))
+              : [];
+            return (
+              <ProjectCard
+                project={project}
+                assignedApplications={assignedApps}
+                onUnassign={() => {}}
+                onViewProfile={() => {}}
+              />
+            );
+          })()
+        ) : activeApplication &&
+          typeof activeApplication === "object" &&
+          activeApplication.fullName ? (
+          <div className="flex w-56 cursor-grabbing items-center gap-3 rounded-2xl border border-[#000053] bg-[#000053] p-3 shadow-2xl">
+            <Avatar className="h-9 w-9 shrink-0">
+              <AvatarFallback className="bg-white/20 text-[10px] font-bold text-white">
+                {getInitials(activeApplication.fullName)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-bold text-white">
+                {dragCount > 1
+                  ? `Moving ${dragCount} profiles`
+                  : activeApplication.fullName}
+              </p>
+              <p className="truncate text-[10px] italic text-indigo-200">
+                {dragCount > 1
+                  ? "Drop on a project"
+                  : formatDate(activeApplication.createdAt)}
+              </p>
+            </div>
+          </div>
+        ) : null}
       </DragOverlay>
     </DndContext>
   );
