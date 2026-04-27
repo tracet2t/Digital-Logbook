@@ -318,6 +318,7 @@ function MenteeProfileView({
 
                   <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr,1.6fr]">
                     <MenteeIdentityCard
+                      studentId={selectedStudentId}
                       displayName={
                         selectedStudent?.displayName ?? "No mentee selected"
                       }

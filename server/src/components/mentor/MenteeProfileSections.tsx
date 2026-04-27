@@ -8,10 +8,10 @@ import {
   X,
 } from "lucide-react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { MenteeAvatar } from "@/components/mentor/MenteeAvatar";
 
 import {
   ActivitySummary,
@@ -31,20 +31,23 @@ export function MenteeHeader({ mentorName: _mentorName }: { mentorName: string }
 }
 
 export function MenteeIdentityCard({
+  studentId,
   displayName,
   email,
 }: {
+  studentId?: string | null;
   displayName: string;
   email: string;
 }) {
   return (
     <Card className="rounded-xl border-[#e6ecf8] bg-[#fbfcfe] shadow-none">
       <CardContent className="flex h-full flex-col items-center p-5 text-center">
-        <Avatar className="h-20 w-20 border-2 border-[#e0e8f7] bg-gradient-to-b from-[#ffd9c9] to-[#e9f1ff]">
-          <AvatarFallback className="bg-transparent text-lg font-semibold text-[#173d73]">
-            {nameToInitials(displayName || "NA")}
-          </AvatarFallback>
-        </Avatar>
+        <MenteeAvatar
+          studentId={studentId ?? ""}
+          name={displayName}
+          initials={nameToInitials(displayName || "NA")}
+          className="h-20 w-20 border-2 border-[#e0e8f7]"
+        />
 
         <h2 className="mt-4 text-xl font-semibold text-[#0d223f]">{displayName}</h2>
 

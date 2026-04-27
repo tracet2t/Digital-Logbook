@@ -10,6 +10,7 @@ export interface DashboardStats {
 }
 
 export interface RecentMentee {
+  id: string;
   initials: string;
   name: string;
   project: string;
