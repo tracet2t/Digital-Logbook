@@ -182,6 +182,7 @@ export const GET = async (_req: NextRequest) => {
         }
 
         return {
+          id: allocation.student.id,
           initials,
           name,
           project: allocation.project.name,
