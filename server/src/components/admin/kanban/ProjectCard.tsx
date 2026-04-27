@@ -1,6 +1,7 @@
 "use client";
 
 import { useDraggable, useDroppable } from "@dnd-kit/core";
+import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Briefcase, X } from "lucide-react";
 
@@ -82,29 +83,72 @@ export function ProjectCard({
   onUnassign,
   onViewProfile,
 }: ProjectCardProps) {
-  const { setNodeRef, isOver } = useDroppable({ id: project.id });
+  // Sortable for the card itself
+  const {
+    setNodeRef: setSortableRef,
+    attributes,
+    listeners,
+    transform,
+    transition,
+    isDragging,
+    isSorting,
+    over,
+  } = useSortable({ id: project.id });
+
+  // Droppable for member assignment
+  const { setNodeRef: setDroppableRef, isOver } = useDroppable({
+    id: project.id,
+  });
+
+  // Compose refs for both sortable and droppable
+  const setRef = (node: HTMLElement | null) => {
+    setSortableRef(node);
+    setDroppableRef(node);
+  };
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+    opacity: isDragging ? 0.6 : 1,
+    boxShadow: isDragging
+      ? "0 8px 32px 0 rgba(0,0,83,0.18), 0 1.5px 6px 0 rgba(0,0,0,0.08)"
+      : isOver
+        ? "0 0 0 2px #6366f1, 0 1.5px 6px 0 rgba(0,0,0,0.08)"
+        : undefined,
+  };
 
   return (
     <div
-      ref={setNodeRef}
+      ref={setRef}
+      style={style}
       className={[
-        "group flex h-[175px] min-w-0 flex-col rounded-2xl border p-2 transition max-sm:h-[155px] sm:h-[185px] md:h-[175px] sm:p-2.5 lg:h-auto lg:min-h-[280px] lg:p-5",
-        isOver
-          ? "border-indigo-300 bg-indigo-50/50"
-          : "border-[#e4e7ed] bg-slate-50/50 hover:border-slate-200",
+        "group flex h-[175px] min-w-0 flex-col rounded-2xl border p-2 transition-all duration-200 max-sm:h-[155px] sm:h-[185px] md:h-[175px] sm:p-2.5 lg:h-auto lg:min-h-[280px] lg:p-5",
+        isDragging
+          ? "border-[#000053] bg-white/90 shadow-2xl scale-[1.03]"
+          : isOver
+            ? "border-indigo-300 bg-indigo-50/50"
+            : "border-[#e4e7ed] bg-slate-50/50 hover:border-slate-200",
+        isSorting ? "ring-2 ring-indigo-200" : "",
       ].join(" ")}
+      {...attributes}
+      {...listeners}
     >
       <div className="mb-1.5 flex items-start justify-between lg:mb-3">
-        <div
+        {/* Drag handle */}
+        <button
+          type="button"
           className={[
-            "flex h-7 w-7 items-center justify-center rounded-xl shadow-sm transition sm:h-8 sm:w-8",
+            "drag-handle flex h-7 w-7 items-center justify-center rounded-xl shadow-sm transition sm:h-8 sm:w-8 cursor-grab active:cursor-grabbing",
             isOver
               ? "bg-[#000053] text-white"
               : "bg-white text-slate-300 group-hover:bg-[#000053] group-hover:text-white",
           ].join(" ")}
+          tabIndex={0}
+          aria-label="Drag project card"
         >
           <Briefcase className="h-4 w-4" />
-        </div>
+        </button>
       </div>
 
       <h4 className="mb-0.5 line-clamp-2 text-[11px] font-black uppercase tracking-tight text-[#000053] sm:text-xs lg:text-sm">
@@ -120,7 +164,7 @@ export function ProjectCard({
           {project.description}
         </p>
       )}
-      {/** Scrollbar to kandban project card */}
+      {/* Scrollbar to kanban project card */}
       <div className="flex flex-1 flex-col gap-1.5 overflow-hidden">
         {assignedApplications.length > 0 ? (
           <ScrollArea className="max-h-[146px] pr-1 sm:max-h-[162px] md:max-h-[162px] lg:max-h-[178px]">

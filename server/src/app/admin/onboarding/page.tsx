@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import {
   useAssignMenteeToProject,
@@ -56,7 +56,16 @@ export default function AdminOnboardingPage() {
   const { data: mentorApplications = [], isLoading: mentorLoading } =
     useUnassignedMentors();
   // all existing projects — used to populate the kanban columns
-  const { data: projects = [], isLoading: projectsLoading } = useGetProjects();
+  const { data: projectsData = [], isLoading: projectsLoading } = useGetProjects();
+  // Local state for project order (sortable)
+  const [projects, setProjects] = useState<Project[]>([]);
+
+  // Sync fetched projects to local state on load
+  useEffect(() => {
+    if (projectsData.length > 0 && projects.length === 0) {
+      setProjects(projectsData);
+    }
+  }, [projectsData]);
   // current mentee-to-project assignments (so we know who's already placed)
   const { data: allocations } = useProjectApplicationAllocations();
   // same but for mentors
@@ -176,6 +185,7 @@ export default function AdminOnboardingPage() {
                     applications={applications}
                     assignments={menteeBoard.assignments}
                     projects={projects}
+                    setProjects={setProjects}
                     projectsLoading={projectsLoading}
                     selectedIds={menteeBoard.selectedIds}
                     setSelectedIds={menteeBoard.setSelectedIds}
@@ -222,6 +232,7 @@ export default function AdminOnboardingPage() {
                     applications={mentorApplications}
                     assignments={mentorBoard.assignments}
                     projects={projects}
+                    setProjects={setProjects}
                     projectsLoading={projectsLoading}
                     selectedIds={mentorBoard.selectedIds}
                     setSelectedIds={mentorBoard.setSelectedIds}
