@@ -39,32 +39,11 @@ async function handleRequest(request: Request) {
   try {
     const session = await getSession();
 
-    //Determine if endpoint requires authentication
-    const url = new URL(request.url);
-    const isPublicEndpoint =
-      url.pathname.includes("/onboarding/applications") &&
-      request.method === "GET";
-
-    //Check authentication for protected endpoints
-    if (!isPublicEndpoint && (!session || !session.isAuthenticated())) {
-      return new Response(
-        JSON.stringify({
-          error: "Unauthorized",
-          message: "Authentication required",
-        }),
-        {
-          status: 401,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods":
-              "GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization",
-          },
-        },
-      );
-    }
-
+    // Pass session to oRPC context
+    // Authentication is handled by procedure-level middleware:
+    // - publicProcedure: no auth required
+    // - authedProcedure: requires valid session
+    // - superAdminProcedure: requires super admin role
     const { response } = await handler.handle(request, {
       prefix: "/api/rpc",
       context: {
@@ -75,7 +54,7 @@ async function handleRequest(request: Request) {
       },
     });
 
-    // 5️⃣ Handle missing response
+    //Handle missing response
     if (!response) {
       console.warn("oRPC: No handler found for:", request.url);
       return new Response(
