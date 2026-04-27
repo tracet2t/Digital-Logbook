@@ -33,11 +33,13 @@ interface BulkUploadStep2Props {
   excelColumns: string[];
   fieldMapping: {
     email: string;
+    firstName: string;
+    lastName: string;
     role: string;
     project: string;
   };
   onFieldMappingChange: (
-    field: "email" | "role" | "project",
+    field: "email" | "firstName" | "lastName" | "role" | "project",
     column: string,
   ) => void;
   previewData: Record<string, any>[];
@@ -152,6 +154,57 @@ export function BulkUploadStep2({
                     <SelectValue placeholder="Select column" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {excelColumns.map((col) => (
+                      <SelectItem key={col} value={col}>
+                        {col}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* First Name Mapping */}
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                  System Field: First Name
+                </p>
+                <Select
+                  value={fieldMapping.firstName}
+                  onValueChange={(value) =>
+                    onFieldMappingChange("firstName", value)
+                  }
+                >
+                  <SelectTrigger className="h-9 border-[#dbe0e8]">
+                    <SelectValue placeholder="Select column" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {excelColumns.map((col) => (
+                      <SelectItem key={col} value={col}>
+                        {col}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Last Name Mapping */}
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                  System Field: Last Name
+                </p>
+                <Select
+                  value={fieldMapping.lastName}
+                  onValueChange={(value) =>
+                    onFieldMappingChange("lastName", value)
+                  }
+                >
+                  <SelectTrigger className="h-9 border-[#dbe0e8]">
+                    <SelectValue placeholder="Select column" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
                     {excelColumns.map((col) => (
                       <SelectItem key={col} value={col}>
                         {col}
@@ -174,6 +227,7 @@ export function BulkUploadStep2({
                     <SelectValue placeholder="Select column" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
                     {excelColumns.map((col) => (
                       <SelectItem key={col} value={col}>
                         {col}
@@ -198,6 +252,7 @@ export function BulkUploadStep2({
                     <SelectValue placeholder="Select column" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
                     {excelColumns.map((col) => (
                       <SelectItem key={col} value={col}>
                         {col}
@@ -256,10 +311,16 @@ export function BulkUploadStep2({
                         {row[fieldMapping.email] || "-"}
                       </TableCell>
                       <TableCell className="px-4 py-3 text-slate-700">
-                        {row[fieldMapping.role]?.split(" ")[0] || "-"}
+                        {fieldMapping.firstName &&
+                        fieldMapping.firstName !== "none"
+                          ? row[fieldMapping.firstName] || "-"
+                          : "-"}
                       </TableCell>
                       <TableCell className="px-4 py-3 text-slate-700">
-                        {row[fieldMapping.role]?.split(" ")[1] || "-"}
+                        {fieldMapping.lastName &&
+                        fieldMapping.lastName !== "none"
+                          ? row[fieldMapping.lastName] || "-"
+                          : "-"}
                       </TableCell>
                       <TableCell className="px-4 py-3">
                         <Badge
@@ -269,7 +330,9 @@ export function BulkUploadStep2({
                         </Badge>
                       </TableCell>
                       <TableCell className="px-4 py-3 text-slate-700">
-                        {row[fieldMapping.project] || "-"}
+                        {fieldMapping.project && fieldMapping.project !== "none"
+                          ? row[fieldMapping.project] || "-"
+                          : "-"}
                       </TableCell>
                     </TableRow>
                   ))
@@ -325,19 +388,19 @@ export function BulkUploadStep2({
       )}
 
       {/* Buttons */}
-      <div className="flex items-center justify-between gap-3 pt-6 border-t border-[#e4e7ed]">
-        <div className="flex gap-3">
+      <div className="flex flex-col gap-3 pt-6 border-t border-[#e4e7ed] sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
           <Button
             onClick={onBack}
             variant="outline"
-            className="px-6 h-10 border-[#d9dde5] text-slate-700 hover:bg-slate-50"
+            className="h-10 w-full border-[#d9dde5] px-6 text-slate-700 hover:bg-slate-50 sm:w-auto"
           >
             ← Back to Upload
           </Button>
           <Button
             onClick={onCancel}
             variant="outline"
-            className="px-6 h-10 border-[#d9dde5] text-slate-700 hover:bg-slate-50"
+            className="h-10 w-full border-[#d9dde5] px-6 text-slate-700 hover:bg-slate-50 sm:w-auto"
           >
             Cancel
           </Button>
@@ -346,7 +409,7 @@ export function BulkUploadStep2({
         <Button
           onClick={onSubmit}
           disabled={isSubmitting}
-          className="px-6 h-10 bg-[#000053] hover:bg-[#000053] text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          className="h-10 w-full bg-[#000053] px-6 font-semibold text-white hover:bg-[#000053] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
         >
           {isSubmitting ? "SENDING..." : "UPLOAD & SEND INVITATIONS"} →
         </Button>

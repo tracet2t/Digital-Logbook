@@ -16,6 +16,7 @@ interface CalendarEvent {
   studentId: string;
   timeSpent?: number;
   notes?: string;
+  technologies?: string[];
   status: "pending" | "approved" | "rejected";
 }
 
@@ -54,7 +55,13 @@ export const useCalendarEvents = (
     error,
   } = useQuery<CalendarEvent[]>({
     queryKey: isAllMentees
-      ? ["calendarEvents", studentId, role, "all-mentees", allMentees?.map((s) => s.id)]
+      ? [
+          "calendarEvents",
+          studentId,
+          role,
+          "all-mentees",
+          allMentees?.map((s) => s.id),
+        ]
       : ["calendarEvents", studentId, role, selectedUser],
     queryFn: async (): Promise<CalendarEvent[]> => {
       if (isAllMentees) {

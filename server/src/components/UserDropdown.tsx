@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { useLogout } from "@/_hooks/core/useLogout";
@@ -64,7 +64,7 @@ const RING_CLASS: Record<WarningCategory, string> = {
 const ROLE_LABELS: Record<string, string> = {
   superAdmin: "Super Admin",
   mentor: "Mentor",
-  student: "Student",
+  student: "Mentee",
 };
 
 const getInitials = (f: string, l: string) =>
@@ -79,8 +79,17 @@ export default function UserDropdown({
 }) {
   const fullName = `${user.fname} ${user.lname}`;
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const { logout, isPending } = useLogout();
   const router = useRouter();
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   const { data: warnings = [] } = useQuery<WarningStatusItem[]>({
     queryKey: ["warning-status", user.id],
@@ -146,9 +155,9 @@ export default function UserDropdown({
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent
-                side="right"
+                side={isMobile ? "top" : "right"}
                 align="start"
-                className="w-[--radix-dropdown-menu-trigger-width] min-w-48 mb-5"
+                className="w-[--radix-dropdown-menu-trigger-width] min-w-48 mb-1"
               >
                 <DropdownMenuItem
                   onSelect={() => onNavigate("/admin/settings")}

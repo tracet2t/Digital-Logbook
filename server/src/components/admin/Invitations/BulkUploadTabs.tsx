@@ -38,6 +38,11 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
   } = useBulkSendInvitations();
   const [submissionResult, setSubmissionResult] = useState<any>(null);
 
+  const handleFileUploadAndAdvance = async (file: File) => {
+    await handleFileUpload(file);
+    goToStep(2);
+  };
+
   const handlePreviewValidate = () => {
     goToStep(2);
   };
@@ -48,7 +53,12 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
 
   const handleSubmit = async () => {
     // Validate field mapping
-    if (!fieldMapping.email || !fieldMapping.role) {
+    if (
+      !fieldMapping.email ||
+      fieldMapping.email === "none" ||
+      !fieldMapping.role ||
+      fieldMapping.role === "none"
+    ) {
       alert("Please map the required fields: Email and Role");
       return;
     }
@@ -58,14 +68,18 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
       .map((row, index) => {
         const email = row[fieldMapping.email];
         const role = row[fieldMapping.role];
-        const projectId = fieldMapping.project
-          ? row[fieldMapping.project]
-          : undefined;
-
-        // Extract first name and last name if available
-        // You can add firstName and lastName to fieldMapping if you want to map them
-        const fullName = row["Name"] || row["Full Name"] || "";
-        const [firstName = "", lastName = ""] = fullName.split(" ");
+        const firstName =
+          fieldMapping.firstName && fieldMapping.firstName !== "none"
+            ? row[fieldMapping.firstName]
+            : "";
+        const lastName =
+          fieldMapping.lastName && fieldMapping.lastName !== "none"
+            ? row[fieldMapping.lastName]
+            : "";
+        const projectId =
+          fieldMapping.project && fieldMapping.project !== "none"
+            ? row[fieldMapping.project]
+            : undefined;
 
         // Validate required fields
         if (!email || !role) {
@@ -79,8 +93,8 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
             | "student"
             | "mentor"
             | "superAdmin",
-          firstName: firstName || email.split("@")[0], // Fallback to email username
-          lastName: lastName || "",
+          firstName: firstName?.toString().trim() || email.split("@")[0], // Fallback to email username
+          lastName: lastName?.toString().trim() || "",
           projectId: projectId?.toString(),
         };
       })
@@ -109,8 +123,7 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
     <div className="w-full">
       {currentStep === 1 ? (
         <BulkUploadStep1
-          onFileUpload={handleFileUpload}
-          onNext={handlePreviewValidate}
+          onFileUpload={handleFileUploadAndAdvance}
           uploadedFile={uploadedFile}
           error={error}
           isLoading={isLoading}

@@ -58,8 +58,11 @@ export default function CreateAccountShowcasePage() {
   });
 
   const handleSubmit = async (values: FormData) => {
-    await onboardingMutation.mutateAsync(values);
-    form.reset();
+    onboardingMutation.mutate(values, {
+      onSuccess: () => {
+        form.reset();
+      },
+    });
   };
 
   return (

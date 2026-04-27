@@ -50,6 +50,7 @@ model Activity {
   date      DateTime
   timeSpent Int
   notes     String?
+  technologies String[]    @default([])
   status    ActivityStatus @default(pending)
 
   createdAt DateTime       @default(now())

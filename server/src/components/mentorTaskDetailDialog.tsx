@@ -9,20 +9,21 @@ import {
   Clock,
   FileText,
   MessageSquare,
+  Tag,
   XCircle,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -50,6 +51,7 @@ interface MentorTaskDetailDialogProps {
   date: string;
   workingHours: number;
   notes: string;
+  technologies?: string[];
   onSubmit: (review: string, status: "approved" | "rejected") => void;
   onClose: () => void;
 }
@@ -59,6 +61,7 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
   date,
   workingHours,
   notes,
+  technologies,
   onSubmit,
   onClose,
 }) => {
@@ -74,21 +77,21 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
   };
 
   return (
-    <AlertDialog
+    <Dialog
       open={open}
       onOpenChange={(isOpen) => {
         if (!isOpen) onClose();
       }}
     >
-      <AlertDialogContent className="!max-w-2xl">
-        <AlertDialogHeader>
-          <AlertDialogTitle className="text-xl font-semibold">
+      <DialogContent className="w-[calc(100%-1rem)] max-w-md sm:!max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold">
             Mentor Task Review
-          </AlertDialogTitle>
-          <AlertDialogDescription>
+          </DialogTitle>
+          <DialogDescription>
             Review the student&apos;s activity and provide feedback.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+          </DialogDescription>
+        </DialogHeader>
 
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -123,6 +126,30 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
             />
           </div>
 
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+              <Tag className="w-3.5 h-3.5" />
+              Technology Stack
+            </label>
+            {technologies && technologies.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5">
+                {technologies.map((tech) => (
+                  <Badge
+                    key={tech}
+                    variant="default"
+                    className="text-xs px-2 py-0.5 bg-[#000053]/10 text-[#000053] border border-[#000053]/20"
+                  >
+                    {tech}
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground italic">
+                No stack specified
+              </p>
+            )}
+          </div>
+
           <Form {...form}>
             <FormField
               control={form.control}
@@ -153,8 +180,10 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
           </Form>
         </div>
 
-        <AlertDialogFooter>
-          <AlertDialogCancel>Close</AlertDialogCancel>
+        <div className="flex flex-row-reverse gap-2 mt-6">
+          <DialogClose asChild>
+            <Button variant="outline">Close</Button>
+          </DialogClose>
           <Button
             onClick={() => handleAction("approved")}
             className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
@@ -170,9 +199,9 @@ const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
             <XCircle className="w-4 h-4" />
             Reject
           </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

@@ -8,14 +8,13 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -72,23 +71,23 @@ const MentorStudentTaskDetailDialog: React.FC<
   });
 
   return (
-    <AlertDialog
+    <Dialog
       open={open}
       onOpenChange={(isOpen) => {
         if (!isOpen) onClose();
       }}
     >
-      <AlertDialogContent className="!max-w-lg">
-        <AlertDialogHeader>
-          <AlertDialogTitle className="text-xl font-semibold">
+      <DialogContent className="w-[calc(100%-1rem)] max-w-md sm:!max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold">
             Task Details
-          </AlertDialogTitle>
-          <AlertDialogDescription>
+          </DialogTitle>
+          <DialogDescription>
             {isEditable
               ? "Edit your activity for this date."
               : "View your activity details."}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+          </DialogDescription>
+        </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={handleFormSubmit} className="space-y-4">
@@ -155,14 +154,16 @@ const MentorStudentTaskDetailDialog: React.FC<
           </form>
         </Form>
 
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+        <div className="flex flex-row-reverse gap-2 mt-6">
+          <DialogClose asChild>
+            <Button variant="outline">Cancel</Button>
+          </DialogClose>
           {isEditable && (
             <Button onClick={handleFormSubmit}>Save changes</Button>
           )}
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

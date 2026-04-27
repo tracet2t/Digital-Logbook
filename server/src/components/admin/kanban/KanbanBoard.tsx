@@ -1,6 +1,6 @@
 "use client";
 
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useMemo } from "react";
 
 import { OnboardingApplication } from "@/_hooks/admin/useAdminOnboarding";
 import {
@@ -14,7 +14,7 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { CheckSquare, Plus, Square } from "lucide-react";
+import { CheckSquare, Plus, Search, Square } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -53,6 +53,8 @@ interface KanbanBoardProps {
   dragCount: number;
   onViewProfile: (app: OnboardingApplication) => void;
   onAddProject: () => void;
+  benchSearch?: string;
+  onBenchSearchChange?: (value: string) => void;
 }
 
 export function KanbanBoard({
@@ -75,6 +77,8 @@ export function KanbanBoard({
   dragCount,
   onViewProfile,
   onAddProject,
+  benchSearch = "",
+  onBenchSearchChange,
 }: KanbanBoardProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -84,6 +88,12 @@ export function KanbanBoard({
     id: "BENCH",
   });
 
+  const filteredBench = useMemo(() => {
+    if (!benchSearch.trim()) return bench;
+    const q = benchSearch.toLowerCase();
+    return bench.filter((a) => a.fullName.toLowerCase().includes(q));
+  }, [bench, benchSearch]);
+
   return (
     <DndContext
       sensors={sensors}
@@ -91,12 +101,12 @@ export function KanbanBoard({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex flex-row gap-2 rounded-2xl border border-[#e4e7ed] bg-white p-2 sm:gap-3 sm:p-3 lg:gap-6 lg:p-6 2xl:gap-4 2xl:p-4 3xl:gap-3 3xl:p-3 2xl:overflow-hidden 2xl:h-[calc(100dvh-22rem)] w-full">
+      <div className="flex flex-col gap-2 rounded-2xl border border-[#e4e7ed] bg-white p-2 sm:flex-row sm:gap-3 sm:p-3 lg:gap-6 lg:p-6 2xl:gap-4 2xl:p-4 3xl:gap-3 3xl:p-3 2xl:overflow-hidden 2xl:h-[calc(100dvh-22rem)] w-full">
         {/* Bench */}
         <div
           ref={setBenchRef}
           className={[
-            "flex w-48 shrink-0 flex-col rounded-2xl border-r pl-2 pr-1 transition sm:w-56 sm:pl-2 sm:pr-1 md:w-60 lg:w-72 lg:pl-2 lg:pr-2 2xl:w-72 3xl:w-80",
+            "flex w-full shrink-0 flex-col rounded-2xl border-b pb-3 pl-2 pr-1 transition sm:w-56 sm:border-b-0 sm:border-r sm:pb-0 sm:pl-2 sm:pr-1 md:w-60 lg:w-72 lg:pl-2 lg:pr-2 2xl:w-72 3xl:w-80",
             isBenchOver
               ? "border-indigo-300 bg-indigo-50/60"
               : "border-slate-100",
@@ -107,9 +117,24 @@ export function KanbanBoard({
               {benchLabel}
             </h3>
             <Badge className="rounded-full border-0 bg-indigo-50 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-indigo-500 hover:bg-indigo-50">
-              {bench.length} {benchBadgeText}
+              {filteredBench.length} {benchBadgeText}
             </Badge>
           </div>
+          {/* Bench search */}
+          {!isLoading && onBenchSearchChange && (
+            <div className="mb-2 pr-3 sm:pr-4 lg:pr-6">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="search"
+                  value={benchSearch}
+                  onChange={(e) => onBenchSearchChange(e.target.value)}
+                  placeholder="Search by name..."
+                  className="h-8 w-full rounded-lg border border-[#dbe0e8] bg-white pl-8 pr-3 text-[11px] text-slate-700 outline-none transition focus:border-slate-400"
+                />
+              </div>
+            </div>
+          )}
           {/** Select All function :CheckBox */}
           {!isLoading && bench.length > 0 && (
             <div className="pr-3 sm:pr-4 lg:pr-6">
@@ -142,13 +167,13 @@ export function KanbanBoard({
                   <Skeleton className="h-14 rounded-2xl" />
                 </div>
               )}
-              {!isLoading && bench.length === 0 && (
+              {!isLoading && filteredBench.length === 0 && (
                 <div className="rounded-2xl border border-dashed border-slate-100 px-3 py-8 text-center">
                   <p className="text-[10px] text-slate-400">{benchEmptyText}</p>
                 </div>
               )}
               {!isLoading &&
-                bench.map((app) => (
+                filteredBench.map((app) => (
                   <BenchCard
                     key={app.id}
                     application={app}
