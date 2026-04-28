@@ -4,6 +4,7 @@ import { useOnboarding } from "@/_hooks/onboarding/useOnboarding";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   BookOpenText,
+  CheckCircle2,
   GraduationCap,
   Link as LinkIcon,
   Mail,
@@ -11,6 +12,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -42,9 +44,11 @@ const formSchema = z.object({
 });
 
 type FormData = z.infer<typeof formSchema>;
+const ONBOARDING_EMAIL_STORAGE_KEY = "onboardingSubmittedEmail";
 
 export default function CreateAccountShowcasePage() {
   const onboardingMutation = useOnboarding();
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -57,9 +61,46 @@ export default function CreateAccountShowcasePage() {
     },
   });
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const hydrateSubmissionState = async () => {
+      const savedEmail = localStorage.getItem(ONBOARDING_EMAIL_STORAGE_KEY);
+      if (!savedEmail) {
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `/api/onboarding?email=${encodeURIComponent(savedEmail)}`,
+        );
+
+        if (response.ok && isMounted) {
+          setIsSubmitted(true);
+          return;
+        }
+      } catch (error) {
+        console.error("Failed to restore onboarding status:", error);
+      }
+
+      localStorage.removeItem(ONBOARDING_EMAIL_STORAGE_KEY);
+    };
+
+    hydrateSubmissionState();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const handleSubmit = async (values: FormData) => {
-    await onboardingMutation.mutateAsync(values);
-    form.reset();
+    try {
+      await onboardingMutation.mutateAsync(values);
+      localStorage.setItem(ONBOARDING_EMAIL_STORAGE_KEY, values.email);
+      setIsSubmitted(true);
+    } catch {
+      // Toast handling is managed by the mutation hook; keep form visible.
+    }
   };
 
   return (
@@ -118,73 +159,48 @@ export default function CreateAccountShowcasePage() {
               </p>
             </div>
 
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(handleSubmit)}
-                className="space-y-5"
+            {isSubmitted ? (
+              <div
+                className="relative overflow-hidden rounded-[14px] border border-[#d6deef] bg-gradient-to-br from-[#fcfdff] via-[#f5f8ff] to-[#eef4ff] p-7 shadow-[0_8px_26px_-22px_rgba(15,23,42,0.35)]"
+                style={{ animation: "softFadeIn 360ms ease-out both" }}
               >
-                <FormField
-                  control={form.control}
-                  name="fullName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#868b94]">
-                        Full Name
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8f949e]" />
-                          <Input
-                            {...field}
-                            placeholder="Alexander Hamilton"
-                            className="h-12 border-[#d9dde4] bg-white pl-10 text-[15px]"
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage className="text-[12px]" />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#868b94]">
-                        Email Address
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8f949e]" />
-                          <Input
-                            type="email"
-                            {...field}
-                            placeholder="alex@university.edu"
-                            className="h-12 border-[#d9dde4] bg-white pl-10 text-[15px]"
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage className="text-[12px]" />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid gap-5 sm:grid-cols-2">
+                <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-[#dbeafe]/50 blur-2xl" />
+                <div className="relative">
+                  <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#b7ebcb] bg-[#eafaf1] px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-[#2d7a4b]">
+                    <CheckCircle2
+                      className="h-4 w-4"
+                      style={{ animation: "softCheckPop 280ms ease-out" }}
+                    />
+                    Submission Received
+                  </div>
+                  <h3 className="text-[29px] font-semibold leading-[1.2] tracking-[-0.01em] text-[#2f3640]">
+                    Your onboarding has been successfully submitted.
+                  </h3>
+                  <p className="mt-4 text-[15px] font-medium text-[#4a5563]">
+                    We will get back to you soon.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(handleSubmit)}
+                  className="space-y-5"
+                >
                   <FormField
                     control={form.control}
-                    name="university"
+                    name="fullName"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#868b94]">
-                          University
+                          Full Name
                         </FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <GraduationCap className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8f949e]" />
+                            <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8f949e]" />
                             <Input
                               {...field}
-                              placeholder="State University"
+                              placeholder="Alexander Hamilton"
                               className="h-12 border-[#d9dde4] bg-white pl-10 text-[15px]"
                             />
                           </div>
@@ -196,18 +212,19 @@ export default function CreateAccountShowcasePage() {
 
                   <FormField
                     control={form.control}
-                    name="degreeProgram"
+                    name="email"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#868b94]">
-                          Degree Program
+                          Email Address
                         </FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <BookOpenText className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8f949e]" />
+                            <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8f949e]" />
                             <Input
+                              type="email"
                               {...field}
-                              placeholder="B.S. Computer Science"
+                              placeholder="alex@university.edu"
                               className="h-12 border-[#d9dde4] bg-white pl-10 text-[15px]"
                             />
                           </div>
@@ -216,49 +233,97 @@ export default function CreateAccountShowcasePage() {
                       </FormItem>
                     )}
                   />
-                </div>
 
-                <FormField
-                  control={form.control}
-                  name="cvLink"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#868b94]">
-                        Google Drive Link for CV
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <LinkIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8f949e]" />
-                          <Input
-                            type="url"
-                            {...field}
-                            placeholder="https://drive.google.com/..."
-                            className="h-12 border-[#d9dde4] bg-white pl-10 text-[15px]"
-                          />
-                        </div>
-                      </FormControl>
-                      <FormDescription className="text-[12px] text-[#9aa0aa]">
-                        Ensure the link visibility is set to &quot;Anyone with
-                        the link&quot;.
-                      </FormDescription>
-                      <FormMessage className="text-[12px]" />
-                    </FormItem>
-                  )}
-                />
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    <FormField
+                      control={form.control}
+                      name="university"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#868b94]">
+                            University
+                          </FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <GraduationCap className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8f949e]" />
+                              <Input
+                                {...field}
+                                placeholder="State University"
+                                className="h-12 border-[#d9dde4] bg-white pl-10 text-[15px]"
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage className="text-[12px]" />
+                        </FormItem>
+                      )}
+                    />
 
-                <div className="space-y-4 pt-4">
-                  <Button
-                    type="submit"
-                    disabled={onboardingMutation.isPending}
-                    className="h-12 w-full rounded-md bg-[#0a0d7a] text-[14px] font-bold uppercase tracking-[0.08em] text-white hover:bg-[#080a5f]"
-                  >
-                    {onboardingMutation.isPending
-                      ? "Submitting..."
-                      : "Create Mentee"}
-                  </Button>
-                </div>
-              </form>
-            </Form>
+                    <FormField
+                      control={form.control}
+                      name="degreeProgram"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#868b94]">
+                            Degree Program
+                          </FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <BookOpenText className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8f949e]" />
+                              <Input
+                                {...field}
+                                placeholder="B.S. Computer Science"
+                                className="h-12 border-[#d9dde4] bg-white pl-10 text-[15px]"
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage className="text-[12px]" />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="cvLink"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#868b94]">
+                          Google Drive Link for CV
+                        </FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <LinkIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8f949e]" />
+                            <Input
+                              type="url"
+                              {...field}
+                              placeholder="https://drive.google.com/..."
+                              className="h-12 border-[#d9dde4] bg-white pl-10 text-[15px]"
+                            />
+                          </div>
+                        </FormControl>
+                        <FormDescription className="text-[12px] text-[#9aa0aa]">
+                          Ensure the link visibility is set to &quot;Anyone with
+                          the link&quot;.
+                        </FormDescription>
+                        <FormMessage className="text-[12px]" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="space-y-4 pt-4">
+                    <Button
+                      type="submit"
+                      disabled={onboardingMutation.isPending}
+                      className="h-12 w-full rounded-md bg-[#0a0d7a] text-[14px] font-bold uppercase tracking-[0.08em] text-white hover:bg-[#080a5f]"
+                    >
+                      {onboardingMutation.isPending
+                        ? "Submitting..."
+                        : "Create Mentee"}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            )}
 
             <p className="mt-10 text-center text-[14px] text-[#7f848d]">
               Already have an account?{" "}
@@ -272,6 +337,29 @@ export default function CreateAccountShowcasePage() {
           </div>
         </section>
       </div>
+      <style jsx>{`
+        @keyframes softFadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(6px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes softCheckPop {
+          from {
+            transform: scale(0.85);
+            opacity: 0.7;
+          }
+          to {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+      `}</style>
     </div>
   );
 }

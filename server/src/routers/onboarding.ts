@@ -16,6 +16,7 @@ import { ORPCError, os } from "@orpc/server";
 import { Role } from "@prisma/client";
 import { z } from "zod";
 
+import { sendOnboardingSubmissionEmail } from "@/lib/onboardingSubmissionEmail";
 import prisma from "@/lib/prisma";
 
 // Initialize repository
@@ -90,6 +91,13 @@ export const createApplication = publicProcedure
       university: input.university,
       degreeProgram: input.degreeProgram,
       cvLink: input.cvLink,
+    });
+
+    sendOnboardingSubmissionEmail({
+      email: application.email,
+      fullName: application.fullName,
+    }).catch((emailError) => {
+      console.error("Failed to send onboarding submission email:", emailError);
     });
 
     return {

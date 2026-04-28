@@ -51,15 +51,28 @@ export const useOnboarding = () => {
       return result;
     },
     onSuccess: () => {
-      toast.success("Application submitted successfully!");
+      toast.success("Onboarding submitted successfully.");
       // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: ["onboarding-applications"] });
     },
     onError: (error: unknown) => {
+      const errorToastStyle = {
+        background: "#fef2f2",
+        border: "1px solid #fecaca",
+        color: "#b91c1c",
+      };
+
       if (error instanceof ORPCError) {
-        toast.error(error.message || "Failed to submit onboarding application");
+        toast.error(
+          error.message || "Failed to submit onboarding, please try again.",
+          {
+            style: errorToastStyle,
+          },
+        );
       } else {
-        toast.error("An unexpected error occurred");
+        toast.error("Failed to submit onboarding, please try again.", {
+          style: errorToastStyle,
+        });
       }
     },
   });

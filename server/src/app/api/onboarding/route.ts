@@ -3,6 +3,7 @@ import getSession from "@/server_actions/getSession";
 import { Role } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
+import { sendOnboardingSubmissionEmail } from "@/lib/onboardingSubmissionEmail";
 import prisma from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -57,6 +58,13 @@ export async function POST(req: NextRequest) {
       university,
       degreeProgram,
       cvLink,
+    });
+
+    sendOnboardingSubmissionEmail({
+      email: application.email,
+      fullName: application.fullName,
+    }).catch((emailError) => {
+      console.error("Failed to send onboarding submission email:", emailError);
     });
 
     return NextResponse.json(

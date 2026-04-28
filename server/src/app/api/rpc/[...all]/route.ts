@@ -1,14 +1,13 @@
 import { router } from "@/routers";
-import { OpenAPIHandler } from "@orpc/openapi/fetch";
+import { RPCHandler } from "@orpc/server/fetch";
 import { onError } from "@orpc/server";
 
 export const dynamic = "force-dynamic";
 
-// Create the OpenAPI handler with your router
-// This enables both RPC-style (dot notation) and REST-style (path-based) endpoints
-// RPC-style (/api/rpc.users.list) --> REST-style (/api/rpc/users/list) endpoints
+// Create the RPC handler with your router.
+// This matches RPCLink client calls such as /api/rpc/onboarding/createApplication.
 
-const handler = new OpenAPIHandler(router, {
+const handler = new RPCHandler(router, {
   interceptors: [
     onError((error) => {
       // Log errors for debugging
