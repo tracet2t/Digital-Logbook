@@ -110,17 +110,18 @@ export default function CreateInvitationDialog({
               {/* Project */}
               <div className="space-y-1.5">
                 <label className="block text-sm font-medium text-slate-700">
-                  Project <span className="text-red-500">*</span>
+                  Project{" "}
+                  <span className="text-slate-400 font-normal text-xs">
+                    (optional)
+                  </span>
                 </label>
                 <div className="relative">
                   <select
                     value={formData.project}
                     onChange={(e) => onChange("project", e.target.value)}
-                    className={`w-full h-10 px-3 pr-10 border ${errors.project ? "border-red-400 focus:ring-red-400 bg-red-50/40" : "border-slate-300 focus:ring-slate-900 bg-white"} rounded-lg text-sm text-slate-800 appearance-none focus:outline-none focus:ring-2 focus:border-transparent cursor-pointer transition-colors`}
+                    className="w-full h-10 px-3 pr-10 border border-slate-300 focus:ring-slate-900 bg-white rounded-lg text-sm text-slate-800 appearance-none focus:outline-none focus:ring-2 focus:border-transparent cursor-pointer transition-colors"
                   >
-                    <option value="" disabled>
-                      Select a project…
-                    </option>
+                    <option value="">No project assigned</option>
                     {projects.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.name}
@@ -132,15 +133,9 @@ export default function CreateInvitationDialog({
                     className="absolute right-3 top-3 text-slate-400 pointer-events-none"
                   />
                 </div>
-                {errors.project ? (
-                  <p className="text-xs text-red-500 font-medium">
-                    {errors.project}
-                  </p>
-                ) : (
-                  <p className="text-xs text-slate-400">
-                    Assign to an existing project
-                  </p>
-                )}
+                <p className="text-xs text-slate-400">
+                  Can be assigned later after registration
+                </p>
               </div>
             </div>
           </div>

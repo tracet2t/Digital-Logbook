@@ -1,146 +1,351 @@
-'use client';
-import React, { useState } from 'react';
-import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
-import { Input } from '@/components/ui/input'; 
-import { Textarea } from '@/components/ui/textarea'; 
-import { Toast, ToastProvider, ToastViewport, ToastTitle, ToastDescription, ToastClose } from '@/components/ui/toast';
+"use client";
+
+import React, { useCallback, useEffect, useRef, useState } from "react";
+
+import { TECH_STACK_OPTIONS } from "@/app/student/_constants_tech_stacks";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Code2, X } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
+
+interface TechStackInputProps {
+  value: string[];
+  onChange: (value: string[]) => void;
+  disabled?: boolean;
+}
+
+function TechStackInput({ value, onChange, disabled }: TechStackInputProps) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const addTag = useCallback(
+    (tag: string) => {
+      const trimmed = tag.trim();
+      if (trimmed && !value.includes(trimmed)) {
+        onChange([...value, trimmed]);
+      }
+      setSearch("");
+    },
+    [value, onChange],
+  );
+
+  const removeTag = (tag: string) => {
+    onChange(value.filter((t) => t !== tag));
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && search.trim()) {
+      e.preventDefault();
+      addTag(search);
+    }
+  };
+
+  const filtered = TECH_STACK_OPTIONS.filter(
+    (opt) =>
+      opt.toLowerCase().includes(search.toLowerCase()) && !value.includes(opt),
+  );
+
+  const showCustomAdd =
+    search.trim() &&
+    !TECH_STACK_OPTIONS.some(
+      (opt) => opt.toLowerCase() === search.toLowerCase(),
+    ) &&
+    !value.includes(search.trim());
+
+  return (
+    <div className="space-y-2">
+      {/* Selected tags */}
+      {value.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {value.map((tag) => (
+            <Badge
+              key={tag}
+              variant="wip"
+              className="flex items-center gap-1 pr-1"
+            >
+              {tag}
+              {!disabled && (
+                <button
+                  type="button"
+                  onClick={() => removeTag(tag)}
+                  className="ml-0.5 rounded-full hover:bg-blue-200 p-0.5"
+                >
+                  <X size={11} />
+                </button>
+              )}
+            </Badge>
+          ))}
+        </div>
+      )}
+
+      {/* Search / dropdown */}
+      {!disabled && (
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className="flex w-full items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground focus:outline-none"
+              onClick={() => {
+                setOpen(true);
+                setTimeout(() => inputRef.current?.focus(), 0);
+              }}
+            >
+              <Code2 size={14} />
+              Search or add technology...
+            </button>
+          </PopoverTrigger>
+          <PopoverContent
+            className="w-[--radix-popover-trigger-width] p-0"
+            align="start"
+          >
+            <Command shouldFilter={false}>
+              <CommandInput
+                ref={inputRef}
+                placeholder="Search or add technology..."
+                value={search}
+                onValueChange={setSearch}
+                onKeyDown={handleKeyDown}
+              />
+              <CommandList>
+                {showCustomAdd && (
+                  <CommandGroup heading="Custom">
+                    <CommandItem
+                      value={search}
+                      onSelect={() => {
+                        addTag(search);
+                        setOpen(false);
+                      }}
+                    >
+                      Add &ldquo;{search}&rdquo;
+                    </CommandItem>
+                  </CommandGroup>
+                )}
+                {filtered.length > 0 && (
+                  <CommandGroup heading="Suggestions">
+                    {filtered.map((opt) => (
+                      <CommandItem
+                        key={opt}
+                        value={opt}
+                        onSelect={() => {
+                          addTag(opt);
+                          setOpen(false);
+                        }}
+                      >
+                        {opt}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
+                {!showCustomAdd && filtered.length === 0 && (
+                  <CommandEmpty>No results found.</CommandEmpty>
+                )}
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      )}
+    </div>
+  );
+}
+
+const activitySchema = z.object({
+  workingHours: z.coerce
+    .number()
+    .min(1, "Working hours must be at least 1")
+    .max(12, "Working hours cannot exceed 12"),
+  techStack: z.array(z.string()).default([]),
+  notes: z.string().max(300, "Notes cannot exceed 300 characters"),
+});
+
+type ActivityFormValues = z.infer<typeof activitySchema>;
 
 interface StudentTaskDetailDialogProps {
-  taskModalOpen: boolean;
-  setTaskModalOpen: (open: boolean) => void;
-  formData: { date: string };
-  workingHours: number;
-  role: string;
-  setWorkingHours: (hours: number) => void;
-  notes: string;
-  setNotes: (notes: string) => void;
+  open: boolean;
+  date: string;
+  defaultWorkingHours: number;
+  defaultNotes: string;
+  defaultTechStack?: string[];
   review: string;
   isEditable: boolean;
-  handleClose: () => void;
-  handleSubmit: () => void;
+  onSubmit: (
+    workingHours: number,
+    notes: string,
+    technologies: string[],
+  ) => void;
+  onClose: () => void;
 }
 
 const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
-  taskModalOpen,
-  setTaskModalOpen,
-  formData,
-  workingHours,
-  setWorkingHours,
-  notes,
+  open,
+  date,
+  defaultWorkingHours,
+  defaultNotes,
+  defaultTechStack,
   review,
-  role,
-  setNotes,
   isEditable,
-  handleClose,
-  handleSubmit
+  onSubmit,
+  onClose,
 }) => {
-  const [showToast, setShowToast] = useState(false);
-  const [showHoursToast, setShowHoursToast] = useState(false);
+  const form = useForm<ActivityFormValues>({
+    resolver: zodResolver(activitySchema),
+    defaultValues: {
+      workingHours: defaultWorkingHours || 2,
+      techStack: defaultTechStack ?? [],
+      notes: defaultNotes || "",
+    },
+  });
 
-  const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newNotes = e.target.value;
-    if (newNotes.length > 300) {
-      setShowToast(true);
+  // Re-populate form whenever the dialog opens with new task data
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        workingHours: defaultWorkingHours || 2,
+        techStack: defaultTechStack ?? [],
+        notes: defaultNotes || "",
+      });
     }
-    setNotes(newNotes.substring(0, 300)); // Limit to 300 characters
-  };
+  }, [open, defaultWorkingHours, defaultNotes, defaultTechStack, form]);
 
-  const handleWorkingHoursBlur = () => {
-    if (workingHours === 0) {
-      setShowHoursToast(true);
-      setWorkingHours(1);
-    }
-  };
+  const handleFormSubmit = form.handleSubmit((data) => {
+    onSubmit(data.workingHours, data.notes, data.techStack);
+  });
 
   return (
-    role === 'student' && (
-    <>
-      <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Task Details</AlertDialogTitle>
-          </AlertDialogHeader>
-          <AlertDialogDescription>
-            <form>
-              <div className="mb-4">
-                <label>Date</label>
-                <Input type="date" value={formData.date} disabled className="text-black" />
-              </div>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) onClose();
+      }}
+    >
+      <DialogContent className="!max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Task Details</DialogTitle>
+          <DialogDescription>
+            {isEditable
+              ? "Edit your activity for this date."
+              : "View your activity details."}
+          </DialogDescription>
+        </DialogHeader>
 
-              <div className="mb-4">
-                <label>Working Hours</label>
-                <Input
-                  type="number"
-                  value={workingHours}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                  
-                    if (value === '') {
-                      setWorkingHours(0);
-                    } else {
-                      const hours = Number(value);
-                      if (!isNaN(hours)) {
-                        setWorkingHours(Math.max(1, Math.min(12, hours)));
-                      } else {
-                        setWorkingHours(1);
-                      }
-                    }
-                  }}
-                  onBlur={handleWorkingHoursBlur}
-                  placeholder="Enter working hours"
-                  disabled={!isEditable}
-                  className="text-black"
-                />
-              </div>
-              <div className="mb-4">
-                <label>Notes</label>
-                <Textarea
-                  value={notes}
-                  onChange={handleNotesChange}
-                  placeholder="Enter notes"
-                  disabled={!isEditable}
-                  className="text-black"
-                />
-              </div>
-              <div className="mb-4">
-                <label>Feedback</label>
-                <Textarea
-                  value={review}
-                  placeholder="Mentors Feedback"
-                  className="text-black bg-[#d5d5ec] border border-[#d8d8d8]"
-                  disabled={true}
-                />
-              </div>
-            </form>
-          </AlertDialogDescription>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleClose}>Cancel</AlertDialogCancel>
-            {isEditable && <AlertDialogAction onClick={handleSubmit}>Save</AlertDialogAction>}
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        <Form {...form}>
+          <form onSubmit={handleFormSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Date</label>
+              <Input type="date" value={date} disabled />
+            </div>
 
-      {/* Toast Notification */}
-      <ToastProvider>
-        <ToastViewport />
-        {showToast && (
-          <Toast>
-            <ToastTitle>Note Length Exceeded</ToastTitle>
-            <ToastDescription>The notes cannot exceed 300 characters.</ToastDescription>
-            <ToastClose onClick={() => setShowToast(false)} />
-          </Toast>
-        )}
-        {showHoursToast && (
-          <Toast>
-            <ToastTitle>Invalid Working Hours</ToastTitle>
-            <ToastDescription>Please enter a number between 1 and 12 for working hours.</ToastDescription>
-            <ToastClose onClick={() => setShowHoursToast(false)} />
-            </Toast>
-          )}
+            <FormField
+              control={form.control}
+              name="workingHours"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Working Hours</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      {...field}
+                      disabled={!isEditable}
+                      placeholder="Enter working hours"
+                      min={1}
+                      max={12}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-      </ToastProvider>
-    </>
-    )
+            <FormField
+              control={form.control}
+              name="techStack"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Technology Stack</FormLabel>
+                  <FormControl>
+                    <TechStackInput
+                      value={field.value}
+                      onChange={field.onChange}
+                      disabled={!isEditable}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Notes</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      placeholder="Enter notes"
+                      disabled={!isEditable}
+                      maxLength={300}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Feedback</label>
+              <Textarea
+                value={review}
+                placeholder="Mentor's Feedback"
+                disabled
+              />
+            </div>
+          </form>
+        </Form>
+
+        <div className="flex flex-row-reverse gap-2 mt-6">
+          <DialogClose asChild>
+            <Button variant="outline">Cancel</Button>
+          </DialogClose>
+          {isEditable && <Button onClick={handleFormSubmit}>Save</Button>}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

@@ -271,4 +271,18 @@ export class ProjectRepository extends BaseRepository<Project> {
       include: { project: true },
     });
   }
+  // Get email addresses of all mentors assigned to a project
+async getProjectMentorsEmails(projectId: string): Promise<string[]> {
+  const mentors = await prisma.projectMentor.findMany({
+    where: { projectId },
+    include: {
+      mentor: {
+        select: { email: true },
+      },
+    },
+  });
+
+  return mentors.map((m) => m.mentor.email);
+}
+
 }

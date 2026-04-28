@@ -10,6 +10,7 @@ export interface ApiUserRecord {
   lastName: string;
   role: ApiUserRole;
   isActive: boolean;
+  batchNo: string | null;
   createdAt: string;
 }
 
@@ -19,6 +20,7 @@ export interface UserRecord {
   email: string;
   role: UserRole;
   status: UserStatus;
+  batchNo: string | null;
   createdAt: string;
   avatar?: string;
 }

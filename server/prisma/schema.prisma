@@ -18,6 +18,7 @@ model User {
   isActive         Boolean          @default(true)
   isFirstTimeLogin Boolean          @default(true)
   invitedBy        String?
+  batchNo          String?
 
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
@@ -30,26 +31,32 @@ model User {
 
   badges           UserBadge[]
 
+  warningStatuses  WarningStatus[]
+
   invitationsSent  Invitation[]     @relation("InvitationSender")
 
   projectAllocations ProjectAllocation[] @relation(name: "StudentProjects")
 
   mentorAllocations ProjectMentor[]  @relation(name: "MentorProjects")
 
+  projectTechnologies ProjectTechnology[]
+
   @@map("users")
 }
 
 model Activity {
-  id        String   @id @default(uuid())
+  id        String         @id @default(uuid())
   studentId String
   date      DateTime
   timeSpent Int
   notes     String?
+  technologies String[]    @default([])
+  status    ActivityStatus @default(pending)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
 
-  student   User     @relation(fields: [studentId], references: [id])
+  student   User           @relation(fields: [studentId], references: [id])
 
   feedback  MentorFeedback[]
 
@@ -102,7 +109,7 @@ model MentorActivity {
 model Invitation {
   id         String   @id @default(uuid())
   email      String
-  role       Role
+  role       Role @default(student)
   token      String   @unique
   invitedBy  String?
   projectId  String?
@@ -122,6 +129,7 @@ model Project {
   name        String
   description String?
   domain      ProjectDomain
+  batchNo     String?
 
   createdBy   String
 
@@ -131,6 +139,7 @@ model Project {
   mentors     ProjectMentor[]
   assignments ProjectAllocation[]
   invitations Invitation[]
+  technologies ProjectTechnology[]
 
   @@map("projects")
 }
@@ -141,6 +150,7 @@ model ProjectAllocation {
   studentId String
 
   assignedAt DateTime @default(now())
+  timeAllocationStatus TimeAllocationStatus @default(inReview)
 
   project    Project  @relation(fields: [projectId], references: [id])
   student    User     @relation(fields: [studentId], references: [id], name: "StudentProjects")
@@ -201,6 +211,12 @@ enum FeedbackStatus {
   pending
 }
 
+enum ActivityStatus {
+  pending
+  accepted
+  rejected
+}
+
 enum ProcessStatus {
   pending
   error
@@ -214,4 +230,64 @@ enum ProjectDomain {
   training
   research
   other
+}
+
+model ProjectTechnology {
+  id        String   @id @default(uuid())
+  projectId String
+  studentId String
+  name      String
+  rating    Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project   Project  @relation(fields: [projectId], references: [id])
+  student   User     @relation(fields: [studentId], references: [id])
+
+  @@unique([projectId, studentId, name])
+  @@map("projectTechnologies")
+}
+
+enum TimeAllocationStatus {
+  inReview
+  accepted
+  rejected
+}
+
+model MenteeApplication {
+  id            String                    @id @default(uuid())
+  fullName      String
+  email         String                    @unique
+  university    String
+  degreeProgram String
+  cvLink        String
+  status        MenteeApplicationStatus   @default(pending)
+
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+
+  @@map("menteeApplications")
+}
+
+enum MenteeApplicationStatus {
+  pending
+  approved
+  rejected
+}
+
+enum WarningCategory {
+  low
+  medium
+  high
+}
+
+model WarningStatus {
+  id          String          @id @default(uuid())
+  studentId   String
+  comment     String
+  warningType WarningCategory?
+  student     User            @relation(fields: [studentId], references: [id])
+
+  @@map("warningStatuses")
 }

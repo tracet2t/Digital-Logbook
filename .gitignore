@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# Testing
+/coverage
+
+# Production
+/build
+/dist
+
+# Misc
+.DS_Store
+*.pem
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
+
+# Package manager lock files (optional - some teams gitignore these)
+# package-lock.json
+# yarn.lock

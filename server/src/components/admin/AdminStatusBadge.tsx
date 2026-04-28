@@ -22,6 +22,8 @@ export type StatusValue =
   | "Inactive"
   | "active"
   | "pending"
+  | "approved"
+  | "rejected"
   | "delayed";
 
 interface AdminStatusBadgeProps {
@@ -44,6 +46,18 @@ const config: Record<
     text: "text-amber-700",
     border: "border-amber-100",
     label: "Pending",
+  },
+  approved: {
+    bg: "bg-emerald-50",
+    text: "text-emerald-700",
+    border: "border-emerald-100",
+    label: "Approved",
+  },
+  rejected: {
+    bg: "bg-rose-50",
+    text: "text-rose-700",
+    border: "border-rose-100",
+    label: "Rejected",
   },
   Accepted: {
     bg: "bg-emerald-50",

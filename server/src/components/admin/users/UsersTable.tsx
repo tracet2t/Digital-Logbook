@@ -54,6 +54,9 @@ export default function UsersTable({
               User Identity
             </TableHead>
             <TableHead className="px-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              Batch
+            </TableHead>
+            <TableHead className="px-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">
               Role
             </TableHead>
             <TableHead className="px-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">
@@ -70,7 +73,7 @@ export default function UsersTable({
 
         <TableBody>
           <TableStateRows
-            colSpan={5}
+            colSpan={6}
             loading={isLoading}
             error={fetchError}
             empty={!isLoading && !fetchError && users.length === 0}
@@ -98,6 +101,16 @@ export default function UsersTable({
                       <p className="text-xs text-slate-500">{user.email}</p>
                     </div>
                   </div>
+                </TableCell>
+
+                <TableCell className="px-4 py-3">
+                  {user.batchNo ? (
+                    <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-[11px] font-semibold text-indigo-600">
+                      {user.batchNo}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-slate-400">—</span>
+                  )}
                 </TableCell>
 
                 <TableCell className="px-4 py-3">

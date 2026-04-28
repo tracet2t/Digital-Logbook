@@ -1,16 +1,8 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 
 import { getSessionOnClient } from "@/server_actions/getSession";
-import {
-  Award,
-  BarChart2,
-  FolderOpen,
-  LayoutDashboard,
-  Mail,
-  Users,
-} from "lucide-react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -29,51 +21,34 @@ import {
 } from "@/components/ui/sidebar";
 import UserDropdown from "@/components/UserDropdown";
 
+export interface MenuItem {
+  label: string;
+  icon: ReactNode;
+  href: string;
+}
+
+export interface LogoConfig {
+  expanded: {
+    src: string;
+    width: number;
+    height: number;
+    className: string;
+  };
+  collapsed: {
+    src: string;
+    width: number;
+    height: number;
+    className: string;
+  };
+}
+
 interface UserInfo {
+  id: string;
   fname: string;
   lname: string;
   role: string;
   email: string;
 }
-
-function formatRole(role: string) {
-  if (role === "superAdmin") return "Super Admin";
-  if (role === "mentor") return "Mentor";
-  if (role === "student") return "Mentee";
-  return role;
-}
-
-function getInitials(fname: string, lname: string) {
-  return `${fname?.[0] ?? ""}${lname?.[0] ?? ""}`.toUpperCase() || "?";
-}
-
-const MAIN_MENU: { label: string; icon: ReactNode; href: string }[] = [
-  { label: "Dashboard", icon: <LayoutDashboard size={18} />, href: "/admin" },
-  { label: "Users", icon: <Users size={18} />, href: "/admin/users" },
-  { label: "Invitations", icon: <Mail size={18} />, href: "/admin/invitation" },
-  {
-    label: "Projects",
-    icon: <FolderOpen size={18} />,
-    href: "/admin/projects",
-  },
-  { label: "Badges", icon: <Award size={18} />, href: "/admin/badges" },
-  { label: "Reports", icon: <BarChart2 size={18} />, href: "/admin/reports" },
-];
-
-const LOGO = {
-  expanded: {
-    src: "/logo.png",
-    width: 240,
-    height: 60,
-    className: "h-auto w-full max-w-[144px] shrink-0",
-  },
-  collapsed: {
-    src: "/logo - small.png",
-    width: 49,
-    height: 40,
-    className: "h-10 w-auto shrink-0",
-  },
-};
 
 const COLLAPSED_BASE =
   "group-data-[collapsible=icon]:!size-10 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:mx-auto";
@@ -84,17 +59,27 @@ const INACTIVE_CLASS = "text-[#737373] hover:bg-gray-100 hover:text-[#0A0A0A]";
 const menuBtnClass = (active: boolean) =>
   `${COLLAPSED_BASE} ${active ? ACTIVE_CLASS : INACTIVE_CLASS}`;
 
-function LogoHeader({ collapsed }: { collapsed: boolean }) {
-  const logo = collapsed ? LOGO.collapsed : LOGO.expanded;
+function LogoHeader({
+  collapsed,
+  logo,
+}: {
+  collapsed: boolean;
+  logo: LogoConfig;
+}) {
+  const logoSrc = collapsed ? logo.collapsed : logo.expanded;
   return (
     <SidebarHeader className="p-0 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:items-center">
-      <div className="flex items-center justify-between group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:py-2">
+      <div
+        className={`flex items-center justify-between group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:py-2 ${
+          collapsed ? "" : "pt-2 pl-2"
+        }`}
+      >
         <Image
-          src={logo.src}
+          src={logoSrc.src}
           alt="Digital Logbook"
-          width={logo.width}
-          height={logo.height}
-          className={logo.className}
+          width={logoSrc.width}
+          height={logoSrc.height}
+          className={logoSrc.className}
           style={{ display: "block" }}
         />
         {!collapsed && (
@@ -109,18 +94,22 @@ function LogoHeader({ collapsed }: { collapsed: boolean }) {
 function NavMenu({
   pathname,
   onNavigate,
+  collapsed,
+  menu,
 }: {
   pathname: string;
   onNavigate: (href: string) => void;
+  collapsed: boolean;
+  menu: MenuItem[];
 }) {
   return (
-    <SidebarContent>
+    <SidebarContent className="flex-1 overflow-auto">
       <SidebarGroup className="group-data-[collapsible=icon]:px-3">
         <SidebarGroupLabel className="text-[#737373] text-[11px] font-bold tracking-[0.1em] uppercase">
           Main Menu
         </SidebarGroupLabel>
         <SidebarMenu className="gap-3">
-          {MAIN_MENU.map((item) => {
+          {menu.map((item) => {
             const active = pathname === item.href;
             return (
               <SidebarMenuItem
@@ -129,7 +118,7 @@ function NavMenu({
               >
                 <SidebarMenuButton
                   isActive={active}
-                  tooltip={item.label}
+                  title={collapsed ? item.label : undefined}
                   onClick={() => onNavigate(item.href)}
                   className={menuBtnClass(active)}
                 >
@@ -147,12 +136,31 @@ function NavMenu({
   );
 }
 
-export default function AsideSidebar() {
+interface AsideSidebarProps {
+  menu: MenuItem[];
+  logo: LogoConfig;
+}
+
+export default function AsideSidebar({ menu, logo }: AsideSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { setOpenMobile, state } = useSidebar();
   const collapsed = state === "collapsed";
   const [user, setUser] = useState<UserInfo | null>(null);
+  const uniqueMenu = useMemo(() => {
+    const seen = new Set<string>();
+
+    return menu.filter((item) => {
+      const key = `${item.href}::${item.label}`;
+
+      if (seen.has(key)) {
+        return false;
+      }
+
+      seen.add(key);
+      return true;
+    });
+  }, [menu]);
 
   useEffect(() => {
     getSessionOnClient().then((s) => {
@@ -166,10 +174,22 @@ export default function AsideSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon" className="relative">
-      <LogoHeader collapsed={collapsed} />
-      <NavMenu pathname={pathname} onNavigate={navigate} />
-      {user && <UserDropdown user={user} onNavigate={navigate} />}
+    <Sidebar
+      collapsible="icon"
+      className="sticky top-0 left-0 flex h-svh flex-col"
+    >
+      <LogoHeader collapsed={collapsed} logo={logo} />
+      <NavMenu
+        pathname={pathname}
+        onNavigate={navigate}
+        collapsed={collapsed}
+        menu={uniqueMenu}
+      />
+      {user && (
+        <div className="sticky bottom-0 left-0 bg-sidebar">
+          <UserDropdown user={user} onNavigate={navigate} />
+        </div>
+      )}
       <SidebarRail />
     </Sidebar>
   );

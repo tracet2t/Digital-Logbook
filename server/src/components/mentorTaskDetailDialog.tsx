@@ -1,173 +1,208 @@
-// src/components/MentorTaskDetailDialog.tsx
-'use client'
-import React, { useState } from 'react';
-import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
-import { Input } from '@/components/ui/input'; 
-import { Button } from '@/components/ui/button'; 
-import { Textarea } from '@/components/ui/textarea'; 
-import { ToastProvider, Toast, ToastTitle, ToastDescription, ToastClose, ToastViewport } from '@/components/ui/toast'; 
+"use client";
+
+import React from "react";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  CalendarDays,
+  CheckCircle2,
+  Clock,
+  FileText,
+  MessageSquare,
+  Tag,
+  XCircle,
+} from "lucide-react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+
+const feedbackSchema = z.object({
+  review: z
+    .string()
+    .min(1, "Review is required")
+    .max(300, "Review cannot exceed 300 characters"),
+});
+
+type FeedbackFormValues = z.infer<typeof feedbackSchema>;
 
 interface MentorTaskDetailDialogProps {
-  taskModalOpen: boolean;
-  setTaskModalOpen: (open: boolean) => void;
-  role: string;
-  selectedUser: string;
-  studentId: string;
-  formData: { date: string };
+  open: boolean;
+  date: string;
   workingHours: number;
-  setWorkingHours: (hours: number) => void;
   notes: string;
-  setNotes: (notes: string) => void;
-  review: string;
-  setReview: (review: string) => void;
-  setStatus: (status: string) => void;
-  handleClose: () => void;
+  technologies?: string[];
+  onSubmit: (review: string, status: "approved" | "rejected") => void;
+  onClose: () => void;
 }
+
 const MentorTaskDetailDialog: React.FC<MentorTaskDetailDialogProps> = ({
-  taskModalOpen,
-  setTaskModalOpen,
-  role,
-  selectedUser,
-  studentId,
-  formData,
+  open,
+  date,
   workingHours,
-  setWorkingHours,
   notes,
-  setNotes,
-  review,
-  setReview,
-  setStatus,
-  handleClose
+  technologies,
+  onSubmit,
+  onClose,
 }) => {
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
-  const [showHoursToast, setShowHoursToast] = useState(false);
+  const form = useForm<FeedbackFormValues>({
+    resolver: zodResolver(feedbackSchema),
+    defaultValues: { review: "" },
+  });
 
-  const handleTextChange = (value: string, setter: (value: string) => void) => {
-    if (value.length > 300) {
-      setShowToast(true);
-      setToastMessage("This is not allowed, maximum length is 300 characters.");
-    } else {
-      setter(value);
-    }
-  };
-
-  const handleValidationAndAction = (action: string) => {
-    if (!notes || !workingHours) {
-      setShowToast(true);
-      setToastMessage("Notes and Working Hours must be provided before accepting or rejecting.");
-      return;
-    }
-    setStatus(action);
-    setTaskModalOpen(false); // Close modal after setting the status
-  };
-
-  const handleWorkingHoursBlur = () => {
-    if (workingHours === 0) {
-      setShowHoursToast(true);
-      setWorkingHours(1);
-    }
+  const handleAction = (status: "approved" | "rejected") => {
+    form.handleSubmit((data) => {
+      onSubmit(data.review, status);
+    })();
   };
 
   return (
-    role === 'mentor' && selectedUser !== studentId && (
-      <ToastProvider>
-        <AlertDialog open={taskModalOpen} onOpenChange={setTaskModalOpen}>
-          <AlertDialogTrigger asChild>
-            <div />
-          </AlertDialogTrigger>
-          <AlertDialogContent className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-lg">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-2xl font-semibold text-gray-900">Mentor Task Detail</AlertDialogTitle>
-            </AlertDialogHeader>
-            <AlertDialogDescription className="text-gray-700">
-              <div className="flex gap-6 mb-4">
-                <div className="w-1/2">
-                  <span className="block text-sm font-medium text-black mb-1">Date</span>
-                  <Input type="date" value={formData.date} disabled className="text-black" />
-                </div>
-                <div className="w-1/2">
-                  <span className="block text-sm font-medium text-black mb-1">Working Hours</span>
-                  <Input
-                    type="number"
-                    value={workingHours}
-                    disabled={true}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                    
-                      if (value === '') {
-                        setWorkingHours(0);
-                      } else {
-                        const hours = Number(value);
-                        if (!isNaN(hours)) {
-                          setWorkingHours(Math.max(1, Math.min(12, hours)));
-                        } else {
-                          setWorkingHours(1);
-                        }
-                      }
-                    }}
-                    onBlur={handleWorkingHoursBlur}
-                    placeholder="Enter working hours"
-                  />
-                </div>
-              </div>
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-black mb-2">Activity</h3>
-                <Textarea
-                  value={notes}
-                  onChange={(e) => handleTextChange(e.target.value, setNotes)}
-                  placeholder="Enter notes"
-                  disabled={true}
-                  className="text-black"
-                />
-              </div>
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-black mb-2">Review</h3>
-                <textarea
-                  value={review}
-                  onChange={(e) => handleTextChange(e.target.value, setReview)}
-                  placeholder="Enter your review here..."
-                  className="w-full h-32 p-3 border border-gray-300 rounded-md bg-white"
-                />
-              </div>
-            </AlertDialogDescription>
-            <AlertDialogFooter className="flex justify-end gap-3 mt-4">
-              <Button onClick={() => setTaskModalOpen(false)} className=" text-white  bg[#666668] px-4 py-2 rounded-md">Close</Button>
-              <Button
-                onClick={() => handleValidationAndAction('approved')}
-                className="bg-green-500 text-white hover:bg-green-700 px-4 py-2 rounded-md"
-              >
-                Accept
-              </Button>
-              <Button
-                onClick={() => handleValidationAndAction('rejected')}
-                className="bg-red-500 text-white hover:bg-red-700 px-4 py-2 rounded-md"
-              >
-                Reject
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) onClose();
+      }}
+    >
+      <DialogContent className="w-[calc(100%-1rem)] max-w-md sm:!max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold">
+            Mentor Task Review
+          </DialogTitle>
+          <DialogDescription>
+            Review the student&apos;s activity and provide feedback.
+          </DialogDescription>
+        </DialogHeader>
 
-        {showToast && (
-          <Toast onOpenChange={setShowToast} open={showToast}>
-            <ToastTitle>Error</ToastTitle>
-            <ToastDescription>{toastMessage}</ToastDescription>
-            <ToastClose />
-          </Toast>
-        )}
-        {showHoursToast && (
-          <Toast>
-            <ToastTitle>Invalid Working Hours</ToastTitle>
-            <ToastDescription>Please enter a number between 1 and 12 for working hours.</ToastDescription>
-            <ToastClose onClick={() => setShowHoursToast(false)} />
-            </Toast>
-          )}
-        <ToastViewport />
-      </ToastProvider>
-    )
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                <CalendarDays className="w-3.5 h-3.5" />
+                Date
+              </label>
+              <Input type="date" value={date} disabled />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5" />
+                Working Hours
+              </label>
+              <Input type="number" value={workingHours} disabled />
+            </div>
+          </div>
+
+          <Separator />
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+              <FileText className="w-3.5 h-3.5" />
+              Activity
+            </label>
+            <Textarea
+              value={notes}
+              disabled
+              rows={3}
+              placeholder="No activity recorded"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+              <Tag className="w-3.5 h-3.5" />
+              Technology Stack
+            </label>
+            {technologies && technologies.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5">
+                {technologies.map((tech) => (
+                  <Badge
+                    key={tech}
+                    variant="default"
+                    className="text-xs px-2 py-0.5 bg-[#000053]/10 text-[#000053] border border-[#000053]/20"
+                  >
+                    {tech}
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground italic">
+                No stack specified
+              </p>
+            )}
+          </div>
+
+          <Form {...form}>
+            <FormField
+              control={form.control}
+              name="review"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs font-semibold uppercase tracking-wide flex items-center gap-1.5">
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    Review
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      placeholder="Write your review here…"
+                      rows={3}
+                      maxLength={300}
+                    />
+                  </FormControl>
+                  <div className="flex justify-between">
+                    <FormMessage />
+                    <span className="text-xs text-muted-foreground">
+                      {field.value.length}/300
+                    </span>
+                  </div>
+                </FormItem>
+              )}
+            />
+          </Form>
+        </div>
+
+        <div className="flex flex-row-reverse gap-2 mt-6">
+          <DialogClose asChild>
+            <Button variant="outline">Close</Button>
+          </DialogClose>
+          <Button
+            onClick={() => handleAction("approved")}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
+          >
+            <CheckCircle2 className="w-4 h-4" />
+            Accept
+          </Button>
+          <Button
+            onClick={() => handleAction("rejected")}
+            variant="destructive"
+            className="gap-1.5"
+          >
+            <XCircle className="w-4 h-4" />
+            Reject
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
 export default MentorTaskDetailDialog;
-

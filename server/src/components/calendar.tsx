@@ -1,23 +1,20 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+
+import moment from "moment";
 import {
   Calendar as BigCalendar,
   momentLocalizer,
   Views,
 } from "react-big-calendar";
-import moment from "moment";
-import "react-big-calendar/lib/css/react-big-calendar.css";
-import {
-  ToastProvider,
-  ToastViewport,
-  Toast,
-  ToastTitle,
-  ToastDescription,
-  ToastClose,
-} from "@/components/ui/toast"; // Adjust the import path according to your project structure
 
-import { Button } from "@/components/ui/button";
+import "react-big-calendar/lib/css/react-big-calendar.css";
+
+import { useCalendarEvents } from "@/_hooks/useCalendarEvents";
+import { useEventForDate } from "@/_hooks/useEventForDate";
+import { useFormData } from "@/_hooks/useFormData";
+import { useSubmission } from "@/_hooks/useSubmission";
 import { getSessionOnClient } from "@/server_actions/getSession";
 
 import {
@@ -25,16 +22,22 @@ import {
   convertToCalendarEventsMentor,
   eventPropGetter,
 } from "@/lib/calenderUtils";
+// Adjust the import path according to your project structure
 
+import { Button } from "@/components/ui/button";
+import {
+  Toast,
+  ToastClose,
+  ToastDescription,
+  ToastProvider,
+  ToastTitle,
+  ToastViewport,
+} from "@/components/ui/toast";
+
+import CustomToolbar from "./CustomToolbar";
 import MentorStudentTaskDetailDialog from "./mentorStudentTaskDetailDialog";
 import MentorTaskDetailDialog from "./mentorTaskDetailDialog";
 import StudentTaskDetailDialog from "./studentTaskDetailDialog";
-import CustomToolbar from "./CustomToolbar";
-
-import { useCalendarEvents } from "@/hooks/useCalendarEvents";
-import { useFormData } from "@/hooks/useFormData";
-import { useSubmission } from "@/hooks/useSubmission";
-import { useEventForDate } from "@/hooks/useEventForDate";
 
 moment.locale("en-GB");
 const localizer = momentLocalizer(moment);
@@ -49,15 +52,15 @@ interface FormData {
 }
 
 interface FeedbackData {
-  review: string,
-  status: string,
-  mentorId: string
+  review: string;
+  status: string;
+  mentorId: string;
 }
 
 interface MentorFormData {
-  date: string,
-  workingHours: number,
-  activities: string
+  date: string;
+  workingHours: number;
+  activities: string;
 }
 
 interface CalendarEvent {
@@ -80,7 +83,7 @@ interface TaskCalendarProps {
 
 const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [session, setSession] = useState(null);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [role, setRole] = useState<string>("");
@@ -92,43 +95,48 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   } | null>(null);
 
   // Custom hooks
-  const { events, refetchEvents } = useCalendarEvents(studentId, role, selectedUser);
+  const { events, refetchEvents } = useCalendarEvents(
+    studentId,
+    role,
+    selectedUser,
+  );
   const {
     formData,
     workingHours,
-    setWorkingHours,
     notes,
-    setNotes,
     review,
-    setReview,
-    status,
-    setStatus,
+    technologies,
     editingEvent,
     feedbackActivityId,
     updateFormData,
     resetFormData,
   } = useFormData();
-  const { fetchEventForDate } = useEventForDate(role, studentId, selectedUser, updateFormData, resetFormData);
+  const { fetchEventForDate } = useEventForDate(
+    role,
+    studentId,
+    selectedUser,
+    updateFormData,
+    resetFormData,
+  );
   const { handleSubmit } = useSubmission(
     role,
     studentId,
     selectedUser,
-    formData,
-    workingHours,
-    notes,
-    review,
-    status,
+    formData.date,
     editingEvent,
     feedbackActivityId,
     () => {
-      refetchEvents();
       setTaskModalOpen(false);
-      setSelectedDate(null);
+      setSelectedDate(undefined);
+      resetFormData("");
+      setTimeout(() => {
+        refetchEvents();
+      }, 500);
     },
     (title, description) => {
       setToast({ title, description });
-      setTimeout(() => setToast(null), 1000);
-    }
+      setTimeout(() => setToast(null), 3000);
+    },
   );
 
   useEffect(() => {
@@ -150,7 +158,10 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     const today = moment().startOf("day");
     const dayBeforeYesterday = moment().subtract(2, "days").startOf("day");
 
-    if (moment(date).isSame(today, 'day') || moment(date).isBetween(dayBeforeYesterday, today, 'day', '[]')) {
+    if (
+      moment(date).isSame(today, "day") ||
+      moment(date).isBetween(dayBeforeYesterday, today, "day", "[]")
+    ) {
       setIsEditable(true);
     } else {
       setIsEditable(false);
@@ -162,83 +173,79 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
 
   const handleClose = () => {
     setTaskModalOpen(false);
-    setSelectedDate(null);
+    setSelectedDate(undefined);
   };
-
-  useEffect(() => {
-    if (status === "approved" || status === "rejected") {
-      handleSubmit();
-    }
-  }, [status]);
 
   return (
     <>
       <ToastProvider>
-        <MentorTaskDetailDialog
-          taskModalOpen={taskModalOpen}
-          setTaskModalOpen={setTaskModalOpen}
-          role={role}
-          selectedUser={selectedUser || ''}
-          studentId={studentId}
-          formData={formData}
-          workingHours={workingHours}
-          setWorkingHours={setWorkingHours}
-          notes={notes}
-          setNotes={setNotes}
-          /* look down here */
-          review={review}
-          setReview={setReview}
-          setStatus={setStatus}
-          handleClose={handleClose}
-        />
-        <MentorStudentTaskDetailDialog
-          taskModalOpen={taskModalOpen}
-          setTaskModalOpen={setTaskModalOpen}
-          role={role}
-          selectedUser={selectedUser || ''}
-          studentId={studentId}
-          formData={formData}
-          workingHours={workingHours}
-          setWorkingHours={setWorkingHours}
-          notes={notes}
-          setNotes={setNotes}
-          isEditable={isEditable}
-          handleClose={handleClose}
-          handleSubmit={handleSubmit}
-        />
-        <StudentTaskDetailDialog
-          taskModalOpen={taskModalOpen}
-          setTaskModalOpen={setTaskModalOpen}
-          role={role}
-          formData={formData}
-          workingHours={workingHours}
-          setWorkingHours={setWorkingHours}
-          notes={notes}
-          review={review}
-          setNotes={setNotes}
-          isEditable={isEditable}
-          handleClose={handleClose}
-          handleSubmit={handleSubmit}
-        />
+        {taskModalOpen && role === "mentor" && selectedUser !== studentId && (
+          <MentorTaskDetailDialog
+            open={taskModalOpen}
+            date={formData.date}
+            workingHours={workingHours}
+            notes={notes}
+            technologies={technologies}
+            onSubmit={(reviewText, status) => {
+              handleSubmit({ review: reviewText, status });
+            }}
+            onClose={handleClose}
+          />
+        )}
+        {taskModalOpen && role === "mentor" && selectedUser === studentId && (
+          <MentorStudentTaskDetailDialog
+            open={taskModalOpen}
+            date={formData.date}
+            defaultWorkingHours={workingHours}
+            defaultNotes={notes}
+            isEditable={isEditable}
+            onSubmit={(wh, n) => {
+              handleSubmit({ workingHours: wh, notes: n });
+            }}
+            onClose={handleClose}
+          />
+        )}
+        {taskModalOpen && role === "student" && (
+          <StudentTaskDetailDialog
+            open={taskModalOpen}
+            date={formData.date}
+            defaultWorkingHours={workingHours}
+            defaultNotes={notes}
+            review={review}
+            isEditable={isEditable}
+            onSubmit={(wh, n) => {
+              handleSubmit({ workingHours: wh, notes: n });
+            }}
+            onClose={handleClose}
+          />
+        )}
 
-<div className="relative w-[90vw] h-[80vh] ">
-        <BigCalendar
-          events={events}
-          localizer={localizer}
-          defaultView={Views.MONTH}
-          view={Views.MONTH}
-          startAccessor="start"
-          endAccessor="end"
-          onSelectSlot={(slotInfo) => handleDateClick(slotInfo.start)}
-          onSelectEvent={(event) => handleDateClick(event.start)}
-          selectable
-          components={{
-            toolbar: (toolbar: any) => <CustomToolbar toolbar={toolbar} currentDate={currentDate} setCurrentDate={setCurrentDate} />,
-          }}
-          eventPropGetter={(event) => eventPropGetter(event, selectedUser || "")} // Pass selectedUser here
-          style={{height: "100%"}}
-        />
-      </div>
+        <div className="relative w-[90vw] h-[80vh] ">
+          <BigCalendar
+            events={events}
+            localizer={localizer}
+            defaultView={Views.MONTH}
+            view={Views.MONTH}
+            startAccessor="start"
+            endAccessor="end"
+            onSelectSlot={(slotInfo) => handleDateClick(slotInfo.start)}
+            onSelectEvent={(event) => handleDateClick(event.start)}
+            selectable
+            components={{
+              toolbar: (toolbar: any) => (
+                <CustomToolbar
+                  toolbar={toolbar}
+                  currentDate={currentDate}
+                  setCurrentDate={setCurrentDate}
+                />
+              ),
+            }}
+            eventPropGetter={(event) =>
+              eventPropGetter(event, selectedUser || "")
+            } // Pass selectedUser here
+            style={{ height: "100%" }}
+          />
+        </div>
 
         {toast && (
           <Toast>

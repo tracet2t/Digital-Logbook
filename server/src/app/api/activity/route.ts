@@ -1,21 +1,83 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+
 import { ActivityRepository } from "@/repositories/activity_repository_impl";
 import getSession from "@/server_actions/getSession";
 
 const activityRepository = new ActivityRepository();
 
+const technologyItemSchema = z
+  .string({ invalid_type_error: "Each technology must be a string" })
+  .trim()
+  .min(1, "Technology names cannot be empty")
+  .max(64, "Technology names cannot exceed 64 characters");
+
+const technologiesSchema = z
+  .array(technologyItemSchema, {
+    invalid_type_error: "technologies must be an array of strings",
+  })
+  .max(50, "technologies cannot contain more than 50 items")
+  .transform((items) => Array.from(new Set(items.map((item) => item.trim()))));
+
+const createActivitySchema = z.object({
+  date: z.string().min(1, "date is required"),
+  timeSpent: z
+    .number({ invalid_type_error: "timeSpent must be a number" })
+    .min(0, "timeSpent must be zero or greater"),
+  notes: z.string().optional().default(""),
+  technologies: technologiesSchema.optional().default([]),
+});
+
+const updateActivitySchema = z
+  .object({
+    id: z.string().min(1, "id is required"),
+    timeSpent: z
+      .number({ invalid_type_error: "timeSpent must be a number" })
+      .min(0, "timeSpent must be zero or greater")
+      .optional(),
+    notes: z.string().optional(),
+    technologies: technologiesSchema.optional(),
+  })
+  .refine(
+    (value) =>
+      value.timeSpent !== undefined ||
+      value.notes !== undefined ||
+      value.technologies !== undefined,
+    { message: "At least one field must be provided for update" },
+  );
+
+const buildValidationError = (error: z.ZodError) =>
+  error.issues[0]?.message ?? "Invalid input data";
+
+async function requireStudentSession() {
+  const session = await getSession();
+
+  if (!session?.isAuthenticated()) {
+    return {
+      error: NextResponse.json({ message: "Unauthorized" }, { status: 401 }),
+    };
+  }
+
+  if (session.getRole() !== "student") {
+    return {
+      error: NextResponse.json({ message: "Forbidden" }, { status: 403 }),
+    };
+  }
+
+  return { userId: session.getId() };
+}
+
 export const GET = async (req: NextRequest) => {
   try {
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    const auth = await requireStudentSession();
+    if (auth.error) {
+      return auth.error;
     }
 
-    const userId = session.getId();
     const url = new URL(req.url);
     const date = url.searchParams.get('date');
 
-    const activities = await activityRepository.findByStudentId(userId, date ? new Date(date) : undefined);
+    const activities = await activityRepository.findByStudentId(auth.userId!, date ? new Date(date) : undefined);
     return NextResponse.json(activities);
   } catch (error) {
     console.error("Error fetching activities:", error);
@@ -25,19 +87,26 @@ export const GET = async (req: NextRequest) => {
 
 export const POST = async (req: NextRequest) => {
   try {
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    const auth = await requireStudentSession();
+    if (auth.error) {
+      return auth.error;
     }
 
-    const userId = session.getId();
-    const { date, timeSpent, notes } = await req.json();
-
-    if (!date || typeof timeSpent !== 'number' || timeSpent < 0 || !notes) {
-      return NextResponse.json({ message: "Invalid input data" }, { status: 400 });
+    const payload = createActivitySchema.safeParse(await req.json());
+    if (!payload.success) {
+      return NextResponse.json(
+        { message: buildValidationError(payload.error) },
+        { status: 400 },
+      );
     }
 
-    const newActivity = await activityRepository.createActivity(userId, new Date(date), timeSpent, notes);
+    const newActivity = await activityRepository.createActivity(
+      auth.userId!,
+      new Date(payload.data.date),
+      payload.data.timeSpent,
+      payload.data.notes,
+      payload.data.technologies,
+    );
     return NextResponse.json(newActivity, { status: 201 });
   } catch (error) {
     console.error("Error creating activity:", error);
@@ -47,26 +116,28 @@ export const POST = async (req: NextRequest) => {
 
 export const PATCH = async (req: NextRequest) => {
   try {
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    const auth = await requireStudentSession();
+    if (auth.error) {
+      return auth.error;
     }
 
-    const userId = session.getId();
-    const { id, timeSpent, notes } = await req.json();
-
-    if (!id || (timeSpent === undefined && notes === undefined)) {
-      return NextResponse.json({ message: "Invalid input data" }, { status: 400 });
+    const payload = updateActivitySchema.safeParse(await req.json());
+    if (!payload.success) {
+      return NextResponse.json(
+        { message: buildValidationError(payload.error) },
+        { status: 400 },
+      );
     }
 
-    if (timeSpent !== undefined && (typeof timeSpent !== 'number' || timeSpent < 0)) {
-      return NextResponse.json({ message: "Invalid time spent" }, { status: 400 });
-    }
-
-    const updatedActivity = await activityRepository.updateActivity(id, userId, {
-      timeSpent: timeSpent !== undefined ? timeSpent : undefined,
-      notes: notes !== undefined ? notes : undefined,
-    });
+    const updatedActivity = await activityRepository.updateActivity(
+      payload.data.id,
+      auth.userId!,
+      {
+        timeSpent: payload.data.timeSpent,
+        notes: payload.data.notes,
+        technologies: payload.data.technologies,
+      },
+    );
 
     return NextResponse.json(updatedActivity, { status: 200 });
   } catch (error) {
@@ -77,12 +148,11 @@ export const PATCH = async (req: NextRequest) => {
 
 export const DELETE = async (req: NextRequest) => {
   try {
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    const auth = await requireStudentSession();
+    if (auth.error) {
+      return auth.error;
     }
 
-    const userId = session.getId();
     const url = new URL(req.url);
     const id = url.searchParams.get('id');
 
@@ -95,7 +165,7 @@ export const DELETE = async (req: NextRequest) => {
       return NextResponse.json({ message: "Activity not found" }, { status: 404 });
     }
 
-    if (activity.studentId !== userId) {
+    if (activity.studentId !== auth.userId) {
       return NextResponse.json({ message: "Not authorized to delete this activity" }, { status: 403 });
     }
 

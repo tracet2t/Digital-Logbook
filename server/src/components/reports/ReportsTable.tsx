@@ -64,61 +64,65 @@ interface Props {
 // Renders the report rows for the current page
 export function ReportsTable({ isLoading, fetchError, visibleReports }: Props) {
   return (
-    <Table>
-      <TableHeader>
-        <TableRow className="bg-[#f8fafc] hover:bg-[#f8fafc]">
-          <TableHead className="text-xs font-bold uppercase text-[#737373]">
-            Project Name
-          </TableHead>
-          <TableHead className="text-xs font-bold uppercase text-[#737373]">
-            Mentor
-          </TableHead>
-          <TableHead className="text-xs font-bold uppercase text-[#737373]">
-            Mentees Count
-          </TableHead>
-          <TableHead className="text-xs font-bold uppercase text-[#737373]">
-            Date
-          </TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        <TableStateRows
-          colSpan={4}
-          loading={isLoading}
-          error={fetchError}
-          empty={visibleReports.length === 0}
-          loadingMessage="Loading reports..."
-          emptyMessage="No reports found for the selected filters."
-        />
-        {!isLoading &&
-          !fetchError &&
-          visibleReports.map((report) => {
-            const { Icon, bg, color } = getProjectIcon(report.projectName);
-            return (
-              <TableRow key={report.id} className="hover:bg-[#F5F5F5]">
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${bg}`}
-                    >
-                      <Icon className={`h-4 w-4 ${color}`} />
+    <div className="w-full overflow-x-auto [scrollbar-width:thin] [-webkit-overflow-scrolling:touch]">
+      <Table className="min-w-[680px]">
+        <TableHeader>
+          <TableRow className="bg-[#f8fafc] hover:bg-[#f8fafc]">
+            <TableHead className="w-[45%] min-w-[280px] text-xs font-bold uppercase text-[#737373]">
+              Project Name
+            </TableHead>
+            <TableHead className="w-[25%] min-w-[170px] whitespace-nowrap text-xs font-bold uppercase text-[#737373]">
+              Mentor
+            </TableHead>
+            <TableHead className="w-[15%] min-w-[120px] whitespace-nowrap text-xs font-bold uppercase text-[#737373]">
+              Mentees Count
+            </TableHead>
+            <TableHead className="w-[15%] min-w-[110px] whitespace-nowrap text-xs font-bold uppercase text-[#737373]">
+              Date
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableStateRows
+            colSpan={4}
+            loading={isLoading}
+            error={fetchError}
+            empty={visibleReports.length === 0}
+            loadingMessage="Loading reports..."
+            emptyMessage="No reports found for the selected filters."
+          />
+          {!isLoading &&
+            !fetchError &&
+            visibleReports.map((report) => {
+              const { Icon, bg, color } = getProjectIcon(report.projectName);
+              return (
+                <TableRow key={report.id} className="hover:bg-[#F5F5F5]">
+                  <TableCell className="min-w-[280px]">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${bg}`}
+                      >
+                        <Icon className={`h-4 w-4 ${color}`} />
+                      </div>
+                      <span className="block truncate font-semibold text-[#0A0A0A]">
+                        {report.projectName}
+                      </span>
                     </div>
-                    <span className="font-semibold text-[#0A0A0A]">
-                      {report.projectName}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell className="text-[#0A0A0A]">
-                  {report.mentor}
-                </TableCell>
-                <TableCell className="text-[#0A0A0A]">
-                  {report.studentsCount}
-                </TableCell>
-                <TableCell className="text-[#737373]">{report.date}</TableCell>
-              </TableRow>
-            );
-          })}
-      </TableBody>
-    </Table>
+                  </TableCell>
+                  <TableCell className="min-w-[170px] whitespace-nowrap text-[#0A0A0A]">
+                    {report.mentor}
+                  </TableCell>
+                  <TableCell className="min-w-[120px] whitespace-nowrap text-[#0A0A0A]">
+                    {report.studentsCount}
+                  </TableCell>
+                  <TableCell className="min-w-[110px] whitespace-nowrap text-[#737373]">
+                    {report.date}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+        </TableBody>
+      </Table>
+    </div>
   );
 }

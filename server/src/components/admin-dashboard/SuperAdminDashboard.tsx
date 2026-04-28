@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { useAdminDashboard } from "@/_hooks/admin/useAdminDashboard";
 import {
   Activity,
   Briefcase,
@@ -11,7 +12,6 @@ import {
   Users,
 } from "lucide-react";
 
-import { useAdminDashboard } from "@/hooks/admin/useAdminDashboard";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,10 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  AdminPageLayout,
-  PageHeader,
-} from "@/components/admin";
+import { AdminPageLayout, PageHeader } from "@/components/admin";
 
 import RecentProjectsTable from "./RecentProjectsTable";
 import StatsGrid from "./StatsGrid";
@@ -238,81 +235,82 @@ export default function SuperAdminDashboard({
   return (
     <AdminPageLayout>
       <div className="flex-1 p-5 md:p-8 space-y-5">
-          <Dialog
-            open={isExportDialogOpen}
-            onOpenChange={setIsExportDialogOpen}
-          >
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Export Dashboard Report</DialogTitle>
-                <DialogDescription>
-                  Choose format and export the content including stats and
-                  recent projects.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="mt-4 space-y-3">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="export-format"
-                    value="csv"
-                    checked={chosenFormat === "csv"}
-                    onChange={() => setChosenFormat("csv")}
-                    className="h-4 w-4"
-                  />
-                  CSV
-                </label>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="export-format"
-                    value="pdf"
-                    checked={chosenFormat === "pdf"}
-                    onChange={() => setChosenFormat("pdf")}
-                    className="h-4 w-4"
-                  />
-                  PDF
-                </label>
-              </div>
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button variant="outline">Cancel</Button>
-                </DialogClose>
-                <Button className="bg-[#000053] text-white hover:bg-[#000053]" disabled={isExporting} onClick={handleExport}>
-                  {isExporting ? "Exporting..." : "Export"}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          {isLoading ? (
-            <div className="rounded-lg border border-slate-200 bg-white p-8 text-center text-slate-500">
-              Loading Super Admin dashboard...
-            </div>
-          ) : error ? (
-            <div className="rounded-lg border border-rose-200 bg-rose-50 p-8 text-center text-rose-700">
-              {error}
-            </div>
-          ) : (
-            <>
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 md:p-6">
-                <PageHeader
-                  title="Admin Super Dashboard"
-                  subtitle={`Welcome back${userName ? `, ${userName}` : ""}! Here’s your latest platform summary.`}
-                  action={
-                    <Button
-                      className="h-10 bg-[#000053] text-white hover:bg-[#000053] shrink-0"
-                      onClick={openDialog}
-                    >
-                      Export Data
-                    </Button>
-                  }
+        <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Export Dashboard Report</DialogTitle>
+              <DialogDescription>
+                Choose format and export the content including stats and recent
+                projects.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-4 space-y-3">
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="export-format"
+                  value="csv"
+                  checked={chosenFormat === "csv"}
+                  onChange={() => setChosenFormat("csv")}
+                  className="h-4 w-4"
                 />
-                <StatsGrid stats={cards} />
-              </div>
-              <RecentProjectsTable projects={recentProjects} />
-            </>
-          )}
+                CSV
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="export-format"
+                  value="pdf"
+                  checked={chosenFormat === "pdf"}
+                  onChange={() => setChosenFormat("pdf")}
+                  className="h-4 w-4"
+                />
+                PDF
+              </label>
+            </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">Cancel</Button>
+              </DialogClose>
+              <Button
+                className="bg-[#000053] text-white hover:bg-[#000053]"
+                disabled={isExporting}
+                onClick={handleExport}
+              >
+                {isExporting ? "Exporting..." : "Export"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {isLoading ? (
+          <div className="rounded-lg border border-slate-200 bg-white p-8 text-center text-slate-500">
+            Loading Super Admin dashboard...
+          </div>
+        ) : error ? (
+          <div className="rounded-lg border border-rose-200 bg-rose-50 p-8 text-center text-rose-700">
+            {error}
+          </div>
+        ) : (
+          <>
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 md:p-6">
+              <PageHeader
+                title="Admin Super Dashboard"
+                subtitle={`Welcome back${userName ? `, ${userName}` : ""}! Here’s your latest platform summary.`}
+                action={
+                  <Button
+                    className="h-10 bg-[#000053] text-white hover:bg-[#000053] shrink-0"
+                    onClick={openDialog}
+                  >
+                    Export Data
+                  </Button>
+                }
+              />
+              <StatsGrid stats={cards} />
+            </div>
+            <RecentProjectsTable projects={recentProjects} />
+          </>
+        )}
       </div>
     </AdminPageLayout>
   );

@@ -158,7 +158,7 @@ const LoginPage = () => {
                     htmlFor="email"
                     className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1"
                   >
-                    Organizational Email
+                    Email
                   </Label>
                   <div className="relative group">
                     <Mail className="absolute left-4 top-4 h-4 w-4 text-zinc-400 group-focus-within:text-blue-500 transition-colors" />
@@ -166,7 +166,7 @@ const LoginPage = () => {
                       id="email"
                       name="email"
                       type="email"
-                      placeholder="user@organization.t2t"
+                      placeholder="user@example.com"
                       required
                       disabled={loading}
                       className="h-14 pl-12 bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 focus:ring-4 focus:ring-blue-500/10 transition-all text-base font-semibold rounded-xl"
@@ -180,7 +180,7 @@ const LoginPage = () => {
                       htmlFor="password"
                       className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400"
                     >
-                      Security Key
+                      Password
                     </Label>
                     <button
                       type="button"
@@ -258,7 +258,7 @@ const LoginPage = () => {
             {toastData.description}
           </ToastDescription>
         </div>
-        <ToastClose className="text-black !opacity-100 hover:text-zinc-700 focus:text-zinc-900 !text-black !hover:text-zinc-700 !focus:text-zinc-900 !group-[.destructive]:text-black !group-[.destructive]:hover:text-zinc-700 !group-[.destructive]:focus:text-zinc-900 !transition-none" />
+        <ToastClose className="text-black !opacity-100 hover:text-zinc-700 focus:text-zinc-900 !hover:text-zinc-700 !focus:text-zinc-900 !group-[.destructive]:text-black !group-[.destructive]:hover:text-zinc-700 !group-[.destructive]:focus:text-zinc-900 !transition-none" />
       </Toast>
 
       <ToastViewport />

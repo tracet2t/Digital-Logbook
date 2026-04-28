@@ -9,55 +9,72 @@ interface CalendarEvent {
   studentId: string;
   timeSpent?: number;
   notes?: string;
+  technologies?: string[];
   status: "pending" | "approved" | "rejected"; // Added "no-status" for undefined cases
 }
 
 // Define a type for the raw data of students
 interface StudentEventData {
+  id: string;
   date: string;
   notes?: string;
+  timeSpent?: number;
+  studentId?: string;
+  technologies?: string[];
   feedback?: { status?: "pending" | "approved" | "rejected" }[];
 }
 
 // Define a type for the raw data of mentors
 interface MentorEventData {
+  id: string;
   date: string;
   activities?: string;
+  workingHours?: number;
+  studentId?: string;
   status?: "pending" | "approved" | "rejected";
 }
 
 // Converts raw data to CalendarEvent for students
-export const convertToCalendarEvents = (data: StudentEventData[]): CalendarEvent[] => {
-  return data.map((item, index) => {
+export const convertToCalendarEvents = (
+  data: StudentEventData[],
+): CalendarEvent[] => {
+  return data.map((item) => {
     const startDate = new Date(item.date);
     const endDate = new Date(item.date);
 
     return {
-      id: index.toString(),
+      id: item.id,
       title: item.notes || "No Title",
       start: startDate,
       end: endDate,
-      status: item.feedback?.[0]?.status || "pending", // Handle undefined feedback/status
-      createdAt: new Date(), // Adjust as needed
-      studentId: '', // Provide a default or map from your data if available
+      status: item.feedback?.[0]?.status || "pending",
+      createdAt: new Date(),
+      studentId: item.studentId || "",
+      timeSpent: item.timeSpent,
+      notes: item.notes,
+      technologies: item.technologies ?? [],
     };
   });
 };
 
 // Converts raw data to CalendarEvent for mentors
-export const convertToCalendarEventsMentor = (data: MentorEventData[]): CalendarEvent[] => {
-  return data.map((item, index) => {
+export const convertToCalendarEventsMentor = (
+  data: MentorEventData[],
+): CalendarEvent[] => {
+  return data.map((item) => {
     const startDate = new Date(item.date);
     const endDate = new Date(item.date);
 
     return {
-      id: index.toString(),
+      id: item.id,
       title: item.activities || "No Title",
       start: startDate,
       end: endDate,
-      status: item.status || "pending", // Assuming mentor data has some status field too
-      createdAt: new Date(), // Adjust as needed
-      studentId: '', // Provide a default or map from your data if available
+      status: item.status || "pending",
+      createdAt: new Date(),
+      studentId: item.studentId || "",
+      timeSpent: item.workingHours,
+      notes: item.activities,
     };
   });
 };

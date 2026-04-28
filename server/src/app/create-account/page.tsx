@@ -2,12 +2,11 @@
 
 import React, { useState } from "react";
 
+import { useCompleteRegistration } from "@/_hooks/admin/useCompleteRegistration";
 import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 
-
-import { useCompleteRegistration } from "@/hooks/admin/useCompleteRegistration";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

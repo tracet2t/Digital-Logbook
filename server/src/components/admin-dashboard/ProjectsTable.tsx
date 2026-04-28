@@ -17,6 +17,7 @@ export interface ProjectRow {
   id: string;
   name: string;
   domain: string;
+  batchNo?: string;
   mentors: number;
   students: number;
   createdBy: string;
@@ -92,7 +93,16 @@ export default function ProjectsTable({
                   <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-[#F0F0F0] shrink-0">
                     {domainIcons[project.domain] ?? <Globe size={18} />}
                   </div>
-                  <span>{project.name}</span>
+                  <div className="flex flex-col items-start">
+                    <span className="font-medium text-slate-900 leading-tight">
+                      {project.name}
+                    </span>
+                    {project.batchNo && (
+                      <span className="inline-block mt-1 px-3 py-0.5 rounded-full bg-[#EBEBEB] text-[11px] font-semibold text-blue-600 leading-tight">
+                        {project.batchNo}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </TableCell>
               <TableCell className="px-4 py-3">

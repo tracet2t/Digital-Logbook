@@ -15,7 +15,7 @@ export class InvitationRepository extends BaseRepository<Invitation> {
     email: string;
     role: Role;
     invitedBy: string; // ID of the super-admin
-    projectId: string; // Project ID
+    projectId?: string; // Project ID (optional)
   }) {
     const token = crypto.randomBytes(32).toString("hex"); // secure token
     const expiresAt = new Date(Date.now() + 3 * 60 * 60 * 1000); // 3 hours
