@@ -274,6 +274,7 @@ enum MenteeApplicationStatus {
   pending
   approved
   rejected
+  inactive
 }
 
 enum WarningCategory {

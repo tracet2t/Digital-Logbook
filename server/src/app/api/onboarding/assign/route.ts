@@ -367,7 +367,7 @@ export async function DELETE(req: NextRequest) {
     // 5. Mark application as inactive (removed from project)
     const updatedApplication = await onboardingRepo.updateStatus(
       applicationId,
-      "inactive",
+      "pending",
     );
 
     return NextResponse.json(
