@@ -1,8 +1,28 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 
 import { OnboardingApplication } from "./useAdminOnboarding";
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+/** The type of assignment action being confirmed */
+export type KanbanActionType = "assign" | "reassign" | "unassign";
+
+/** Pending action queued while waiting for user confirmation */
+export interface KanbanPendingAction {
+  type: KanbanActionType;
+  /** IDs of the users being moved (single or multi-select) */
+  draggedIds: string[];
+  /** Project the user is coming FROM (null = bench) */
+  sourceProjectId: string | null;
+  /** Project the user is going TO (null = bench / unassign) */
+  targetProjectId: string | null;
+  /** Snapshot of assignments used to revert on cancel */
+  snapshot: Record<string, Set<string>>;
+}
 
 interface UseKanbanBoardOptions {
   allocations: Array<{ id: string; projectId: string }> | undefined;
@@ -10,6 +30,10 @@ interface UseKanbanBoardOptions {
   onAssign: (id: string, projectId: string, onError: () => void) => void;
   onUnassign: (id: string, projectId: string, onError: () => void) => void;
 }
+
+// ---------------------------------------------------------------------------
+// Hook
+// ---------------------------------------------------------------------------
 
 export function useKanbanBoard({
   allocations,
@@ -24,6 +48,10 @@ export function useKanbanBoard({
   const [activeId, setActiveId] = useState<string | null>(null);
   const [viewingProfile, setViewingProfile] =
     useState<OnboardingApplication | null>(null);
+
+  /** The action waiting for confirmation. Null means no dialog is open. */
+  const [pendingAction, setPendingAction] =
+    useState<KanbanPendingAction | null>(null);
 
   const initialized = useRef(false);
   // Always-fresh ref so event handlers never read stale closure state
@@ -73,6 +101,10 @@ export function useKanbanBoard({
   const dragCount =
     activeId && selectedIds.has(activeId) ? selectedIds.size : 1;
 
+  // -------------------------------------------------------------------------
+  // Drag handlers — queue action, don't apply optimistically
+  // -------------------------------------------------------------------------
+
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
   };
@@ -96,18 +128,14 @@ export function useKanbanBoard({
     const targetId = over?.id as string | undefined;
 
     // ── Return to bench ──
-    // If the item came from a project and was NOT dropped on a project card,
-    // unassign it (covers: dropped on bench, dropped on empty space, dropped
-    // outside the board entirely).
     if (sourceProjectId && (!targetId || targetId === "BENCH")) {
-      const snapshot = { ...current };
-      setAssignments((prev) => {
-        const s = new Set(prev[sourceProjectId] ?? []);
-        s.delete(id);
-        return { ...prev, [sourceProjectId]: s };
+      setPendingAction({
+        type: "unassign",
+        draggedIds: [id],
+        sourceProjectId,
+        targetProjectId: null,
+        snapshot: { ...current },
       });
-      onUnassign(id, sourceProjectId, () => setAssignments(snapshot));
-      setSelectedIds(new Set());
       return;
     }
 
@@ -117,43 +145,86 @@ export function useKanbanBoard({
     // Dropped on the same project it's already in → ignore
     if (sourceProjectId === targetId) return;
 
-    // ── Assign to project ──
-    const projectId = targetId;
+    // ── Assign or reassign ──
     const draggedIds = selectedIds.has(id) ? Array.from(selectedIds) : [id];
 
-    const snapshot = { ...current };
-
-    setAssignments((prev) => {
-      const next: Record<string, Set<string>> = {};
-      for (const pid of Object.keys(prev)) {
-        const s = new Set(prev[pid]);
-        if (pid !== projectId) draggedIds.forEach((did) => s.delete(did));
-        next[pid] = s;
-      }
-      const target = new Set(next[projectId] ?? []);
-      draggedIds.forEach((did) => target.add(did));
-      next[projectId] = target;
-      return next;
+    setPendingAction({
+      type: sourceProjectId ? "reassign" : "assign",
+      draggedIds,
+      sourceProjectId,
+      targetProjectId: targetId,
+      snapshot: { ...current },
     });
+  };
+
+  // ── Unassign via the ✕ button inside a project card ──
+  const handleUnassign = (projectId: string, id: string) => {
+    setPendingAction({
+      type: "unassign",
+      draggedIds: [id],
+      sourceProjectId: projectId,
+      targetProjectId: null,
+      snapshot: { ...assignments },
+    });
+  };
+
+  // -------------------------------------------------------------------------
+  // Confirm / Cancel
+  // -------------------------------------------------------------------------
+
+  const confirmPendingAction = useCallback(() => {
+    if (!pendingAction) return;
+
+    const {
+      type,
+      draggedIds,
+      sourceProjectId,
+      targetProjectId,
+      snapshot,
+    } = pendingAction;
+
+    if (type === "unassign" && sourceProjectId) {
+      // Optimistic UI update
+      setAssignments((prev) => {
+        const s = new Set(prev[sourceProjectId] ?? []);
+        draggedIds.forEach((did) => s.delete(did));
+        return { ...prev, [sourceProjectId]: s };
+      });
+      draggedIds.forEach((did) =>
+        onUnassign(did, sourceProjectId, () => setAssignments(snapshot)),
+      );
+    } else if (targetProjectId) {
+      // assign or reassign
+      setAssignments((prev) => {
+        const next: Record<string, Set<string>> = {};
+        for (const pid of Object.keys(prev)) {
+          const s = new Set(prev[pid]);
+          if (pid !== targetProjectId) draggedIds.forEach((did) => s.delete(did));
+          next[pid] = s;
+        }
+        const target = new Set(next[targetProjectId] ?? []);
+        draggedIds.forEach((did) => target.add(did));
+        next[targetProjectId] = target;
+        return next;
+      });
+      draggedIds.forEach((did) =>
+        onAssign(did, targetProjectId, () => setAssignments(snapshot)),
+      );
+    }
 
     setSelectedIds(new Set());
+    setPendingAction(null);
+  }, [pendingAction, onAssign, onUnassign]);
 
-    draggedIds.forEach((did) => {
-      onAssign(did, projectId, () => setAssignments(snapshot));
-    });
-  };
+  const cancelPendingAction = useCallback(() => {
+    // No optimistic update was applied, so nothing to revert.
+    setSelectedIds(new Set());
+    setPendingAction(null);
+  }, []);
 
-  const handleUnassign = (projectId: string, id: string) => {
-    const snapshot = { ...assignments };
-
-    setAssignments((prev) => {
-      const s = new Set(prev[projectId] ?? []);
-      s.delete(id);
-      return { ...prev, [projectId]: s };
-    });
-
-    onUnassign(id, projectId, () => setAssignments(snapshot));
-  };
+  // -------------------------------------------------------------------------
+  // Return
+  // -------------------------------------------------------------------------
 
   return {
     assignments,
@@ -168,5 +239,9 @@ export function useKanbanBoard({
     handleDragStart,
     handleDragEnd,
     handleUnassign,
+    // Confirmation dialog state
+    pendingAction,
+    confirmPendingAction,
+    cancelPendingAction,
   };
 }

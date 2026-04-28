@@ -242,6 +242,9 @@ export default function AdminOnboardingPage() {
                     onAddProject={openCreateProject}
                     benchSearch={benchSearch}
                     onBenchSearchChange={setBenchSearch}
+                    pendingAction={menteeBoard.pendingAction}
+                    onConfirmAction={menteeBoard.confirmPendingAction}
+                    onCancelAction={menteeBoard.cancelPendingAction}
                   />
                 </TabsContent>
 
@@ -294,6 +297,9 @@ export default function AdminOnboardingPage() {
                     onAddProject={openCreateProject}
                     benchSearch={mentorBenchSearch}
                     onBenchSearchChange={setMentorBenchSearch}
+                    pendingAction={mentorBoard.pendingAction}
+                    onConfirmAction={mentorBoard.confirmPendingAction}
+                    onCancelAction={mentorBoard.cancelPendingAction}
                   />
                 </TabsContent>
               </Tabs>

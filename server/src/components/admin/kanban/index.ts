@@ -1,6 +1,10 @@
 export { ApplicantDialog } from "./ApplicantDialog";
 export { BenchCard } from "./BenchCard";
 export {
+  ConfirmAssignmentDialog,
+  type AssignmentActionType,
+} from "./ConfirmAssignmentDialog";
+export {
   CreateProjectDialog,
   type ProjectFormState,
 } from "./CreateProjectDialog";

@@ -3,6 +3,7 @@
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 
 import { OnboardingApplication } from "@/_hooks/admin/useAdminOnboarding";
+import { KanbanPendingAction } from "@/_hooks/admin/useKanbanBoard";
 import {
   closestCenter,
   CollisionDetection,
@@ -27,6 +28,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { BenchCard } from "./BenchCard";
+import { ConfirmAssignmentDialog } from "./ConfirmAssignmentDialog";
 import { ProjectCard } from "./ProjectCard";
 import { formatDate, getInitials } from "./utils";
 
@@ -61,6 +63,12 @@ interface KanbanBoardProps {
   onAddProject: () => void;
   benchSearch?: string;
   onBenchSearchChange?: (value: string) => void;
+  /** Pending action waiting for user confirmation */
+  pendingAction: KanbanPendingAction | null;
+  /** Call when user clicks "Confirm" in the dialog */
+  onConfirmAction: () => void;
+  /** Call when user clicks "Cancel" in the dialog */
+  onCancelAction: () => void;
 }
 
 export function KanbanBoard({
@@ -87,6 +95,9 @@ export function KanbanBoard({
   onAddProject,
   benchSearch = "",
   onBenchSearchChange,
+  pendingAction,
+  onConfirmAction,
+  onCancelAction,
 }: KanbanBoardProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -150,6 +161,7 @@ export function KanbanBoard({
   };
 
   return (
+    <>
     <DndContext
       sensors={sensors}
       collisionDetection={collisionDetection}
@@ -347,5 +359,39 @@ export function KanbanBoard({
         ) : null}
       </DragOverlay>
     </DndContext>
+
+    {/* ── Assignment confirmation dialog ── */}
+    {pendingAction && (() => {
+      const sourceProject = pendingAction.sourceProjectId
+        ? projects.find((p) => p.id === pendingAction.sourceProjectId)
+        : null;
+      const targetProject = pendingAction.targetProjectId
+        ? projects.find((p) => p.id === pendingAction.targetProjectId)
+        : null;
+
+      // Resolve display name(s)
+      const count = pendingAction.draggedIds.length;
+      const primaryApp = applications.find(
+        (a) => a.id === pendingAction.draggedIds[0],
+      );
+      const userName = primaryApp?.fullName ?? "Unknown User";
+      const targetName = targetProject?.name ?? "Bench";
+      const sourceName = sourceProject?.name ?? "Bench";
+
+      return (
+        <ConfirmAssignmentDialog
+          open
+          onOpenChange={(open) => !open && onCancelAction()}
+          onConfirm={onConfirmAction}
+          onCancel={onCancelAction}
+          actionType={pendingAction.type}
+          userName={userName}
+          targetName={targetName}
+          sourceName={sourceName}
+          count={count}
+        />
+      );
+    })()}
+    </>
   );
 }
