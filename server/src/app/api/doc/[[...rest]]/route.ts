@@ -8,12 +8,13 @@ import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 import { Role } from "@prisma/client";
 
 /**
- * Official oRPC Playground with OpenAPI Reference
+ * Official oRPC Playground with OpenAPI Reference + REST API
  * Access at: http://localhost:3000/api/doc
  *
  * ⚠️ PROTECTED: Only accessible by Super Admin users
  * Provides interactive API documentation with a modern UI
- * Powered by oRPC's OpenAPIReferencePlugin
+ * Also enables REST API access at the documented paths
+ * Powered by oRPC's OpenAPIHandler
  */
 
 const openAPIHandler = new OpenAPIHandler(router, {
@@ -41,8 +42,8 @@ const openAPIHandler = new OpenAPIHandler(router, {
         },
         servers: [
           {
-            url: "http://localhost:3000/api/rpc",
-            description: "Development Server",
+            url: "http://localhost:3000/api/doc",
+            description: "Development Server (REST API + Playground)",
           },
         ],
         tags: [
@@ -65,7 +66,7 @@ const openAPIHandler = new OpenAPIHandler(router, {
       docsConfig: {
         title: "Digital Logbook API - Interactive Playground",
         description:
-          "Test and explore all API endpoints with live examples and schema documentation",
+          "Test and explore all API endpoints with live examples and schema documentation. Also supports REST API access.",
         defaultOpenAllTags: true,
         showSchemas: true,
         authentication: {
@@ -76,6 +77,7 @@ const openAPIHandler = new OpenAPIHandler(router, {
   ],
 });
 
+//authentication middleware to protect the playground - only super admin can access
 async function handleRequest(request: Request) {
   // Authentication check - Only Super Admin can access
   try {
@@ -89,7 +91,10 @@ async function handleRequest(request: Request) {
         }),
         {
           status: 401,
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
         },
       );
     }
@@ -103,7 +108,10 @@ async function handleRequest(request: Request) {
         }),
         {
           status: 403,
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
         },
       );
     }
@@ -116,19 +124,90 @@ async function handleRequest(request: Request) {
       }),
       {
         status: 500,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
       },
     );
   }
 
   // User is authenticated as Super Admin, proceed with request
-  const { response } = await openAPIHandler.handle(request, {
-    prefix: "/api/doc",
-    context: {},
-  });
+  //this will let you access the rest apis
+  try {
+    const { response } = await openAPIHandler.handle(request, {
+      prefix: "/api/doc",
+      context: {
+        request, // Pass request to context for middleware access
+      },
+    });
 
-  return response ?? new Response("Not found", { status: 404 });
+    if (!response) {
+      console.warn("oRPC: No handler found for:", request.url);
+      return new Response(
+        JSON.stringify({
+          error: "Procedure not found",
+          message: "The requested endpoint does not exist",
+          url: request.url,
+        }),
+        {
+          status: 404,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods":
+              "GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+          },
+        },
+      );
+    }
+
+    // Add CORS headers to response
+    const headers = new Headers(response.headers);
+    headers.set("Access-Control-Allow-Origin", "*");
+    headers.set(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS",
+    );
+    headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
+  } catch (error) {
+    console.error("oRPC handler error:", error);
+    return new Response(
+      JSON.stringify({
+        error: "Internal server error",
+        message: error instanceof Error ? error.message : "Unknown error",
+      }),
+      {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+      },
+    );
+  }
 }
+
+// Handle CORS preflight requests
+export const OPTIONS = async () => {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods":
+        "GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      "Access-Control-Max-Age": "86400",
+    },
+  });
+};
 
 export const HEAD = handleRequest;
 export const GET = handleRequest;

@@ -1,31 +1,60 @@
 import { router } from "@/routers/index";
-import { OpenAPIHandler } from "@orpc/openapi/fetch";
+import getSession from "@/server_actions/getSession";
 import { onError } from "@orpc/server";
+import { RPCHandler } from "@orpc/server/fetch";
+
+import "@orpc/server/fetch";
 
 export const dynamic = "force-dynamic";
 
-// Create the OpenAPI handler with your router
-// This enables both RPC-style (dot notation) and REST-style (path-based) endpoints
-// RPC-style (/api/rpc.users.list) --> REST-style (/api/rpc/users/list) endpoints
-
-const handler = new OpenAPIHandler(router, {
+const handler = new RPCHandler(router, {
   interceptors: [
     onError((error) => {
-      // Log errors for debugging
-      console.error("oRPC Error:", error);
+      // Only log unexpected errors with full stack trace
+      // Expected business logic errors (validation, conflicts) are logged minimally
+      const expectedErrors = [
+        "CONFLICT",
+        "BAD_REQUEST",
+        "NOT_FOUND",
+        "UNAUTHORIZED",
+        "FORBIDDEN",
+      ];
+
+      // Type guard to check if error has code property
+      const errorCode = (error as any)?.code;
+      const errorMessage = (error as any)?.message;
+
+      if (errorCode && !expectedErrors.includes(errorCode)) {
+        // Unexpected server errors - log with full details
+        console.error("🔴 Unexpected oRPC Error:", error);
+      } else if (errorCode) {
+        // Expected errors - minimal logging
+        console.log(`ℹ️  [${errorCode}] ${errorMessage}`);
+      }
     }),
   ],
 });
 
 async function handleRequest(request: Request) {
   try {
+    const session = await getSession();
+
+    // Pass session to oRPC context
+    // Authentication is handled by procedure-level middleware:
+    // - publicProcedure: no auth required
+    // - authedProcedure: requires valid session
+    // - superAdminProcedure: requires super admin role
     const { response } = await handler.handle(request, {
       prefix: "/api/rpc",
       context: {
-        request, // Pass request to context for middleware access
+        request,
+        session,
+        userId: session?.getId(),
+        userRole: session?.getRole(),
       },
     });
 
+    //Handle missing response
     if (!response) {
       console.warn("oRPC: No handler found for:", request.url);
       return new Response(
@@ -47,7 +76,7 @@ async function handleRequest(request: Request) {
       );
     }
 
-    // Add CORS headers to response
+    // 6️⃣ Add CORS headers to successful response
     const headers = new Headers(response.headers);
     headers.set("Access-Control-Allow-Origin", "*");
     headers.set(
@@ -73,13 +102,16 @@ async function handleRequest(request: Request) {
         headers: {
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods":
+            "GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
         },
       },
     );
   }
 }
 
-// Handle CORS preflight requests
+//Handle CORS preflight requests
 export const OPTIONS = async () => {
   return new Response(null, {
     status: 204,
@@ -93,7 +125,6 @@ export const OPTIONS = async () => {
   });
 };
 
-// Export all HTTP methods that oRPC should handle
 export const HEAD = handleRequest;
 export const GET = handleRequest;
 export const POST = handleRequest;

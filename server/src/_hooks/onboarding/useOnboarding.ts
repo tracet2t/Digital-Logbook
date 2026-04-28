@@ -42,25 +42,35 @@ export const useOnboarding = () => {
 
   return useMutation<
     CreateApplicationResponse,
-    unknown,
+    ORPCError<string, unknown>,
     CreateApplicationInput
   >({
     mutationFn: async (data) => {
       // Call the oRPC procedure - fully type-safe at runtime!
-      const result = await orpcClient.onboarding.createApplication(data);
-      return result;
+      return await orpcClient.onboarding.createApplication(data);
     },
     onSuccess: () => {
       toast.success("Application submitted successfully!");
       // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: ["onboarding-applications"] });
     },
-    onError: (error: unknown) => {
-      if (error instanceof ORPCError) {
-        toast.error(error.message || "Failed to submit onboarding application");
-      } else {
-        toast.error("An unexpected error occurred");
-      }
+    onError: (error: ORPCError<string, unknown>) => {
+      // Handle oRPC errors
+      // Map error codes to user-friendly messages
+      const errorMessages: Record<string, string> = {
+        CONFLICT:
+          "An application with this email already exists. Please use a different email.",
+        BAD_REQUEST: "Invalid input. Please check your information.",
+        UNAUTHORIZED: "You must be logged in to submit an application.",
+        FORBIDDEN: "You don't have permission to perform this action.",
+        NOT_FOUND: "The requested resource was not found.",
+      };
+
+      const message =
+        errorMessages[error.code] ||
+        error.message ||
+        "Failed to submit application";
+      toast.error(message);
     },
   });
 };
