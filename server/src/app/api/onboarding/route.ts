@@ -166,12 +166,13 @@ export async function GET(req: NextRequest) {
       (applications as { email: string }[]).map((a) => a.email),
     );
     const directStudents = await prisma.user.findMany({
-      where: { role: Role.student, isActive: true },
+      where: { role: Role.student },
       select: {
         id: true,
         firstName: true,
         lastName: true,
         email: true,
+        isActive: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -185,7 +186,7 @@ export async function GET(req: NextRequest) {
         university: "-",
         degreeProgram: "-",
         cvLink: "#",
-        status: "approved" as const,
+        status: (u.isActive ? "approved" : "inactive") as const,
         createdAt: u.createdAt.toISOString(),
         updatedAt: u.updatedAt.toISOString(),
       }));

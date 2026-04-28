@@ -46,7 +46,10 @@ function DraggableAssignedRow({
       style={style}
       {...attributes}
       {...listeners}
-      onClick={() => onViewProfile(app)}
+      onClick={(e) => {
+        e.stopPropagation();
+        onViewProfile(app);
+      }}
       className={[
         "group/item flex h-8 cursor-grab items-center justify-between rounded-2xl border border-transparent bg-white px-2 py-1 shadow-sm transition active:cursor-grabbing hover:border-indigo-100 sm:h-9 sm:px-3 sm:py-1.5 lg:h-10",
         isDragging ? "opacity-40 ring-2 ring-indigo-300" : "",
@@ -86,6 +89,7 @@ export function ProjectCard({
   // Sortable for the card itself
   const {
     setNodeRef: setSortableRef,
+    setActivatorNodeRef,
     attributes,
     listeners,
     transform,
@@ -131,8 +135,6 @@ export function ProjectCard({
             : "border-[#e4e7ed] bg-slate-50/50 hover:border-slate-200",
         isSorting ? "ring-2 ring-indigo-200" : "",
       ].join(" ")}
-      {...attributes}
-      {...listeners}
     >
       <div className="mb-1.5 flex items-start justify-between lg:mb-3">
         {/* Drag handle */}
@@ -146,6 +148,9 @@ export function ProjectCard({
           ].join(" ")}
           tabIndex={0}
           aria-label="Drag project card"
+          ref={setActivatorNodeRef}
+          {...attributes}
+          {...listeners}
         >
           <Briefcase className="h-4 w-4" />
         </button>

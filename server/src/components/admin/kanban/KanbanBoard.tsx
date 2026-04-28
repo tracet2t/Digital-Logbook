@@ -5,11 +5,14 @@ import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { OnboardingApplication } from "@/_hooks/admin/useAdminOnboarding";
 import {
   closestCenter,
+  CollisionDetection,
   DndContext,
   DragEndEvent,
   DragOverlay,
   DragStartEvent,
   PointerSensor,
+  pointerWithin,
+  rectIntersection,
   useDroppable,
   useSensor,
   useSensors,
@@ -45,6 +48,7 @@ interface KanbanBoardProps {
   assignments: Record<string, Set<string>>;
   projects: Project[];
   setProjects: Dispatch<SetStateAction<Project[]>>;
+  onProjectsReorder?: (projects: Project[]) => void;
   projectsLoading: boolean;
   selectedIds: Set<string>;
   setSelectedIds: Dispatch<SetStateAction<Set<string>>>;
@@ -70,6 +74,7 @@ export function KanbanBoard({
   assignments,
   projects,
   setProjects,
+  onProjectsReorder,
   projectsLoading,
   selectedIds,
   setSelectedIds,
@@ -118,7 +123,9 @@ export function KanbanBoard({
       const oldIndex = projects.findIndex((p) => p.id === event.active.id);
       const newIndex = projects.findIndex((p) => p.id === event.over!.id);
       if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-        setProjects(arrayMove(projects, oldIndex, newIndex));
+        const nextProjects = arrayMove(projects, oldIndex, newIndex);
+        setProjects(nextProjects);
+        onProjectsReorder?.(nextProjects);
       }
       setActiveProjectId(null);
       return;
@@ -127,10 +134,25 @@ export function KanbanBoard({
     handleDragEnd(event); // call original for member DnD
   }
 
+  const collisionDetection: CollisionDetection = (args) => {
+    const isProjectDrag = projects.some((p) => p.id === args.active.id);
+    if (isProjectDrag) {
+      return closestCenter(args);
+    }
+
+    const pointerHits = pointerWithin(args);
+    const benchHit = pointerHits.find((hit) => hit.id === "BENCH");
+    if (benchHit) {
+      return [benchHit];
+    }
+
+    return pointerHits.length > 0 ? pointerHits : rectIntersection(args);
+  };
+
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCenter}
+      collisionDetection={collisionDetection}
       onDragStart={handleProjectDragStart}
       onDragEnd={handleProjectDragEnd}
     >

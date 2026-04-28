@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   useAssignMenteeToProject,
@@ -13,7 +13,11 @@ import {
   useUnassignMentor,
 } from "@/_hooks/admin/useAdminOnboarding";
 import { useKanbanBoard } from "@/_hooks/admin/useKanbanBoard";
-import { useCreateProject, useGetProjects } from "@/_hooks/projects";
+import {
+  useCreateProject,
+  useGetProjects,
+  useUpdateProjectOrder,
+} from "@/_hooks/projects";
 import { CheckCircle2, UserCheck, UserRound } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
@@ -61,11 +65,28 @@ export default function AdminOnboardingPage() {
   // Local state for project order (sortable)
   const [projects, setProjects] = useState<Project[]>([]);
 
-  // Sync fetched projects to local state on load
+  // Sync fetched projects to local state while preserving manual order
   useEffect(() => {
-    if (projectsData.length > 0 && projects.length === 0) {
-      setProjects(projectsData);
-    }
+    setProjects((prev) => {
+      if (projectsData.length === 0) {
+        return prev.length === 0 ? prev : [];
+      }
+
+      const incomingIds = new Set(projectsData.map((p) => p.id));
+      const existingIds = new Set(prev.map((p) => p.id));
+
+      const kept = prev.filter((p) => incomingIds.has(p.id));
+      const added = projectsData.filter((p) => !existingIds.has(p.id));
+
+      const next = [...kept, ...added];
+      if (
+        prev.length === next.length &&
+        prev.every((project, index) => project.id === next[index]?.id)
+      ) {
+        return prev;
+      }
+      return next;
+    });
   }, [projectsData]);
   // current mentee-to-project assignments (so we know who's already placed)
   const { data: allocations } = useProjectApplicationAllocations();
@@ -79,6 +100,7 @@ export default function AdminOnboardingPage() {
   const unassignMentor = useUnassignMentor();
   const { mutate: createProject, isPending: isCreatingProject } =
     useCreateProject();
+  const updateProjectOrder = useUpdateProjectOrder();
 
   // set up the kanban board state for the mentee tab —
   // maps existing allocations into the shape the hook expects, then wires
@@ -108,18 +130,34 @@ export default function AdminOnboardingPage() {
       unassignMentor.mutate({ mentorId: id, projectId }, { onError }),
   });
 
+  const menteeAssignedCount = useMemo(() => {
+    const ids = new Set<string>();
+    Object.values(menteeBoard.assignments).forEach((set) =>
+      set.forEach((id) => ids.add(id)),
+    );
+    return ids.size;
+  }, [menteeBoard.assignments]);
+
+  const mentorAssignedCount = useMemo(() => {
+    const ids = new Set<string>();
+    Object.values(mentorBoard.assignments).forEach((set) =>
+      set.forEach((id) => ids.add(id)),
+    );
+    return ids.size;
+  }, [mentorBoard.assignments]);
+
   // quick summary numbers shown in the stat cards at the top of the mentee tab
   const menteeCounts = {
     total: applications.length,
-    pending: applications.filter((a) => a.status === "pending").length,
-    approved: applications.filter((a) => a.status === "approved").length,
+    pending: menteeBoard.bench.length,
+    approved: menteeAssignedCount,
   };
 
   // same counts for the mentor tab
   const mentorCounts = {
     total: mentorApplications.length,
-    pending: mentorApplications.filter((a) => a.status === "pending").length,
-    approved: mentorApplications.filter((a) => a.status === "approved").length,
+    pending: mentorBoard.bench.length,
+    approved: mentorAssignedCount,
   };
 
   // reset the form and pop open the create-project dialog
@@ -187,6 +225,11 @@ export default function AdminOnboardingPage() {
                     assignments={menteeBoard.assignments}
                     projects={projects}
                     setProjects={setProjects}
+                    onProjectsReorder={(nextProjects) =>
+                      updateProjectOrder.mutate({
+                        order: nextProjects.map((project) => project.id),
+                      })
+                    }
                     projectsLoading={projectsLoading}
                     selectedIds={menteeBoard.selectedIds}
                     setSelectedIds={menteeBoard.setSelectedIds}
@@ -234,6 +277,11 @@ export default function AdminOnboardingPage() {
                     assignments={mentorBoard.assignments}
                     projects={projects}
                     setProjects={setProjects}
+                    onProjectsReorder={(nextProjects) =>
+                      updateProjectOrder.mutate({
+                        order: nextProjects.map((project) => project.id),
+                      })
+                    }
                     projectsLoading={projectsLoading}
                     selectedIds={mentorBoard.selectedIds}
                     setSelectedIds={mentorBoard.setSelectedIds}
@@ -280,7 +328,12 @@ export default function AdminOnboardingPage() {
               batchNo: createProjectForm.batchNo || undefined,
             },
             {
-              onSuccess: () => {
+              onSuccess: (data) => {
+                setProjects((prev) =>
+                  prev.some((project) => project.id === data.data.id)
+                    ? prev
+                    : [...prev, data.data],
+                );
                 setShowCreateProject(false);
                 setCreateProjectForm(EMPTY_FORM);
               },

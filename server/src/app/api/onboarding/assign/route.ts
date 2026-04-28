@@ -134,12 +134,15 @@ export async function POST(req: NextRequest) {
         directStudent.id,
       );
 
-      if (project.batchNo !== undefined) {
-        await prisma.user.update({
-          where: { id: directStudent.id },
-          data: { batchNo: project.batchNo },
-        });
-      }
+      await prisma.user.update({
+        where: { id: directStudent.id },
+        data: {
+          isActive: true,
+          ...(project.batchNo !== undefined
+            ? { batchNo: project.batchNo }
+            : {}),
+        },
+      });
 
       return NextResponse.json(
         {
@@ -257,13 +260,14 @@ export async function POST(req: NextRequest) {
       user.id,
     );
 
-    // 7. Sync the user's batchNo to match the project's batchNo
-    if (project.batchNo !== undefined) {
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { batchNo: project.batchNo },
-      });
-    }
+    // 7. Sync the user's batchNo to match the project's batchNo and activate
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        isActive: true,
+        ...(project.batchNo !== undefined ? { batchNo: project.batchNo } : {}),
+      },
+    });
 
     // 8. Mark the application as approved
     const updatedApplication = await onboardingRepo.updateStatus(
@@ -296,7 +300,7 @@ export async function POST(req: NextRequest) {
  * DELETE /api/onboarding/assign
  *
  * Removes a ProjectAllocation for the user linked to a MenteeApplication,
- * and resets the application status back to "pending".
+ * and sets the application status to "inactive".
  *
  * Body: { applicationId: string; projectId: string }
  * Auth: superAdmin only
@@ -339,7 +343,7 @@ export async function DELETE(req: NextRequest) {
       await projectRepo.removeStudentFromProject(projectId, directStudent.id);
       await prisma.user.update({
         where: { id: directStudent.id },
-        data: { batchNo: null },
+        data: { batchNo: null, isActive: false },
       });
 
       return NextResponse.json(
@@ -357,17 +361,17 @@ export async function DELETE(req: NextRequest) {
       // 3. Remove the ProjectAllocation
       await projectRepo.removeStudentFromProject(projectId, user.id);
 
-      // 4. Clear the user's batchNo
+      // 4. Clear the user's batchNo and deactivate
       await prisma.user.update({
         where: { id: user.id },
-        data: { batchNo: null },
+        data: { batchNo: null, isActive: false },
       });
     }
 
     // 5. Mark application as inactive (removed from project)
     const updatedApplication = await onboardingRepo.updateStatus(
       applicationId,
-      "pending",
+      "inactive",
     );
 
     return NextResponse.json(

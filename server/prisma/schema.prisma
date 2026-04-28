@@ -130,6 +130,7 @@ model Project {
   description String?
   domain      ProjectDomain
   batchNo     String?
+  projectOrder Int          @default(0)
 
   createdBy   String
 

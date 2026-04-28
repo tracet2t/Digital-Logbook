@@ -6,6 +6,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { CheckSquare, Square } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 import { formatDate, getInitials } from "./utils";
@@ -74,14 +75,29 @@ export function BenchCard({
       </Avatar>
 
       <div className="min-w-0 flex-1">
-        <p
-          className={[
-            "truncate text-xs font-bold",
-            selected ? "text-white" : "text-slate-800",
-          ].join(" ")}
-        >
-          {application.fullName}
-        </p>
+        <div className="flex items-center justify-between gap-2">
+          <p
+            className={[
+              "truncate text-xs font-bold",
+              selected ? "text-white" : "text-slate-800",
+            ].join(" ")}
+          >
+            {application.fullName}
+          </p>
+          {application.status === "inactive" && (
+            <Badge
+              variant="secondary"
+              className={[
+                "shrink-0 rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide",
+                selected
+                  ? "bg-white/20 text-white"
+                  : "bg-rose-50 text-rose-600",
+              ].join(" ")}
+            >
+              Inactive
+            </Badge>
+          )}
+        </div>
         <p
           className={[
             "truncate text-[10px] italic",

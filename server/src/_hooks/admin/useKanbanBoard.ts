@@ -57,7 +57,9 @@ export function useKanbanBoard({
   const bench = useMemo(
     () =>
       applications.filter(
-        (a) => a.status !== "rejected" && !assignedIds.has(a.id),
+        (a) =>
+          (a.status === "pending" || a.status === "inactive") &&
+          !assignedIds.has(a.id),
       ),
     [applications, assignedIds],
   );
