@@ -1,9 +1,14 @@
 ﻿"use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import dayjs from "dayjs";
 import isToday from "dayjs/plugin/isToday";
+import CalendarHeatmap from "react-calendar-heatmap";
+
+import "react-calendar-heatmap/dist/styles.css";
+import "@/styles/activityHeatmap.css";
+
 import {
   Award,
   FileText,
@@ -228,7 +233,8 @@ export default function MenteeProfilePage() {
               const timeB = new Date(b.createdAt ?? b.date).getTime();
               return timeB - timeA;
             });
-            setTasks(sorted.slice(0, 5));
+            // Store all tasks for heat map
+            setTasks(sorted);
           }
         }
       } catch (err) {
@@ -239,6 +245,40 @@ export default function MenteeProfilePage() {
     };
     load();
   }, []);
+
+  // Transform approved tasks into heat map data (last 6 months)
+  const heatmapData = useMemo(() => {
+    // Filter approved tasks
+    const approvedTasks = tasks.filter((task) => {
+      const rawStatus = (
+        task.feedback[0]?.status ??
+        task.status ??
+        ""
+      ).toLowerCase();
+      return rawStatus === "accepted" || rawStatus === "approved";
+    });
+
+    // Count tasks per date
+    const tasksByDate: Record<string, number> = {};
+    approvedTasks.forEach((task) => {
+      const dateKey = dayjs(task.date).format("YYYY-MM-DD");
+      tasksByDate[dateKey] = (tasksByDate[dateKey] || 0) + 1;
+    });
+
+    // Convert to heatmap format
+    return Object.entries(tasksByDate).map(([date, count]) => ({
+      date,
+      count,
+    }));
+  }, [tasks]);
+
+  // Get color class based on task count (3 levels)
+  const getHeatmapColorClass = (value: any) => {
+    if (!value || value.count === 0) return "color-empty";
+    if (value.count === 1) return "color-scale-3"; // Light: #A5B4FC
+    if (value.count === 2) return "color-scale-5"; // Medium: #6366F1
+    return "color-scale-10"; // 3+: #000053
+  };
 
   if (isLoading) {
     return (
@@ -392,6 +432,51 @@ export default function MenteeProfilePage() {
               )}
             </section>
 
+            {/* Activity Overview — Heat Map */}
+            <section className="border-b border-[#E5E5E5] py-7 lg:py-8">
+              <h2 className="mb-5 font-inter text-[11px] font-bold leading-[16.5px] tracking-[0.15em] text-[#94A3B8] uppercase">
+                Activity Overview (Last 6 Months)
+              </h2>
+              <div className="overflow-x-auto overflow-y-hidden">
+                <div className="min-w-[480px] max-w-full">
+                  <CalendarHeatmap
+                    startDate={dayjs().subtract(6, "month").toDate()}
+                    endDate={dayjs().toDate()}
+                    values={heatmapData}
+                    classForValue={getHeatmapColorClass}
+                    showWeekdayLabels
+                    titleForValue={(value: any) => {
+                      if (!value || !value.date) return "No tasks";
+                      const formattedDate = dayjs(value.date)
+                        .format("DD MMM YYYY")
+                        .toUpperCase();
+                      const taskText = value.count === 1 ? "TASK" : "TASKS";
+                      return `${formattedDate} · ${value.count} ${taskText}`;
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2.5">
+                <p className="font-inter text-[9px] font-semibold text-[#64748B]">
+                  Total Approved Tasks:{" "}
+                  {heatmapData.reduce((sum, d) => sum + d.count, 0)}
+                </p>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-inter text-[8px] font-medium text-[#94A3B8] uppercase">
+                    Less
+                  </span>
+                  <div className="flex gap-0.5">
+                    <span className="h-2.5 w-2.5 rounded bg-[#A5B4FC]" />
+                    <span className="h-2.5 w-2.5 rounded bg-[#6366F1]" />
+                    <span className="h-2.5 w-2.5 rounded bg-[#000053]" />
+                  </div>
+                  <span className="font-inter text-[8px] font-medium text-[#94A3B8] uppercase">
+                    More
+                  </span>
+                </div>
+              </div>
+            </section>
+
             {/* ── Status Indicators + Mentor Feedback ─────────── */}
             <section className="border-b border-[#E5E5E5] py-7 lg:py-8">
               <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.2fr_1fr] lg:gap-10 xl:gap-12">
@@ -494,7 +579,7 @@ export default function MenteeProfilePage() {
                   </p>
                 ) : (
                   <div className="flex flex-col">
-                    {tasks.map((task, idx) => {
+                    {tasks.slice(0, 5).map((task, idx) => {
                       const isLast = idx === tasks.length - 1;
                       const rawStatus = (
                         task.feedback[0]?.status ??
