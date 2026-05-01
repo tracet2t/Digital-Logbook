@@ -1,0 +1,182 @@
+/* Activity Heatmap Styles - Blue gradient matching #000053 brand color */
+
+.react-calendar-heatmap {
+  width: 80%;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+.react-calendar-heatmap text {
+  font-size: 5px;
+  fill: #64748b;
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+}
+
+.react-calendar-heatmap .react-calendar-heatmap-small-text {
+  font-size: 5px;
+}
+
+.react-calendar-heatmap rect:hover {
+  stroke: #000053;
+  stroke-width: 1px;
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+/* Cell sizing */
+.react-calendar-heatmap rect {
+  rx: 2;
+  ry: 2;
+}
+
+/* Empty cells - light gray */
+.react-calendar-heatmap .color-empty {
+  fill: #f1f5f9;
+}
+
+/* Blue gradient based on task count */
+.react-calendar-heatmap .color-scale-1 {
+  fill: #e0e7ff;
+}
+
+.react-calendar-heatmap .color-scale-2 {
+  fill: #c7d2fe;
+}
+
+.react-calendar-heatmap .color-scale-3 {
+  fill: #a5b4fc;
+}
+
+.react-calendar-heatmap .color-scale-4 {
+  fill: #818cf8;
+}
+
+.react-calendar-heatmap .color-scale-5 {
+  fill: #6366f1;
+}
+
+.react-calendar-heatmap .color-scale-6 {
+  fill: #4f46e5;
+}
+
+.react-calendar-heatmap .color-scale-7 {
+  fill: #4338ca;
+}
+
+.react-calendar-heatmap .color-scale-8 {
+  fill: #3730a3;
+}
+
+.react-calendar-heatmap .color-scale-9 {
+  fill: #312e81;
+}
+
+.react-calendar-heatmap .color-scale-10 {
+  fill: #000053;
+}
+
+/* Tooltip styles */
+.heatmap-tooltip {
+  position: absolute;
+  z-index: 9999;
+  background-color: #0f172a;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-family: "Inter", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -2px rgba(0, 0, 0, 0.1);
+}
+
+.heatmap-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #0f172a;
+}
+
+/* Month labels */
+.react-calendar-heatmap-month-label {
+  font-size: 8px;
+  font-weight: 700;
+  fill: #0f172a;
+}
+
+/* Weekday labels */
+.react-calendar-heatmap-weekday-label {
+  font-size: 7px;
+  font-weight: 600;
+  fill: #475569;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .react-calendar-heatmap text {
+    font-size: 7px;
+  }
+}
+
+@media (max-width: 768px) {
+  .react-calendar-heatmap {
+    width: 95%;
+  }
+
+  .react-calendar-heatmap text {
+    font-size: 6px;
+  }
+
+  .react-calendar-heatmap .react-calendar-heatmap-small-text {
+    font-size: 5px;
+  }
+
+  .heatmap-tooltip {
+    font-size: 9px;
+    padding: 6px 10px;
+  }
+
+  .react-calendar-heatmap-month-label {
+    font-size: 8px;
+  }
+
+  .react-calendar-heatmap-weekday-label {
+    font-size: 7px;
+  }
+}
+
+@media (max-width: 640px) {
+  .react-calendar-heatmap {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .react-calendar-heatmap text {
+    font-size: 6px;
+  }
+
+  .heatmap-tooltip {
+    font-size: 8px;
+    padding: 4px 8px;
+  }
+
+  .react-calendar-heatmap-month-label {
+    font-size: 7px;
+  }
+
+  .react-calendar-heatmap-weekday-label {
+    font-size: 6px;
+  }
+}
