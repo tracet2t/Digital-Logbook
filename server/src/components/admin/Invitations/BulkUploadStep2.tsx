@@ -52,6 +52,25 @@ interface BulkUploadStep2Props {
     total: number;
     percentage: number;
   };
+  validationResult?: {
+    validInvitations: Array<{
+      email: string;
+      role: "student" | "mentor" | "superAdmin";
+      firstName?: string;
+      lastName?: string;
+      projectId?: string;
+    }>;
+    invalidRows: Array<{
+      row: number;
+      email?: string;
+      error: string;
+      column: string;
+    }>;
+    summary: { valid: number; invalid: number };
+    messages: string[];
+  } | null;
+  hasValidated?: boolean;
+  missingRequiredColumns?: string[];
 }
 
 const getRoleBadgeColor = (role: string) => {
@@ -82,7 +101,17 @@ export function BulkUploadStep2({
   onSubmit = () => {},
   isSubmitting = false,
   progress = { current: 0, total: 0, percentage: 0 },
+  validationResult = null,
+  hasValidated = false,
+  missingRequiredColumns = [],
 }: BulkUploadStep2Props) {
+  const validCount = validationResult?.summary.valid ?? 0;
+  const invalidCount = validationResult?.summary.invalid ?? 0;
+  const hasMessages = (validationResult?.messages ?? []).length > 0;
+  const disableConfirm = hasValidated && (validCount === 0 || hasMessages);
+  const hasMissingRequired = missingRequiredColumns.length > 0;
+  const hasValidationErrors = hasValidated && (hasMessages || invalidCount > 0);
+
   return (
     <div className="space-y-6 w-full">
       {/* Step Indicator */}
@@ -118,7 +147,19 @@ export function BulkUploadStep2({
                   </>
                 )}
               </div>
-              <Badge className="bg-[#22C55E] text-white">✓ Valid Format</Badge>
+              {hasMissingRequired ? (
+                <Badge className="bg-orange-100 text-orange-800">
+                  Missing Required Columns
+                </Badge>
+              ) : hasValidationErrors ? (
+                <Badge className="bg-red-100 text-red-800">
+                  Validation Issues Found
+                </Badge>
+              ) : (
+                <Badge className="bg-[#22C55E] text-white">
+                  ✓ Valid Format
+                </Badge>
+              )}
             </div>
 
             {/* Records Detected */}
@@ -387,6 +428,93 @@ export function BulkUploadStep2({
         </Card>
       )}
 
+      {/* Validation Summary */}
+      <Card className="p-6 border-[#d9dde5]">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-bold uppercase tracking-wide text-slate-700">
+            Validation Summary
+          </h3>
+          {hasValidated && (
+            <Badge className="bg-[#000053] text-white">
+              {validCount} valid, {invalidCount} invalid
+            </Badge>
+          )}
+        </div>
+
+        {!hasValidated ? (
+          <p className="mt-3 text-sm text-slate-600">
+            Run validation to review invalid rows before sending.
+          </p>
+        ) : (
+          <div className="mt-3 space-y-4">
+            {hasMessages && (
+              <Alert className="border-[#EF4444] bg-red-50">
+                <AlertCircle className="h-4 w-4 text-[#EF4444]" />
+                <AlertDescription className="text-sm text-slate-700">
+                  <div className="space-y-1">
+                    {validationResult?.messages.map((message, index) => (
+                      <p key={index}>{message}</p>
+                    ))}
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {invalidCount > 0 ? (
+              <div className="space-y-3">
+                <p className="text-xs font-bold uppercase tracking-wide text-slate-700">
+                  Invalid Rows ({invalidCount})
+                </p>
+                <div className="overflow-x-auto border border-[#e4e7ed] rounded-md">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-[#f8fafc] hover:bg-[#f8fafc]">
+                        <TableHead className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                          Row #
+                        </TableHead>
+                        <TableHead className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                          Email
+                        </TableHead>
+                        <TableHead className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                          Column
+                        </TableHead>
+                        <TableHead className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                          Error Message
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {validationResult?.invalidRows.map((errorRow, idx) => (
+                        <TableRow key={idx} className="bg-white hover:bg-[#fbfcff]">
+                          <TableCell className="px-4 py-3">
+                            <Badge className="border border-slate-300 bg-slate-100 text-slate-700">
+                              {errorRow.row}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="px-4 py-3 font-medium text-slate-900">
+                            {errorRow.email || "-"}
+                          </TableCell>
+                          <TableCell className="px-4 py-3 text-sm text-slate-600">
+                            {errorRow.column}
+                          </TableCell>
+                          <TableCell className="px-4 py-3 text-sm text-slate-600">
+                            {errorRow.error}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-slate-600">
+                All rows are valid and ready to send.
+              </p>
+            )}
+          </div>
+        )}
+      </Card>
+
       {/* Buttons */}
       <div className="flex flex-col gap-3 pt-6 border-t border-[#e4e7ed] sm:flex-row sm:items-center sm:justify-between">
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
@@ -408,10 +536,14 @@ export function BulkUploadStep2({
 
         <Button
           onClick={onSubmit}
-          disabled={isSubmitting}
+          disabled={isSubmitting || disableConfirm}
           className="h-10 w-full bg-[#000053] px-6 font-semibold text-white hover:bg-[#000053] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
         >
-          {isSubmitting ? "SENDING..." : "UPLOAD & SEND INVITATIONS"} →
+          {isSubmitting
+            ? "SENDING..."
+            : hasValidated
+              ? "CONFIRM & SEND INVITATIONS"
+              : "VALIDATE IMPORT"} →
         </Button>
       </div>
     </div>
