@@ -6,13 +6,12 @@ import CalendarHeatmap from "react-calendar-heatmap";
 import "react-calendar-heatmap/dist/styles.css";
 import "@/styles/activityHeatmap.css";
 
-import { FileText } from "lucide-react";
-
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
+import { GenerateProfileReport } from "./_components/GenerateProfileReport";
 import { ProfileSkeleton } from "./_components/ProfileSkeleton";
 import { StatusIndicator } from "./_components/StatusIndicator";
 import { TaskTimeline } from "./_components/TaskTimeline";
@@ -146,37 +145,39 @@ export default function MenteeProfilePage() {
           <div className="px-5 md:px-8 lg:px-10">
             {/* Achievements & Badges */}
             <section className="border-b border-[#E5E5E5] py-7 lg:py-8">
-              <div className="relative flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <h2 className="mb-5 font-inter text-[11px] font-bold leading-[16.5px] tracking-[0.15em] text-[#94A3B8] uppercase">
-                    Achievements &amp; Badges
-                  </h2>
-                  {badges.length === 0 ? (
-                    <p className="font-inter text-[11px] text-[#94A3B8]">
-                      No badges earned yet.
-                    </p>
-                  ) : (
-                    <div className="grid grid-cols-2 gap-4 md:flex md:flex-wrap md:items-center md:gap-8">
-                      {badges.map((b, idx) => (
-                        <div key={b.id} className="flex items-center gap-3">
-                          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-[#E5E5E5] bg-[#F8FAFC]">
-                            <span
-                              className={ICON_COLORS[idx % ICON_COLORS.length]}
-                            >
-                              {badgeIcon(b.name)}
-                            </span>
+              <div className="flex flex-col gap-4">
+                <h2 className="font-inter text-[11px] font-bold leading-[16.5px] tracking-[0.15em] text-[#94A3B8] uppercase">
+                  Achievements &amp; Badges
+                </h2>
+                {badges.length === 0 ? (
+                  <p className="font-inter text-[11px] text-[#94A3B8]">
+                    No badges earned yet.
+                  </p>
+                ) : (
+                  <div className="flex w-full flex-wrap items-center justify-center gap-8">
+                    {badges.map((b, idx) => (
+                      <div
+                        key={b.id}
+                        className="flex flex-col items-center gap-2"
+                      >
+                        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-[#E5E5E5] bg-[#F8FAFC]">
+                          <span
+                            className={ICON_COLORS[idx % ICON_COLORS.length]}
+                          >
+                            {badgeIcon(b.name)}
                           </span>
-                          <p className="font-inter text-[10px] font-bold leading-[15px] tracking-[0.1em] text-[#475569] uppercase">
-                            {b.name}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                {warningSeverity && (
-                  <div className="flex-shrink-0 pt-0">
-                    <StatusIndicator severity={warningSeverity} />
+                        </span>
+                        <p className="font-inter text-[10px] font-bold leading-[15px] tracking-[0.1em] text-[#475569] uppercase">
+                          {b.name}
+                        </p>
+                      </div>
+                    ))}
+                    {warningSeverity && (
+                      <>
+                        <div className="mx-4 h-14 w-px self-center bg-[#E5E5E5]" />
+                        <StatusIndicator severity={warningSeverity} />
+                      </>
+                    )}
                   </div>
                 )}
               </div>
@@ -237,10 +238,11 @@ export default function MenteeProfilePage() {
 
             {/* Generate PDF */}
             <section className="flex justify-center py-7 lg:py-8">
-              <Button className="rounded-lg bg-[#000053] px-8 py-3.5 font-inter text-[11px] font-bold leading-[16.5px] tracking-[0.1em] text-white uppercase shadow-[0_10px_15px_-3px_rgba(0,0,0,0.10),0_4px_6px_-4px_rgba(0,0,0,0.10)] hover:bg-[#000053]/90">
-                <FileText className="mr-3 h-4 w-4" />
-                Generate PDF Full Profile Report
-              </Button>
+              <GenerateProfileReport
+                profileData={profileData}
+                tasks={tasks}
+                warningSeverity={warningSeverity}
+              />
             </section>
           </div>
         </div>
