@@ -1,5 +1,0 @@
-{
-  "dependencies": {
-    "@orpc/experimental-ratelimit": "^1.14.0"
-  }
-}
