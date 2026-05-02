@@ -1,4 +1,13 @@
+import type getSession from "@/server_actions/getSession";
+import type { Role } from "@/types";
 import { os } from "@orpc/server";
+
+export type AppContext = {
+  request?: Request;
+  session?: Awaited<ReturnType<typeof getSession>>;
+  userId?: string | null;
+  userRole?: Role | null;
+};
 
 export const commonErrors = {
   NOT_FOUND: {
@@ -31,4 +40,4 @@ export const commonErrors = {
   },
 } as const;
 
-export const base = os.errors(commonErrors);
+export const base = os.$context<AppContext>().errors(commonErrors);

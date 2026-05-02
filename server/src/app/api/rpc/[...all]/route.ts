@@ -1,5 +1,6 @@
 import { router } from "@/routers/index";
 import getSession from "@/server_actions/getSession";
+import { RatelimitHandlerPlugin } from "@orpc/experimental-ratelimit";
 import { onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 
@@ -8,6 +9,7 @@ import "@orpc/server/fetch";
 export const dynamic = "force-dynamic";
 
 const handler = new RPCHandler(router, {
+  plugins: [new RatelimitHandlerPlugin() as any],
   interceptors: [
     onError((error) => {
       // Only log unexpected errors with full stack trace
