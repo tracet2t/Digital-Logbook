@@ -4,6 +4,9 @@ import { useState } from "react";
 
 import * as XLSX from "xlsx";
 
+import { useBulkUploadTableStore } from "@/_stores/bulkUploadTableStore";
+import { validateBulkUploadRows } from "@/lib/bulkUploadValidation";
+
 interface FieldMapping {
   email: string;
   firstName: string;
@@ -30,6 +33,8 @@ interface BulkUploadState {
 }
 
 export function useBulkUpload() {
+  const { setData, setColumns, setCellErrors, clearAll } =
+    useBulkUploadTableStore();
   const [state, setState] = useState<BulkUploadState>({
     currentStep: 1,
     uploadedFile: null,
@@ -164,7 +169,12 @@ export function useBulkUpload() {
         project: "Project",
       };
 
-      const requiredHeaders: Array<keyof FieldMapping> = ["email", "role"];
+      const requiredHeaders: Array<keyof FieldMapping> = [
+        "email",
+        "role",
+        "firstName",
+        "lastName",
+      ];
       const missingRequiredColumns = requiredHeaders
         .filter((field) => !normalizedColumns[headerMap[field].toLowerCase()])
         .map((field) => headerMap[field]);
@@ -174,11 +184,52 @@ export function useBulkUpload() {
         return normalizedColumns[header] || "none";
       };
 
+      const ensuredColumns = [...columns];
+      requiredHeaders.forEach((field) => {
+        const name = headerMap[field];
+        if (!ensuredColumns.includes(name)) {
+          ensuredColumns.push(name);
+        }
+      });
+
+      const createRowId = (index: number) => {
+        if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+          return crypto.randomUUID();
+        }
+        return `${Date.now()}-${index}-${Math.random().toString(16).slice(2)}`;
+      };
+
+      const rowsWithIds = rows.map((row, index) => {
+        const nextRow = { ...row } as Record<string, unknown>;
+        requiredHeaders.forEach((field) => {
+          const columnName = headerMap[field];
+          if (nextRow[columnName] === undefined) {
+            nextRow[columnName] = "";
+          }
+        });
+        return {
+          ...nextRow,
+          id: createRowId(index),
+        };
+      });
+
+      const defaultMapping = {
+        email: getMappedColumn("email"),
+        firstName: getMappedColumn("firstName"),
+        lastName: getMappedColumn("lastName"),
+        role: getMappedColumn("role"),
+        project: getMappedColumn("project"),
+      };
+
+      setColumns(ensuredColumns);
+      setData(rowsWithIds);
+      setCellErrors(validateBulkUploadRows(rowsWithIds, defaultMapping));
+
       setState((prev) => ({
         ...prev,
         uploadedFile: file,
         excelData: rows,
-        excelColumns: columns,
+        excelColumns: ensuredColumns,
         previewData: previewRows,
         fileInfo: {
           name: file.name,
@@ -187,13 +238,7 @@ export function useBulkUpload() {
         },
         isLoading: false,
         error: null,
-        fieldMapping: {
-          email: getMappedColumn("email"),
-          firstName: getMappedColumn("firstName"),
-          lastName: getMappedColumn("lastName"),
-          role: getMappedColumn("role"),
-          project: getMappedColumn("project"),
-        },
+        fieldMapping: defaultMapping,
         missingRequiredColumns,
       }));
     } catch (err) {
@@ -223,6 +268,7 @@ export function useBulkUpload() {
   };
 
   const resetUpload = () => {
+    clearAll();
     setState({
       currentStep: 1,
       uploadedFile: null,
