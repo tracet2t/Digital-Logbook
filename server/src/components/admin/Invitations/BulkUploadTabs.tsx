@@ -1,33 +1,18 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 import { useBulkSendInvitations } from "@/_hooks/admin/useBulkInvitation";
 import { useBulkUpload } from "@/_hooks/useBulkUpload";
+import { useBulkUploadTableStore } from "@/_stores/bulkUploadTableStore";
+import {
+  buildInvitationsFromRows,
+  validateBulkUploadRows,
+} from "@/lib/bulkUploadValidation";
 
 import { BulkUploadStep1 } from "./BulkUploadStep1";
 import { BulkUploadStep2 } from "./BulkUploadStep2";
 import { BulkUploadStep3 } from "./BulkUploadStep3";
-
-type ValidationErrorRow = {
-  row: number;
-  email?: string;
-  error: string;
-  column: string;
-};
-
-type ValidationResult = {
-  validInvitations: Array<{
-    email: string;
-    role: "student" | "mentor" | "superAdmin";
-    firstName?: string;
-    lastName?: string;
-    projectId?: string;
-  }>;
-  invalidRows: ValidationErrorRow[];
-  summary: { valid: number; invalid: number };
-  messages: string[];
-};
 
 interface BulkUploadTabsProps {
   onBack?: () => void;
@@ -38,10 +23,8 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
   const {
     currentStep,
     uploadedFile,
-    excelData,
     fileInfo,
     fieldMapping,
-    previewData,
     isLoading,
     error,
     missingRequiredColumns,
@@ -57,16 +40,19 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
     isLoading: isSending,
     progress,
   } = useBulkSendInvitations();
+  const { data, cellErrors, setCellErrors } = useBulkUploadTableStore();
   const [submissionResult, setSubmissionResult] = useState<any>(null);
-  const [validationResult, setValidationResult] = useState<ValidationResult | null>(
-    null,
-  );
-  const [hasValidated, setHasValidated] = useState(false);
 
-  useEffect(() => {
-    setHasValidated(false);
-    setValidationResult(null);
-  }, [excelData, fieldMapping]);
+  const handleFieldMappingAndValidate = (
+    field: "email" | "firstName" | "lastName" | "role" | "project",
+    column: string,
+  ) => {
+    const nextMapping = { ...fieldMapping, [field]: column };
+    handleFieldMapping(field, column);
+    if (data.length > 0) {
+      setCellErrors(validateBulkUploadRows(data, nextMapping));
+    }
+  };
 
   const handleFileUploadAndAdvance = async (file: File) => {
     await handleFileUpload(file);
@@ -77,143 +63,16 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
     goToStep(1);
   };
 
-  const buildAndValidateInvitations = (
-    rows: Record<string, any>[],
-    mapping: typeof fieldMapping,
-  ): ValidationResult => {
-    const validInvitations: ValidationResult["validInvitations"] = [];
-    const invalidRows: ValidationErrorRow[] = [];
-    const messages: string[] = [];
-    const allowedRoles = ["student", "mentor", "superAdmin", "mentee"] as const;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    rows.forEach((row, index) => {
-      const rawEmail = row[mapping.email];
-      const rawRole = row[mapping.role];
-      const rawFirstName =
-        mapping.firstName && mapping.firstName !== "none"
-          ? row[mapping.firstName]
-          : "";
-      const rawLastName =
-        mapping.lastName && mapping.lastName !== "none"
-          ? row[mapping.lastName]
-          : "";
-      const rawProjectId =
-        mapping.project && mapping.project !== "none"
-          ? row[mapping.project]
-          : undefined;
-
-      const email = rawEmail?.toString().trim() || "";
-      const role = rawRole?.toString().trim().toLowerCase() || "";
-      const normalizedRole = role === "mentee" ? "student" : role;
-      const firstName = rawFirstName?.toString().trim() || "";
-      const lastName = rawLastName?.toString().trim() || "";
-      const projectId = rawProjectId?.toString().trim() || "";
-
-      const errors: string[] = [];
-      const errorColumns = new Set<string>();
-      if (!email && !role) {
-        errors.push("Missing email and role");
-        errorColumns.add("Email Address");
-        errorColumns.add("Role Type");
-      } else {
-        if (!email) {
-          errors.push("Missing email");
-          errorColumns.add("Email Address");
-        }
-        if (email && !emailRegex.test(email)) {
-          errors.push("Invalid email format");
-          errorColumns.add("Email Address");
-        }
-        if (!role) {
-          errors.push("Missing role");
-          errorColumns.add("Role Type");
-        }
-        if (
-          role &&
-          !allowedRoles.includes(role as (typeof allowedRoles)[number])
-        ) {
-          errors.push("Invalid role");
-          errorColumns.add("Role Type");
-        }
-      }
-
-      if (errors.length > 0) {
-        invalidRows.push({
-          row: index + 1,
-          email: email || undefined,
-          error: errors.join("; "),
-          column: Array.from(errorColumns).join(", ") || "-",
-        });
-        return;
-      }
-
-      validInvitations.push({
-        email,
-        role: normalizedRole as "student" | "mentor" | "superAdmin",
-        firstName: firstName || email.split("@")[0],
-        lastName,
-        projectId: projectId || undefined,
-      });
-    });
-
-    return {
-      validInvitations,
-      invalidRows,
-      summary: { valid: validInvitations.length, invalid: invalidRows.length },
-      messages,
-    };
-  };
-
   const handleSubmit = async () => {
-    const missingMappings: string[] = [];
-    if (!fieldMapping.email || fieldMapping.email === "none") {
-      missingMappings.push("Email Address");
-    }
-    if (!fieldMapping.role || fieldMapping.role === "none") {
-      missingMappings.push("Role Type");
-    }
+    if (missingRequiredColumns.length > 0) return;
+    if (!fieldMapping.email || fieldMapping.email === "none") return;
+    if (!fieldMapping.role || fieldMapping.role === "none") return;
+    if (cellErrors.length > 0) return;
 
-    if (!hasValidated) {
-      const result = buildAndValidateInvitations(excelData, fieldMapping);
-      if (missingRequiredColumns.length > 0) {
-        result.messages.push(
-          `Missing required columns: ${missingRequiredColumns.join(", ")}.`,
-        );
-      }
-      if (missingMappings.length > 0) {
-        result.messages.push(
-          `Map the required fields: ${missingMappings.join(", ")}.`,
-        );
-      }
-      setValidationResult(result);
-      setHasValidated(true);
-      return;
-    }
+    const invitations = buildInvitationsFromRows(data, fieldMapping);
+    if (invitations.length === 0) return;
 
-    if (
-      !validationResult ||
-      validationResult.validInvitations.length === 0 ||
-      missingRequiredColumns.length > 0 ||
-      missingMappings.length > 0
-    ) {
-      const result = buildAndValidateInvitations(excelData, fieldMapping);
-      if (missingRequiredColumns.length > 0) {
-        result.messages.push(
-          `Missing required columns: ${missingRequiredColumns.join(", ")}.`,
-        );
-      }
-      if (missingMappings.length > 0) {
-        result.messages.push(
-          `Map the required fields: ${missingMappings.join(", ")}.`,
-        );
-      }
-      setValidationResult(result);
-      setHasValidated(true);
-      return;
-    }
-
-    await sendBulkInvitations(validationResult.validInvitations, (res) => {
+    await sendBulkInvitations(invitations, (res) => {
       setSubmissionResult(res);
       if (res.success > 0) {
         goToStep(3);
@@ -225,6 +84,15 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
     resetUpload();
     setSubmissionResult(null);
   };
+
+  const isSubmitDisabled =
+    missingRequiredColumns.length > 0 ||
+    !fieldMapping.email ||
+    fieldMapping.email === "none" ||
+    !fieldMapping.role ||
+    fieldMapping.role === "none" ||
+    cellErrors.length > 0 ||
+    data.length === 0;
 
   return (
     <div className="w-full">
@@ -240,16 +108,14 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
           fileInfo={fileInfo}
           excelColumns={getExcelColumns()}
           fieldMapping={fieldMapping}
-          onFieldMappingChange={handleFieldMapping}
-          previewData={previewData}
+          onFieldMappingChange={handleFieldMappingAndValidate}
           onBack={handleBackToUpload}
           onCancel={onCancel}
           onSubmit={handleSubmit}
           isSubmitting={isSending}
           progress={progress}
-          validationResult={validationResult}
-          hasValidated={hasValidated}
           missingRequiredColumns={missingRequiredColumns}
+          isSubmitDisabled={isSubmitDisabled}
         />
       ) : (
         <BulkUploadStep3
