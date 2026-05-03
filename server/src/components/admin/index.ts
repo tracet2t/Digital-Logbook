@@ -8,3 +8,6 @@ export { default as TableActionMenu } from "./TableActionMenu";
 export type { ActionItem } from "./TableActionMenu";
 export { default as TableStateRows } from "./TableStateRows";
 export { default as FilterBar } from "./FilterBar";
+export { PreviewCanvas } from "./PreviewCanvas";
+export { EditorPanel } from "./EditorPanel";
+export { PublishToast } from "./PublishToast";
