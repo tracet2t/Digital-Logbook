@@ -2,16 +2,15 @@
 
 import { useState } from "react";
 
-import { jsPDF } from "jspdf";
-import { FileText } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-
 import {
   type ProfileApiData,
   type Task,
   type WarningSeverity,
-} from "../_constants";
+} from "@/app/student/profile/_constants";
+import { jsPDF } from "jspdf";
+import { FileText } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 
 // ─── Palette ───────────────────────────────────────────────────────────────────
 type RGB = readonly [number, number, number];

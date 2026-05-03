@@ -3,7 +3,10 @@
  * Pill badge with coloured dot and hover tooltip showing the student's
  * warning severity. Colors mirror the MenteeAvatar warning ring.
  */
-import { STATUS_CONFIG, type WarningSeverity } from "../_constants";
+import {
+  STATUS_CONFIG,
+  type WarningSeverity,
+} from "@/app/student/profile/_constants";
 
 type Props = {
   severity: WarningSeverity;

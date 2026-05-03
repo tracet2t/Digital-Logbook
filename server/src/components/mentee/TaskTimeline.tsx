@@ -3,12 +3,11 @@
  * Vertical timeline of the student's 5 most recent tasks,
  * each with a status dot, title, timestamp, tech tags, and approval badge.
  */
+import { type Task } from "@/app/student/profile/_constants";
 import dayjs from "dayjs";
 import isToday from "dayjs/plugin/isToday";
 
 import { cn } from "@/lib/utils";
-
-import { type Task } from "../_constants";
 
 dayjs.extend(isToday);
 
