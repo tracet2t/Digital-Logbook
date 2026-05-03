@@ -54,7 +54,6 @@ export default function LandingPageCmsPage() {
                 onUpdate={update}
                 onAddCard={addCard}
                 onDeleteActive={deleteActive}
-                onPublish={publish}
               />
             )}
           </div>

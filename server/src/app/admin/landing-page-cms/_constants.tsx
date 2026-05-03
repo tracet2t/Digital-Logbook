@@ -5,6 +5,7 @@ export interface CmsCard {
   description: string;
   date: string; // display label shown on canvas
   rawDate: string; // ISO YYYY-MM-DD for the date picker
+  rawTime: string; // HH:MM for the time picker
   isVisible: boolean;
   imageName: string | null;
   imageUrl: string | null;
@@ -12,16 +13,17 @@ export interface CmsCard {
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-export function formatDisplayDate(iso: string): string {
+export function formatDisplayDate(iso: string, time?: string): string {
   if (!iso) return "";
   const d = new Date(iso + "T00:00:00");
-  return d
+  const datePart = d
     .toLocaleDateString("en-GB", {
       day: "2-digit",
       month: "long",
       year: "numeric",
     })
     .toUpperCase();
+  return time ? `${datePart} • ${time}` : datePart;
 }
 
 // ─── Seed data ────────────────────────────────────────────────────────────────
@@ -33,6 +35,7 @@ export const DEFAULT_CARDS: CmsCard[] = [
       "Explore the latest advancements in archival methodologies and data curation strategies for large-scale institutional repositories.",
     date: "SAT, 7 MAR AT 09:30",
     rawDate: "2026-03-07",
+    rawTime: "09:30",
     isVisible: true,
     imageName: "research_excellence_lab.jpg",
     imageUrl:
@@ -46,6 +49,7 @@ export const DEFAULT_CARDS: CmsCard[] = [
       "Navigating the complexities of archival startups and digital heritage enterprises in the modern age.",
     date: "NOVEMBER 02, 2023 • VIRTUAL",
     rawDate: "2023-11-02",
+    rawTime: "",
     isVisible: true,
     imageName: "startup_path.jpg",
     imageUrl:

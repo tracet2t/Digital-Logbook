@@ -25,6 +25,7 @@ export function useLandingPageCmsPage() {
       description: "Enter a short summary for the landing page...",
       date: "TBD — SET DATE",
       rawDate: "",
+      rawTime: "",
       isVisible: true,
       imageName: null,
       imageUrl: null,
