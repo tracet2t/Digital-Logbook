@@ -1,6 +1,6 @@
 import { BulkUploadTableRow, BulkUploadCellError } from "@/_stores/bulkUploadTableStore";
 
-export const VALID_ROLES = ["student", "mentor", "superadmin", "mentee"] as const;
+export const VALID_ROLES = ["mentor", "mentee"] as const;
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -114,12 +114,7 @@ export const buildInvitationsFromRows = (
 
       const email = String(row[mapping.email] ?? "").trim();
       const role = String(row[mapping.role] ?? "").trim().toLowerCase();
-      const normalizedRole =
-        role === "mentee"
-          ? "student"
-          : role === "superadmin"
-            ? "superAdmin"
-            : role;
+      const normalizedRole = role === "mentee" ? "student" : role;
       const firstName =
         mapping.firstName && mapping.firstName !== "none"
           ? String(row[mapping.firstName] ?? "").trim()
