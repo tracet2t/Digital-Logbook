@@ -6,17 +6,18 @@ import CalendarHeatmap from "react-calendar-heatmap";
 import "react-calendar-heatmap/dist/styles.css";
 import "@/styles/activityHeatmap.css";
 
+import { useMenteeProfilePage } from "@/_hooks/mentee/useMenteeProfilePage";
+
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { GenerateProfileReport } from "@/components/mentee/GenerateProfileReport";
+import { ProfileSkeleton } from "@/components/mentee/ProfileSkeleton";
+import { StatusIndicator } from "@/components/mentee/StatusIndicator";
+import { TaskTimeline } from "@/components/mentee/TaskTimeline";
 
-import { GenerateProfileReport } from "./_components/GenerateProfileReport";
-import { ProfileSkeleton } from "./_components/ProfileSkeleton";
-import { StatusIndicator } from "./_components/StatusIndicator";
-import { TaskTimeline } from "./_components/TaskTimeline";
 import { badgeIcon, getInitials, ICON_COLORS } from "./_constants";
-import { useMenteeProfilePage } from "./_hooks/useMenteeProfilePage";
 
 export default function MenteeProfilePage() {
   const {
