@@ -246,13 +246,10 @@ function generatePDF(profileData: ProfileApiData, tasks: Task[]) {
         COLS.tech + 2,
         y + 5.5,
       );
-      const sl = s.toUpperCase(),
-        sw = doc.getTextWidth(sl) + 5;
-      f(sc);
-      doc.roundedRect(COLS.status + 2, y + 2, sw, 5, 1.5, 1.5, "F");
-      t(P.white);
-      font("bold", 6);
-      doc.text(sl, COLS.status + 4.5, y + 5.6);
+      const sl = s.toUpperCase();
+      t(sc);
+      font("bold", 6.5);
+      doc.text(sl, COLS.status + 2, y + 5.5);
       y += RH;
     });
   }
