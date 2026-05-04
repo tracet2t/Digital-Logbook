@@ -15,14 +15,19 @@ import {
 import { Role } from "@prisma/client";
 import { z } from "zod";
 
+import { onboardingQueue } from "@/lib/onboardingQueue";
 import prisma from "@/lib/prisma";
 
 // Initialize repository
 const onboardingRepository = new OnboardingRepository();
 
 // Create procedures with authentication middleware
-const { publicProcedure, authedProcedure, superAdminProcedure } =
-  createProcedures();
+const {
+  publicProcedure,
+  rateLimitedPublicProcedure,
+  authedProcedure,
+  superAdminProcedure,
+} = createProcedures();
 
 /**
  * Domain-specific error definitions for onboarding
@@ -39,7 +44,7 @@ const onboardingErrors = {
   },
 } as const;
 
-export const createApplication = publicProcedure
+export const createApplication = rateLimitedPublicProcedure
   .route({
     method: "POST",
     path: "/onboarding/applications",
@@ -69,6 +74,13 @@ export const createApplication = publicProcedure
       university: input.university,
       degreeProgram: input.degreeProgram,
       cvLink: input.cvLink,
+    });
+
+    // Dispatch confirmation email asynchronously — does not block the response
+    await onboardingQueue.add("sendConfirmationEmail", {
+      type: "sendConfirmationEmail",
+      email: application.email,
+      fullName: application.fullName,
     });
 
     return {
