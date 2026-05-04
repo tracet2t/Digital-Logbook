@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" role="img" aria-label="Super Admin workspace">
+  <rect width="1200" height="700" fill="#f4f7ff"/>
+  <rect x="0" y="0" width="1200" height="70" fill="#0a1f6b"/>
+  <rect x="20" y="18" width="220" height="34" rx="6" fill="#1a43b8"/>
+  <rect x="0" y="70" width="250" height="630" fill="#132d86"/>
+  <rect x="280" y="110" width="280" height="140" rx="12" fill="#ffffff" stroke="#d8e0ff"/>
+  <rect x="590" y="110" width="280" height="140" rx="12" fill="#ffffff" stroke="#d8e0ff"/>
+  <rect x="900" y="110" width="260" height="140" rx="12" fill="#ffffff" stroke="#d8e0ff"/>
+  <rect x="280" y="280" width="880" height="360" rx="12" fill="#ffffff" stroke="#d8e0ff"/>
+  <rect x="40" y="110" width="170" height="20" rx="4" fill="#3f63d6"/>
+  <rect x="40" y="150" width="140" height="14" rx="4" fill="#4167db"/>
+  <rect x="40" y="182" width="160" height="14" rx="4" fill="#4167db"/>
+  <rect x="40" y="214" width="150" height="14" rx="4" fill="#4167db"/>
+</svg>

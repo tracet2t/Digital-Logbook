@@ -1,0 +1,19 @@
+site_name: Digital Logbook
+site_description: Complete User Guide for Digital Logbook Platform
+site_author: Digital Logbook Team
+
+docs_dir: .
+
+theme:
+  name: readthedocs
+  highlightjs: true
+
+nav:
+  - Home: index.md
+  - User Guide: user-guide.md
+
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - tables

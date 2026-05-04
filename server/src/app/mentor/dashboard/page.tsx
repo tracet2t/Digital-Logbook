@@ -17,6 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PageHeader } from "@/components/admin";
+import { MenteeAvatar } from "@/components/mentor/MenteeAvatar";
 
 function StatCard({
   label,
@@ -71,47 +72,30 @@ function StatusBadge({
 }
 
 function MenteeRow({
+  studentId,
   initials,
   name,
   project,
   lastActivity,
   status,
 }: {
+  studentId: string;
   initials: string;
   name: string;
   project: string;
   lastActivity: string;
   status: "ACCEPTED" | "PENDING" | "REJECTED";
 }) {
-  // Generate color based on initials
-  const generateColor = (initials: string) => {
-    const colors = [
-      { bg: "bg-blue-100", text: "text-blue-700" },
-      { bg: "bg-orange-100", text: "text-orange-700" },
-      { bg: "bg-teal-100", text: "text-teal-700" },
-      { bg: "bg-purple-100", text: "text-purple-700" },
-      { bg: "bg-pink-100", text: "text-pink-700" },
-      { bg: "bg-green-100", text: "text-green-700" },
-      { bg: "bg-indigo-100", text: "text-indigo-700" },
-      { bg: "bg-red-100", text: "text-red-700" },
-    ];
-
-    // Use initials to generate a consistent color
-    const charCode = initials.charCodeAt(0) + initials.charCodeAt(1);
-    return colors[charCode % colors.length];
-  };
-
-  const colorSet = generateColor(initials);
-
   return (
     <TableRow className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
       <TableCell>
         <div className="flex items-center gap-3">
-          <div
-            className={`flex h-8 w-8 items-center justify-center rounded-full font-semibold text-sm ${colorSet.bg} ${colorSet.text}`}
-          >
-            {initials}
-          </div>
+          <MenteeAvatar
+            studentId={studentId}
+            name={name}
+            initials={initials}
+            className="h-8 w-8"
+          />
           <span className="font-medium text-slate-900">{name}</span>
         </div>
       </TableCell>
@@ -237,7 +221,8 @@ export default function MentorDashboardPage() {
                   <TableBody>
                     {data.recentlyActiveMentees.map((mentee) => (
                       <MenteeRow
-                        key={`${mentee.initials}-${mentee.name}`}
+                        key={`${mentee.id}-${mentee.name}`}
+                        studentId={mentee.id}
                         initials={mentee.initials}
                         name={mentee.name}
                         project={mentee.project}

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" role="img" aria-label="Student workspace">
+  <rect width="1200" height="700" fill="#f4f7ff"/>
+  <rect x="0" y="0" width="1200" height="70" fill="#0a1f6b"/>
+  <rect x="0" y="70" width="250" height="630" fill="#132d86"/>
+  <rect x="290" y="110" width="870" height="130" rx="12" fill="#ffffff" stroke="#d8e0ff"/>
+  <rect x="290" y="270" width="870" height="370" rx="12" fill="#ffffff" stroke="#d8e0ff"/>
+  <rect x="320" y="145" width="250" height="16" rx="5" fill="#1a43b8"/>
+  <rect x="320" y="175" width="700" height="10" rx="4" fill="#6f88dc"/>
+  <rect x="320" y="300" width="780" height="16" rx="5" fill="#1a43b8"/>
+  <rect x="320" y="334" width="780" height="10" rx="4" fill="#6f88dc"/>
+  <rect x="320" y="360" width="760" height="10" rx="4" fill="#6f88dc"/>
+  <rect x="320" y="386" width="740" height="10" rx="4" fill="#6f88dc"/>
+  <rect x="320" y="430" width="180" height="38" rx="8" fill="#1a43b8"/>
+</svg>

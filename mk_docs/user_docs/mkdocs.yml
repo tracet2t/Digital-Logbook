@@ -1,0 +1,111 @@
+site_name: Digital Logbook
+site_description: A centralized platform for managing projects, tracking activities, and enabling collaboration between Admins, Mentors, and Students.
+site_author: Digital Logbook Team
+site_url: https://digitallogbook.example.com
+repo_url: https://github.com/digitallogbook/platform-docs
+repo_name: Digital Logbook Docs
+edit_uri: edit/main/docs/
+copyright: Copyright &copy; 2026 Digital Logbook Team
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Inter
+    code: JetBrains Mono
+  features:
+    - navigation.instant
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.footer
+    - announce.dismiss
+    - search.highlight
+    - search.suggest
+    - search.share
+    - content.code.copy
+    - content.action.edit
+    - content.tooltips
+    - toc.follow
+  icon:
+    repo: fontawesome/brands/github
+  logo: assets/myproject/logo Digital logbook.png
+  favicon: assets/favicon.svg
+
+nav:
+  - Home: index.md
+  - About: about.md
+  - Getting Started: getting-started.md
+  - Product Tour: product-tour.md
+  - UI Screenshot Gallery: app-screenshots.md
+  - Onboarding Checklist: onboarding-checklist.md
+  - Workflow Examples: workflow-examples.md
+  - Feature Comparison: feature-comparison.md
+  - Role Permissions: role-permissions.md
+  - Security & Privacy: security-and-privacy.md
+  - User Guides:
+      - Super Admin: super-admin.md
+      - Mentor: mentor.md
+      - Student: student.md
+  - Troubleshooting: troubleshooting.md
+  - Contact & Support: contact.md
+  - Release Notes: changelog.md
+  - Glossary: glossary.md
+  - Complete Guide: user-guide.md
+
+plugins:
+  - search:
+      lang: en
+
+validation:
+  nav:
+    omitted_files: ignore
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - attr_list
+  - def_list
+  - tables
+  - toc:
+      permalink: true
+  - md_in_html
+
+extra:
+  homepage: /index.md
+  announcement: "New release: improved navigation, modern UI polish, and richer role-based guidance."
+  social:
+    - icon: fontawesome/solid/envelope
+      link: mailto:support@digitallogbook.example.com
+      name: Contact Support
+  generator: false
+
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/extra.js

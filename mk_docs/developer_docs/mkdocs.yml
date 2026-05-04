@@ -1,0 +1,109 @@
+site_name: Digital Logbook
+site_description: >-
+  Documentation for the Digital Logbook — a platform for tracking
+  student activities, mentor feedback, project assignments, and reporting.
+site_author: Digital Logbook Team
+docs_dir: docs
+
+extra_css:
+  - stylesheets/extra.css
+
+theme:
+  name: material
+  logo: assets/logo.png
+  favicon: assets/logo.png
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+    - content.code.annotate
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - tables
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+
+  - Getting Started:
+      - Overview: getting-started/overview.md
+      - Installation: getting-started/installation.md
+      - Environment Setup: getting-started/environment.md
+      - Running the App: getting-started/running.md
+      - Troubleshooting: getting-started/troubleshooting.md
+
+  - Architecture:
+      - System Overview: architecture.md
+      - Database Schema: database.md
+      - Schema Reference: schema/README.md
+
+  - Features:
+      - Admin Dashboard: features/admin-dashboard.md
+      - Projects: features/projects.md
+      - Invitations: features/invitations.md
+      - Bulk Invitation Upload: features/bulk-upload.md
+      - Users & Roles: features/users.md
+      - Activities & Feedback: features/activities-feedback.md
+      - Reports: features/reports.md
+
+  - Components:
+      - Admin Components:
+          - Shared Admin UI: components/shared-admin.md
+          - Kanban Board: components/kanban.md
+          - Bulk Upload UI: components/bulk-upload-ui.md
+      - Navigation:
+          - Sidebar: components/sidebar.md
+      - Mentor Components: components/mentor.md
+      - Mentee Components: components/mentee.md
+
+  - API Reference:
+      - Overview: api/overview.md
+      - Authentication: api/auth.md
+      - Projects: api/projects.md
+      - Invitations: api/invitations.md
+      - Users: api/users.md
+      - Reports: api/reports.md
+
+  - Deployment:
+      - Docker Setup: deployment/docker.md
+      - Production Checklist: deployment/checklist.md
+
+  - Advanced:
+      - Special Logic & Middleware: special-logic.md
+
+  - Testing: testing.md

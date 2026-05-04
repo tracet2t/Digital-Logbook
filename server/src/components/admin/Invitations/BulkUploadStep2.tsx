@@ -2,9 +2,6 @@
 
 import React from "react";
 
-import { AlertCircle } from "lucide-react";
-
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -15,14 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { BulkUploadEditableTable } from "./BulkUploadEditableTable";
 
 interface BulkUploadStep2Props {
   fileInfo: {
@@ -42,7 +32,6 @@ interface BulkUploadStep2Props {
     field: "email" | "firstName" | "lastName" | "role" | "project",
     column: string,
   ) => void;
-  previewData: Record<string, any>[];
   onBack?: () => void;
   onCancel?: () => void;
   onSubmit?: () => void;
@@ -52,16 +41,9 @@ interface BulkUploadStep2Props {
     total: number;
     percentage: number;
   };
+  missingRequiredColumns?: string[];
+  isSubmitDisabled?: boolean;
 }
-
-const getRoleBadgeColor = (role: string) => {
-  const roleMap: Record<string, string> = {
-    mentor: "bg-blue-100 text-blue-800",
-    lead: "bg-red-100 text-red-800",
-    student: "bg-purple-100 text-purple-800",
-  };
-  return roleMap[role?.toLowerCase()] || "bg-gray-100 text-gray-800";
-};
 
 const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return "0 Bytes";
@@ -76,13 +58,16 @@ export function BulkUploadStep2({
   excelColumns,
   fieldMapping,
   onFieldMappingChange,
-  previewData,
   onBack = () => {},
   onCancel = () => {},
   onSubmit = () => {},
   isSubmitting = false,
   progress = { current: 0, total: 0, percentage: 0 },
+  missingRequiredColumns = [],
+  isSubmitDisabled = false,
 }: BulkUploadStep2Props) {
+  const hasMissingRequired = missingRequiredColumns.length > 0;
+
   return (
     <div className="space-y-6 w-full">
       {/* Step Indicator */}
@@ -99,11 +84,8 @@ export function BulkUploadStep2({
         </h1>
       </div>
 
-      {/* Main Content: 2 Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {/* Left Panel (40%) */}
-        <div className="lg:col-span-2 space-y-4">
-          {/* File Card */}
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <Card className="p-6 border-[#d9dde5] space-y-4">
             <div className="flex items-start gap-3">
               <div className="flex-1">
@@ -118,10 +100,17 @@ export function BulkUploadStep2({
                   </>
                 )}
               </div>
-              <Badge className="bg-[#22C55E] text-white">✓ Valid Format</Badge>
+              {hasMissingRequired ? (
+                <Badge className="bg-orange-100 text-orange-800">
+                  Missing Required Columns
+                </Badge>
+              ) : (
+                <Badge className="bg-[#22C55E] text-white">
+                  ✓ Valid Format
+                </Badge>
+              )}
             </div>
 
-            {/* Records Detected */}
             <div className="border-t border-[#e4e7ed] pt-4">
               <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
                 Records Detected
@@ -132,14 +121,12 @@ export function BulkUploadStep2({
             </div>
           </Card>
 
-          {/* Field Mapping */}
-          <Card className="p-6 border-[#d9dde5] space-y-4">
+          <Card className="p-6 border-[#d9dde5] space-y-4 lg:col-span-2">
             <h3 className="text-sm font-bold uppercase tracking-wide text-slate-700">
               Field Mapping
             </h3>
 
-            <div className="space-y-4">
-              {/* Email Mapping */}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
                   System Field: Email
@@ -164,7 +151,28 @@ export function BulkUploadStep2({
                 </Select>
               </div>
 
-              {/* First Name Mapping */}
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                  System Field: Role
+                </p>
+                <Select
+                  value={fieldMapping.role}
+                  onValueChange={(value) => onFieldMappingChange("role", value)}
+                >
+                  <SelectTrigger className="h-9 border-[#dbe0e8]">
+                    <SelectValue placeholder="Select column" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {excelColumns.map((col) => (
+                      <SelectItem key={col} value={col}>
+                        {col}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
                   System Field: First Name
@@ -189,7 +197,6 @@ export function BulkUploadStep2({
                 </Select>
               </div>
 
-              {/* Last Name Mapping */}
               <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
                   System Field: Last Name
@@ -214,30 +221,6 @@ export function BulkUploadStep2({
                 </Select>
               </div>
 
-              {/* Role Mapping */}
-              <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
-                  System Field: Role
-                </p>
-                <Select
-                  value={fieldMapping.role}
-                  onValueChange={(value) => onFieldMappingChange("role", value)}
-                >
-                  <SelectTrigger className="h-9 border-[#dbe0e8]">
-                    <SelectValue placeholder="Select column" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    {excelColumns.map((col) => (
-                      <SelectItem key={col} value={col}>
-                        {col}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Project Mapping */}
               <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
                   System Field: Project
@@ -263,7 +246,6 @@ export function BulkUploadStep2({
               </div>
             </div>
 
-            {/* Pro Tip */}
             <div className="border-t border-[#e4e7ed] pt-4 text-xs text-slate-600 space-y-1">
               <p className="font-semibold text-slate-700">Pro Tip:</p>
               <p>
@@ -274,91 +256,11 @@ export function BulkUploadStep2({
           </Card>
         </div>
 
-        {/* Right Panel (60%) */}
-        <div className="lg:col-span-3 space-y-4">
-          {/* Preview Header */}
+        <div className="space-y-3">
           <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
-            Live Preview (First 5 Rows)
+            Preview Data ({fileInfo?.rows ?? 0} rows)
           </p>
-
-          {/* Preview Table */}
-          <Card className="border-[#d9dde5] overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-[#f8fafc] hover:bg-[#f8fafc]">
-                  <TableHead className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                    Email Address
-                  </TableHead>
-                  <TableHead className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                    First Name
-                  </TableHead>
-                  <TableHead className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                    Last Name
-                  </TableHead>
-                  <TableHead className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                    Role Type
-                  </TableHead>
-                  <TableHead className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                    Project
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {previewData.length > 0 ? (
-                  previewData.map((row, idx) => (
-                    <TableRow key={idx} className="bg-white hover:bg-[#fbfcff]">
-                      <TableCell className="px-4 py-3 font-medium text-slate-900">
-                        {row[fieldMapping.email] || "-"}
-                      </TableCell>
-                      <TableCell className="px-4 py-3 text-slate-700">
-                        {fieldMapping.firstName &&
-                        fieldMapping.firstName !== "none"
-                          ? row[fieldMapping.firstName] || "-"
-                          : "-"}
-                      </TableCell>
-                      <TableCell className="px-4 py-3 text-slate-700">
-                        {fieldMapping.lastName &&
-                        fieldMapping.lastName !== "none"
-                          ? row[fieldMapping.lastName] || "-"
-                          : "-"}
-                      </TableCell>
-                      <TableCell className="px-4 py-3">
-                        <Badge
-                          className={getRoleBadgeColor(row[fieldMapping.role])}
-                        >
-                          {row[fieldMapping.role]?.toUpperCase() || "-"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="px-4 py-3 text-slate-700">
-                        {fieldMapping.project && fieldMapping.project !== "none"
-                          ? row[fieldMapping.project] || "-"
-                          : "-"}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={5}
-                      className="px-4 py-8 text-center text-slate-500"
-                    >
-                      No preview data available
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </Card>
-
-          {/* Warning Alert */}
-          <Alert className="border-[#FFA500] bg-orange-50">
-            <AlertCircle className="h-4 w-4 text-[#FFA500]" />
-            <AlertDescription className="text-sm text-slate-700">
-              The table above shows a preview of how your data will be imported.
-              Please verify that columns are mapped correctly to avoid data
-              corruption.
-            </AlertDescription>
-          </Alert>
+          <BulkUploadEditableTable fieldMapping={fieldMapping} />
         </div>
       </div>
 
@@ -408,10 +310,10 @@ export function BulkUploadStep2({
 
         <Button
           onClick={onSubmit}
-          disabled={isSubmitting}
+          disabled={isSubmitting || isSubmitDisabled}
           className="h-10 w-full bg-[#000053] px-6 font-semibold text-white hover:bg-[#000053] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
         >
-          {isSubmitting ? "SENDING..." : "UPLOAD & SEND INVITATIONS"} →
+          {isSubmitting ? "SENDING..." : "COMPLETE UPLOAD"} →
         </Button>
       </div>
     </div>
