@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
+import { RichTextRenderer } from "@/components/admin/RichTextRenderer";
 
 import { CmsCard } from "../../app/admin/landing-page-cms/_constants";
 
@@ -103,7 +104,7 @@ export function PreviewCanvas({
                 {card.title}
               </h4>
               <p className="line-clamp-2 text-xs leading-relaxed text-[#94A3B8]">
-                {card.description}
+                <RichTextRenderer text={card.description} />
               </p>
             </div>
           </Card>
