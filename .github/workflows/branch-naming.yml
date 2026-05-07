@@ -1,8 +1,11 @@
 # Enforcing Branch Naming Convention
 
 name: Branch Naming Convention
-
-on: create
+run-name: "Evaluate new branch [${{ github.ref_name }}]"
+on:
+  create:
+    branches:
+      - "**"
 
 permissions:
   contents: write
