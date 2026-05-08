@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { useLandingPageCmsPage } from "@/_hooks/admin/useLandingPageCmsPage";
 
 import { Button } from "@/components/ui/button";
@@ -22,6 +24,18 @@ export default function LandingPageCmsPage() {
     publish,
   } = useLandingPageCmsPage();
 
+  const [editorOpen, setEditorOpen] = useState(false);
+
+  function handleSelect(id: string) {
+    setActiveId(id);
+    setEditorOpen(true);
+  }
+
+  function handleAddCard() {
+    addCard();
+    setEditorOpen(true);
+  }
+
   return (
     <>
       <AdminPageLayout className="bg-[#f5f7fb]">
@@ -41,19 +55,29 @@ export default function LandingPageCmsPage() {
           </div>
 
           {/* ── Body: preview + editor ── */}
-          <div className="flex flex-col lg:flex-1 lg:flex-row lg:overflow-hidden">
+          <div className="flex flex-1 flex-col overflow-hidden lg:flex-row">
             <PreviewCanvas
               cards={cards}
               activeId={activeId}
-              onSelect={setActiveId}
-              onAddCard={addCard}
+              onSelect={handleSelect}
+              onAddCard={handleAddCard}
+              editorOpen={editorOpen}
+              onToggleEditor={() => setEditorOpen(true)}
             />
             {activeCard && (
               <EditorPanel
+                open={editorOpen}
+                onOpenChange={(o) => {
+                  setEditorOpen(o);
+                  if (!o) setActiveId("");
+                }}
                 activeCard={activeCard}
                 onUpdate={update}
-                onAddCard={addCard}
-                onDeleteActive={deleteActive}
+                onAddCard={handleAddCard}
+                onDeleteActive={() => {
+                  deleteActive();
+                  setEditorOpen(false);
+                }}
               />
             )}
           </div>

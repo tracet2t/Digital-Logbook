@@ -1,8 +1,15 @@
 "use client";
 
-import { Eye, EyeOff, Image as ImageIcon, Monitor } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  Image as ImageIcon,
+  Monitor,
+  PanelRight,
+} from "lucide-react";
 
 import { Card } from "@/components/ui/card";
+import { RichTextRenderer } from "@/components/admin/RichTextRenderer";
 
 import { CmsCard } from "../../app/admin/landing-page-cms/_constants";
 
@@ -11,6 +18,8 @@ interface PreviewCanvasProps {
   activeId: string;
   onSelect: (id: string) => void;
   onAddCard: () => void;
+  editorOpen: boolean;
+  onToggleEditor: () => void;
 }
 
 export function PreviewCanvas({
@@ -18,15 +27,30 @@ export function PreviewCanvas({
   activeId,
   onSelect,
   onAddCard,
+  editorOpen,
+  onToggleEditor,
 }: PreviewCanvasProps) {
   return (
     <div className="flex-1 overflow-y-auto bg-white p-4 md:p-6">
-      <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-[#94A3B8]">
-        Live Preview Canvas
-      </p>
-      <p className="mb-6 text-sm font-bold text-[#0F172A]">
-        Landing Page Content
-      </p>
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-[#94A3B8]">
+            Live Preview Canvas
+          </p>
+          <p className="text-sm font-bold text-[#0F172A]">
+            Landing Page Content
+          </p>
+        </div>
+        {!editorOpen && (
+          <button
+            onClick={onToggleEditor}
+            title="Open editor panel"
+            className="rounded-lg border border-[#E5E5E5] bg-white p-2 text-[#64748B] transition-colors hover:border-[#000053] hover:text-[#000053]"
+          >
+            <PanelRight size={18} />
+          </button>
+        )}
+      </div>
 
       <div className="space-y-4">
         {cards.map((card) => (
@@ -80,7 +104,7 @@ export function PreviewCanvas({
                 {card.title}
               </h4>
               <p className="line-clamp-2 text-xs leading-relaxed text-[#94A3B8]">
-                {card.description}
+                <RichTextRenderer text={card.description} />
               </p>
             </div>
           </Card>
