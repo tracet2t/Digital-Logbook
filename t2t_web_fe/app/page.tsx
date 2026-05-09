@@ -495,7 +495,8 @@ export default function Home() {
               How T2T Builds Real Skills
             </h2>
             <p className="text-blue-300 text-xl font-medium max-w-2xl mx-auto italic opacity-90">
-              "At T2T, learning is not complete until you can demonstrate it."
+              &quot;At T2T, learning is not complete until you can demonstrate
+              it.&quot;
             </p>
           </div>
 
