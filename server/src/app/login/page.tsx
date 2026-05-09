@@ -248,7 +248,7 @@ const LoginPage = () => {
         open={toastData.open}
         onOpenChange={(open) => setToastData((prev) => ({ ...prev, open }))}
         variant={toastData.variant}
-        className="border-none shadow-2xl bg-white text-black dark:bg-black rounded-xl"
+        className="border-none shadow-2xl bg-white text-black dark:bg-black rounded-xl data-[state=open]:slide-in-from-bottom-full data-[state=closed]:slide-out-to-bottom-full"
       >
         <div className="grid gap-1">
           <ToastTitle className="text-base font-black tracking-tight">
@@ -261,7 +261,7 @@ const LoginPage = () => {
         <ToastClose className="text-black !opacity-100 hover:text-zinc-700 focus:text-zinc-900 !hover:text-zinc-700 !focus:text-zinc-900 !group-[.destructive]:text-black !group-[.destructive]:hover:text-zinc-700 !group-[.destructive]:focus:text-zinc-900 !transition-none" />
       </Toast>
 
-      <ToastViewport />
+      <ToastViewport className="top-auto bottom-0 flex-col" />
     </ToastProvider>
   );
 };

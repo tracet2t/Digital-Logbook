@@ -6,6 +6,7 @@ export {
   useGetProject,
   useGetProjectStudents,
   useGetProjectMentors,
+  useUpdateProjectOrder,
 } from "./useProject";
 
 export {

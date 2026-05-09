@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { toast } from "sonner";
 
-export type OnboardingStatus = "pending" | "approved" | "rejected";
+export type OnboardingStatus = "pending" | "approved" | "rejected" | "inactive";
 
 export interface OnboardingApplication {
   id: string;
@@ -181,6 +181,7 @@ export const useUnassignMentee = () => {
       return response.json();
     },
     onSuccess: () => {
+      toast.success("Mentee set to inactive.");
       queryClient.invalidateQueries({ queryKey: ["onboarding-applications"] });
       queryClient.invalidateQueries({ queryKey: ["onboarding-allocations"] });
       queryClient.invalidateQueries({ queryKey: ["projects"] });

@@ -4,6 +4,11 @@ import React, { useState } from "react";
 
 import { useBulkSendInvitations } from "@/_hooks/admin/useBulkInvitation";
 import { useBulkUpload } from "@/_hooks/useBulkUpload";
+import { useBulkUploadTableStore } from "@/_stores/bulkUploadTableStore";
+import {
+  buildInvitationsFromRows,
+  validateBulkUploadRows,
+} from "@/lib/bulkUploadValidation";
 
 import { BulkUploadStep1 } from "./BulkUploadStep1";
 import { BulkUploadStep2 } from "./BulkUploadStep2";
@@ -18,12 +23,11 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
   const {
     currentStep,
     uploadedFile,
-    excelData,
     fileInfo,
     fieldMapping,
-    previewData,
     isLoading,
     error,
+    missingRequiredColumns,
     handleFileUpload,
     handleFieldMapping,
     goToStep,
@@ -36,14 +40,22 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
     isLoading: isSending,
     progress,
   } = useBulkSendInvitations();
+  const { data, cellErrors, setCellErrors } = useBulkUploadTableStore();
   const [submissionResult, setSubmissionResult] = useState<any>(null);
+
+  const handleFieldMappingAndValidate = (
+    field: "email" | "firstName" | "lastName" | "role" | "project",
+    column: string,
+  ) => {
+    const nextMapping = { ...fieldMapping, [field]: column };
+    handleFieldMapping(field, column);
+    if (data.length > 0) {
+      setCellErrors(validateBulkUploadRows(data, nextMapping));
+    }
+  };
 
   const handleFileUploadAndAdvance = async (file: File) => {
     await handleFileUpload(file);
-    goToStep(2);
-  };
-
-  const handlePreviewValidate = () => {
     goToStep(2);
   };
 
@@ -52,64 +64,18 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
   };
 
   const handleSubmit = async () => {
-    // Validate field mapping
-    if (
-      !fieldMapping.email ||
-      fieldMapping.email === "none" ||
-      !fieldMapping.role ||
-      fieldMapping.role === "none"
-    ) {
-      alert("Please map the required fields: Email and Role");
-      return;
-    }
+    if (missingRequiredColumns.length > 0) return;
+    if (!fieldMapping.email || fieldMapping.email === "none") return;
+    if (!fieldMapping.role || fieldMapping.role === "none") return;
+    if (cellErrors.length > 0) return;
 
-    // Transform Excel data to invitation format
-    const invitations = excelData
-      .map((row, index) => {
-        const email = row[fieldMapping.email];
-        const role = row[fieldMapping.role];
-        const firstName =
-          fieldMapping.firstName && fieldMapping.firstName !== "none"
-            ? row[fieldMapping.firstName]
-            : "";
-        const lastName =
-          fieldMapping.lastName && fieldMapping.lastName !== "none"
-            ? row[fieldMapping.lastName]
-            : "";
-        const projectId =
-          fieldMapping.project && fieldMapping.project !== "none"
-            ? row[fieldMapping.project]
-            : undefined;
+    const invitations = buildInvitationsFromRows(data, fieldMapping);
+    if (invitations.length === 0) return;
 
-        // Validate required fields
-        if (!email || !role) {
-          console.warn(`Row ${index + 1}: Missing required fields`);
-          return null;
-        }
-
-        return {
-          email: email.toString().trim(),
-          role: role.toString().toLowerCase() as
-            | "student"
-            | "mentor"
-            | "superAdmin",
-          firstName: firstName?.toString().trim() || email.split("@")[0], // Fallback to email username
-          lastName: lastName?.toString().trim() || "",
-          projectId: projectId?.toString(),
-        };
-      })
-      .filter((inv): inv is NonNullable<typeof inv> => inv !== null);
-
-    if (invitations.length === 0) {
-      alert("No valid invitations to send");
-      return;
-    }
-
-    // Send bulk invitations
     await sendBulkInvitations(invitations, (res) => {
       setSubmissionResult(res);
       if (res.success > 0) {
-        goToStep(3); // Show results step
+        goToStep(3);
       }
     });
   };
@@ -118,6 +84,15 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
     resetUpload();
     setSubmissionResult(null);
   };
+
+  const isSubmitDisabled =
+    missingRequiredColumns.length > 0 ||
+    !fieldMapping.email ||
+    fieldMapping.email === "none" ||
+    !fieldMapping.role ||
+    fieldMapping.role === "none" ||
+    cellErrors.length > 0 ||
+    data.length === 0;
 
   return (
     <div className="w-full">
@@ -133,13 +108,14 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
           fileInfo={fileInfo}
           excelColumns={getExcelColumns()}
           fieldMapping={fieldMapping}
-          onFieldMappingChange={handleFieldMapping}
-          previewData={previewData}
+          onFieldMappingChange={handleFieldMappingAndValidate}
           onBack={handleBackToUpload}
           onCancel={onCancel}
           onSubmit={handleSubmit}
           isSubmitting={isSending}
           progress={progress}
+          missingRequiredColumns={missingRequiredColumns}
+          isSubmitDisabled={isSubmitDisabled}
         />
       ) : (
         <BulkUploadStep3

@@ -59,6 +59,7 @@ interface Project {
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+  projectOrder?: number;
   studentCount?: number;
   mentorCount?: number;
 }
@@ -103,6 +104,32 @@ export const useCreateProject = () => {
   });
 
   return mutation;
+};
+
+// ============ Update Project Order Hook ============
+
+export const useUpdateProjectOrder = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<{ success: boolean }, Error, { order: string[] }>({
+    mutationFn: async ({ order }) => {
+      const res = await fetch("/api/project", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        throw new Error(errorData?.message || "Failed to update project order");
+      }
+
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+    },
+  });
 };
 
 // ============ Assign to Project Hook ============

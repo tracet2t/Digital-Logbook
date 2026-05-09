@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { AdminStatusBadge, RoleBadge } from "@/components/admin";
+import { MenteeAvatar } from "@/components/mentor/MenteeAvatar";
 
 import { UserRecord } from "./types";
 import { getInitials } from "./utils";
@@ -31,14 +32,23 @@ export default function ViewUserDialog({
         {user != null && (
           <div className="space-y-4 text-sm">
             <div className="flex items-center gap-4">
-              <Avatar className="h-14 w-14 border border-slate-200">
-                {user.avatar ? (
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                ) : null}
-                <AvatarFallback className="bg-slate-100 text-base font-semibold text-slate-700">
-                  {getInitials(user.name)}
-                </AvatarFallback>
-              </Avatar>
+              {user.role === "Student" ? (
+                <MenteeAvatar
+                  studentId={user.id}
+                  name={user.name}
+                  initials={getInitials(user.name)}
+                  className="h-14 w-14 border border-slate-200"
+                />
+              ) : (
+                <Avatar className="h-14 w-14 border border-slate-200">
+                  {user.avatar ? (
+                    <AvatarImage src={user.avatar} alt={user.name} />
+                  ) : null}
+                  <AvatarFallback className="bg-[#000053] text-base font-semibold text-white">
+                    {getInitials(user.name)}
+                  </AvatarFallback>
+                </Avatar>
+              )}
               <div>
                 <p className="text-base font-bold text-slate-900">
                   {user.name}

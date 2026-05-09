@@ -4,6 +4,7 @@ import {
   FolderOpen,
   LayoutDashboard,
   Mail,
+  Monitor,
   UserCheck,
   Users,
 } from "lucide-react";
@@ -26,6 +27,11 @@ export const ADMIN_MENU_ITEMS: MenuItem[] = [
   },
   { label: "Badges", icon: <Award size={18} />, href: "/admin/badges" },
   { label: "Reports", icon: <BarChart2 size={18} />, href: "/admin/reports" },
+  {
+    label: "Landing Page CMS",
+    icon: <Monitor size={18} />,
+    href: "/admin/landing-page-cms",
+  },
 ];
 
 export const ADMIN_LOGO_CONFIG: LogoConfig = {

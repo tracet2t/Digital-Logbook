@@ -1,19 +1,24 @@
 "use client";
 
-import { Dispatch, SetStateAction, useMemo } from "react";
+import { Dispatch, SetStateAction, useMemo, useState } from "react";
 
 import { OnboardingApplication } from "@/_hooks/admin/useAdminOnboarding";
+import { KanbanPendingAction } from "@/_hooks/admin/useKanbanBoard";
 import {
+  closestCenter,
+  CollisionDetection,
   DndContext,
   DragEndEvent,
   DragOverlay,
   DragStartEvent,
   PointerSensor,
   pointerWithin,
+  rectIntersection,
   useDroppable,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
+import { arrayMove, SortableContext } from "@dnd-kit/sortable";
 import { CheckSquare, Plus, Search, Square } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -23,6 +28,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { BenchCard } from "./BenchCard";
+import { ConfirmAssignmentDialog } from "./ConfirmAssignmentDialog";
 import { ProjectCard } from "./ProjectCard";
 import { formatDate, getInitials } from "./utils";
 
@@ -43,6 +49,8 @@ interface KanbanBoardProps {
   applications: OnboardingApplication[];
   assignments: Record<string, Set<string>>;
   projects: Project[];
+  setProjects: Dispatch<SetStateAction<Project[]>>;
+  onProjectsReorder?: (projects: Project[]) => void;
   projectsLoading: boolean;
   selectedIds: Set<string>;
   setSelectedIds: Dispatch<SetStateAction<Set<string>>>;
@@ -55,6 +63,12 @@ interface KanbanBoardProps {
   onAddProject: () => void;
   benchSearch?: string;
   onBenchSearchChange?: (value: string) => void;
+  /** Pending action waiting for user confirmation */
+  pendingAction: KanbanPendingAction | null;
+  /** Call when user clicks "Confirm" in the dialog */
+  onConfirmAction: () => void;
+  /** Call when user clicks "Cancel" in the dialog */
+  onCancelAction: () => void;
 }
 
 export function KanbanBoard({
@@ -67,6 +81,8 @@ export function KanbanBoard({
   applications,
   assignments,
   projects,
+  setProjects,
+  onProjectsReorder,
   projectsLoading,
   selectedIds,
   setSelectedIds,
@@ -79,6 +95,9 @@ export function KanbanBoard({
   onAddProject,
   benchSearch = "",
   onBenchSearchChange,
+  pendingAction,
+  onConfirmAction,
+  onCancelAction,
 }: KanbanBoardProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -94,12 +113,60 @@ export function KanbanBoard({
     return bench.filter((a) => a.fullName.toLowerCase().includes(q));
   }, [bench, benchSearch]);
 
+  // Local state for drag-and-drop of project cards
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
+
+  // Only handle project card sorting here
+  function handleProjectDragStart(event: DragStartEvent) {
+    if (projects.some((p) => p.id === event.active.id)) {
+      setActiveProjectId(event.active.id as string);
+    }
+    handleDragStart(event);
+  }
+
+  function handleProjectDragEnd(event: DragEndEvent) {
+    if (
+      activeProjectId &&
+      event.over !== null &&
+      projects.some((p) => p.id === event.active.id) &&
+      projects.some((p) => p.id === event.over.id)
+    ) {
+      const oldIndex = projects.findIndex((p) => p.id === event.active.id);
+      const newIndex = projects.findIndex((p) => p.id === event.over!.id);
+      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+        const nextProjects = arrayMove(projects, oldIndex, newIndex);
+        setProjects(nextProjects);
+        onProjectsReorder?.(nextProjects);
+      }
+      setActiveProjectId(null);
+      return;
+    }
+    setActiveProjectId(null);
+    handleDragEnd(event); // call original for member DnD
+  }
+
+  const collisionDetection: CollisionDetection = (args) => {
+    const isProjectDrag = projects.some((p) => p.id === args.active.id);
+    if (isProjectDrag) {
+      return closestCenter(args);
+    }
+
+    const pointerHits = pointerWithin(args);
+    const benchHit = pointerHits.find((hit) => hit.id === "BENCH");
+    if (benchHit) {
+      return [benchHit];
+    }
+
+    return pointerHits.length > 0 ? pointerHits : rectIntersection(args);
+  };
+
   return (
+    <>
     <DndContext
       sensors={sensors}
-      collisionDetection={pointerWithin}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
+      collisionDetection={collisionDetection}
+      onDragStart={handleProjectDragStart}
+      onDragEnd={handleProjectDragEnd}
     >
       <div className="flex flex-col gap-2 rounded-2xl border border-[#e4e7ed] bg-white p-2 sm:flex-row sm:gap-3 sm:p-3 lg:gap-6 lg:p-6 2xl:gap-4 2xl:p-4 3xl:gap-3 3xl:p-3 2xl:overflow-hidden 2xl:h-[calc(100dvh-22rem)] w-full">
         {/* Bench */}
@@ -220,31 +287,56 @@ export function KanbanBoard({
             </p>
           ) : (
             <div className="2xl:flex-1 2xl:overflow-y-auto">
-              <div className="grid grid-cols-2 gap-1.5 pb-2 pr-1 sm:gap-2 sm:grid-cols-3 lg:grid-cols-3 lg:gap-3 xl:grid-cols-4 2xl:grid-cols-4 2xl:gap-3 3xl:grid-cols-5 3xl:gap-3 4xl:grid-cols-6 4xl:gap-3">
-                {projects.map((project) => {
-                  const assignedIds =
-                    assignments[project.id] ?? new Set<string>();
-                  const assignedApps = applications.filter((a) =>
-                    assignedIds.has(a.id),
-                  );
-                  return (
-                    <ProjectCard
-                      key={project.id}
-                      project={project}
-                      assignedApplications={assignedApps}
-                      onUnassign={(appId) => handleUnassign(project.id, appId)}
-                      onViewProfile={onViewProfile}
-                    />
-                  );
-                })}
-              </div>
+              <SortableContext items={projects.map((p) => p.id)}>
+                <div className="grid grid-cols-2 gap-1.5 pb-2 pr-1 sm:gap-2 sm:grid-cols-3 lg:grid-cols-3 lg:gap-3 xl:grid-cols-4 2xl:grid-cols-4 2xl:gap-3 3xl:grid-cols-5 3xl:gap-3 4xl:grid-cols-6 4xl:gap-3">
+                  {projects.map((project) => {
+                    const assignedIds =
+                      assignments[project.id] ?? new Set<string>();
+                    const assignedApps = applications.filter((a) =>
+                      assignedIds.has(a.id),
+                    );
+                    return (
+                      <ProjectCard
+                        key={project.id}
+                        project={project}
+                        assignedApplications={assignedApps}
+                        onUnassign={(appId) =>
+                          handleUnassign(project.id, appId)
+                        }
+                        onViewProfile={onViewProfile}
+                      />
+                    );
+                  })}
+                </div>
+              </SortableContext>
             </div>
           )}
         </div>
       </div>
 
       <DragOverlay>
-        {activeApplication ? (
+        {/* Project card drag overlay with defensive checks */}
+        {activeProjectId ? (
+          (() => {
+            const project = projects.find((p) => p.id === activeProjectId);
+            if (!project) return null;
+            // Defensive: ensure assignments and applications are available
+            const assignedIds = assignments?.[project.id] ?? new Set<string>();
+            const assignedApps = Array.isArray(applications)
+              ? applications.filter((a) => assignedIds.has(a.id))
+              : [];
+            return (
+              <ProjectCard
+                project={project}
+                assignedApplications={assignedApps}
+                onUnassign={() => {}}
+                onViewProfile={() => {}}
+              />
+            );
+          })()
+        ) : activeApplication &&
+          typeof activeApplication === "object" &&
+          activeApplication.fullName ? (
           <div className="flex w-56 cursor-grabbing items-center gap-3 rounded-2xl border border-[#000053] bg-[#000053] p-3 shadow-2xl">
             <Avatar className="h-9 w-9 shrink-0">
               <AvatarFallback className="bg-white/20 text-[10px] font-bold text-white">
@@ -267,5 +359,39 @@ export function KanbanBoard({
         ) : null}
       </DragOverlay>
     </DndContext>
+
+    {/* ── Assignment confirmation dialog ── */}
+    {pendingAction && (() => {
+      const sourceProject = pendingAction.sourceProjectId
+        ? projects.find((p) => p.id === pendingAction.sourceProjectId)
+        : null;
+      const targetProject = pendingAction.targetProjectId
+        ? projects.find((p) => p.id === pendingAction.targetProjectId)
+        : null;
+
+      // Resolve display name(s)
+      const count = pendingAction.draggedIds.length;
+      const primaryApp = applications.find(
+        (a) => a.id === pendingAction.draggedIds[0],
+      );
+      const userName = primaryApp?.fullName ?? "Unknown User";
+      const targetName = targetProject?.name ?? "Bench";
+      const sourceName = sourceProject?.name ?? "Bench";
+
+      return (
+        <ConfirmAssignmentDialog
+          open
+          onOpenChange={(open) => !open && onCancelAction()}
+          onConfirm={onConfirmAction}
+          onCancel={onCancelAction}
+          actionType={pendingAction.type}
+          userName={userName}
+          targetName={targetName}
+          sourceName={sourceName}
+          count={count}
+        />
+      );
+    })()}
+    </>
   );
 }
