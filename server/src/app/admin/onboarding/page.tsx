@@ -31,7 +31,7 @@ import {
   type ProjectFormState,
 } from "@/components/admin/kanban";
 
-// blank slate for the "create project" form — we always reset to this before opening the dialog
+// blank slate for the "create project" form — wen always reset to this before opening the dialog
 const EMPTY_FORM: ProjectFormState = {
   name: "",
   description: "",

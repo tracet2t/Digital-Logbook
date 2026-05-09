@@ -1,8 +1,11 @@
 # Enforcing Branch Naming Convention
 
 name: Branch Naming Convention
-
-on: create
+run-name: "Evaluate new branch [${{ github.ref_name }}]"
+on:
+  create:
+    branches:
+      - "**"
 
 permissions:
   contents: write
@@ -12,6 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check branch name
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           BRANCH="${{ github.ref_name }}"
 
@@ -36,7 +41,7 @@ jobs:
             echo "Example: fe/feat/ed-110  or  be/fix/ed-45"
             echo ""
             echo "Deleting invalid branch..."
-            gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
-            gh api -X DELETE "repos/${{ github.repository }}/git/refs/heads/$(python3 -c 'import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1]))' "$BRANCH")"
+            ENCODED_BRANCH=$(python3 -c 'import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1]))' "$BRANCH")
+            gh api -X DELETE "repos/${{ github.repository }}/git/refs/heads/${ENCODED_BRANCH}"
             exit 1
           fi
