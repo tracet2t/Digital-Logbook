@@ -1,16 +1,16 @@
 "use client";
 
+import { OnboardingApplication } from "@/_hooks/admin/useAdminOnboarding";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Briefcase, X } from "lucide-react";
 
-import { OnboardingApplication } from "@/hooks/admin/useAdminOnboarding";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarBadge, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-import { getInitials } from "./utils";
+import { getInitials, getInvitationStatusColor } from "./utils";
 
 interface ProjectCardProps {
   project: {
@@ -60,6 +60,11 @@ function DraggableAssignedRow({
           <AvatarFallback className="bg-[#000053] text-[9px] font-bold text-white">
             {getInitials(app.fullName)}
           </AvatarFallback>
+          {app.invitationStatus && (
+            <AvatarBadge
+              className={getInvitationStatusColor(app.invitationStatus)}
+            />
+          )}
         </Avatar>
         <span className="truncate text-[10px] font-bold text-slate-700 sm:text-[11px]">
           {app.fullName}

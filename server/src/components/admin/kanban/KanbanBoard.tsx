@@ -187,6 +187,23 @@ export function KanbanBoard({
                 {filteredBench.length} {benchBadgeText}
               </Badge>
             </div>
+            {/* Status legend */}
+            <div className="mb-3 pr-3 sm:pr-4 lg:pr-6">
+              <div className="flex flex-wrap gap-3 text-[10px] font-semibold text-slate-700">
+                <span className="flex items-center gap-1.5">
+                  <span className="h-3 w-3 rounded-full bg-emerald-500" />
+                  Active
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-3 w-3 rounded-full bg-amber-500" />
+                  Pending
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-3 w-3 rounded-full bg-rose-500" />
+                  Expired
+                </span>
+              </div>
+            </div>
             {/* Bench search */}
             {!isLoading && onBenchSearchChange && (
               <div className="mb-2 pr-3 sm:pr-4 lg:pr-6">

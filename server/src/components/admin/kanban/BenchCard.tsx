@@ -5,11 +5,11 @@ import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { CheckSquare, Square } from "lucide-react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarBadge, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-import { formatDate, getInitials } from "./utils";
+import { formatDate, getInitials, getInvitationStatusColor } from "./utils";
 
 interface BenchCardProps {
   application: OnboardingApplication;
@@ -72,6 +72,11 @@ export function BenchCard({
         >
           {getInitials(application.fullName)}
         </AvatarFallback>
+        {application.invitationStatus && (
+          <AvatarBadge
+            className={getInvitationStatusColor(application.invitationStatus)}
+          />
+        )}
       </Avatar>
 
       <div className="min-w-0 flex-1">
@@ -84,6 +89,7 @@ export function BenchCard({
           >
             {application.fullName}
           </p>
+          {/* User status in the bench*/}
           {application.status === "inactive" && (
             <Badge
               variant="secondary"
