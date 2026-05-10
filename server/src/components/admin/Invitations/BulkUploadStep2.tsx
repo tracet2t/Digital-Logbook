@@ -2,6 +2,8 @@
 
 import React from "react";
 
+import { useBulkUploadTableStore } from "@/_stores/bulkUploadTableStore";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,8 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
 import { BulkUploadEditableTable } from "./BulkUploadEditableTable";
-import { useBulkUploadTableStore } from "@/_stores/bulkUploadTableStore";
 
 interface BulkUploadStep2Props {
   fileInfo: {
@@ -44,6 +46,12 @@ interface BulkUploadStep2Props {
   };
   missingRequiredColumns?: string[];
   isSubmitDisabled?: boolean;
+  projects?: Array<{
+    id: string;
+    name: string;
+    description: string | null;
+  }>;
+  isLoadingProjects?: boolean;
 }
 
 const formatFileSize = (bytes: number): string => {
@@ -66,6 +74,8 @@ export function BulkUploadStep2({
   progress = { current: 0, total: 0, percentage: 0 },
   missingRequiredColumns = [],
   isSubmitDisabled = false,
+  projects = [],
+  isLoadingProjects = false,
 }: BulkUploadStep2Props) {
   const hasMissingRequired = missingRequiredColumns.length > 0;
   const { cellErrors } = useBulkUploadTableStore();
@@ -227,16 +237,26 @@ export function BulkUploadStep2({
 
               <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
-                  System Field: Project
+                  System Field: Project{" "}
+                  {isLoadingProjects && (
+                    <span className="text-orange-600">(Loading...)</span>
+                  )}
                 </p>
                 <Select
                   value={fieldMapping.project}
                   onValueChange={(value) =>
                     onFieldMappingChange("project", value)
                   }
+                  disabled={isLoadingProjects}
                 >
                   <SelectTrigger className="h-9 border-[#dbe0e8]">
-                    <SelectValue placeholder="Select column" />
+                    <SelectValue
+                      placeholder={
+                        isLoadingProjects
+                          ? "Loading projects..."
+                          : "Select column"
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None</SelectItem>
@@ -247,6 +267,23 @@ export function BulkUploadStep2({
                     ))}
                   </SelectContent>
                 </Select>
+                {/* Show available projects for reference */}
+                {projects && projects.length > 0 && (
+                  <div className="mt-2 rounded border border-blue-200 bg-blue-50 p-2 text-xs">
+                    <p className="mb-1 font-semibold text-blue-900">
+                      Available Projects ({projects.length}):
+                    </p>
+                    <p className="text-blue-700">
+                      {projects.map((p) => p.name).join(", ")}
+                    </p>
+                  </div>
+                )}
+                {projects && projects.length === 0 && !isLoadingProjects && (
+                  <p className="mt-2 text-xs text-orange-600">
+                    ⚠️ No projects found. Create projects first before bulk
+                    inviting users.
+                  </p>
+                )}
               </div>
             </div>
 
@@ -264,7 +301,10 @@ export function BulkUploadStep2({
           <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
             Preview Data ({fileInfo?.rows ?? 0} rows)
           </p>
-          <BulkUploadEditableTable fieldMapping={fieldMapping} />
+          <BulkUploadEditableTable
+            fieldMapping={fieldMapping}
+            projects={projects}
+          />
         </div>
       </div>
 

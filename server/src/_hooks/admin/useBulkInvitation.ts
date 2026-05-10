@@ -12,7 +12,7 @@ interface BulkInvitationData {
   role: "student" | "mentor" | "superAdmin";
   firstName: string;
   lastName: string;
-  projectId?: string;
+  projectId: string;
 }
 
 interface BulkInvitationResult {

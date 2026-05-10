@@ -18,9 +18,8 @@ export const sendInvitationInputSchema = z
     lastName: z.string().min(1).describe("Last name of the invitee").trim(),
     projectId: z
       .string()
-      .uuid()
-      .optional()
-      .describe("Optional project ID to assign the user to"),
+      .min(1)
+      .describe("Project ID (UUID) or project name to assign the user to"),
   })
   .describe("Input data for sending a single invitation");
 

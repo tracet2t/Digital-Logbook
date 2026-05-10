@@ -3,12 +3,14 @@
 import React, { useState } from "react";
 
 import { useBulkSendInvitations } from "@/_hooks/admin/useBulkInvitation";
+import { useGetAllProjects } from "@/_hooks/admin/useProject";
 import { useBulkUpload } from "@/_hooks/useBulkUpload";
 import { useBulkUploadTableStore } from "@/_stores/bulkUploadTableStore";
 
 import {
   buildInvitationsFromRows,
   validateBulkUploadRows,
+  validateProjectExistence,
 } from "@/lib/bulkUploadValidation";
 
 import { BulkUploadStep1 } from "./BulkUploadStep1";
@@ -42,6 +44,8 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
     progress,
     cancelBulkSend,
   } = useBulkSendInvitations();
+  const { data: projects = [], isLoading: isLoadingProjects } =
+    useGetAllProjects();
   const { data, cellErrors, setCellErrors } = useBulkUploadTableStore();
   const [submissionResult, setSubmissionResult] = useState<any>(null);
 
@@ -52,7 +56,14 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
     const nextMapping = { ...fieldMapping, [field]: column };
     handleFieldMapping(field, column);
     if (data.length > 0) {
-      setCellErrors(validateBulkUploadRows(data, nextMapping));
+      // Combine field validation and project validation
+      const fieldErrors = validateBulkUploadRows(data, nextMapping);
+      const projectErrors = validateProjectExistence(
+        data,
+        nextMapping,
+        projects,
+      );
+      setCellErrors([...fieldErrors, ...projectErrors]);
     }
   };
 
@@ -101,7 +112,8 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
     !fieldMapping.role ||
     fieldMapping.role === "none" ||
     cellErrors.length > 0 ||
-    data.length === 0;
+    data.length === 0 ||
+    isLoadingProjects;
 
   return (
     <div className="w-full">
@@ -125,6 +137,8 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
           progress={progress}
           missingRequiredColumns={missingRequiredColumns}
           isSubmitDisabled={isSubmitDisabled}
+          projects={projects}
+          isLoadingProjects={isLoadingProjects}
         />
       ) : (
         <BulkUploadStep3

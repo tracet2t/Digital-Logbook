@@ -152,12 +152,62 @@ export const sendBulkInvitations = superAdminProcedure
       errors: [] as Array<{ row: number; email: string; error: string }>,
     };
 
+    // Helper function to resolve project ID (UUID or name)
+    const projectCache = new Map<string, string>();
+
+    const resolveProjectId = async (
+      projectIdOrName: string,
+    ): Promise<string | null> => {
+      // Check if it's already a UUID
+      const uuidRegex =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (uuidRegex.test(projectIdOrName)) {
+        return projectIdOrName;
+      }
+
+      // Check cache first
+      if (projectCache.has(projectIdOrName)) {
+        return projectCache.get(projectIdOrName)!;
+      }
+
+      // Look up by name using Prisma directly
+      const projects = await prisma.project.findMany({
+        where: { name: projectIdOrName },
+        select: { id: true },
+      });
+
+      if (projects.length === 0) {
+        return null;
+      }
+
+      const projectId = projects[0].id;
+      projectCache.set(projectIdOrName, projectId);
+      return projectId;
+    };
+
     // Process each invitation sequentially
     for (let i = 0; i < invitations.length; i++) {
       const invitation = invitations[i];
-      const { email, role, firstName, lastName, projectId } = invitation;
+      const {
+        email,
+        role,
+        firstName,
+        lastName,
+        projectId: projectIdOrName,
+      } = invitation;
 
       try {
+        // Resolve project ID from name or UUID
+        const projectId = await resolveProjectId(projectIdOrName);
+        if (!projectId) {
+          result.failed++;
+          result.errors.push({
+            row: i + 1,
+            email,
+            error: `Project not found: ${projectIdOrName}`,
+          });
+          continue;
+        }
         // Check if user already exists
         const existingUser = await userRepository.getByEmail(email);
         if (existingUser) {
