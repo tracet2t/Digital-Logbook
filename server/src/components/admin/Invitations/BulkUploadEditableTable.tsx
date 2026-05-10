@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -111,9 +111,9 @@ export function BulkUploadEditableTable({
       : selectAllRows(currentPageRowIds);
   };
 
-  const revalidate = (rows: typeof data) => {
-    setCellErrors(validateBulkUploadRows(rows, fieldMapping));
-  };
+  useEffect(() => {
+    setCellErrors(validateBulkUploadRows(data, fieldMapping));
+  }, [data, fieldMapping, setCellErrors]);
 
   const handleCellUpdate = (
     rowIndex: number,
@@ -124,7 +124,6 @@ export function BulkUploadEditableTable({
       index === rowIndex ? { ...row, [column]: value } : row,
     );
     setData(updated);
-    revalidate(updated);
   };
 
   const handleConfirmDelete = () => {
@@ -136,7 +135,6 @@ export function BulkUploadEditableTable({
     setData(remaining);
     deselectAllRows();
     closeDeleteDialog();
-    revalidate(remaining);
   };
 
   return (
