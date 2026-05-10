@@ -39,6 +39,7 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
     sendBulkInvitations,
     isLoading: isSending,
     progress,
+    cancelBulkSend,
   } = useBulkSendInvitations();
   const { data, cellErrors, setCellErrors } = useBulkUploadTableStore();
   const [submissionResult, setSubmissionResult] = useState<any>(null);
@@ -85,6 +86,13 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
     setSubmissionResult(null);
   };
 
+  const handleCancelFlow = () => {
+    cancelBulkSend();
+    resetUpload();
+    setSubmissionResult(null);
+    onCancel?.();
+  };
+
   const isSubmitDisabled =
     missingRequiredColumns.length > 0 ||
     !fieldMapping.email ||
@@ -110,7 +118,7 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
           fieldMapping={fieldMapping}
           onFieldMappingChange={handleFieldMappingAndValidate}
           onBack={handleBackToUpload}
-          onCancel={onCancel}
+          onCancel={handleCancelFlow}
           onSubmit={handleSubmit}
           isSubmitting={isSending}
           progress={progress}
@@ -121,7 +129,7 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
         <BulkUploadStep3
           result={submissionResult}
           onNewUpload={handleNewUpload}
-          onClose={onCancel}
+          onClose={handleCancelFlow}
         />
       )}
     </div>

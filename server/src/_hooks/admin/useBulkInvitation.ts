@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { toast } from "sonner";
@@ -33,11 +33,14 @@ export const useBulkSendInvitations = () => {
     total: 0,
     percentage: 0,
   });
+  const cancelRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const sendBulkInvitations = async (
     invitations: BulkInvitationData[],
     onComplete?: (result: BulkInvitationResult) => void,
   ) => {
+    cancelRef.current = false;
     setIsLoading(true);
     const total = invitations.length;
     let current = 0;
@@ -51,13 +54,19 @@ export const useBulkSendInvitations = () => {
 
     // Send invitations sequentially to avoid overwhelming the server
     for (let i = 0; i < invitations.length; i++) {
+      if (cancelRef.current) {
+        break;
+      }
       const invitation = invitations[i];
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
 
       try {
         const res = await fetch("/api/invitations", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(invitation),
+          signal: controller.signal,
         });
 
         if (!res.ok) {
@@ -72,6 +81,9 @@ export const useBulkSendInvitations = () => {
           result.success++;
         }
       } catch (error) {
+        if (cancelRef.current) {
+          break;
+        }
         result.failed++;
         result.errors.push({
           row: i + 1,
@@ -80,6 +92,9 @@ export const useBulkSendInvitations = () => {
         });
       }
 
+      if (cancelRef.current) {
+        break;
+      }
       current++;
       setProgress({
         current,
@@ -88,10 +103,16 @@ export const useBulkSendInvitations = () => {
       });
     }
 
+    setIsLoading(false);
+    abortControllerRef.current = null;
+
+    if (cancelRef.current) {
+      setProgress({ current: 0, total: 0, percentage: 0 });
+      return result;
+    }
+
     // Refresh invitations list
     queryClient.invalidateQueries({ queryKey: ["invitations"] });
-
-    setIsLoading(false);
 
     // Show summary toast
     if (result.failed === 0) {
@@ -115,5 +136,11 @@ export const useBulkSendInvitations = () => {
     sendBulkInvitations,
     isLoading,
     progress,
+    cancelBulkSend: () => {
+      cancelRef.current = true;
+      abortControllerRef.current?.abort();
+      setIsLoading(false);
+      setProgress({ current: 0, total: 0, percentage: 0 });
+    },
   };
 };
