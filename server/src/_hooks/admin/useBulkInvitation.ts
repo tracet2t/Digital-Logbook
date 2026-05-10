@@ -1,15 +1,17 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+import { ORPCError } from "@orpc/client";
 import { toast } from "sonner";
+
+import { orpcClient } from "@/lib/orpc";
 
 interface BulkInvitationData {
   email: string;
   role: "student" | "mentor" | "superAdmin";
-  firstName?: string;
-  lastName?: string;
+  firstName: string;
+  lastName: string;
   projectId?: string;
 }
 
@@ -19,128 +21,61 @@ interface BulkInvitationResult {
   errors: Array<{ row: number; email: string; error: string }>;
 }
 
-interface BulkInvitationProgress {
-  current: number;
-  total: number;
-  percentage: number;
-}
-
 export const useBulkSendInvitations = () => {
   const queryClient = useQueryClient();
-  const [isLoading, setIsLoading] = useState(false);
-  const [progress, setProgress] = useState<BulkInvitationProgress>({
-    current: 0,
-    total: 0,
-    percentage: 0,
-  });
-  const cancelRef = useRef(false);
-  const abortControllerRef = useRef<AbortController | null>(null);
 
-  const sendBulkInvitations = async (
-    invitations: BulkInvitationData[],
-    onComplete?: (result: BulkInvitationResult) => void,
-  ) => {
-    cancelRef.current = false;
-    setIsLoading(true);
-    const total = invitations.length;
-    let current = 0;
-    const result: BulkInvitationResult = {
-      success: 0,
-      failed: 0,
-      errors: [],
-    };
-
-    setProgress({ current: 0, total, percentage: 0 });
-
-    // Send invitations sequentially to avoid overwhelming the server
-    for (let i = 0; i < invitations.length; i++) {
-      if (cancelRef.current) {
-        break;
-      }
-      const invitation = invitations[i];
-      const controller = new AbortController();
-      abortControllerRef.current = controller;
-
-      try {
-        const res = await fetch("/api/invitations", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(invitation),
-          signal: controller.signal,
-        });
-
-        if (!res.ok) {
-          const errorData = await res.json();
-          result.failed++;
-          result.errors.push({
-            row: i + 1,
-            email: invitation.email,
-            error: errorData.message || "Failed to send invitation",
-          });
-        } else {
-          result.success++;
-        }
-      } catch (error) {
-        if (cancelRef.current) {
-          break;
-        }
-        result.failed++;
-        result.errors.push({
-          row: i + 1,
-          email: invitation.email,
-          error: error instanceof Error ? error.message : "Unknown error",
-        });
-      }
-
-      if (cancelRef.current) {
-        break;
-      }
-      current++;
-      setProgress({
-        current,
-        total,
-        percentage: Math.round((current / total) * 100),
+  const mutation = useMutation<
+    BulkInvitationResult,
+    ORPCError<string, unknown>,
+    BulkInvitationData[]
+  >({
+    mutationFn: async (invitations) => {
+      return await orpcClient.invitations.sendBulkInvitations({
+        invitations,
       });
-    }
+    },
+    onSuccess: (result) => {
+      // Refresh invitations list
+      queryClient.invalidateQueries({ queryKey: ["invitations"] });
 
-    setIsLoading(false);
-    abortControllerRef.current = null;
-
-    if (cancelRef.current) {
-      setProgress({ current: 0, total: 0, percentage: 0 });
-      return result;
-    }
-
-    // Refresh invitations list
-    queryClient.invalidateQueries({ queryKey: ["invitations"] });
-
-    // Show summary toast
-    if (result.failed === 0) {
-      toast.success(`Successfully sent ${result.success} invitations!`);
-    } else if (result.success === 0) {
-      toast.error(`Failed to send all invitations. Please check the errors.`);
-    } else {
-      toast.warning(
-        `Sent ${result.success} invitations. ${result.failed} failed.`,
+      // Show summary toast
+      if (result.failed === 0) {
+        toast.success(`Successfully sent ${result.success} invitations!`);
+      } else if (result.success === 0) {
+        toast.error(`Failed to send all invitations. Please check the errors.`);
+      } else {
+        toast.warning(
+          `Sent ${result.success} invitations. ${result.failed} failed.`,
+        );
+      }
+    },
+    onError: (error) => {
+      toast.error(
+        error.message || "Failed to send bulk invitations. Please try again.",
       );
-    }
-
-    if (onComplete) {
-      onComplete(result);
-    }
-
-    return result;
-  };
+    },
+  });
 
   return {
-    sendBulkInvitations,
-    isLoading,
-    progress,
+    sendBulkInvitations: async (
+      invitations: BulkInvitationData[],
+      onComplete?: (result: BulkInvitationResult) => void,
+    ) => {
+      const result = await mutation.mutateAsync(invitations);
+      if (onComplete) {
+        onComplete(result);
+      }
+      return result;
+    },
+    isLoading: mutation.isPending,
+    progress: {
+      current: 0,
+      total: 0,
+      percentage: 0,
+    },
     cancelBulkSend: () => {
-      cancelRef.current = true;
-      abortControllerRef.current?.abort();
-      setIsLoading(false);
-      setProgress({ current: 0, total: 0, percentage: 0 });
+      // No-op: server-side processing is atomic
+      // Kept for backwards compatibility with UI
     },
   };
 };

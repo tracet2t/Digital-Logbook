@@ -236,7 +236,7 @@ export async function GET(req: NextRequest) {
         id: inv.id,
         email: inv.email,
         role: inv.role,
-        project: inv.projectId ? projectById.get(inv.projectId) ?? "—" : "—",
+        project: inv.projectId ? (projectById.get(inv.projectId) ?? "—") : "—",
         status,
         createdAt: inv.createdAt,
         expiresAt: inv.expiresAt,
