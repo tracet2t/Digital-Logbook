@@ -13,11 +13,15 @@ import {
   ADMIN_LOGO_CONFIG,
   ADMIN_MENU_ITEMS,
 } from "@/utils/config/adminSidebarConfig";
-import { Plus, Search } from "lucide-react";
+import { PanelLeft, Plus, Search } from "lucide-react";
 import { z } from "zod";
 
 import { Card } from "@/components/ui/card";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import {
+  SidebarInset,
+  SidebarProvider,
+  useSidebar,
+} from "@/components/ui/sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BulkUploadTabs } from "@/components/admin/Invitations/BulkUploadTabs";
 import PageHeader from "@/components/admin/PageHeader";
@@ -30,6 +34,7 @@ import InvitationsTable, {
   InvitationRow,
 } from "@/components/Invitations/InvitationsTable";
 import InvitationsStats from "@/components/Invitations/InvitationStats";
+import Image from "next/image";
 
 // Constants
 const ITEMS_PER_PAGE = 10;
@@ -42,6 +47,30 @@ const inviteSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
   project: z.string().min(1, { message: "Project is required" }),
 });
+
+function InvitationMobileHeader() {
+  const { toggleSidebar } = useSidebar();
+
+  return (
+    <header className="sticky top-0 z-30 flex items-center justify-between border-b border-[#e3e6ef] bg-white px-4 py-3 md:hidden">
+      <button
+        type="button"
+        onClick={toggleSidebar}
+        aria-label="Open sidebar"
+        className="flex h-7 w-7 items-center justify-center rounded-sm text-[#111827] transition-colors hover:bg-slate-100"
+      >
+        <PanelLeft size={13} strokeWidth={2.1} />
+      </button>
+      <Image
+        src={ADMIN_LOGO_CONFIG.expanded.src}
+        alt="Digital Logbook"
+        width={120}
+        height={32}
+        className="h-8 w-auto object-contain"
+      />
+    </header>
+  );
+}
 
 export default function InvitationsView() {
   // State
@@ -171,6 +200,7 @@ export default function InvitationsView() {
     <SidebarProvider>
       <AsideSidebar menu={ADMIN_MENU_ITEMS} logo={ADMIN_LOGO_CONFIG} />
       <SidebarInset className="bg-[#f5f7fb]">
+        <InvitationMobileHeader />
         <div className="flex-1 p-5 md:p-8">
           <Card className="overflow-hidden border-[#d9dde5] bg-white">
             <div className="space-y-6 p-4 md:p-5">
