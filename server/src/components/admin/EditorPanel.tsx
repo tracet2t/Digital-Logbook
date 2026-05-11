@@ -23,6 +23,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import ConfirmDeleteDialog from "@/components/admin/ConfirmDeleteDialog";
+import { RichTextEditor } from "@/components/admin/RichTextEditor";
 
 import {
   CmsCard,
@@ -261,26 +262,15 @@ export function EditorPanel({
 
             {/* Description */}
             <div className="space-y-2 pb-4">
-              <div className="flex items-center justify-between">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-[#0F172A]">
-                  Description
-                </label>
-                <span
-                  className={`text-[10px] font-bold ${
-                    activeCard.description.length > 250
-                      ? "text-red-400"
-                      : "text-[#CBD5E1]"
-                  }`}
-                >
-                  {activeCard.description.length} / 280
-                </span>
-              </div>
-              <textarea
-                rows={4}
+              <label className="text-[10px] font-bold uppercase tracking-widest text-[#0F172A]">
+                Description
+              </label>
+              <RichTextEditor
                 value={activeCard.description}
-                onChange={(e) => onUpdate({ description: e.target.value })}
-                className="w-full resize-none rounded-xl border border-[#E5E5E5] bg-[#F8FAFC] px-4 py-3 text-sm font-medium outline-none transition-all focus:border-[#000053] focus:bg-white focus:ring-2 focus:ring-[#000053]/10"
-                placeholder="Describe your event content..."
+                onChange={(val) => onUpdate({ description: val })}
+                charCount={activeCard.description.length}
+                maxChars={280}
+                rows={4}
               />
             </div>
           </div>
