@@ -34,16 +34,26 @@ export const onboardingWorker = new Worker<OnboardingJobData>(
     if (job.data.type === "sendConfirmationEmail") {
       const { email, fullName } = job.data;
 
+      const emailUser = process.env.EMAIL_USER;
+      const emailPass = process.env.EMAIL_PASS;
+
+      if (!emailUser || !emailPass) {
+        console.warn(
+          `[onboardingQueue] Skipping confirmation email to ${email}: EMAIL_USER or EMAIL_PASS is not configured.`,
+        );
+        return;
+      }
+
       const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
-          user: process.env.EMAIL_USER as string,
-          pass: process.env.EMAIL_PASS as string,
+          user: emailUser,
+          pass: emailPass,
         },
       });
 
       await transporter.sendMail({
-        from: process.env.EMAIL_USER,
+        from: emailUser,
         to: email,
         subject: "Application Received – Digital Logbook",
         html: `

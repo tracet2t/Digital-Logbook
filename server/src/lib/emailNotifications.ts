@@ -16,11 +16,21 @@ export async function sendActivitySubmissionNotification({
     return;
   }
 
+  const emailUser = process.env.EMAIL_USER;
+  const emailPass = process.env.EMAIL_PASS;
+
+  if (!emailUser || !emailPass) {
+    console.warn(
+      "Skipping activity submission email: EMAIL_USER or EMAIL_PASS is not configured.",
+    );
+    return;
+  }
+
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
-      user: process.env.EMAIL_USER as string,
-      pass: process.env.EMAIL_PASS as string,
+      user: emailUser,
+      pass: emailPass,
     },
   });
 
@@ -50,7 +60,7 @@ export async function sendActivitySubmissionNotification({
   `;
 
   const mailOptions = {
-    from: process.env.EMAIL_USER,
+    from: emailUser,
     to: mentorEmails.join(","),
     subject: `New Task Submission: ${studentName}`,
     html: htmlContent,
@@ -61,6 +71,5 @@ export async function sendActivitySubmissionNotification({
     console.log(`Notification sent to ${mentorEmails.length} mentor(s)`);
   } catch (error) {
     console.error("Error sending email notification:", error);
-    throw error;
   }
 }

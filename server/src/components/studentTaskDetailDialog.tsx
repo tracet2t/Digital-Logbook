@@ -207,6 +207,9 @@ interface StudentTaskDetailDialogProps {
     notes: string,
     technologies: string[],
   ) => void;
+  onDelete?: () => void;
+  canDelete?: boolean;
+  isDeleting?: boolean;
   onClose: () => void;
 }
 
@@ -219,6 +222,9 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
   review,
   isEditable,
   onSubmit,
+  onDelete,
+  canDelete = false,
+  isDeleting = false,
   onClose,
 }) => {
   const form = useForm<ActivityFormValues>({
@@ -245,6 +251,20 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
     onSubmit(data.workingHours, data.notes, data.techStack);
   });
 
+  const handleDeleteClick = () => {
+    if (!onDelete || !canDelete) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this submitted task? This action cannot be undone.",
+    );
+
+    if (confirmed) {
+      onDelete();
+    }
+  };
+
   return (
     <Dialog
       open={open}
@@ -252,7 +272,7 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
         if (!isOpen) onClose();
       }}
     >
-      <DialogContent className="!max-w-lg">
+      <DialogContent className="w-[calc(100%-2rem)] max-w-[88vw] max-h-[86vh] overflow-y-auto sm:!max-w-lg sm:max-h-[85vh]">
         <DialogHeader>
           <DialogTitle>Task Details</DialogTitle>
           <DialogDescription>
@@ -343,6 +363,16 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
             <Button variant="outline">Cancel</Button>
           </DialogClose>
           {isEditable && <Button onClick={handleFormSubmit}>Save</Button>}
+          {isEditable && canDelete && (
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDeleteClick}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>

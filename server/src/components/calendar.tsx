@@ -118,7 +118,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     updateFormData,
     resetFormData,
   );
-  const { handleSubmit } = useSubmission(
+  const { handleSubmit, handleDelete, isDeleting } = useSubmission(
     role,
     studentId,
     selectedUser,
@@ -216,6 +216,13 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
             onSubmit={(wh, n) => {
               handleSubmit({ workingHours: wh, notes: n });
             }}
+            onDelete={() => {
+              if (editingEvent?.id) {
+                handleDelete(editingEvent.id);
+              }
+            }}
+            canDelete={Boolean(editingEvent?.id)}
+            isDeleting={isDeleting}
             onClose={handleClose}
           />
         )}
