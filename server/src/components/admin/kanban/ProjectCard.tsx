@@ -6,11 +6,11 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Briefcase, X } from "lucide-react";
 
-import { Avatar, AvatarBadge, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-import { getInitials, getInvitationStatusColor } from "./utils";
+import { getInitials } from "./utils";
 
 interface ProjectCardProps {
   project: {
@@ -40,6 +40,21 @@ function DraggableAssignedRow({
     ? { transform: CSS.Translate.toString(transform) }
     : undefined;
 
+  const getStatusDotColor = () => {
+    switch (app.invitationStatus) {
+      case "Active":
+        return "bg-emerald-500";
+      case "Pending":
+        return "bg-amber-500";
+      case "Expired":
+        return "bg-rose-500";
+      default:
+        return null;
+    }
+  };
+
+  const dotColor = getStatusDotColor();
+
   return (
     <div
       ref={setNodeRef}
@@ -60,15 +75,15 @@ function DraggableAssignedRow({
           <AvatarFallback className="bg-[#000053] text-[9px] font-bold text-white">
             {getInitials(app.fullName)}
           </AvatarFallback>
-          {app.invitationStatus && (
-            <AvatarBadge
-              className={getInvitationStatusColor(app.invitationStatus)}
-            />
-          )}
         </Avatar>
-        <span className="truncate text-[10px] font-bold text-slate-700 sm:text-[11px]">
-          {app.fullName}
-        </span>
+        <div className="flex min-w-0 items-center gap-1.5">
+          {dotColor && (
+            <span className={`h-2 w-2 shrink-0 rounded-full ${dotColor}`} />
+          )}
+          <span className="truncate text-[10px] font-bold text-slate-700 sm:text-[11px]">
+            {app.fullName}
+          </span>
+        </div>
       </div>
       <Button
         variant="ghost"
@@ -132,7 +147,7 @@ export function ProjectCard({
       ref={setRef}
       style={style}
       className={[
-        "group flex h-[175px] min-w-0 flex-col rounded-2xl border p-2 transition-all duration-200 max-sm:h-[155px] sm:h-[185px] md:h-[175px] sm:p-2.5 lg:h-auto lg:min-h-[280px] lg:p-5",
+        "group flex h-[175px] flex-1 flex-col rounded-2xl border p-2 transition-all duration-200 max-sm:h-[155px] sm:h-[185px] md:h-[175px] sm:p-2.5 lg:h-auto lg:min-h-[280px] lg:p-5",
         isDragging
           ? "border-[#000053] bg-white/90 shadow-2xl scale-[1.03]"
           : isOver

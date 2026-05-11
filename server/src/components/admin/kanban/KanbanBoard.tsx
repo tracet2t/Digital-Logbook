@@ -192,7 +192,7 @@ export function KanbanBoard({
               <div className="flex flex-wrap gap-3 text-[10px] font-semibold text-slate-700">
                 <span className="flex items-center gap-1.5">
                   <span className="h-3 w-3 rounded-full bg-emerald-500" />
-                  Active
+                  Accepted
                 </span>
                 <span className="flex items-center gap-1.5">
                   <span className="h-3 w-3 rounded-full bg-amber-500" />

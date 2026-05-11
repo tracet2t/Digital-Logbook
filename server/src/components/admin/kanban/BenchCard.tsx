@@ -5,11 +5,11 @@ import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { CheckSquare, Square } from "lucide-react";
 
-import { Avatar, AvatarBadge, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-import { formatDate, getInitials, getInvitationStatusColor } from "./utils";
+import { formatDate, getInitials } from "./utils";
 
 interface BenchCardProps {
   application: OnboardingApplication;
@@ -31,6 +31,41 @@ export function BenchCard({
     ? { transform: CSS.Translate.toString(transform) }
     : undefined;
 
+  const userStatusLabel =
+    application.status?.toLowerCase() === "inactive" ? "Inactive" : "Active";
+
+  const invitationStatusLabel =
+    application.invitationStatus === "Active"
+      ? "Accepted"
+      : application.invitationStatus;
+
+  const getInvitationBadgeClasses = () => {
+    if (selected) {
+      return "bg-white/20 text-white border-white/20";
+    }
+
+    switch (application.invitationStatus) {
+      case "Accepted":
+        return "bg-emerald-50 text-emerald-600 border-emerald-200/60";
+      case "Pending":
+        return "bg-amber-50 text-amber-600 border-amber-200/60";
+      case "Expired":
+        return "bg-rose-50 text-rose-600 border-rose-200/60";
+      default:
+        return "bg-slate-50 text-slate-600 border-slate-200";
+    }
+  };
+
+  const getUserBadgeClasses = () => {
+    if (selected) {
+      return "bg-white/20 text-white border-white/20";
+    }
+
+    return application.status?.toLowerCase() === "inactive"
+      ? "bg-rose-50 text-rose-600 border-rose-200/60"
+      : "bg-emerald-50 text-emerald-600 border-emerald-200/60";
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -39,7 +74,7 @@ export function BenchCard({
       {...listeners}
       onClick={onClick}
       className={[
-        "group flex w-full min-w-0 cursor-grab items-center gap-3 rounded-2xl border p-3 transition active:cursor-grabbing",
+        "group flex w-full min-w-0 cursor-grab items-center gap-2 rounded-xl border px-2.5 py-2 transition active:cursor-grabbing",
         isDragging ? "opacity-40 ring-2 ring-indigo-300" : "",
         selected
           ? "border-[#000053] bg-[#000053] text-white shadow-md"
@@ -63,7 +98,7 @@ export function BenchCard({
         )}
       </Button>
 
-      <Avatar className="h-9 w-9 shrink-0">
+      <Avatar className="h-8 w-8 shrink-0">
         <AvatarFallback
           className={[
             "text-[10px] font-bold",
@@ -72,35 +107,38 @@ export function BenchCard({
         >
           {getInitials(application.fullName)}
         </AvatarFallback>
-        {application.invitationStatus && (
-          <AvatarBadge
-            className={getInvitationStatusColor(application.invitationStatus)}
-          />
-        )}
       </Avatar>
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
           <p
             className={[
-              "truncate text-xs font-bold",
+              "truncate text-xs font-semibold",
               selected ? "text-white" : "text-slate-800",
             ].join(" ")}
           >
             {application.fullName}
           </p>
-          {/* User status in the bench*/}
-          {application.status === "inactive" && (
+        </div>
+        <div className="mt-0.5 flex flex-wrap items-center gap-1">
+          <Badge
+            variant="secondary"
+            className={[
+              "shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold",
+              getUserBadgeClasses(),
+            ].join(" ")}
+          >
+            {userStatusLabel}
+          </Badge>
+          {application.invitationStatus && (
             <Badge
               variant="secondary"
               className={[
-                "shrink-0 rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide",
-                selected
-                  ? "bg-white/20 text-white"
-                  : "bg-rose-50 text-rose-600",
+                "shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold",
+                getInvitationBadgeClasses(),
               ].join(" ")}
             >
-              Inactive
+              {invitationStatusLabel}
             </Badge>
           )}
         </div>
