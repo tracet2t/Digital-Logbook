@@ -366,7 +366,7 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
           {isEditable && canDelete && (
             <Button
               type="button"
-              variant="destructive"
+              variant="warning"
               onClick={handleDeleteClick}
               disabled={isDeleting}
             >
