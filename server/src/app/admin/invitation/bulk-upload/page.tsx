@@ -2,11 +2,11 @@
 
 import React, { useState } from "react";
 
+import { BulkUploadTableProvider } from "@/_stores/bulkUploadTableStore";
 import {
   ADMIN_LOGO_CONFIG,
   ADMIN_MENU_ITEMS,
 } from "@/utils/config/adminSidebarConfig";
-
 import Image from "next/image";
 
 import {
@@ -78,7 +78,9 @@ export default function BulkUploadPage() {
                 value="bulk-upload"
                 className="mt-0 h-full p-5 md:p-8"
               >
-                <BulkUploadTabs onCancel={handleCancel} />
+                <BulkUploadTableProvider>
+                  <BulkUploadTabs onCancel={handleCancel} />
+                </BulkUploadTableProvider>
               </TabsContent>
             </div>
           </Tabs>

@@ -2,10 +2,16 @@ import {
   BulkUploadCellError,
   BulkUploadTableRow,
 } from "@/_stores/bulkUploadTableStore";
+import {
+  emailSchema,
+  firstNameSchema,
+  lastNameSchema,
+  projectSchema,
+  roleSchema,
+  VALID_ROLES,
+} from "@/schemas/bulkUploadRow.schema";
 
-export const VALID_ROLES = ["mentor", "mentee"] as const;
-
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export { VALID_ROLES };
 
 export type BulkUploadFieldMapping = {
   email: string;
@@ -32,6 +38,8 @@ const resolveColumnName = (mappingValue: string, fallback: string): string => {
   return mappingValue;
 };
 
+// ─── Zod-based Validation ──────────────────────────────────────────────────────
+
 export const validateBulkUploadRows = (
   rows: BulkUploadTableRow[],
   mapping: BulkUploadFieldMapping,
@@ -54,70 +62,69 @@ export const validateBulkUploadRows = (
         ? mapping.project
         : "Project";
 
+    // Validate email with Zod
     const emailValue = String(row[emailColumn] ?? "").trim();
-    if (!emailValue) {
+    const emailResult = emailSchema.safeParse(emailValue);
+    if (!emailResult.success) {
       errors.push({
         row: rowIndex,
         column: emailColumn,
-        message: "Email is required",
-        value: emailValue,
-      });
-    } else if (!emailRegex.test(emailValue)) {
-      errors.push({
-        row: rowIndex,
-        column: emailColumn,
-        message: "Invalid email format",
+        message: emailResult.error.errors[0]?.message || "Invalid email",
         value: emailValue,
       });
     }
 
+    // Validate role with Zod
     const roleValue = String(row[roleColumn] ?? "")
       .trim()
       .toLowerCase();
-    if (!roleValue) {
+    const roleResult = roleSchema.safeParse(roleValue);
+    if (!roleResult.success) {
       errors.push({
         row: rowIndex,
         column: roleColumn,
-        message: "Role is required",
-        value: roleValue,
-      });
-    } else if (
-      !VALID_ROLES.includes(roleValue as (typeof VALID_ROLES)[number])
-    ) {
-      errors.push({
-        row: rowIndex,
-        column: roleColumn,
-        message: "Invalid role",
+        message:
+          roleResult.error.errors[0]?.message ||
+          "Role must be 'mentor' or 'mentee'",
         value: roleValue,
       });
     }
 
+    // Validate first name with Zod
     const firstNameValue = String(row[firstNameColumn] ?? "").trim();
-    if (!firstNameValue) {
+    const firstNameResult = firstNameSchema.safeParse(firstNameValue);
+    if (!firstNameResult.success) {
       errors.push({
         row: rowIndex,
         column: firstNameColumn,
-        message: "First name is required",
+        message:
+          firstNameResult.error.errors[0]?.message || "First name is required",
         value: firstNameValue,
       });
     }
 
+    // Validate last name with Zod
     const lastNameValue = String(row[lastNameColumn] ?? "").trim();
-    if (!lastNameValue) {
+    const lastNameResult = lastNameSchema.safeParse(lastNameValue);
+    if (!lastNameResult.success) {
       errors.push({
         row: rowIndex,
         column: lastNameColumn,
-        message: "Last name is required",
+        message:
+          lastNameResult.error.errors[0]?.message || "Last name is required",
         value: lastNameValue,
       });
     }
 
+    // Validate project with Zod (basic presence check only)
     const projectValue = String(row[projectColumn] ?? "").trim();
-    if (!projectValue) {
+    const projectResult = projectSchema.safeParse(projectValue);
+    if (!projectResult.success) {
       errors.push({
         row: rowIndex,
         column: projectColumn,
-        message: "Project ID is required",
+        message:
+          projectResult.error.errors[0]?.message || "Project is required",
         value: projectValue,
       });
     }
@@ -125,6 +132,8 @@ export const validateBulkUploadRows = (
 
   return errors;
 };
+
+// ─── Build Invitations ─────────────────────────────────────────────────────────
 
 export const buildInvitationsFromRows = (
   rows: BulkUploadTableRow[],
@@ -168,7 +177,7 @@ export const buildInvitationsFromRows = (
     );
 };
 
-// ─── Project Validation ───────────────────────────────────────────────────────
+// ─── Project Validation (Database Check) ───────────────────────────────────────
 
 export const validateProjectExistence = (
   rows: BulkUploadTableRow[],

@@ -9,11 +9,13 @@ import {
   useRecentInvitations,
 } from "@/_hooks/admin/useInvitation";
 import { useGetProjects } from "@/_hooks/projects";
+import { BulkUploadTableProvider } from "@/_stores/bulkUploadTableStore";
 import {
   ADMIN_LOGO_CONFIG,
   ADMIN_MENU_ITEMS,
 } from "@/utils/config/adminSidebarConfig";
 import { PanelLeft, Plus, Search } from "lucide-react";
+import Image from "next/image";
 import { z } from "zod";
 
 import { Card } from "@/components/ui/card";
@@ -34,7 +36,6 @@ import InvitationsTable, {
   InvitationRow,
 } from "@/components/Invitations/InvitationsTable";
 import InvitationsStats from "@/components/Invitations/InvitationStats";
-import Image from "next/image";
 
 // Constants
 const ITEMS_PER_PAGE = 10;
@@ -331,7 +332,9 @@ export default function InvitationsView() {
 
                 {/* Bulk Upload Tab Content */}
                 <TabsContent value="bulk-upload" className="space-y-4">
-                  <BulkUploadTabs />
+                  <BulkUploadTableProvider>
+                    <BulkUploadTabs />
+                  </BulkUploadTableProvider>
                 </TabsContent>
               </Tabs>
             </div>

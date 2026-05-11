@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 
 import {
   BulkUploadCellError,
@@ -15,7 +15,6 @@ import {
   Trash2,
 } from "lucide-react";
 
-import { validateBulkUploadRows } from "@/lib/bulkUploadValidation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -77,7 +76,6 @@ export function BulkUploadEditableTable({
     selectedRowIds,
     isDeleteDialogOpen,
     setData,
-    setCellErrors,
     setCurrentPage,
     setPageSize,
     toggleRowSelection,
@@ -116,10 +114,6 @@ export function BulkUploadEditableTable({
       ? deselectAllRows()
       : selectAllRows(currentPageRowIds);
   };
-
-  useEffect(() => {
-    setCellErrors(validateBulkUploadRows(data, fieldMapping));
-  }, [data, fieldMapping, setCellErrors]);
 
   const handleCellUpdate = (
     rowIndex: number,

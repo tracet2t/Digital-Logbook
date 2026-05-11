@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { useBulkSendInvitations } from "@/_hooks/admin/useBulkInvitation";
 import { useGetAllProjects } from "@/_hooks/admin/useProject";
@@ -48,6 +48,19 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
     useGetAllProjects();
   const { data, cellErrors, setCellErrors } = useBulkUploadTableStore();
   const [submissionResult, setSubmissionResult] = useState<any>(null);
+
+  // Auto-validate whenever data, projects, or fieldMapping changes
+  useEffect(() => {
+    if (data.length > 0 && !isLoadingProjects) {
+      const fieldErrors = validateBulkUploadRows(data, fieldMapping);
+      const projectErrors = validateProjectExistence(
+        data,
+        fieldMapping,
+        projects,
+      );
+      setCellErrors([...fieldErrors, ...projectErrors]);
+    }
+  }, [data, projects, fieldMapping, isLoadingProjects, setCellErrors]);
 
   const handleFieldMappingAndValidate = (
     field: "email" | "firstName" | "lastName" | "role" | "project",
