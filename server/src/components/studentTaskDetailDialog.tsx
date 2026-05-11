@@ -11,6 +11,16 @@ import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Command,
   CommandEmpty,
   CommandGroup,
@@ -227,6 +237,8 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
   isDeleting = false,
   onClose,
 }) => {
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+
   const form = useForm<ActivityFormValues>({
     resolver: zodResolver(activitySchema),
     defaultValues: {
@@ -256,13 +268,7 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
       return;
     }
 
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this submitted task? This action cannot be undone.",
-    );
-
-    if (confirmed) {
-      onDelete();
-    }
+    setDeleteConfirmOpen(true);
   };
 
   return (
@@ -374,6 +380,30 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
             </Button>
           )}
         </div>
+
+        <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+          <AlertDialogContent size="default">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete submitted task?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. The selected task will be removed permanently.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                variant="warning"
+                onClick={() => {
+                  setDeleteConfirmOpen(false);
+                  onDelete?.();
+                }}
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </DialogContent>
     </Dialog>
   );
