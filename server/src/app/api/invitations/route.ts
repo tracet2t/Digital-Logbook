@@ -2,7 +2,7 @@ import { InvitationRepository } from "@/repositories/invitation_repository_impl"
 import { UserRepository } from "@/repositories/user_repository_impl";
 import getSession from "@/server_actions/getSession";
 import { registerStudent } from "@/services/registerstudent";
-import { Invitation, Project, Role } from "@prisma/client";
+import { Invitation, Role } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 import { sendEmail } from "@/lib/email";
