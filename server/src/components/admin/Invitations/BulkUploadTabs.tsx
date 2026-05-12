@@ -85,9 +85,9 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
     goToStep(2);
   };
 
-  const handleBackToUpload = () => {
-    goToStep(1);
-  };
+  // const handleBackToUpload = () => {
+  //   goToStep(1);
+  // };
 
   const handleSubmit = async () => {
     if (missingRequiredColumns.length > 0) return;
@@ -143,7 +143,6 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
           excelColumns={getExcelColumns()}
           fieldMapping={fieldMapping}
           onFieldMappingChange={handleFieldMappingAndValidate}
-          onBack={handleBackToUpload}
           onCancel={handleCancelFlow}
           onSubmit={handleSubmit}
           isSubmitting={isSending}

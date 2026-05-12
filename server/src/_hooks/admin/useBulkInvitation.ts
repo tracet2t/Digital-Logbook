@@ -50,9 +50,25 @@ export const useBulkSendInvitations = () => {
       }
     },
     onError: (error) => {
-      toast.error(
-        error.message || "Failed to send bulk invitations. Please try again.",
-      );
+      // Log to console for debugging
+      console.error("[useBulkSendInvitations] Error:", error);
+
+      // Check if it's an email configuration error
+      const errorMessage = error.message || "";
+      if (
+        errorMessage.includes("EMAIL_USER") ||
+        errorMessage.includes("EMAIL_PASS") ||
+        errorMessage.includes("Email service is not configured")
+      ) {
+        toast.error(
+          "Email service is not configured. Please contact your administrator to set up email credentials.",
+          { duration: 6000 },
+        );
+      } else {
+        toast.error(
+          error.message || "Failed to send bulk invitations. Please try again.",
+        );
+      }
     },
   });
 

@@ -92,7 +92,23 @@ export const invitationWorker = new Worker<InvitationJobData>(
           error instanceof Error ? error.message : error,
         );
 
-        // Re-throw to trigger BullMQ retry mechanism
+        // Check if it's a configuration error (don't retry these)
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        if (
+          errorMessage.includes("EMAIL_USER") ||
+          errorMessage.includes("EMAIL_PASS") ||
+          errorMessage.includes("environment variables are not set")
+        ) {
+          console.error(
+            `[invitationQueue] ✗ Configuration error - will not retry. Job ${job.id} moving to failed state.`,
+          );
+          // Move job to failed without retrying
+          await job.moveToFailed(error as Error, job.token || "", false);
+          return;
+        }
+
+        // Re-throw other errors to trigger BullMQ retry mechanism
         throw error;
       }
     }

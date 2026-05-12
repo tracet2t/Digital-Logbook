@@ -77,6 +77,17 @@ export const sendInvitation = superAdminProcedure
     const { email, role, firstName, lastName, projectId } = input;
     const invitedBy = context.userId;
 
+    // ✓ Validate email configuration BEFORE processing
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      const errorMessage =
+        "Email service is not configured. Please set EMAIL_USER and EMAIL_PASS environment variables.";
+      console.error(
+        "[sendInvitation] ✗ Email configuration error:",
+        errorMessage,
+      );
+      throw new Error(errorMessage);
+    }
+
     // Check if user already exists
     const existingUser = await userRepository.getByEmail(email);
     if (existingUser) {
@@ -145,6 +156,17 @@ export const sendBulkInvitations = superAdminProcedure
   .handler(async ({ input, context }) => {
     const invitedBy = context.userId;
     const { invitations } = input;
+
+    // ✓ Validate email configuration BEFORE processing any invitations
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      const errorMessage =
+        "Email service is not configured. Please set EMAIL_USER and EMAIL_PASS environment variables.";
+      console.error(
+        "[sendBulkInvitations] ✗ Email configuration error:",
+        errorMessage,
+      );
+      throw new Error(errorMessage);
+    }
 
     const result = {
       success: 0,

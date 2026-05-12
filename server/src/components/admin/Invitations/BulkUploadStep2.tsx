@@ -3,6 +3,7 @@
 import React from "react";
 
 import { useBulkUploadTableStore } from "@/_stores/bulkUploadTableStore";
+import { Loader2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,7 +36,6 @@ interface BulkUploadStep2Props {
     field: "email" | "firstName" | "lastName" | "role" | "project",
     column: string,
   ) => void;
-  onBack?: () => void;
   onCancel?: () => void;
   onSubmit?: () => void;
   isSubmitting?: boolean;
@@ -67,7 +67,6 @@ export function BulkUploadStep2({
   excelColumns,
   fieldMapping,
   onFieldMappingChange,
-  onBack = () => {},
   onCancel = () => {},
   onSubmit = () => {},
   isSubmitting = false,
@@ -337,13 +336,6 @@ export function BulkUploadStep2({
       <div className="flex flex-col items-stretch gap-3 pt-6 border-t border-[#e4e7ed] sm:flex-row sm:items-center sm:justify-between">
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
           <Button
-            onClick={onBack}
-            variant="outline"
-            className="h-10 w-full border-[#d9dde5] px-6 text-slate-700 hover:bg-slate-50 sm:w-auto"
-          >
-            ← Back to Upload
-          </Button>
-          <Button
             onClick={onCancel}
             variant="outline"
             className="h-10 w-full border-[#d9dde5] px-6 text-slate-700 hover:bg-slate-50 sm:w-auto"
@@ -357,7 +349,11 @@ export function BulkUploadStep2({
           disabled={isSubmitting || isSubmitDisabled}
           className="h-10 w-full bg-[#000053] px-6 font-semibold text-white hover:bg-[#000053] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
         >
-          {isSubmitting ? "SENDING..." : "COMPLETE UPLOAD"} →
+          {isSubmitting ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            "Send Invitations →"
+          )}
         </Button>
       </div>
     </div>
