@@ -268,9 +268,7 @@ export function EditorPanel({
               <RichTextEditor
                 value={activeCard.description}
                 onChange={(val) => onUpdate({ description: val })}
-                charCount={activeCard.description.length}
-                maxChars={280}
-                rows={4}
+                rows={5}
               />
             </div>
           </div>

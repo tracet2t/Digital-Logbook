@@ -4,9 +4,10 @@ import { OnboardingApplication } from "@/_hooks/admin/useAdminOnboarding";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Briefcase, X } from "lucide-react";
+import { Move, X } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -40,20 +41,29 @@ function DraggableAssignedRow({
     ? { transform: CSS.Translate.toString(transform) }
     : undefined;
 
-  const getStatusDotColor = () => {
+  const userStatusLabel =
+    app.status?.toLowerCase() === "inactive" ? "Inactive" : "Active";
+
+  const invitationStatusLabel =
+    app.invitationStatus === "Active" ? "Accepted" : app.invitationStatus;
+
+  const getUserBadgeClasses = () =>
+    app.status?.toLowerCase() === "inactive"
+      ? "border-rose-300 text-rose-600"
+      : "border-emerald-300 text-emerald-600";
+
+  const getInvitationBadgeClasses = () => {
     switch (app.invitationStatus) {
       case "Active":
-        return "bg-emerald-500";
+        return "border-emerald-300 text-emerald-600";
       case "Pending":
-        return "bg-amber-500";
+        return "border-amber-300 text-amber-600";
       case "Expired":
-        return "bg-rose-500";
+        return "border-rose-300 text-rose-600";
       default:
-        return null;
+        return "border-slate-200 text-slate-600";
     }
   };
-
-  const dotColor = getStatusDotColor();
 
   return (
     <div
@@ -66,23 +76,51 @@ function DraggableAssignedRow({
         onViewProfile(app);
       }}
       className={[
-        "group/item flex h-8 w-[94%] mx-auto cursor-grab items-center justify-between rounded-2xl border border-transparent bg-white px-2 py-1 shadow-sm transition active:cursor-grabbing hover:border-indigo-100 sm:h-9 sm:px-3 sm:py-1.5 lg:h-10",
+        "group/item flex w-[94%] mx-auto cursor-grab items-center justify-between rounded-md border border-transparent bg-white px-2 py-2 shadow-sm transition active:cursor-grabbing hover:border-indigo-100 sm:px-3 sm:py-2",
         isDragging ? "opacity-40 ring-2 ring-indigo-300" : "",
       ].join(" ")}
     >
-      <div className="flex min-w-0 items-center gap-2">
+      <div className="flex min-w-0 items-start gap-2">
         <Avatar className="h-6 w-6 shrink-0 sm:h-7 sm:w-7">
           <AvatarFallback className="bg-[#000053] text-[9px] font-bold text-white">
             {getInitials(app.fullName)}
           </AvatarFallback>
         </Avatar>
-        <div className="flex min-w-0 items-center gap-1.5">
-          {dotColor && (
-            <span className={`h-2 w-2 shrink-0 rounded-full ${dotColor}`} />
-          )}
-          <span className="truncate text-[10px] font-bold text-slate-700 sm:text-[11px]">
-            {app.fullName}
-          </span>
+        <div className="min-w-0">
+          <div className="flex items-center justify-between gap-2">
+            <span className="block min-w-0 truncate text-[10px] font-bold text-slate-700 sm:text-[11px]">
+              {app.fullName}
+            </span>
+            <span
+              className={
+                app.status?.toLowerCase() === "inactive"
+                  ? "h-2 w-2 shrink-0 rounded-full bg-rose-500"
+                  : "h-2 w-2 shrink-0 rounded-full bg-emerald-500"
+              }
+            />
+          </div>
+          <div className="mt-0.5 flex flex-nowrap items-center gap-1">
+            <Badge
+              variant="secondary"
+              className={[
+                "inline-flex items-center shrink-0 whitespace-nowrap rounded-full border px-1.5 py-0.5 text-[9px] font-semibold bg-transparent",
+                getUserBadgeClasses(),
+              ].join(" ")}
+            >
+              {userStatusLabel}
+            </Badge>
+            {app.invitationStatus && (
+              <Badge
+                variant="secondary"
+                className={[
+                  "inline-flex items-center shrink-0 whitespace-nowrap rounded-full border px-1.5 py-0.5 text-[9px] font-semibold bg-transparent",
+                  getInvitationBadgeClasses(),
+                ].join(" ")}
+              >
+                {invitationStatusLabel}
+              </Badge>
+            )}
+          </div>
         </div>
       </div>
       <Button
@@ -160,18 +198,17 @@ export function ProjectCard({
         <button
           type="button"
           className={[
-            "drag-handle flex h-7 w-7 items-center justify-center rounded-xl shadow-sm transition sm:h-8 sm:w-8 cursor-grab active:cursor-grabbing",
+            "drag-handle flex h-7 w-7 items-center justify-center rounded-lg shadow-sm transition sm:h-8 sm:w-8 cursor-grab active:cursor-grabbing",
             isOver
               ? "bg-[#000053] text-white"
               : "bg-white text-slate-300 group-hover:bg-[#000053] group-hover:text-white",
           ].join(" ")}
-          tabIndex={0}
           aria-label="Drag project card"
           ref={setActivatorNodeRef}
           {...attributes}
           {...listeners}
         >
-          <Briefcase className="h-4 w-4" />
+          <Move className="h-4 w-4" />
         </button>
       </div>
 

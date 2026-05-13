@@ -41,29 +41,29 @@ export function BenchCard({
 
   const getInvitationBadgeClasses = () => {
     if (selected) {
-      return "bg-white/20 text-white border-white/20";
+      return "border-white/40 text-white";
     }
 
     switch (application.invitationStatus) {
-      case "Accepted":
-        return "bg-emerald-50 text-emerald-600 border-emerald-200/60";
+      case "Active":
+        return "border-emerald-300 text-emerald-600";
       case "Pending":
-        return "bg-amber-50 text-amber-600 border-amber-200/60";
+        return "border-amber-300 text-amber-600";
       case "Expired":
-        return "bg-rose-50 text-rose-600 border-rose-200/60";
+        return "border-rose-300 text-rose-600";
       default:
-        return "bg-slate-50 text-slate-600 border-slate-200";
+        return "border-slate-200 text-slate-600";
     }
   };
 
   const getUserBadgeClasses = () => {
     if (selected) {
-      return "bg-white/20 text-white border-white/20";
+      return "border-white/40 text-white";
     }
 
     return application.status?.toLowerCase() === "inactive"
-      ? "bg-rose-50 text-rose-600 border-rose-200/60"
-      : "bg-emerald-50 text-emerald-600 border-emerald-200/60";
+      ? "border-rose-300 text-rose-600"
+      : "border-emerald-300 text-emerald-600";
   };
 
   return (
@@ -74,7 +74,7 @@ export function BenchCard({
       {...listeners}
       onClick={onClick}
       className={[
-        "group flex w-full min-w-0 cursor-grab items-center gap-2 rounded-xl border px-2.5 py-2 transition active:cursor-grabbing",
+        "group flex w-full min-w-0 cursor-grab items-center gap-2 rounded-md border px-2.5 py-2 transition active:cursor-grabbing",
         isDragging ? "opacity-40 ring-2 ring-indigo-300" : "",
         selected
           ? "border-[#000053] bg-[#000053] text-white shadow-md"
@@ -124,7 +124,7 @@ export function BenchCard({
           <Badge
             variant="secondary"
             className={[
-              "shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold",
+              "inline-flex items-center shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold bg-transparent",
               getUserBadgeClasses(),
             ].join(" ")}
           >
@@ -134,7 +134,7 @@ export function BenchCard({
             <Badge
               variant="secondary"
               className={[
-                "shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold",
+                "inline-flex items-center shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold bg-transparent",
                 getInvitationBadgeClasses(),
               ].join(" ")}
             >

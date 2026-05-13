@@ -307,7 +307,7 @@ export function KanbanBoard({
             ) : (
               <div className="2xl:flex-1 2xl:overflow-y-auto">
                 <SortableContext items={projects.map((p) => p.id)}>
-                  <div className="grid grid-cols-2 gap-1.5 pb-2 pr-1 sm:gap-2 sm:grid-cols-3 lg:grid-cols-3 lg:gap-3 xl:grid-cols-4 2xl:grid-cols-4 2xl:gap-3 3xl:grid-cols-5 3xl:gap-3 4xl:grid-cols-6 4xl:gap-3">
+                  <div className="grid grid-cols-1 gap-1.5 pb-2 pr-1 sm:gap-2 sm:grid-cols-2 lg:grid-cols-2 lg:gap-3 xl:grid-cols-3 2xl:grid-cols-3 2xl:gap-3 3xl:grid-cols-4 3xl:gap-3 4xl:grid-cols-5 4xl:gap-3">
                     {projects.map((project) => {
                       const assignedIds =
                         assignments[project.id] ?? new Set<string>();
