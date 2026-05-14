@@ -127,6 +127,39 @@ export function EditorPanel({
               />
             </div>
 
+            {/* Register Link */}
+            <div className="space-y-2">
+              <label className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-[#0F172A]">
+                <svg
+                  width="11"
+                  height="11"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#000053"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                </svg>
+                Register Link
+              </label>
+              <input
+                type="url"
+                value={activeCard.registerLink}
+                onChange={(e) => onUpdate({ registerLink: e.target.value })}
+                className="w-full rounded-xl border border-[#E5E5E5] bg-[#F8FAFC] px-4 py-3 text-sm font-medium outline-none transition-all focus:border-[#000053] focus:bg-white focus:ring-2 focus:ring-[#000053]/10"
+                placeholder="https://example.com/register"
+              />
+              {activeCard.registerLink && (
+                <p className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-green-600">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500" />
+                  Register button will appear on this card
+                </p>
+              )}
+            </div>
+
             {/* Event Date */}
             <div className="space-y-2">
               <label className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-[#0F172A]">
@@ -268,9 +301,7 @@ export function EditorPanel({
               <RichTextEditor
                 value={activeCard.description}
                 onChange={(val) => onUpdate({ description: val })}
-                charCount={activeCard.description.length}
-                maxChars={280}
-                rows={4}
+                rows={5}
               />
             </div>
           </div>

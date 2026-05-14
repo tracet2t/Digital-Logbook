@@ -1,14 +1,17 @@
 "use client";
 
+import { useState } from "react";
+
 import {
-  Eye,
   EyeOff,
   Image as ImageIcon,
   Monitor,
   PanelRight,
+  Pencil,
 } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
+import { ArticlePreviewModal } from "@/components/admin/ArticlePreviewModal";
 import { RichTextRenderer } from "@/components/admin/RichTextRenderer";
 
 import { CmsCard } from "../../app/admin/landing-page-cms/_constants";
@@ -30,6 +33,7 @@ export function PreviewCanvas({
   editorOpen,
   onToggleEditor,
 }: PreviewCanvasProps) {
+  const [previewCard, setPreviewCard] = useState<CmsCard | null>(null);
   return (
     <div className="flex-1 overflow-y-auto bg-white p-4 md:p-6">
       <div className="mb-6 flex items-start justify-between">
@@ -56,15 +60,20 @@ export function PreviewCanvas({
         {cards.map((card) => (
           <Card
             key={card.id}
-            onClick={() => onSelect(card.id)}
             className={`relative flex cursor-pointer flex-col gap-4 p-4 transition-all duration-200 sm:flex-row sm:items-center sm:gap-5 sm:p-5 ${
               activeId === card.id
                 ? "scale-[1.01] border-[#000053] ring-2 ring-[#000053]"
                 : "border-[#E5E5E5] hover:border-[#CBD5E1]"
             } ${!card.isVisible ? "opacity-60 grayscale-[0.4]" : ""}`}
           >
+            {/* Click wrapper — opens preview modal */}
+            <div
+              className="absolute inset-0 z-10 rounded-xl"
+              onClick={() => setPreviewCard(card)}
+            />
+
             {!card.isVisible && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/30 backdrop-blur-[1px]">
+              <div className="absolute inset-0 z-20 flex items-center justify-center rounded-xl bg-white/30 backdrop-blur-[1px]">
                 <span className="flex items-center gap-1.5 rounded-full bg-gray-900/80 px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest text-white">
                   <EyeOff size={11} /> Hidden from portal
                 </span>
@@ -107,6 +116,18 @@ export function PreviewCanvas({
                 <RichTextRenderer text={card.description} />
               </p>
             </div>
+
+            {/* Edit button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelect(card.id);
+              }}
+              title="Edit card"
+              className="relative z-30 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#E5E5E5] bg-white text-[#64748B] opacity-0 shadow-sm transition-all hover:border-[#000053] hover:bg-[#000053] hover:text-white group-hover/card:opacity-100 sm:opacity-100"
+            >
+              <Pencil size={14} />
+            </button>
           </Card>
         ))}
 
@@ -123,6 +144,15 @@ export function PreviewCanvas({
           </div>
         )}
       </div>
+
+      {/* ── Premium article preview modal ── */}
+      <ArticlePreviewModal
+        card={previewCard}
+        open={!!previewCard}
+        onOpenChange={(open) => {
+          if (!open) setPreviewCard(null);
+        }}
+      />
     </div>
   );
 }

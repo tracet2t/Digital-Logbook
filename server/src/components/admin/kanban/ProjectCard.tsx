@@ -3,10 +3,14 @@
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Briefcase, X } from "lucide-react";
+import { Move , X } from "lucide-react";
 
-import { OnboardingApplication } from "@/hooks/admin/useAdminOnboarding";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+
+type OnboardingApplication = {
+  id: string;
+  fullName: string;
+};
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -96,7 +100,6 @@ export function ProjectCard({
     transition,
     isDragging,
     isSorting,
-    over,
   } = useSortable({ id: project.id });
 
   // Droppable for member assignment
@@ -141,18 +144,17 @@ export function ProjectCard({
         <button
           type="button"
           className={[
-            "drag-handle flex h-7 w-7 items-center justify-center rounded-xl shadow-sm transition sm:h-8 sm:w-8 cursor-grab active:cursor-grabbing",
+            "drag-handle flex h-7 w-7 items-center justify-center rounded-lg shadow-sm transition sm:h-8 sm:w-8 cursor-grab active:cursor-grabbing",
             isOver
               ? "bg-[#000053] text-white"
               : "bg-white text-slate-300 group-hover:bg-[#000053] group-hover:text-white",
           ].join(" ")}
-          tabIndex={0}
           aria-label="Drag project card"
           ref={setActivatorNodeRef}
           {...attributes}
           {...listeners}
         >
-          <Briefcase className="h-4 w-4" />
+          <Move className="h-4 w-4" />
         </button>
       </div>
 
