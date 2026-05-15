@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { BulkUploadEditableTable } from "./BulkUploadEditableTable";
+import { useBulkUploadTableStore } from "@/_stores/bulkUploadTableStore";
 
 interface BulkUploadStep2Props {
   fileInfo: {
@@ -67,6 +68,9 @@ export function BulkUploadStep2({
   isSubmitDisabled = false,
 }: BulkUploadStep2Props) {
   const hasMissingRequired = missingRequiredColumns.length > 0;
+  const { cellErrors } = useBulkUploadTableStore();
+  const hasValidationErrors = cellErrors.length > 0;
+  const showMissingRequired = hasMissingRequired || hasValidationErrors;
 
   return (
     <div className="space-y-6 w-full">
@@ -100,9 +104,9 @@ export function BulkUploadStep2({
                   </>
                 )}
               </div>
-              {hasMissingRequired ? (
+              {showMissingRequired ? (
                 <Badge className="bg-orange-100 text-orange-800">
-                  Missing Required Columns
+                  Fix Required Cells
                 </Badge>
               ) : (
                 <Badge className="bg-[#22C55E] text-white">
@@ -290,8 +294,8 @@ export function BulkUploadStep2({
       )}
 
       {/* Buttons */}
-      <div className="flex flex-col gap-3 pt-6 border-t border-[#e4e7ed] sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+      <div className="flex flex-col items-stretch gap-3 pt-6 border-t border-[#e4e7ed] sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
           <Button
             onClick={onBack}
             variant="outline"

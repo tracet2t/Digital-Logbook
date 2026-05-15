@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -111,9 +111,9 @@ export function BulkUploadEditableTable({
       : selectAllRows(currentPageRowIds);
   };
 
-  const revalidate = (rows: typeof data) => {
-    setCellErrors(validateBulkUploadRows(rows, fieldMapping));
-  };
+  useEffect(() => {
+    setCellErrors(validateBulkUploadRows(data, fieldMapping));
+  }, [data, fieldMapping, setCellErrors]);
 
   const handleCellUpdate = (
     rowIndex: number,
@@ -124,7 +124,6 @@ export function BulkUploadEditableTable({
       index === rowIndex ? { ...row, [column]: value } : row,
     );
     setData(updated);
-    revalidate(updated);
   };
 
   const handleConfirmDelete = () => {
@@ -136,7 +135,6 @@ export function BulkUploadEditableTable({
     setData(remaining);
     deselectAllRows();
     closeDeleteDialog();
-    revalidate(remaining);
   };
 
   return (
@@ -254,10 +252,13 @@ export function BulkUploadEditableTable({
         </Table>
       </div>
 
-      <div className="flex items-center justify-between px-2">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-3 px-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex w-full items-center gap-2 sm:w-auto">
           <span className="text-sm text-slate-500">Rows per page:</span>
-          <Select value={String(pageSize)} onValueChange={(v) => setPageSize(Number(v))}>
+          <Select
+            value={String(pageSize)}
+            onValueChange={(v) => setPageSize(Number(v))}
+          >
             <SelectTrigger className="h-8 w-[70px]">
               <SelectValue />
             </SelectTrigger>
@@ -271,11 +272,11 @@ export function BulkUploadEditableTable({
           </Select>
         </div>
 
-        <div className="text-sm text-slate-500">
+        <div className="w-full text-sm text-slate-500 sm:w-auto sm:text-center">
           {data.length === 0 ? 0 : startIndex + 1} to {endIndex} of {data.length}
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex w-full flex-wrap items-center justify-between gap-2 sm:w-auto sm:flex-nowrap sm:justify-end">
           {[
             {
               icon: ChevronsLeft,

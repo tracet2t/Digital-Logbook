@@ -54,10 +54,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const invitedBy = session.getId();
+    const inviterEmail = session.getUsername();
+    const inviterUser = inviterEmail
+      ? await userRepository.getByEmail(inviterEmail)
+      : null;
+    const invitedBy = inviterUser?.id ?? session.getId();
     if (!invitedBy) {
       return NextResponse.json(
         { message: "Unauthorized: Invalid session" },
+        { status: 401 },
+      );
+    }
+    if (!inviterUser) {
+      return NextResponse.json(
+        { message: "Unauthorized: Inviter account not found" },
         { status: 401 },
       );
     }
@@ -65,6 +75,15 @@ export async function POST(req: NextRequest) {
     // 3. Parse and validate the request body
     const body = await req.json();
     const { email, role, firstName, lastName, projectId } = body;
+
+    // Log incoming payload for debugging (avoid logging sensitive tokens)
+    console.info("[invitation] create payload:", {
+      email,
+      role,
+      firstName,
+      lastName,
+      projectId,
+    });
 
     if (!email || !role) {
       return NextResponse.json(
@@ -236,7 +255,7 @@ export async function GET(req: NextRequest) {
         id: inv.id,
         email: inv.email,
         role: inv.role,
-        project: inv.projectId ? projectById.get(inv.projectId) ?? "—" : "—",
+        project: inv.projectId ? (projectById.get(inv.projectId) ?? "—") : "—",
         status,
         createdAt: inv.createdAt,
         expiresAt: inv.expiresAt,

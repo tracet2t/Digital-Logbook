@@ -1,13 +1,15 @@
 import { Queue, Worker } from "bullmq";
 import nodemailer from "nodemailer";
 
+import { EmailTemplate } from "@/components/EmailTemplate/EmailTemplate";
+
 import { getRedis } from "./redis";
 
 const redis = getRedis();
 
 // ─── Queue ────────────────────────────────────────────────────────────────────
 
-export const onboardingQueue = new Queue("onboardingQueue", {
+export const invitationQueue = new Queue("invitationQueue", {
   connection: redis,
   defaultJobOptions: {
     attempts: 3,
@@ -20,23 +22,27 @@ export const onboardingQueue = new Queue("onboardingQueue", {
 
 // ─── Job Types ────────────────────────────────────────────────────────────────
 
-export type OnboardingJobData = {
-  type: "sendConfirmationEmail";
+export type InvitationJobData = {
+  type: "sendInvitationEmail";
   email: string;
-  fullName: string;
+  name: string;
+  tempPassword: string;
+  message: string;
+  loginUrl: string;
+  token: string;
 };
 
 // ─── Worker ───────────────────────────────────────────────────────────────────
 
-export const onboardingWorker = new Worker<OnboardingJobData>(
-  "onboardingQueue",
+export const invitationWorker = new Worker<InvitationJobData>(
+  "invitationQueue",
   async (job) => {
-    if (job.data.type === "sendConfirmationEmail") {
-      const { email, fullName } = job.data;
+    if (job.data.type === "sendInvitationEmail") {
+      const { email, name, tempPassword, message, loginUrl } = job.data;
 
       try {
         console.log(
-          `[onboardingQueue] Processing email job for ${email} (Job ID: ${job.id})`,
+          `[invitationQueue] Processing email job for ${email} (Job ID: ${job.id})`,
         );
 
         // Validate environment variables
@@ -57,43 +63,32 @@ export const onboardingWorker = new Worker<OnboardingJobData>(
         // Verify transporter configuration
         await transporter.verify();
         console.log(
-          `[onboardingQueue] Email transporter verified successfully`,
+          `[invitationQueue] Email transporter verified successfully`,
         );
 
-        const info = await transporter.sendMail({
+        const mailOptions = {
           from: process.env.EMAIL_USER,
           to: email,
-          subject: "Application Received – Digital Logbook",
-          html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #000053;">Application Received</h2>
-            <p>Hi <strong>${fullName}</strong>,</p>
-            <p>
-              Thank you for submitting your mentee application to the Digital Logbook programme.
-              Your application is currently <strong>under review</strong> and you will be notified
-              once a decision has been made.
-            </p>
-            <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-            <p style="color: #999; font-size: 12px;">
-              This is an automated notification from Digital Logbook. Please do not reply to this email.
-            </p>
-          </div>
-        `,
-        });
+          subject: `Hello!! Here is your link to Registration`,
+          text: message,
+          html: EmailTemplate({ name, tempPassword, loginUrl }),
+        };
+
+        const info = await transporter.sendMail(mailOptions);
 
         console.log(
-          `[onboardingQueue] ✓ Confirmation email sent successfully to ${email}`,
+          `[invitationQueue] ✓ Invitation email sent successfully to ${email}`,
         );
         console.log(
-          `[onboardingQueue] Message ID: ${info.messageId}, Response: ${info.response}`,
+          `[invitationQueue] Message ID: ${info.messageId}, Response: ${info.response}`,
         );
       } catch (error) {
         console.error(
-          `[onboardingQueue] ✗ Failed to send email to ${email}:`,
+          `[invitationQueue] ✗ Failed to send email to ${email}:`,
           error,
         );
         console.error(
-          `[onboardingQueue] Error details:`,
+          `[invitationQueue] Error details:`,
           error instanceof Error ? error.message : error,
         );
 
@@ -107,17 +102,17 @@ export const onboardingWorker = new Worker<OnboardingJobData>(
 
 // ─── Worker Event Listeners ───────────────────────────────────────────────────
 
-onboardingWorker.on("completed", (job) => {
-  console.log(`[onboardingQueue] Job ${job.id} completed successfully`);
+invitationWorker.on("completed", (job) => {
+  console.log(`[invitationQueue] Job ${job.id} completed successfully`);
 });
 
-onboardingWorker.on("failed", (job, err) => {
+invitationWorker.on("failed", (job, err) => {
   console.error(
-    `[onboardingQueue] Job ${job?.id} failed after ${job?.attemptsMade} attempts:`,
+    `[invitationQueue] Job ${job?.id} failed after ${job?.attemptsMade} attempts:`,
     err.message,
   );
 });
 
-onboardingWorker.on("error", (err) => {
-  console.error(`[onboardingQueue] Worker error:`, err);
+invitationWorker.on("error", (err) => {
+  console.error(`[invitationQueue] Worker error:`, err);
 });
