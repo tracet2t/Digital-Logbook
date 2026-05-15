@@ -22,7 +22,7 @@ import { CheckCircle2, UserCheck, UserRound } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AdminPageLayout, PageHeader } from "@/components/admin";
+import { AdminPageLayout, FilterBar, PageHeader } from "@/components/admin";
 import {
   ApplicantDialog,
   CreateProjectDialog,
@@ -49,6 +49,8 @@ export default function AdminOnboardingPage() {
   // holds the current values typed into the create-project form
   const [createProjectForm, setCreateProjectForm] =
     useState<ProjectFormState>(EMPTY_FORM);
+  // email search for filtering mentee/mentor by email
+  const [emailSearch, setEmailSearch] = useState("");
   // bench search for filtering mentee bench by name
   const [benchSearch, setBenchSearch] = useState("");
   // bench search for filtering mentor bench by name
@@ -59,6 +61,22 @@ export default function AdminOnboardingPage() {
   // fetch mentors who haven't been assigned to a project yet
   const { data: mentorApplications = [], isLoading: mentorLoading } =
     useUnassignedMentors();
+
+  const filteredMenteeApplications = useMemo(() => {
+    const q = emailSearch.trim().toLowerCase();
+    if (q.length === 0) return applications;
+    return applications.filter((app) =>
+      app.email.toLowerCase().includes(q),
+    );
+  }, [applications, emailSearch]);
+
+  const filteredMentorApplications = useMemo(() => {
+    const q = emailSearch.trim().toLowerCase();
+    if (q.length === 0) return mentorApplications;
+    return mentorApplications.filter((app) =>
+      app.email.toLowerCase().includes(q),
+    );
+  }, [mentorApplications, emailSearch]);
   // all existing projects — used to populate the kanban columns
   const { data: projectsData = [], isLoading: projectsLoading } =
     useGetProjects();
@@ -110,7 +128,7 @@ export default function AdminOnboardingPage() {
       id: applicationId,
       projectId,
     })),
-    applications,
+    applications: filteredMenteeApplications,
     onAssign: (id, projectId, onError) =>
       assignMentee.mutate({ applicationId: id, projectId }, { onError }),
     onUnassign: (id, projectId, onError) =>
@@ -123,7 +141,7 @@ export default function AdminOnboardingPage() {
       id: mentorId,
       projectId,
     })),
-    applications: mentorApplications,
+    applications: filteredMentorApplications,
     onAssign: (id, projectId, onError) =>
       assignMentor.mutate({ mentorId: id, projectId }, { onError }),
     onUnassign: (id, projectId, onError) =>
@@ -131,31 +149,37 @@ export default function AdminOnboardingPage() {
   });
 
   const menteeAssignedCount = useMemo(() => {
+    const visibleIds = new Set(filteredMenteeApplications.map((a) => a.id));
     const ids = new Set<string>();
     Object.values(menteeBoard.assignments).forEach((set) =>
-      set.forEach((id) => ids.add(id)),
+      set.forEach((id) => {
+        if (visibleIds.has(id)) ids.add(id);
+      }),
     );
     return ids.size;
-  }, [menteeBoard.assignments]);
+  }, [menteeBoard.assignments, filteredMenteeApplications]);
 
   const mentorAssignedCount = useMemo(() => {
+    const visibleIds = new Set(filteredMentorApplications.map((a) => a.id));
     const ids = new Set<string>();
     Object.values(mentorBoard.assignments).forEach((set) =>
-      set.forEach((id) => ids.add(id)),
+      set.forEach((id) => {
+        if (visibleIds.has(id)) ids.add(id);
+      }),
     );
     return ids.size;
-  }, [mentorBoard.assignments]);
+  }, [mentorBoard.assignments, filteredMentorApplications]);
 
   // quick summary numbers shown in the stat cards at the top of the mentee tab
   const menteeCounts = {
-    total: applications.length,
+    total: filteredMenteeApplications.length,
     pending: menteeBoard.bench.length,
     approved: menteeAssignedCount,
   };
 
   // same counts for the mentor tab
   const mentorCounts = {
-    total: mentorApplications.length,
+    total: filteredMentorApplications.length,
     pending: mentorBoard.bench.length,
     approved: mentorAssignedCount,
   };
@@ -176,6 +200,14 @@ export default function AdminOnboardingPage() {
                 title="Onboarding Approval"
                 subtitle="Review incoming applications, approve candidates, then drag them onto a project."
               />
+
+              <FilterBar>
+                <FilterBar.Search
+                  value={emailSearch}
+                  onChange={setEmailSearch}
+                  placeholder="Search by email…"
+                />
+              </FilterBar>
 
               <Tabs defaultValue="mentee" className="flex-col gap-0">
                 <TabsList className="mb-6 w-fit rounded-xl bg-slate-100 p-1">
@@ -214,6 +246,13 @@ export default function AdminOnboardingPage() {
                       tone="emerald"
                     />
                   </div>
+
+                  {emailSearch.trim().length > 0 &&
+                    filteredMenteeApplications.length === 0 && (
+                      <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+                        No users found.
+                      </div>
+                    )}
                   <KanbanBoard
                     benchLabel="Mentee Bench"
                     benchBadgeText="Profiles"
@@ -221,7 +260,7 @@ export default function AdminOnboardingPage() {
                     assignmentLabel="Mentee Assignment"
                     bench={menteeBoard.bench}
                     isLoading={isLoading}
-                    applications={applications}
+                    applications={filteredMenteeApplications}
                     assignments={menteeBoard.assignments}
                     projects={projects}
                     setProjects={setProjects}
@@ -269,6 +308,13 @@ export default function AdminOnboardingPage() {
                       tone="emerald"
                     />
                   </div>
+
+                  {emailSearch.trim().length > 0 &&
+                    filteredMentorApplications.length === 0 && (
+                      <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+                        No users found.
+                      </div>
+                    )}
                   <KanbanBoard
                     benchLabel="Mentor Bench"
                     benchBadgeText="Experts"
@@ -276,7 +322,7 @@ export default function AdminOnboardingPage() {
                     assignmentLabel="Mentor Assignment"
                     bench={mentorBoard.bench}
                     isLoading={mentorLoading}
-                    applications={mentorApplications}
+                    applications={filteredMentorApplications}
                     assignments={mentorBoard.assignments}
                     projects={projects}
                     setProjects={setProjects}
