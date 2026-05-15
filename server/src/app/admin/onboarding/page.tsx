@@ -39,6 +39,13 @@ const EMPTY_FORM: ProjectFormState = {
   batchNo: "",
 };
 
+type Project = {
+  id: string;
+  name: string;
+  description: string | null;
+  batchNo?: string | null;
+};
+
 // ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
@@ -51,10 +58,6 @@ export default function AdminOnboardingPage() {
     useState<ProjectFormState>(EMPTY_FORM);
   // email search for filtering mentee/mentor by email
   const [emailSearch, setEmailSearch] = useState("");
-  // bench search for filtering mentee bench by name
-  const [benchSearch, setBenchSearch] = useState("");
-  // bench search for filtering mentor bench by name
-  const [mentorBenchSearch, setMentorBenchSearch] = useState("");
 
   // fetch all pending/approved mentee applications for the bench
   const { data: applications = [], isLoading } = useOnboardingApplications();
@@ -66,7 +69,7 @@ export default function AdminOnboardingPage() {
     const q = emailSearch.trim().toLowerCase();
     if (q.length === 0) return applications;
     return applications.filter((app) =>
-      app.email.toLowerCase().includes(q),
+      app.email.toLowerCase().includes(q) || app.fullName.toLowerCase().includes(q),
     );
   }, [applications, emailSearch]);
 
@@ -74,7 +77,7 @@ export default function AdminOnboardingPage() {
     const q = emailSearch.trim().toLowerCase();
     if (q.length === 0) return mentorApplications;
     return mentorApplications.filter((app) =>
-      app.email.toLowerCase().includes(q),
+      app.email.toLowerCase().includes(q) || app.fullName.toLowerCase().includes(q),
     );
   }, [mentorApplications, emailSearch]);
   // all existing projects — used to populate the kanban columns
@@ -205,7 +208,7 @@ export default function AdminOnboardingPage() {
                 <FilterBar.Search
                   value={emailSearch}
                   onChange={setEmailSearch}
-                  placeholder="Search by email…"
+                  placeholder="Search by name or email…"
                 />
               </FilterBar>
 
@@ -279,8 +282,6 @@ export default function AdminOnboardingPage() {
                     dragCount={menteeBoard.dragCount}
                     onViewProfile={menteeBoard.setViewingProfile}
                     onAddProject={openCreateProject}
-                    benchSearch={benchSearch}
-                    onBenchSearchChange={setBenchSearch}
                     pendingAction={menteeBoard.pendingAction}
                     onConfirmAction={menteeBoard.confirmPendingAction}
                     onCancelAction={menteeBoard.cancelPendingAction}
@@ -341,8 +342,6 @@ export default function AdminOnboardingPage() {
                     dragCount={mentorBoard.dragCount}
                     onViewProfile={mentorBoard.setViewingProfile}
                     onAddProject={openCreateProject}
-                    benchSearch={mentorBenchSearch}
-                    onBenchSearchChange={setMentorBenchSearch}
                     pendingAction={mentorBoard.pendingAction}
                     onConfirmAction={mentorBoard.confirmPendingAction}
                     onCancelAction={mentorBoard.cancelPendingAction}
