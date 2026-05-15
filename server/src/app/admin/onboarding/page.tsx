@@ -2,6 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { endOfDay, format, parseISO, startOfDay } from "date-fns";
+import type { DateRange } from "react-day-picker";
+
 import {
   useAssignMenteeToProject,
   useAssignMentorToProject,
@@ -18,9 +21,12 @@ import {
   useGetProjects,
   useUpdateProjectOrder,
 } from "@/_hooks/projects";
-import { CheckCircle2, UserCheck, UserRound } from "lucide-react";
+import { Calendar as CalendarIcon, CheckCircle2, UserCheck, UserRound } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Card } from "@/components/ui/card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminPageLayout, FilterBar, PageHeader } from "@/components/admin";
 import {
@@ -58,6 +64,7 @@ export default function AdminOnboardingPage() {
     useState<ProjectFormState>(EMPTY_FORM);
   // email search for filtering mentee/mentor by email
   const [emailSearch, setEmailSearch] = useState("");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
   // fetch all pending/approved mentee applications for the bench
   const { data: applications = [], isLoading } = useOnboardingApplications();
@@ -67,19 +74,56 @@ export default function AdminOnboardingPage() {
 
   const filteredMenteeApplications = useMemo(() => {
     const q = emailSearch.trim().toLowerCase();
-    if (q.length === 0) return applications;
-    return applications.filter((app) =>
-      app.email.toLowerCase().includes(q) || app.fullName.toLowerCase().includes(q),
-    );
-  }, [applications, emailSearch]);
+    const hasQuery = q.length > 0;
+    const start = dateRange?.from ? startOfDay(dateRange.from) : undefined;
+    const end = dateRange?.to ? endOfDay(dateRange.to) : undefined;
+    const hasDateRange = Boolean(start) || Boolean(end);
+
+    if (!hasQuery && !hasDateRange) return applications;
+
+    return applications.filter((app) => {
+      const matchesQuery =
+        !hasQuery ||
+        app.email.toLowerCase().includes(q) ||
+        app.fullName.toLowerCase().includes(q);
+      if (!matchesQuery) return false;
+
+      if (!hasDateRange) return true;
+      const createdAt = parseISO(app.createdAt);
+      if (Number.isNaN(createdAt.getTime())) return false;
+      if (start && createdAt < start) return false;
+      if (end && createdAt > end) return false;
+      return true;
+    });
+  }, [applications, emailSearch, dateRange?.from, dateRange?.to]);
 
   const filteredMentorApplications = useMemo(() => {
     const q = emailSearch.trim().toLowerCase();
-    if (q.length === 0) return mentorApplications;
-    return mentorApplications.filter((app) =>
-      app.email.toLowerCase().includes(q) || app.fullName.toLowerCase().includes(q),
-    );
-  }, [mentorApplications, emailSearch]);
+    const hasQuery = q.length > 0;
+    const start = dateRange?.from ? startOfDay(dateRange.from) : undefined;
+    const end = dateRange?.to ? endOfDay(dateRange.to) : undefined;
+    const hasDateRange = Boolean(start) || Boolean(end);
+
+    if (!hasQuery && !hasDateRange) return mentorApplications;
+
+    return mentorApplications.filter((app) => {
+      const matchesQuery =
+        !hasQuery ||
+        app.email.toLowerCase().includes(q) ||
+        app.fullName.toLowerCase().includes(q);
+      if (!matchesQuery) return false;
+
+      if (!hasDateRange) return true;
+      const createdAt = parseISO(app.createdAt);
+      if (Number.isNaN(createdAt.getTime())) return false;
+      if (start && createdAt < start) return false;
+      if (end && createdAt > end) return false;
+      return true;
+    });
+  }, [mentorApplications, emailSearch, dateRange?.from, dateRange?.to]);
+
+  const hasActiveFilters =
+    emailSearch.trim().length > 0 || Boolean(dateRange?.from) || Boolean(dateRange?.to);
   // all existing projects — used to populate the kanban columns
   const { data: projectsData = [], isLoading: projectsLoading } =
     useGetProjects();
@@ -193,6 +237,62 @@ export default function AdminOnboardingPage() {
     setShowCreateProject(true);
   };
 
+  const renderBenchDateRangeAction = () => {
+    const hasRange = Boolean(dateRange?.from) || Boolean(dateRange?.to);
+    const label = dateRange?.from
+      ? dateRange.to
+        ? `${format(dateRange.from, "MMM dd, yyyy")} - ${format(
+            dateRange.to,
+            "MMM dd, yyyy",
+          )}`
+        : `${format(dateRange.from, "MMM dd, yyyy")} - …`
+      : "Pick a date range";
+
+    return (
+      <Popover>
+        <Button
+          asChild
+          variant="ghost"
+          size="icon-sm"
+          className={
+            hasRange
+              ? "bg-slate-50 text-[#000053] hover:bg-slate-100"
+              : "bg-slate-50 text-slate-400 hover:bg-slate-100"
+          }
+        >
+          <PopoverTrigger aria-label="Filter by date range">
+            <CalendarIcon className="h-3.5 w-3.5" />
+          </PopoverTrigger>
+        </Button>
+
+        <PopoverContent align="start" className="w-auto p-0">
+          <div className="flex items-center justify-between gap-3 border-b border-slate-200 bg-white p-2">
+            <p className="truncate text-[11px] font-medium text-slate-600">
+              {label}
+            </p>
+            {hasRange && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setDateRange(undefined)}
+              >
+                Clear
+              </Button>
+            )}
+          </div>
+          <Calendar
+            mode="range"
+            selected={dateRange}
+            onSelect={setDateRange}
+            numberOfMonths={2}
+            initialFocus
+          />
+        </PopoverContent>
+      </Popover>
+    );
+  };
+
   return (
     <>
       <AdminPageLayout>
@@ -250,8 +350,7 @@ export default function AdminOnboardingPage() {
                     />
                   </div>
 
-                  {emailSearch.trim().length > 0 &&
-                    filteredMenteeApplications.length === 0 && (
+                  {hasActiveFilters && filteredMenteeApplications.length === 0 && (
                       <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
                         No users found.
                       </div>
@@ -261,6 +360,7 @@ export default function AdminOnboardingPage() {
                     benchBadgeText="Profiles"
                     benchEmptyText="No applicants on the bench."
                     assignmentLabel="Mentee Assignment"
+                    benchHeaderAction={renderBenchDateRangeAction()}
                     bench={menteeBoard.bench}
                     isLoading={isLoading}
                     applications={filteredMenteeApplications}
@@ -310,8 +410,7 @@ export default function AdminOnboardingPage() {
                     />
                   </div>
 
-                  {emailSearch.trim().length > 0 &&
-                    filteredMentorApplications.length === 0 && (
+                  {hasActiveFilters && filteredMentorApplications.length === 0 && (
                       <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
                         No users found.
                       </div>
@@ -321,6 +420,7 @@ export default function AdminOnboardingPage() {
                     benchBadgeText="Experts"
                     benchEmptyText="No mentors on the bench."
                     assignmentLabel="Mentor Assignment"
+                    benchHeaderAction={renderBenchDateRangeAction()}
                     bench={mentorBoard.bench}
                     isLoading={mentorLoading}
                     applications={filteredMentorApplications}
