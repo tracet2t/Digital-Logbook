@@ -44,6 +44,7 @@ interface KanbanBoardProps {
   benchBadgeText: string;
   benchEmptyText: string;
   assignmentLabel: string;
+  benchHeaderAction?: React.ReactNode;
   bench: OnboardingApplication[];
   isLoading: boolean;
   applications: OnboardingApplication[];
@@ -76,6 +77,7 @@ export function KanbanBoard({
   benchBadgeText,
   benchEmptyText,
   assignmentLabel,
+  benchHeaderAction,
   bench,
   isLoading,
   applications,
@@ -125,14 +127,19 @@ export function KanbanBoard({
   }
 
   function handleProjectDragEnd(event: DragEndEvent) {
+    const over = event.over;
+    if (!activeProjectId || over === null) {
+      setActiveProjectId(null);
+      handleDragEnd(event); // call original for member DnD
+      return;
+    }
+
     if (
-      activeProjectId &&
-      event.over !== null &&
       projects.some((p) => p.id === event.active.id) &&
-      projects.some((p) => p.id === event.over.id)
+      projects.some((p) => p.id === over.id)
     ) {
       const oldIndex = projects.findIndex((p) => p.id === event.active.id);
-      const newIndex = projects.findIndex((p) => p.id === event.over!.id);
+      const newIndex = projects.findIndex((p) => p.id === over.id);
       if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
         const nextProjects = arrayMove(projects, oldIndex, newIndex);
         setProjects(nextProjects);
@@ -183,9 +190,12 @@ export function KanbanBoard({
               <h3 className="text-[10px] font-black uppercase tracking-[0.22em] text-[#000053]">
                 {benchLabel}
               </h3>
-              <Badge className="rounded-full border-0 bg-indigo-50 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-indigo-500 hover:bg-indigo-50">
-                {filteredBench.length} {benchBadgeText}
-              </Badge>
+              <div className="flex items-center gap-2">
+                {benchHeaderAction}
+                <Badge className="rounded-full border-0 bg-indigo-50 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-indigo-500 hover:bg-indigo-50">
+                  {filteredBench.length} {benchBadgeText}
+                </Badge>
+              </div>
             </div>
             {/* Bench search */}
             {!isLoading && onBenchSearchChange && (

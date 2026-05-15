@@ -3,14 +3,11 @@
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Move , X } from "lucide-react";
+import { Move, X } from "lucide-react";
+
+import type { OnboardingApplication } from "@/_hooks/admin/useAdminOnboarding";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-
-type OnboardingApplication = {
-  id: string;
-  fullName: string;
-};
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
