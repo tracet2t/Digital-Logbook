@@ -4,7 +4,6 @@ import { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 
 import { OnboardingApplication } from "./useAdminOnboarding";
 
-
 // Types
 
 /** The type of assignment action being confirmed */
@@ -83,7 +82,9 @@ export function useKanbanBoard({
     () =>
       applications.filter(
         (a) =>
-          (a.status === "pending" || a.status === "inactive" || a.status === "approved") &&
+          (a.status === "pending" ||
+            a.status === "inactive" ||
+            a.status === "approved") &&
           !assignedIds.has(a.id),
       ),
     [applications, assignedIds],
@@ -168,13 +169,8 @@ export function useKanbanBoard({
   const confirmPendingAction = useCallback(() => {
     if (!pendingAction) return;
 
-    const {
-      type,
-      draggedIds,
-      sourceProjectId,
-      targetProjectId,
-      snapshot,
-    } = pendingAction;
+    const { type, draggedIds, sourceProjectId, targetProjectId, snapshot } =
+      pendingAction;
 
     if (type === "unassign" && sourceProjectId) {
       // Optimistic UI update
@@ -192,7 +188,8 @@ export function useKanbanBoard({
         const next: Record<string, Set<string>> = {};
         for (const pid of Object.keys(prev)) {
           const s = new Set(prev[pid]);
-          if (pid !== targetProjectId) draggedIds.forEach((did) => s.delete(did));
+          if (pid !== targetProjectId)
+            draggedIds.forEach((did) => s.delete(did));
           next[pid] = s;
         }
         const target = new Set(next[targetProjectId] ?? []);
@@ -214,7 +211,6 @@ export function useKanbanBoard({
     setSelectedIds(new Set());
     setPendingAction(null);
   }, []);
-
 
   return {
     assignments,
