@@ -4,9 +4,8 @@ import { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 
 import { OnboardingApplication } from "./useAdminOnboarding";
 
-// ---------------------------------------------------------------------------
+
 // Types
-// ---------------------------------------------------------------------------
 
 /** The type of assignment action being confirmed */
 export type KanbanActionType = "assign" | "reassign" | "unassign";
@@ -31,9 +30,7 @@ interface UseKanbanBoardOptions {
   onUnassign: (id: string, projectId: string, onError: () => void) => void;
 }
 
-// ---------------------------------------------------------------------------
 // Hook
-// ---------------------------------------------------------------------------
 
 export function useKanbanBoard({
   allocations,
@@ -86,7 +83,7 @@ export function useKanbanBoard({
     () =>
       applications.filter(
         (a) =>
-          (a.status === "pending" || a.status === "inactive") &&
+          (a.status === "pending" || a.status === "inactive" || a.status === "approved") &&
           !assignedIds.has(a.id),
       ),
     [applications, assignedIds],
@@ -101,9 +98,7 @@ export function useKanbanBoard({
   const dragCount =
     activeId && selectedIds.has(activeId) ? selectedIds.size : 1;
 
-  // -------------------------------------------------------------------------
   // Drag handlers — queue action, don't apply optimistically
-  // -------------------------------------------------------------------------
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
@@ -168,9 +163,7 @@ export function useKanbanBoard({
     });
   };
 
-  // -------------------------------------------------------------------------
   // Confirm / Cancel
-  // -------------------------------------------------------------------------
 
   const confirmPendingAction = useCallback(() => {
     if (!pendingAction) return;
@@ -222,9 +215,6 @@ export function useKanbanBoard({
     setPendingAction(null);
   }, []);
 
-  // -------------------------------------------------------------------------
-  // Return
-  // -------------------------------------------------------------------------
 
   return {
     assignments,
