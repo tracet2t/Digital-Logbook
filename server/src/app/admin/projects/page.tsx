@@ -16,7 +16,7 @@ import ProjectsTable from "@/components/admin-dashboard/ProjectsTable";
 import ProjectFormDialog from "@/components/admin/ProjectFormDialog";
 import ViewProjectDialog from "@/components/admin/ViewProjectDialog";
 
-import { DOMAIN_ICONS, DOMAIN_LABELS, ITEMS_PER_PAGE } from "./_constants";
+import { ITEMS_PER_PAGE } from "./_constants";
 
 export default function ProjectsPage() {
   const {
@@ -90,8 +90,6 @@ export default function ProjectsPage() {
                 <ProjectsTable
                   data={pagedProjects}
                   loading={loading}
-                  domainIcons={DOMAIN_ICONS}
-                  domainLabels={DOMAIN_LABELS}
                   onView={(project) => setViewProject(project as any)}
                   onEdit={(project) => openEdit(project as any)}
                   onDelete={setDeleteId}

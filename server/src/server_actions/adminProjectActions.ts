@@ -105,7 +105,7 @@ export async function createProject(
     data: {
       name: name.trim(),
       description: description.trim() || undefined,
-      domain: domain as any,
+      domain: domain.trim(),
       batchNo: batchNo?.trim() || null,
       createdBy,
     },
@@ -124,7 +124,7 @@ export async function updateProject(
     data: {
       name: name.trim(),
       description: description.trim() || null,
-      domain: domain as any,
+      domain: domain.trim(),
       batchNo: batchNo?.trim() || null,
     },
   });
