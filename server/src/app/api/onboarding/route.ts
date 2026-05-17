@@ -161,9 +161,31 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: "desc" },
     });
 
+    const appEmailList = (applications as { email: string }[]).map(
+      (a) => a.email,
+    );
+    const applicationUsers = await prisma.user.findMany({
+      where: { email: { in: appEmailList } },
+      select: { email: true, isActive: true },
+    });
+    const userActiveByEmail = applicationUsers.reduce(
+      (acc, user) => {
+        acc[user.email] = user.isActive;
+        return acc;
+      },
+      {} as Record<string, boolean>,
+    );
+    const mappedApplications = applications.map((app) => {
+      const isActive = userActiveByEmail[app.email];
+      if (isActive === false) {
+        return { ...app, status: "inactive" };
+      }
+      return app;
+    });
+
     // Also include students created directly (via invitation) who have no MenteeApplication
     const appEmails = new Set(
-      (applications as { email: string }[]).map((a) => a.email),
+      (mappedApplications as { email: string }[]).map((a) => a.email),
     );
     const directStudents = await prisma.user.findMany({
       where: { role: Role.student },
@@ -191,7 +213,7 @@ export async function GET(req: NextRequest) {
         updatedAt: u.updatedAt.toISOString(),
       }));
 
-    return NextResponse.json([...applications, ...extraStudents], {
+    return NextResponse.json([...mappedApplications, ...extraStudents], {
       status: 200,
     });
   } catch (error) {

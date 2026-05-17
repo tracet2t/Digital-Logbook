@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export type OnboardingStatus = "pending" | "approved" | "rejected" | "inactive";
+export type InvitationStatus = "Active" | "Pending" | "Expired";
 
 export interface OnboardingApplication {
   id: string;
@@ -16,22 +17,68 @@ export interface OnboardingApplication {
   status: OnboardingStatus;
   createdAt: string;
   updatedAt: string;
+  invitationStatus?: InvitationStatus;
+  invitationExpiresAt?: string;
 }
 
 export const useOnboardingApplications = () => {
   return useQuery<OnboardingApplication[]>({
     queryKey: ["onboarding-applications"],
     queryFn: async () => {
-      const response = await fetch("/api/onboarding", { cache: "no-store" });
+      const [applicationsRes, invitationsRes] = await Promise.all([
+        fetch("/api/onboarding", { cache: "no-store" }),
+        fetch("/api/invitations", { cache: "no-store" }),
+      ]);
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
+      if (!applicationsRes.ok) {
+        const errorData = await applicationsRes.json().catch(() => null);
         throw new Error(
           errorData?.message || "Failed to fetch onboarding applications",
         );
       }
 
-      return response.json();
+      const applications = await applicationsRes.json();
+
+      // Fetch invitations to get status information
+      let invitationsByEmail: Record<
+        string,
+        { accepted: boolean; expiresAt: string }
+      > = {};
+
+      if (invitationsRes.ok) {
+        const invitations = await invitationsRes.json();
+        if (Array.isArray(invitations)) {
+          invitationsByEmail = invitations.reduce(
+            (acc, inv) => {
+              acc[inv.email] = {
+                accepted: inv.status === "Accepted",
+                expiresAt: inv.expiresAt,
+              };
+              return acc;
+            },
+            {} as Record<string, { accepted: boolean; expiresAt: string }>,
+          );
+        }
+      }
+
+      // Enhance applications with invitation status
+      return applications.map((app: OnboardingApplication) => {
+        const invitationData = invitationsByEmail[app.email];
+        if (invitationData) {
+          const invitationStatus: InvitationStatus = invitationData.accepted
+            ? "Active"
+            : new Date() > new Date(invitationData.expiresAt)
+              ? "Expired"
+              : "Pending";
+
+          return {
+            ...app,
+            invitationStatus,
+            invitationExpiresAt: invitationData.expiresAt,
+          };
+        }
+        return app;
+      });
     },
   });
 };
