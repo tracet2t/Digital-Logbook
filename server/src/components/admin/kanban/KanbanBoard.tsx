@@ -64,6 +64,7 @@ interface KanbanBoardProps {
   onAddProject: () => void;
   benchSearch?: string;
   onBenchSearchChange?: (value: string) => void;
+  benchSearchMode?: "name" | "nameOrEmail";
   /** Pending action waiting for user confirmation */
   pendingAction: KanbanPendingAction | null;
   /** Call when user clicks "Confirm" in the dialog */
@@ -97,6 +98,7 @@ export function KanbanBoard({
   onAddProject,
   benchSearch = "",
   onBenchSearchChange,
+  benchSearchMode = "name",
   pendingAction,
   onConfirmAction,
   onCancelAction,
@@ -112,8 +114,22 @@ export function KanbanBoard({
   const filteredBench = useMemo(() => {
     if (!benchSearch.trim()) return bench;
     const q = benchSearch.toLowerCase();
-    return bench.filter((a) => a.fullName.toLowerCase().includes(q));
-  }, [bench, benchSearch]);
+    return bench.filter((a) => {
+      const matchesName = a.fullName.toLowerCase().includes(q);
+      if (matchesName) return true;
+
+      if (benchSearchMode === "nameOrEmail") {
+        return a.email.toLowerCase().includes(q);
+      }
+
+      return false;
+    });
+  }, [bench, benchSearch, benchSearchMode]);
+
+  const benchSearchPlaceholder =
+    benchSearchMode === "nameOrEmail"
+      ? "Search by name or email…"
+      : "Search by name...";
 
   // Local state for drag-and-drop of project cards
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
@@ -223,7 +239,7 @@ export function KanbanBoard({
                     type="search"
                     value={benchSearch}
                     onChange={(e) => onBenchSearchChange(e.target.value)}
-                    placeholder="Search by name..."
+                    placeholder={benchSearchPlaceholder}
                     className="h-8 w-full rounded-lg border border-[#dbe0e8] bg-white pl-8 pr-3 text-[11px] text-slate-700 outline-none transition focus:border-slate-400"
                   />
                 </div>

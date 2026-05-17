@@ -28,7 +28,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Card } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AdminPageLayout, FilterBar, PageHeader } from "@/components/admin";
+import { AdminPageLayout, PageHeader } from "@/components/admin";
 import {
   ApplicantDialog,
   CreateProjectDialog,
@@ -62,8 +62,8 @@ export default function AdminOnboardingPage() {
   // holds the current values typed into the create-project form
   const [createProjectForm, setCreateProjectForm] =
     useState<ProjectFormState>(EMPTY_FORM);
-  // email search for filtering mentee/mentor by email
-  const [emailSearch, setEmailSearch] = useState("");
+  const [menteeBenchSearch, setMenteeBenchSearch] = useState("");
+  const [mentorBenchSearch, setMentorBenchSearch] = useState("");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
   // fetch all pending/approved mentee applications for the bench
@@ -73,21 +73,13 @@ export default function AdminOnboardingPage() {
     useUnassignedMentors();
 
   const filteredMenteeApplications = useMemo(() => {
-    const q = emailSearch.trim().toLowerCase();
-    const hasQuery = q.length > 0;
     const start = dateRange?.from ? startOfDay(dateRange.from) : undefined;
     const end = dateRange?.to ? endOfDay(dateRange.to) : undefined;
     const hasDateRange = Boolean(start) || Boolean(end);
 
-    if (!hasQuery && !hasDateRange) return applications;
+    if (!hasDateRange) return applications;
 
     return applications.filter((app) => {
-      const matchesQuery =
-        !hasQuery ||
-        app.email.toLowerCase().includes(q) ||
-        app.fullName.toLowerCase().includes(q);
-      if (!matchesQuery) return false;
-
       if (!hasDateRange) return true;
       const createdAt = parseISO(app.createdAt);
       if (Number.isNaN(createdAt.getTime())) return false;
@@ -95,24 +87,16 @@ export default function AdminOnboardingPage() {
       if (end && createdAt > end) return false;
       return true;
     });
-  }, [applications, emailSearch, dateRange?.from, dateRange?.to]);
+  }, [applications, dateRange?.from, dateRange?.to]);
 
   const filteredMentorApplications = useMemo(() => {
-    const q = emailSearch.trim().toLowerCase();
-    const hasQuery = q.length > 0;
     const start = dateRange?.from ? startOfDay(dateRange.from) : undefined;
     const end = dateRange?.to ? endOfDay(dateRange.to) : undefined;
     const hasDateRange = Boolean(start) || Boolean(end);
 
-    if (!hasQuery && !hasDateRange) return mentorApplications;
+    if (!hasDateRange) return mentorApplications;
 
     return mentorApplications.filter((app) => {
-      const matchesQuery =
-        !hasQuery ||
-        app.email.toLowerCase().includes(q) ||
-        app.fullName.toLowerCase().includes(q);
-      if (!matchesQuery) return false;
-
       if (!hasDateRange) return true;
       const createdAt = parseISO(app.createdAt);
       if (Number.isNaN(createdAt.getTime())) return false;
@@ -120,10 +104,9 @@ export default function AdminOnboardingPage() {
       if (end && createdAt > end) return false;
       return true;
     });
-  }, [mentorApplications, emailSearch, dateRange?.from, dateRange?.to]);
+  }, [mentorApplications, dateRange?.from, dateRange?.to]);
 
-  const hasActiveFilters =
-    emailSearch.trim().length > 0 || Boolean(dateRange?.from) || Boolean(dateRange?.to);
+  const hasActiveFilters = Boolean(dateRange?.from) || Boolean(dateRange?.to);
   // all existing projects — used to populate the kanban columns
   const { data: projectsData = [], isLoading: projectsLoading } =
     useGetProjects();
@@ -304,14 +287,6 @@ export default function AdminOnboardingPage() {
                 subtitle="Review incoming applications, approve candidates, then drag them onto a project."
               />
 
-              <FilterBar>
-                <FilterBar.Search
-                  value={emailSearch}
-                  onChange={setEmailSearch}
-                  placeholder="Search by name or email…"
-                />
-              </FilterBar>
-
               <Tabs defaultValue="mentee" className="flex-col gap-0">
                 <TabsList className="mb-6 w-fit rounded-xl bg-slate-100 p-1">
                   <TabsTrigger
@@ -385,6 +360,9 @@ export default function AdminOnboardingPage() {
                     pendingAction={menteeBoard.pendingAction}
                     onConfirmAction={menteeBoard.confirmPendingAction}
                     onCancelAction={menteeBoard.cancelPendingAction}
+                    benchSearch={menteeBenchSearch}
+                    onBenchSearchChange={setMenteeBenchSearch}
+                    benchSearchMode="nameOrEmail"
                   />
                 </TabsContent>
 
@@ -445,6 +423,9 @@ export default function AdminOnboardingPage() {
                     pendingAction={mentorBoard.pendingAction}
                     onConfirmAction={mentorBoard.confirmPendingAction}
                     onCancelAction={mentorBoard.cancelPendingAction}
+                    benchSearch={mentorBenchSearch}
+                    onBenchSearchChange={setMentorBenchSearch}
+                    benchSearchMode="nameOrEmail"
                   />
                 </TabsContent>
               </Tabs>
