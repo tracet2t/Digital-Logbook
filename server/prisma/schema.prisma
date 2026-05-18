@@ -339,14 +339,17 @@ model ArticleSeo {
 }
 
 model ArticleEvent {
-  id          String   @id @default(cuid())
-  articleId   String   @unique
-  eventDate   DateTime?
-  eventTime   String?
-  location    String?
-  tag         String?
+  id            String   @id @default(cuid())
+  articleId     String   @unique
+  eventDate     DateTime?
+  eventTime     String?
+  location      String?
+  tag           String?
+  venue         String?
+  venueMapLink  String?
+  registerLink  String?
 
-  article     Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  article       Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
 
   @@map("articleEvents")
 }

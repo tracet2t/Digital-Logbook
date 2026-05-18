@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useLandingPageCmsPage } from "@/_hooks/admin/useLandingPageCmsPage";
 
@@ -11,6 +11,9 @@ import { PreviewCanvas } from "@/components/admin/PreviewCanvas";
 import { PublishToast } from "@/components/admin/PublishToast";
 
 export default function LandingPageCmsPage() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const {
     cards,
     activeCard,
@@ -18,7 +21,9 @@ export default function LandingPageCmsPage() {
     setActiveId,
     showToast,
     setShowToast,
+    isLoading,
     update,
+    saveDraft,
     addCard,
     deleteActive,
     publish,
@@ -56,29 +61,35 @@ export default function LandingPageCmsPage() {
 
           {/* ── Body: preview + editor ── */}
           <div className="flex flex-1 flex-col overflow-hidden lg:flex-row">
-            <PreviewCanvas
-              cards={cards}
-              activeId={activeId}
-              onSelect={handleSelect}
-              onAddCard={handleAddCard}
-              editorOpen={editorOpen}
-              onToggleEditor={() => setEditorOpen(true)}
-            />
-            {activeCard && (
-              <EditorPanel
-                open={editorOpen}
-                onOpenChange={(o) => {
-                  setEditorOpen(o);
-                  if (!o) setActiveId("");
-                }}
-                activeCard={activeCard}
-                onUpdate={update}
-                onAddCard={handleAddCard}
-                onDeleteActive={() => {
-                  deleteActive();
-                  setEditorOpen(false);
-                }}
-              />
+            {mounted && (
+              <>
+                <PreviewCanvas
+                  cards={cards}
+                  activeId={activeId}
+                  onSelect={handleSelect}
+                  onAddCard={handleAddCard}
+                  editorOpen={editorOpen}
+                  onToggleEditor={() => setEditorOpen(true)}
+                  isLoading={isLoading}
+                />
+                {activeCard && (
+                  <EditorPanel
+                    open={editorOpen}
+                    onOpenChange={(o) => {
+                      setEditorOpen(o);
+                      if (!o) setActiveId("");
+                    }}
+                    activeCard={activeCard}
+                    onUpdate={update}
+                    onSaveDraft={saveDraft}
+                    onAddCard={handleAddCard}
+                    onDeleteActive={() => {
+                      deleteActive();
+                      setEditorOpen(false);
+                    }}
+                  />
+                )}
+              </>
             )}
           </div>
         </div>
