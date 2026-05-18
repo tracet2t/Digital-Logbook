@@ -130,7 +130,7 @@ model Project {
   id          String        @id @default(uuid())
   name        String
   description String?
-  domain      ProjectDomain
+  domain      String
   batchNo     String?
   projectOrder Int          @default(0)
 
@@ -225,14 +225,6 @@ enum ProcessStatus {
   error
   completed
   wip
-}
-
-enum ProjectDomain {
-  software
-  film
-  training
-  research
-  other
 }
 
 model ProjectTechnology {

@@ -36,6 +36,28 @@ export const DOMAIN_OPTIONS = [
 
 export type DomainOption = (typeof DOMAIN_OPTIONS)[number];
 
+const DOMAIN_SET = new Set<string>(DOMAIN_OPTIONS);
+
+export const isKnownDomain = (domain: string): domain is DomainOption =>
+  DOMAIN_SET.has(domain);
+
+const humanizeDomain = (domain: string) => {
+  const cleaned = domain.trim();
+  if (!cleaned) return "Custom";
+  return cleaned
+    .replace(/[_-]+/g, " ")
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+};
+
+export const getDomainLabel = (domain: string) =>
+  DOMAIN_LABELS[domain] ?? humanizeDomain(domain);
+
+export const getDomainIcon = (domain: string) =>
+  DOMAIN_ICONS[domain] ?? <Globe size={18} />;
+
 /** Number of projects shown per page in the projects table. */
 export const ITEMS_PER_PAGE = 10;
 
@@ -51,6 +73,6 @@ export interface ProjectFormValues {
 export const EMPTY_FORM: ProjectFormValues = {
   name: "",
   description: "",
-  domain: "software",
+  domain: DOMAIN_LABELS.software,
   batchNo: "",
 };

@@ -5,8 +5,8 @@
 
 "use client";
 
+import { getDomainIcon, getDomainLabel } from "@/app/admin/projects/_constants";
 import type { AdminProject } from "@/server_actions/adminProjectActions";
-import { Globe } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,8 +18,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
-import { DOMAIN_ICONS, DOMAIN_LABELS } from "@/app/admin/projects/_constants";
 
 interface ViewProjectDialogProps {
   project: AdminProject | null;
@@ -42,7 +40,7 @@ export default function ViewProjectDialog({
         <div className="space-y-4 text-sm">
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[#F0F0F0] shrink-0">
-              {DOMAIN_ICONS[project.domain] ?? <Globe size={18} />}
+              {getDomainIcon(project.domain)}
             </div>
             <p className="text-lg font-bold">{project.name}</p>
           </div>
@@ -56,7 +54,7 @@ export default function ViewProjectDialog({
           )}
 
           <div className="grid grid-cols-2 gap-4 py-3 border-t border-b">
-            <InfoField label="Domain" value={DOMAIN_LABELS[project.domain]} />
+            <InfoField label="Domain" value={getDomainLabel(project.domain)} />
             <InfoField label="Created Date" value={project.createdDate} />
             <InfoField label="Mentors" value={String(project.mentors)} />
             <InfoField label="Mentees" value={String(project.students)} />
