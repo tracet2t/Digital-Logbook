@@ -16,6 +16,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminPageLayout } from "@/components/admin";
 import { BulkUploadTabs } from "@/components/admin/Invitations/BulkUploadTabs";
+import { BulkUploadTableProvider } from "@/_stores/bulkUploadTableStore";
 import PageHeader from "@/components/admin/PageHeader";
 import ChangeStatusDialog from "@/components/Invitations/dialogs/ChangeStatusDialog";
 import CreateInvitationDialog from "@/components/Invitations/dialogs/CreateInvitationDialog";
@@ -318,7 +319,9 @@ export default function InvitationsView() {
 
               {/* Bulk Upload Tab Content */}
               <TabsContent value="bulk-upload" className="space-y-4">
-                <BulkUploadTabs />
+                <BulkUploadTableProvider>
+                  <BulkUploadTabs />
+                </BulkUploadTableProvider>
               </TabsContent>
             </Tabs>
           </div>

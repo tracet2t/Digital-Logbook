@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BulkUploadTabs } from "@/components/admin/Invitations/BulkUploadTabs";
+import { BulkUploadTableProvider } from "@/_stores/bulkUploadTableStore";
 
 import InvitationsMainContent from "./invitations-content";
 
@@ -51,7 +52,9 @@ export default function BulkUploadPage() {
             </TabsContent>
 
             <TabsContent value="bulk-upload" className="mt-0 h-full p-5 md:p-8">
-              <BulkUploadTabs onCancel={handleCancel} />
+              <BulkUploadTableProvider>
+                <BulkUploadTabs onCancel={handleCancel} />
+              </BulkUploadTableProvider>
             </TabsContent>
           </div>
         </Tabs>
