@@ -215,19 +215,37 @@ export function KanbanBoard({
             </div>
             {/* Status legend */}
             <div className="mb-3 pr-2 sm:pr-3 lg:pr-4">
-              <div className="flex flex-wrap gap-3 text-[10px] font-semibold text-slate-700">
-                <span className="flex items-center gap-1.5">
-                  <span className="h-3 w-3 rounded-full bg-emerald-500" />
-                  Accepted
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="h-3 w-3 rounded-full bg-amber-500" />
-                  Pending
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="h-3 w-3 rounded-full bg-rose-500" />
-                  Expired
-                </span>
+              <div className="space-y-1.5">
+                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                  User Status
+                </p>
+                <div className="flex flex-wrap gap-3 text-[10px] font-semibold text-slate-700">
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-3 w-3 rounded-full bg-emerald-500" />
+                    Active
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-3 w-3 rounded-full bg-rose-500" />
+                    Inactive
+                  </span>
+                </div>
+                <p className="mt-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                  Invitation
+                </p>
+                <div className="flex flex-wrap gap-3 text-[10px] font-semibold text-slate-700">
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-3 w-3 rounded-full bg-emerald-500" />
+                    Accepted
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-3 w-3 rounded-full bg-amber-500" />
+                    Pending
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-3 w-3 rounded-full bg-rose-500" />
+                    Expired
+                  </span>
+                </div>
               </div>
             </div>
             {/* Bench search */}

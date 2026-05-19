@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
 
     const result = await projectRepo.assignMentorToProject(projectId, mentorId);
 
-    // Sync the mentor's batchNo to match the project's batchNo
+    // Sync the mentor's batchNo to match the project's batchNo and activate
     const project = await prisma.project.findUnique({
       where: { id: projectId },
       select: { batchNo: true },
@@ -82,7 +82,10 @@ export async function POST(req: NextRequest) {
     if (project) {
       await prisma.user.update({
         where: { id: mentorId },
-        data: { batchNo: project.batchNo },
+        data: {
+          batchNo: project.batchNo,
+          isActive: true,
+        },
       });
     }
 
@@ -133,10 +136,13 @@ export async function DELETE(req: NextRequest) {
       mentorId,
     );
 
-    // Clear the mentor's batchNo
+    // Clear the mentor's batchNo and deactivate
     await prisma.user.update({
       where: { id: mentorId },
-      data: { batchNo: null },
+      data: {
+        batchNo: null,
+        isActive: false,
+      },
     });
 
     return NextResponse.json(

@@ -1,4 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+"use client";
+
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import { toast } from "sonner";
 
 import { ApiUserRecord, UserRecord, UserRole, UserStatus } from "./types";
 import { mapApiUserToRecord } from "./utils";
@@ -6,9 +11,8 @@ import { mapApiUserToRecord } from "./utils";
 const ITEMS_PER_PAGE = 5;
 
 export function useUsersAdmin() {
-  const [users, setUsers] = useState<UserRecord[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [fetchError, setFetchError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | UserRole>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | UserStatus>("all");
@@ -19,119 +23,114 @@ export function useUsersAdmin() {
   const [statusUser, setStatusUser] = useState<UserRecord | null>(null);
   const [pendingStatus, setPendingStatus] = useState<UserStatus>("Active");
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
-  const [isMutating, setIsMutating] = useState(false);
 
-  const loadUsers = async () => {
-    setIsLoading(true);
-    setFetchError(null);
-    try {
+  // Fetch users with TanStack Query
+  const {
+    data: users = [],
+    isLoading,
+    error: fetchError,
+  } = useQuery<UserRecord[], Error>({
+    queryKey: ["admin-users"],
+    queryFn: async () => {
       const response = await fetch("/api/admin/users", { cache: "no-store" });
+
       if (!response.ok) {
         const payload = await response
           .json()
           .catch(() => ({ message: "Failed to fetch users" }));
         throw new Error(payload.message ?? "Failed to fetch users");
       }
+
       const data = (await response.json()) as ApiUserRecord[];
-      setUsers(data.map(mapApiUserToRecord));
-    } catch (error) {
-      setUsers([]);
-      setFetchError(
-        error instanceof Error ? error.message : "Failed to fetch users",
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      return data.map(mapApiUserToRecord);
+    },
+    staleTime: 0, // Always fetch fresh data
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    refetchOnMount: true, // Always refetch on mount
+  });
 
-  useEffect(() => {
-    let mounted = true;
-
-    const fetchUsers = async () => {
-      setIsLoading(true);
-      setFetchError(null);
-
-      try {
-        const response = await fetch("/api/admin/users", {
-          cache: "no-store",
-        });
-
-        if (!response.ok) {
-          const payload = await response
-            .json()
-            .catch(() => ({ message: "Failed to fetch users" }));
-          throw new Error(payload.message ?? "Failed to fetch users");
-        }
-
-        const data = (await response.json()) as ApiUserRecord[];
-        if (!mounted) {
-          return;
-        }
-
-        setUsers(data.map(mapApiUserToRecord));
-      } catch (error) {
-        if (!mounted) {
-          return;
-        }
-        setUsers([]);
-        setFetchError(
-          error instanceof Error ? error.message : "Failed to fetch users",
-        );
-      } finally {
-        if (mounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    fetchUsers();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const handleChangeStatus = async () => {
-    if (!statusUser) return;
-
-    setIsMutating(true);
-    try {
+  // Change status mutation
+  const changeStatusMutation = useMutation<
+    { id: string; isActive: boolean },
+    Error,
+    { id: string; isActive: boolean }
+  >({
+    mutationFn: async ({ id, isActive }) => {
       const res = await fetch("/api/admin/users", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: statusUser.id,
-          isActive: pendingStatus === "Active",
-        }),
+        body: JSON.stringify({ id, isActive }),
       });
-      if (!res.ok) throw new Error("Failed to update status");
 
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        throw new Error(errorData?.message || "Failed to update status");
+      }
+
+      return res.json();
+    },
+    onSuccess: async (_data, variables) => {
+      const newStatus = variables.isActive ? "active" : "inactive";
+
+      // Force immediate refetch (not just invalidate)
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ["admin-users"] }),
+        queryClient.refetchQueries({ queryKey: ["mentors"] }),
+        queryClient.refetchQueries({ queryKey: ["onboarding-applications"] }),
+      ]);
+
+      toast.success(`User status changed to ${newStatus} successfully`);
+
+      // Close dialog after refetch completes
       setStatusUser(null);
-      await loadUsers();
-    } catch {
-      // Keep dialog open so the user can retry.
-    } finally {
-      setIsMutating(false);
-    }
-  };
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update status");
+    },
+  });
 
-  const handleDeleteUser = async () => {
-    if (!deleteUserId) return;
-
-    setIsMutating(true);
-    try {
-      const res = await fetch(`/api/admin/users?id=${deleteUserId}`, {
+  // Delete user mutation
+  const deleteUserMutation = useMutation<void, Error, string>({
+    mutationFn: async (userId) => {
+      const res = await fetch(`/api/admin/users?id=${userId}`, {
         method: "DELETE",
       });
-      if (!res.ok) throw new Error("Failed to delete user");
 
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        throw new Error(errorData?.message || "Failed to delete user");
+      }
+    },
+    onSuccess: async () => {
+      // Force immediate refetch
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ["admin-users"] }),
+        queryClient.refetchQueries({ queryKey: ["mentors"] }),
+        queryClient.refetchQueries({ queryKey: ["onboarding-applications"] }),
+      ]);
+
+      toast.success("User deleted successfully");
+
+      // Close dialog after refetch completes
       setDeleteUserId(null);
-      await loadUsers();
-    } catch {
-      // Keep dialog state unchanged on failure.
-    } finally {
-      setIsMutating(false);
-    }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to delete user");
+    },
+  });
+
+  const handleChangeStatus = () => {
+    if (!statusUser) return;
+
+    changeStatusMutation.mutate({
+      id: statusUser.id,
+      isActive: pendingStatus === "Active",
+    });
+  };
+
+  const handleDeleteUser = () => {
+    if (!deleteUserId) return;
+    deleteUserMutation.mutate(deleteUserId);
   };
 
   const openStatusDialog = (user: UserRecord) => {
@@ -194,7 +193,7 @@ export function useUsersAdmin() {
     },
     table: {
       isLoading,
-      fetchError,
+      fetchError: fetchError?.message || null,
       visibleUsers,
       totalUsers: filteredUsers.length,
       totalPages,
@@ -209,7 +208,8 @@ export function useUsersAdmin() {
       setPendingStatus,
       deleteUserId,
       setDeleteUserId,
-      isMutating,
+      isMutating:
+        changeStatusMutation.isPending || deleteUserMutation.isPending,
     },
     actions: {
       openStatusDialog,
