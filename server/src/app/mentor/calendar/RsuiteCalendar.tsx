@@ -105,22 +105,23 @@ export default function RsuiteCalendar({
     resetFormData,
   );
 
-  const { handleSubmit, handleDelete, isSubmitting, isDeleting } = useSubmission(
-    role,
-    studentId,
-    selectedUser || "",
-    formData.date,
-    editingEvent,
-    feedbackActivityId,
-    () => {
-      setTaskModalOpen(false);
-      resetFormData("");
-    },
-    (title, description) => {
-      setToast({ title, description });
-      setTimeout(() => setToast(null), 3000);
-    },
-  );
+  const { handleSubmit, handleDelete, isSubmitting, isDeleting } =
+    useSubmission(
+      role,
+      studentId,
+      selectedUser || "",
+      formData.date,
+      editingEvent,
+      feedbackActivityId,
+      () => {
+        setTaskModalOpen(false);
+        resetFormData("");
+      },
+      (title, description) => {
+        setToast({ title, description });
+        setTimeout(() => setToast(null), 3000);
+      },
+    );
 
   // Initialize mounted state and selected date on first render
   useEffect(() => {
@@ -165,12 +166,6 @@ export default function RsuiteCalendar({
       return;
     }
 
-    // Mentor viewing a mentee's calendar: only open if there are tasks on that day
-    if (role === "mentor" && selectedUser !== studentId) {
-      const hasEvents = (eventsByDate[formattedDate] ?? []).length > 0;
-      if (!hasEvents) return;
-    }
-
     const today = moment().startOf("day");
     const dayBeforeYesterday = moment().subtract(2, "days").startOf("day");
 
@@ -183,8 +178,16 @@ export default function RsuiteCalendar({
       setIsEditable(false);
     }
 
-    // Cell click always opens a blank new task dialog
-    resetFormData(formattedDate);
+    // Mentor viewing a mentee's calendar: load existing event data if tasks exist
+    if (role === "mentor" && selectedUser !== studentId) {
+      const hasEvents = (eventsByDate[formattedDate] ?? []).length > 0;
+      if (!hasEvents) return;
+      fetchEventForDate(formattedDate);
+    } else {
+      // Cell click opens a blank new task dialog for own calendar
+      resetFormData(formattedDate);
+    }
+
     setTaskModalOpen(true);
   };
 
@@ -297,18 +300,25 @@ export default function RsuiteCalendar({
 
   // Row click in all-mentees table — load event and open MentorTaskDetailDialog
   const handleTableRowClick = async (row: MenteeTaskRow) => {
-    const syntheticEvent = {
-      id: row.activityId,
-      title: row.task,
-      start: new Date(row.date),
-      end: new Date(row.date),
-      createdAt: new Date(),
-      studentId: row.studentId,
-      timeSpent: row.timeSpent,
-      notes: row.task,
-      status: row.status,
-    };
-    await loadEventDirectly(syntheticEvent, row.date);
+    // Find the real event from the events array so all fields (including technologies) are preserved
+    const realEvent = events.find((e) => e.id === row.activityId) ?? null;
+    if (realEvent) {
+      await loadEventDirectly(realEvent, row.date);
+    } else {
+      // Fallback: construct event from row data (shouldn't normally happen)
+      const syntheticEvent = {
+        id: row.activityId,
+        title: row.task,
+        start: new Date(row.date),
+        end: new Date(row.date),
+        createdAt: new Date(),
+        studentId: row.studentId,
+        timeSpent: row.timeSpent,
+        notes: row.task,
+        status: row.status,
+      };
+      await loadEventDirectly(syntheticEvent, row.date);
+    }
     setTaskModalOpen(true);
   };
 
