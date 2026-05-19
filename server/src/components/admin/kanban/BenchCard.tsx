@@ -122,9 +122,8 @@ export function BenchCard({
         </div>
         <div className="mt-0.5 flex flex-wrap items-center gap-1">
           <Badge
-            variant="secondary"
             className={[
-              "inline-flex items-center shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold bg-transparent",
+              "inline-flex items-center shrink-0 whitespace-nowrap rounded border px-1.5 py-0.5 text-[9px] font-semibold leading-tight bg-transparent sm:px-2 sm:text-[10px] lg:px-3 lg:text-[11px]",
               getUserBadgeClasses(),
             ].join(" ")}
           >
@@ -132,9 +131,8 @@ export function BenchCard({
           </Badge>
           {application.invitationStatus && (
             <Badge
-              variant="secondary"
               className={[
-                "inline-flex items-center shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold bg-transparent",
+                "inline-flex items-center shrink-0 whitespace-nowrap rounded border px-1.5 py-0.5 text-[9px] font-semibold leading-tight bg-transparent sm:px-2 sm:text-[10px] lg:px-3 lg:text-[11px]",
                 getInvitationBadgeClasses(),
               ].join(" ")}
             >
