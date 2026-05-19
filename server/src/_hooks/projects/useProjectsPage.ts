@@ -6,6 +6,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import {
+  DOMAIN_LABELS,
+  DOMAIN_OPTIONS,
+  EMPTY_FORM,
+  ITEMS_PER_PAGE,
+  type ProjectFormValues,
+} from "@/app/admin/projects/_constants";
 import type {
   AdminProject,
   AdminProjectStats,
@@ -16,12 +23,6 @@ import {
   getAdminProjectStats,
   updateProject,
 } from "@/server_actions/adminProjectActions";
-
-import {
-  EMPTY_FORM,
-  ITEMS_PER_PAGE,
-  type ProjectFormValues,
-} from "@/app/admin/projects/_constants";
 
 export function useProjectsPage() {
   const [page, setPage] = useState(1);
@@ -52,6 +53,24 @@ export function useProjectsPage() {
 
   useEffect(() => reload(), []);
 
+  const normalizeDomainForSave = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) return "";
+    const lowered = trimmed.toLowerCase();
+    const labelMatch = DOMAIN_OPTIONS.find(
+      (d) => DOMAIN_LABELS[d].toLowerCase() === lowered,
+    );
+    if (labelMatch) return labelMatch;
+    const keyMatch = DOMAIN_OPTIONS.find((d) => d.toLowerCase() === lowered);
+    if (keyMatch) return keyMatch;
+    return trimmed;
+  };
+
+  const toDisplayDomain = (value: string | null | undefined) => {
+    if (!value) return "";
+    return DOMAIN_LABELS[value] ?? value;
+  };
+
   /** Submits the edit form, updates the project, then refreshes the list. */
   const handleEditSave = async () => {
     if (!editProject) return;
@@ -61,7 +80,7 @@ export function useProjectsPage() {
         editProject.id,
         editForm.name,
         editForm.description,
-        editForm.domain,
+        normalizeDomainForSave(editForm.domain),
         editForm.batchNo,
       );
       setEditProject(null);
@@ -78,7 +97,7 @@ export function useProjectsPage() {
       await createProject(
         createForm.name,
         createForm.description,
-        createForm.domain,
+        normalizeDomainForSave(createForm.domain),
         createForm.batchNo,
       );
       setShowCreate(false);
@@ -108,7 +127,7 @@ export function useProjectsPage() {
     setEditForm({
       name: project.name,
       description: project.description ?? "",
-      domain: project.domain ?? "software",
+      domain: toDisplayDomain(project.domain),
       batchNo: project.batchNo ?? "",
     });
   };
