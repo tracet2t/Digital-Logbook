@@ -36,12 +36,16 @@ import {
   StatCard,
   type ProjectFormState,
 } from "@/components/admin/kanban";
+import {
+  DOMAIN_LABELS,
+  DOMAIN_OPTIONS,
+} from "@/app/admin/projects/_constants";
 
 // blank slate for the "create project" form — wen always reset to this before opening the dialog
 const EMPTY_FORM: ProjectFormState = {
   name: "",
   description: "",
-  domain: "software",
+  domain: DOMAIN_LABELS.software,
   batchNo: "",
 };
 
@@ -218,6 +222,19 @@ export default function AdminOnboardingPage() {
   const openCreateProject = () => {
     setCreateProjectForm(EMPTY_FORM);
     setShowCreateProject(true);
+  };
+
+  const normalizeDomainForSave = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) return "";
+    const lowered = trimmed.toLowerCase();
+    const labelMatch = DOMAIN_OPTIONS.find(
+      (d) => DOMAIN_LABELS[d].toLowerCase() === lowered,
+    );
+    if (labelMatch) return labelMatch;
+    const keyMatch = DOMAIN_OPTIONS.find((d) => d.toLowerCase() === lowered);
+    if (keyMatch) return keyMatch;
+    return trimmed;
   };
 
   const renderBenchDateRangeAction = () => {
@@ -456,7 +473,7 @@ export default function AdminOnboardingPage() {
               name: createProjectForm.name,
               // only send optional fields if they have a value
               description: createProjectForm.description || undefined,
-              domain: createProjectForm.domain,
+              domain: normalizeDomainForSave(createProjectForm.domain),
               batchNo: createProjectForm.batchNo || undefined,
             },
             {
