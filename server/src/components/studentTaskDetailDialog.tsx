@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Code2, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -238,6 +239,7 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
   onClose,
 }) => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const hasMentorDecision = review.trim().length > 0;
 
   const form = useForm<ActivityFormValues>({
     resolver: zodResolver(activitySchema),
@@ -267,6 +269,17 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
     if (!onDelete || !canDelete) {
       return;
     }
+
+    if (hasMentorDecision) {
+      toast.error(
+        "This task cannot be deleted because it has already been approved or rejected by the mentor.",
+      );
+      return;
+    }
+
+    toast.warning(
+      "This action cannot be undone. The selected task will be permanently deleted.",
+    );
 
     setDeleteConfirmOpen(true);
   };
@@ -372,7 +385,7 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
           {isEditable && canDelete && (
             <Button
               type="button"
-              variant="warning"
+              variant="destructive"
               onClick={handleDeleteClick}
               disabled={isDeleting}
             >
@@ -392,7 +405,7 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
-                variant="warning"
+                  variant="destructive"
                 onClick={() => {
                   setDeleteConfirmOpen(false);
                   onDelete?.();
