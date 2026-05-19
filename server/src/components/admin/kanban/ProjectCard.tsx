@@ -101,7 +101,6 @@ function DraggableAssignedRow({
           </div>
           <div className="mt-0 flex flex-nowrap items-center gap-0.5">
             <Badge
-              variant="secondary"
               className={[
                 "inline-flex items-center shrink-0 whitespace-nowrap rounded border px-1.5 py-0.5 text-[9px] font-semibold leading-tight bg-transparent sm:px-2 sm:text-[10px] lg:px-3 lg:text-[11px]",
                 getUserBadgeClasses(),
@@ -111,7 +110,6 @@ function DraggableAssignedRow({
             </Badge>
             {app.invitationStatus && (
               <Badge
-                variant="secondary"
                 className={[
                   "inline-flex items-center shrink-0 whitespace-nowrap rounded border px-1.5 py-0.5 text-[9px] font-semibold leading-tight bg-transparent sm:px-2 sm:text-[10px] lg:px-3 lg:text-[11px]",
                   getInvitationBadgeClasses(),

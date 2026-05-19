@@ -11,6 +11,8 @@ export interface CmsCard {
   imageUrl: string | null;
   tag: string;
   registerLink: string; // URL for the register button
+  venue: string;
+  venueMapLink: string;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -43,6 +45,8 @@ export const DEFAULT_CARDS: CmsCard[] = [
       "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=80",
     tag: "WORKSHOP",
     registerLink: "",
+    venue: "",
+    venueMapLink: "",
   },
   {
     id: "2",
@@ -58,5 +62,7 @@ export const DEFAULT_CARDS: CmsCard[] = [
       "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=400&q=80",
     tag: "WEBINAR",
     registerLink: "",
+    venue: "",
+    venueMapLink: "",
   },
 ];

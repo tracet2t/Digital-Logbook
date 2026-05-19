@@ -23,6 +23,7 @@ interface PreviewCanvasProps {
   onAddCard: () => void;
   editorOpen: boolean;
   onToggleEditor: () => void;
+  isLoading?: boolean;
 }
 
 export function PreviewCanvas({
@@ -32,6 +33,7 @@ export function PreviewCanvas({
   onAddCard,
   editorOpen,
   onToggleEditor,
+  isLoading = false,
 }: PreviewCanvasProps) {
   const [previewCard, setPreviewCard] = useState<CmsCard | null>(null);
   return (
@@ -108,6 +110,22 @@ export function PreviewCanvas({
                 <p className="text-[10px] font-bold uppercase tracking-wider text-orange-500">
                   {card.date}
                 </p>
+                {card.venue &&
+                  (card.venueMapLink ? (
+                    <a
+                      href={card.venueMapLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] underline hover:text-[#000053]"
+                    >
+                      {card.venue}
+                    </a>
+                  ) : (
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">
+                      {card.venue}
+                    </p>
+                  ))}
               </div>
               <h4 className="mb-1.5 truncate text-lg font-black text-[#0F172A]">
                 {card.title}
@@ -131,7 +149,28 @@ export function PreviewCanvas({
           </Card>
         ))}
 
-        {cards.length === 0 && (
+        {isLoading && (
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="flex h-28 animate-pulse gap-5 rounded-2xl border border-[#E5E5E5] bg-white p-5"
+              >
+                <div className="h-full w-40 shrink-0 rounded-xl bg-[#F1F5F9]" />
+                <div className="flex flex-1 flex-col gap-3 pt-1">
+                  <div className="flex gap-2">
+                    <div className="h-4 w-16 rounded bg-[#F1F5F9]" />
+                    <div className="h-4 w-24 rounded bg-[#F1F5F9]" />
+                  </div>
+                  <div className="h-5 w-2/3 rounded bg-[#F1F5F9]" />
+                  <div className="h-3 w-full rounded bg-[#F1F5F9]" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {cards.length === 0 && !isLoading && (
           <div className="flex h-56 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#E5E5E5] bg-white text-[#CBD5E1]">
             <Monitor size={40} className="mb-3 opacity-30" />
             <p className="text-sm font-bold">No content cards</p>

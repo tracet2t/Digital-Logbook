@@ -35,6 +35,7 @@ interface EditorPanelProps {
   onOpenChange: (open: boolean) => void;
   activeCard: CmsCard;
   onUpdate: (patch: Partial<CmsCard>) => void;
+  onSaveDraft: () => void;
   onAddCard: () => void;
   onDeleteActive: () => void;
 }
@@ -44,6 +45,7 @@ export function EditorPanel({
   onOpenChange,
   activeCard,
   onUpdate,
+  onSaveDraft,
   onAddCard,
   onDeleteActive,
 }: EditorPanelProps) {
@@ -234,6 +236,46 @@ export function EditorPanel({
                 className="w-full rounded-xl border border-[#E5E5E5] bg-[#F8FAFC] px-4 py-3 text-sm font-medium outline-none transition-all focus:border-[#000053] focus:bg-white focus:ring-2 focus:ring-[#000053]/10"
               />
             </div>
+
+            {/* Venue */}
+            <div className="space-y-2">
+              <label className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-[#0F172A]">
+                <svg
+                  width="11"
+                  height="11"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#000053"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+                Venue
+              </label>
+              <input
+                type="text"
+                value={activeCard.venue}
+                onChange={(e) => onUpdate({ venue: e.target.value })}
+                className="w-full rounded-xl border border-[#E5E5E5] bg-[#F8FAFC] px-4 py-3 text-sm font-medium outline-none transition-all focus:border-[#000053] focus:bg-white focus:ring-2 focus:ring-[#000053]/10"
+                placeholder="e.g. Main Auditorium, Online, etc."
+              />
+              <input
+                type="url"
+                value={activeCard.venueMapLink}
+                onChange={(e) => onUpdate({ venueMapLink: e.target.value })}
+                className="w-full rounded-xl border border-[#E5E5E5] bg-[#F8FAFC] px-4 py-3 text-sm font-medium outline-none transition-all focus:border-[#000053] focus:bg-white focus:ring-2 focus:ring-[#000053]/10"
+                placeholder="Google Maps link (optional)"
+              />
+              {activeCard.venueMapLink && (
+                <p className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-green-600">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500" />
+                  Venue will be clickable on map
+                </p>
+              )}
+            </div>
             <div className="space-y-2">
               <label className="text-[10px] font-bold uppercase tracking-widest text-[#0F172A]">
                 Media Asset
@@ -312,11 +354,7 @@ export function EditorPanel({
           <div className="flex gap-3">
             <Button
               variant="outline"
-              onClick={() =>
-                toast.success("Draft saved", {
-                  description: "Your changes have been saved as a draft.",
-                })
-              }
+              onClick={onSaveDraft}
               className="flex-1 border-[#E5E5E5] text-[10px] uppercase tracking-widest text-[#64748B]"
             >
               Save Draft

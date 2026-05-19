@@ -196,13 +196,13 @@ export function KanbanBoard({
           <div
             ref={setBenchRef}
             className={[
-              "flex w-full shrink-0 flex-col rounded-2xl border-b pb-3 pl-2 pr-1 transition sm:w-56 sm:border-b-0 sm:border-r sm:pb-0 sm:pl-2 sm:pr-1 md:w-60 lg:w-72 lg:pl-2 lg:pr-2 2xl:w-72 3xl:w-80",
+              "flex w-full shrink-0 flex-col rounded-2xl border-b pb-3 pl-2 pr-1 transition sm:w-64 sm:border-b-0 sm:border-r sm:pb-0 sm:pl-2 sm:pr-1 md:w-72 lg:w-80 lg:pl-2 lg:pr-2 2xl:w-80 3xl:w-96",
               isBenchOver
                 ? "border-indigo-300 bg-indigo-50/60"
                 : "border-slate-100",
             ].join(" ")}
           >
-            <div className="mb-4 flex items-center justify-between pr-3 sm:pr-4 lg:pr-6">
+            <div className="mb-4 flex items-center justify-between pr-2 sm:pr-3 lg:pr-4">
               <h3 className="text-[10px] font-black uppercase tracking-[0.22em] text-[#000053]">
                 {benchLabel}
               </h3>
@@ -214,25 +214,43 @@ export function KanbanBoard({
               </div>
             </div>
             {/* Status legend */}
-            <div className="mb-3 pr-3 sm:pr-4 lg:pr-6">
-              <div className="flex flex-wrap gap-3 text-[10px] font-semibold text-slate-700">
-                <span className="flex items-center gap-1.5">
-                  <span className="h-3 w-3 rounded-full bg-emerald-500" />
-                  Accepted
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="h-3 w-3 rounded-full bg-amber-500" />
-                  Pending
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="h-3 w-3 rounded-full bg-rose-500" />
-                  Expired
-                </span>
+            <div className="mb-3 pr-2 sm:pr-3 lg:pr-4">
+              <div className="space-y-1.5">
+                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                  User Status
+                </p>
+                <div className="flex flex-wrap gap-3 text-[10px] font-semibold text-slate-700">
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-3 w-3 rounded-full bg-emerald-500" />
+                    Active
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-3 w-3 rounded-full bg-rose-500" />
+                    Inactive
+                  </span>
+                </div>
+                <p className="mt-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                  Invitation
+                </p>
+                <div className="flex flex-wrap gap-3 text-[10px] font-semibold text-slate-700">
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-3 w-3 rounded-full bg-emerald-500" />
+                    Accepted
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-3 w-3 rounded-full bg-amber-500" />
+                    Pending
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-3 w-3 rounded-full bg-rose-500" />
+                    Expired
+                  </span>
+                </div>
               </div>
             </div>
             {/* Bench search */}
             {!isLoading && onBenchSearchChange && (
-              <div className="mb-2 pr-3 sm:pr-4 lg:pr-6">
+              <div className="mb-2 pr-2 sm:pr-3 lg:pr-4">
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
                   <input
@@ -247,7 +265,7 @@ export function KanbanBoard({
             )}
             {/** Select All function :CheckBox */}
             {!isLoading && bench.length > 0 && (
-              <div className="pr-3 sm:pr-4 lg:pr-6">
+              <div className="pr-2 sm:pr-3 lg:pr-4">
                 <button
                   type="button"
                   onClick={() =>
@@ -269,7 +287,7 @@ export function KanbanBoard({
               </div>
             )}
             <ScrollArea className="max-h-64 sm:max-h-80 lg:max-h-none 2xl:flex-1">
-              <div className="space-y-2 pr-3 sm:pr-4 lg:pr-6">
+              <div className="space-y-2 pr-2 sm:pr-3 lg:pr-4">
                 {isLoading && (
                   <div className="space-y-2">
                     <Skeleton className="h-14 rounded-2xl" />

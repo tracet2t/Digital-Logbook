@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
+
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -11,9 +15,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
