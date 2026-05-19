@@ -2,9 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { endOfDay, format, parseISO, startOfDay } from "date-fns";
-import type { DateRange } from "react-day-picker";
-
 import {
   useAssignMenteeToProject,
   useAssignMentorToProject,
@@ -21,12 +18,24 @@ import {
   useGetProjects,
   useUpdateProjectOrder,
 } from "@/_hooks/projects";
-import { Calendar as CalendarIcon, CheckCircle2, UserCheck, UserRound } from "lucide-react";
+import { DOMAIN_LABELS, DOMAIN_OPTIONS } from "@/app/admin/projects/_constants";
+import { endOfDay, format, parseISO, startOfDay } from "date-fns";
+import {
+  Calendar as CalendarIcon,
+  CheckCircle2,
+  UserCheck,
+  UserRound,
+} from "lucide-react";
+import type { DateRange } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card } from "@/components/ui/card";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminPageLayout, PageHeader } from "@/components/admin";
 import {
@@ -36,10 +45,6 @@ import {
   StatCard,
   type ProjectFormState,
 } from "@/components/admin/kanban";
-import {
-  DOMAIN_LABELS,
-  DOMAIN_OPTIONS,
-} from "@/app/admin/projects/_constants";
 
 // blank slate for the "create project" form — wen always reset to this before opening the dialog
 const EMPTY_FORM: ProjectFormState = {
@@ -342,7 +347,8 @@ export default function AdminOnboardingPage() {
                     />
                   </div>
 
-                  {hasActiveFilters && filteredMenteeApplications.length === 0 && (
+                  {hasActiveFilters &&
+                    filteredMenteeApplications.length === 0 && (
                       <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
                         No users found.
                       </div>
@@ -405,7 +411,8 @@ export default function AdminOnboardingPage() {
                     />
                   </div>
 
-                  {hasActiveFilters && filteredMentorApplications.length === 0 && (
+                  {hasActiveFilters &&
+                    filteredMentorApplications.length === 0 && (
                       <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
                         No users found.
                       </div>

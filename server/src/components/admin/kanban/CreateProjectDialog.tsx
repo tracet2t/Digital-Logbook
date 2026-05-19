@@ -2,7 +2,17 @@
 
 import { Dispatch, SetStateAction, useRef, useState } from "react";
 
+import { DOMAIN_LABELS, DOMAIN_OPTIONS } from "@/app/admin/projects/_constants";
+
 import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
   Dialog,
   DialogClose,
@@ -14,24 +24,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-
-import {
-  DOMAIN_LABELS,
-  DOMAIN_OPTIONS,
-} from "@/app/admin/projects/_constants";
 
 export interface ProjectFormState {
   name: string;
@@ -112,7 +109,9 @@ export function CreateProjectDialog({
                   }}
                 >
                   <span className="truncate text-left">
-                    {form.domain.trim() ? form.domain : "Search or add domain..."}
+                    {form.domain.trim()
+                      ? form.domain
+                      : "Search or add domain..."}
                   </span>
                   <span className="text-xs text-muted-foreground">▼</span>
                 </button>
