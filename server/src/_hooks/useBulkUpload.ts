@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 
+import { useBulkUploadTableStore } from "@/_stores/bulkUploadTableStore";
 import * as XLSX from "xlsx";
 
-import { useBulkUploadTableStore } from "@/_stores/bulkUploadTableStore";
 import { validateBulkUploadRows } from "@/lib/bulkUploadValidation";
 
 interface FieldMapping {
@@ -222,8 +222,7 @@ export function useBulkUpload() {
 
       const missingRequiredColumns = requiredHeaders
         .filter(
-          (field) =>
-            !defaultMapping[field] || defaultMapping[field] === "none",
+          (field) => !defaultMapping[field] || defaultMapping[field] === "none",
         )
         .map((field) => headerMap[field]);
 
@@ -265,7 +264,8 @@ export function useBulkUpload() {
       const nextMissingRequiredColumns = requiredHeaders
         .filter(
           (requiredField) =>
-            !nextMapping[requiredField] || nextMapping[requiredField] === "none",
+            !nextMapping[requiredField] ||
+            nextMapping[requiredField] === "none",
         )
         .map((requiredField) => headerMap[requiredField]);
 

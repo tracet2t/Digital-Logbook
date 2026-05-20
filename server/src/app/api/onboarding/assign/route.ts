@@ -204,13 +204,24 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 5. Send invitation email if no un-accepted invitation exists for this email
+    // 5. Check if this is the user's first project assignment
+    const existingAllocations = await prisma.projectAllocation.findMany({
+      where: { studentId: user.id },
+    });
+    const isFirstAssignment = existingAllocations.length === 0;
+
+    // 6. Send invitation email on first assignment, or if no valid invitation exists
     let invitationSent = false;
     const existingInvitation = await prisma.invitation.findFirst({
       where: { email: application.email, accepted: false },
     });
 
-    if (!existingInvitation) {
+    const invitationExpired = existingInvitation
+      ? new Date(existingInvitation.expiresAt) < new Date()
+      : false;
+
+    // Send email if: (a) first assignment OR (b) no invitation exists OR (c) invitation expired
+    if (isFirstAssignment || !existingInvitation || invitationExpired) {
       const invitedBy = session.getId();
       if (!invitedBy) {
         console.error("Cannot send invitation: session has no admin ID");
@@ -224,6 +235,13 @@ export async function POST(req: NextRequest) {
             where: { id: user.id },
             data: { passwordHash: emailHashedPassword },
           });
+
+          // If invitation exists but expired, delete it first
+          if (existingInvitation && invitationExpired) {
+            await prisma.invitation.delete({
+              where: { id: existingInvitation.id },
+            });
+          }
 
           const invitation = await invitationRepo.createInvite({
             email: application.email,
@@ -243,24 +261,26 @@ export async function POST(req: NextRequest) {
           });
 
           invitationSent = true;
-          console.log(`Invitation email sent to ${application.email}`);
+          console.log(
+            `Invitation email sent to ${application.email} (${isFirstAssignment ? "first assignment" : invitationExpired ? "invitation expired" : "no invitation found"})`,
+          );
         } catch (emailError) {
           console.error("Failed to send invitation email:", emailError);
         }
       }
     } else {
       console.log(
-        `Invitation already exists for ${application.email}, skipping email send`,
+        `Valid invitation already exists for ${application.email}, skipping email send`,
       );
     }
 
-    // 6. Assign the user to the project (idempotent)
+    // 7. Assign the user to the project (idempotent)
     const allocationResult = await projectRepo.assignStudentToProject(
       projectId,
       user.id,
     );
 
-    // 7. Sync the user's batchNo to match the project's batchNo and activate
+    // 8. Sync the user's batchNo to match the project's batchNo and activate
     await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -269,7 +289,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // 8. Mark the application as approved
+    // 9. Mark the application as approved
     const updatedApplication = await onboardingRepo.updateStatus(
       applicationId,
       "approved",

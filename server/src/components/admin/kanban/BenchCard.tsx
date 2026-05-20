@@ -31,17 +31,29 @@ export function BenchCard({
     ? { transform: CSS.Translate.toString(transform) }
     : undefined;
 
+  // For pending applications, show as Inactive user status
   const userStatusLabel =
-    application.status?.toLowerCase() === "inactive" ? "Inactive" : "Active";
+    application.status?.toLowerCase() === "inactive" ||
+    application.status?.toLowerCase() === "pending"
+      ? "Inactive"
+      : "Active";
 
+  // For pending applications, show Pending invitation status
   const invitationStatusLabel =
-    application.invitationStatus === "Active"
-      ? "Accepted"
-      : application.invitationStatus;
+    application.status?.toLowerCase() === "pending"
+      ? "Pending"
+      : application.invitationStatus === "Active"
+        ? "Accepted"
+        : application.invitationStatus;
 
   const getInvitationBadgeClasses = () => {
     if (selected) {
       return "border-white/40 text-white";
+    }
+
+    // For pending applications, show Pending badge colors
+    if (application.status?.toLowerCase() === "pending") {
+      return "border-amber-300 text-amber-600";
     }
 
     switch (application.invitationStatus) {
@@ -61,7 +73,9 @@ export function BenchCard({
       return "border-white/40 text-white";
     }
 
-    return application.status?.toLowerCase() === "inactive"
+    // For pending or inactive applications, show Inactive badge colors
+    return application.status?.toLowerCase() === "inactive" ||
+      application.status?.toLowerCase() === "pending"
       ? "border-rose-300 text-rose-600"
       : "border-emerald-300 text-emerald-600";
   };
@@ -122,19 +136,18 @@ export function BenchCard({
         </div>
         <div className="mt-0.5 flex flex-wrap items-center gap-1">
           <Badge
-            variant="secondary"
             className={[
-              "inline-flex items-center shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold bg-transparent",
+              "inline-flex items-center shrink-0 whitespace-nowrap rounded border px-1.5 py-0.5 text-[9px] font-semibold leading-tight bg-transparent sm:px-2 sm:text-[10px] lg:px-3 lg:text-[11px]",
               getUserBadgeClasses(),
             ].join(" ")}
           >
             {userStatusLabel}
           </Badge>
-          {application.invitationStatus && (
+          {(application.invitationStatus ||
+            application.status?.toLowerCase() === "pending") && (
             <Badge
-              variant="secondary"
               className={[
-                "inline-flex items-center shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold bg-transparent",
+                "inline-flex items-center shrink-0 whitespace-nowrap rounded border px-1.5 py-0.5 text-[9px] font-semibold leading-tight bg-transparent sm:px-2 sm:text-[10px] lg:px-3 lg:text-[11px]",
                 getInvitationBadgeClasses(),
               ].join(" ")}
             >
