@@ -13,7 +13,8 @@
     "migrate:maindb": "npx prisma migrate dev",
     "migrate:testdb": "dotenv -e .env.test -- npx prisma migrate dev",
     "db:studio": "npx prisma studio",
-    "db:delete": "npx prisma migrate reset --force"
+    "db:delete": "npx prisma migrate reset --force",
+    "db:reset": "npm run db:delete && npm run migrate:maindb && npm run seed"
   },
   "engines": {
     "node": "22.7.0",

@@ -31,29 +31,20 @@ export function BenchCard({
     ? { transform: CSS.Translate.toString(transform) }
     : undefined;
 
-  // For pending applications, show as Inactive user status
+  // Determine user status from User.isActive if user exists
+  // Otherwise show as Inactive for unassigned applications
   const userStatusLabel =
-    application.status?.toLowerCase() === "inactive" ||
-    application.status?.toLowerCase() === "pending"
-      ? "Inactive"
-      : "Active";
+    application.user?.isActive === true ? "Active" : "Inactive";
 
-  // For pending applications, show Pending invitation status
+  // Show invitation status from backend data
   const invitationStatusLabel =
-    application.status?.toLowerCase() === "pending"
-      ? "Pending"
-      : application.invitationStatus === "Active"
-        ? "Accepted"
-        : application.invitationStatus;
+    application.invitationStatus === "Active"
+      ? "Accepted"
+      : application.invitationStatus;
 
   const getInvitationBadgeClasses = () => {
     if (selected) {
       return "border-white/40 text-white";
-    }
-
-    // For pending applications, show Pending badge colors
-    if (application.status?.toLowerCase() === "pending") {
-      return "border-amber-300 text-amber-600";
     }
 
     switch (application.invitationStatus) {
@@ -73,11 +64,11 @@ export function BenchCard({
       return "border-white/40 text-white";
     }
 
-    // For pending or inactive applications, show Inactive badge colors
-    return application.status?.toLowerCase() === "inactive" ||
-      application.status?.toLowerCase() === "pending"
-      ? "border-rose-300 text-rose-600"
-      : "border-emerald-300 text-emerald-600";
+    // Show Inactive (red) if no user or user is not active
+    // Show Active (green) if user exists and isActive = true
+    return application.user?.isActive === true
+      ? "border-emerald-300 text-emerald-600"
+      : "border-rose-300 text-rose-600";
   };
 
   return (
@@ -143,8 +134,7 @@ export function BenchCard({
           >
             {userStatusLabel}
           </Badge>
-          {(application.invitationStatus ||
-            application.status?.toLowerCase() === "pending") && (
+          {application.invitationStatus && (
             <Badge
               className={[
                 "inline-flex items-center shrink-0 whitespace-nowrap rounded border px-1.5 py-0.5 text-[9px] font-semibold leading-tight bg-transparent sm:px-2 sm:text-[10px] lg:px-3 lg:text-[11px]",

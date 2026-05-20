@@ -1,10 +1,12 @@
 "use client";
 
+import { useMemo, useState } from "react";
+
 import { OnboardingApplication } from "@/_hooks/admin/useAdminOnboarding";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Move, X } from "lucide-react";
+import { Move, Search, X } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -165,6 +167,20 @@ export function ProjectCard({
     setDroppableRef(node);
   };
 
+  // Search functionality
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Filter assigned applications by search query
+  const filteredApplications = useMemo(() => {
+    if (!searchQuery.trim()) return assignedApplications;
+    const q = searchQuery.toLowerCase();
+    return assignedApplications.filter((app) => {
+      const matchesName = app.fullName.toLowerCase().includes(q);
+      const matchesEmail = app.email.toLowerCase().includes(q);
+      return matchesName || matchesEmail;
+    });
+  }, [assignedApplications, searchQuery]);
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -210,6 +226,22 @@ export function ProjectCard({
         </button>
       </div>
 
+      {/* Search input for members in this project */}
+      {assignedApplications.length > 0 && (
+        <div className="mb-2">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-slate-400" />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search members..."
+              className="h-7 w-full rounded-lg border border-slate-200 bg-white pl-7 pr-2 text-[10px] text-slate-700 outline-none transition focus:border-slate-400 sm:text-[11px]"
+            />
+          </div>
+        </div>
+      )}
+
       <h4 className="mb-0.5 line-clamp-2 text-[11px] font-black uppercase tracking-tight text-[#000053] sm:text-xs lg:text-sm">
         {project.name}
       </h4>
@@ -227,16 +259,24 @@ export function ProjectCard({
       <div className="flex flex-1 min-h-0 flex-col gap-1.5">
         {assignedApplications.length > 0 ? (
           <ScrollArea className="max-h-[146px] pr-1 sm:max-h-[162px] md:max-h-[162px] lg:max-h-[178px]">
-            <div className="flex flex-col gap-1.5">
-              {assignedApplications.map((app) => (
-                <DraggableAssignedRow
-                  key={app.id}
-                  app={app}
-                  onUnassign={onUnassign}
-                  onViewProfile={onViewProfile}
-                />
-              ))}
-            </div>
+            {filteredApplications.length > 0 ? (
+              <div className="flex flex-col gap-1.5">
+                {filteredApplications.map((app) => (
+                  <DraggableAssignedRow
+                    key={app.id}
+                    app={app}
+                    onUnassign={onUnassign}
+                    onViewProfile={onViewProfile}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center py-4">
+                <p className="text-[9px] text-slate-400">
+                  No members match your search
+                </p>
+              </div>
+            )}
           </ScrollArea>
         ) : (
           <div
