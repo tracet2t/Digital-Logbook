@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 
+import { useBulkUploadTableStore } from "@/_stores/bulkUploadTableStore";
 import * as XLSX from "xlsx";
 
-import { useBulkUploadTableStore } from "@/_stores/bulkUploadTableStore";
 import { validateBulkUploadRows } from "@/lib/bulkUploadValidation";
 
 interface FieldMapping {
@@ -14,6 +14,21 @@ interface FieldMapping {
   role: string;
   project: string;
 }
+
+const headerMap: Record<keyof FieldMapping, string> = {
+  email: "Email Address",
+  firstName: "First Name",
+  lastName: "Last Name",
+  role: "Role Type",
+  project: "Project",
+};
+
+const requiredHeaders: Array<keyof FieldMapping> = [
+  "email",
+  "role",
+  "firstName",
+  "lastName",
+];
 
 interface BulkUploadState {
   currentStep: 1 | 2 | 3;
@@ -161,27 +176,11 @@ export function useBulkUpload() {
         {},
       );
 
-      const headerMap: Record<keyof FieldMapping, string> = {
-        email: "Email Address",
-        firstName: "First Name",
-        lastName: "Last Name",
-        role: "Role Type",
-        project: "Project",
-      };
-
-      const requiredHeaders: Array<keyof FieldMapping> = [
-        "email",
-        "role",
-        "firstName",
-        "lastName",
-      ];
-      const missingRequiredColumns = requiredHeaders
-        .filter((field) => !normalizedColumns[headerMap[field].toLowerCase()])
-        .map((field) => headerMap[field]);
-
       const getMappedColumn = (field: keyof FieldMapping) => {
         const header = headerMap[field].toLowerCase();
-        return normalizedColumns[header] || "none";
+        if (normalizedColumns[header]) return normalizedColumns[header];
+        if (ensuredColumns.includes(headerMap[field])) return headerMap[field];
+        return "none";
       };
 
       const ensuredColumns = [...columns];
@@ -221,6 +220,12 @@ export function useBulkUpload() {
         project: getMappedColumn("project"),
       };
 
+      const missingRequiredColumns = requiredHeaders
+        .filter(
+          (field) => !defaultMapping[field] || defaultMapping[field] === "none",
+        )
+        .map((field) => headerMap[field]);
+
       setColumns(ensuredColumns);
       setData(rowsWithIds);
       setCellErrors(validateBulkUploadRows(rowsWithIds, defaultMapping));
@@ -251,13 +256,25 @@ export function useBulkUpload() {
   };
 
   const handleFieldMapping = (field: keyof FieldMapping, column: string) => {
-    setState((prev) => ({
-      ...prev,
-      fieldMapping: {
+    setState((prev) => {
+      const nextMapping = {
         ...prev.fieldMapping,
         [field]: column,
-      },
-    }));
+      };
+      const nextMissingRequiredColumns = requiredHeaders
+        .filter(
+          (requiredField) =>
+            !nextMapping[requiredField] ||
+            nextMapping[requiredField] === "none",
+        )
+        .map((requiredField) => headerMap[requiredField]);
+
+      return {
+        ...prev,
+        fieldMapping: nextMapping,
+        missingRequiredColumns: nextMissingRequiredColumns,
+      };
+    });
   };
 
   const goToStep = (step: 1 | 2 | 3) => {

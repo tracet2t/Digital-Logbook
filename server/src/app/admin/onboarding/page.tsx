@@ -18,9 +18,24 @@ import {
   useGetProjects,
   useUpdateProjectOrder,
 } from "@/_hooks/projects";
-import { CheckCircle2, UserCheck, UserRound } from "lucide-react";
+import { DOMAIN_LABELS, DOMAIN_OPTIONS } from "@/app/admin/projects/_constants";
+import { endOfDay, format, parseISO, startOfDay } from "date-fns";
+import {
+  Calendar as CalendarIcon,
+  CheckCircle2,
+  UserCheck,
+  UserRound,
+} from "lucide-react";
+import type { DateRange } from "react-day-picker";
 
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Card } from "@/components/ui/card";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminPageLayout, PageHeader } from "@/components/admin";
 import {
@@ -35,8 +50,15 @@ import {
 const EMPTY_FORM: ProjectFormState = {
   name: "",
   description: "",
-  domain: "software",
+  domain: DOMAIN_LABELS.software,
   batchNo: "",
+};
+
+type Project = {
+  id: string;
+  name: string;
+  description: string | null;
+  batchNo?: string | null;
 };
 
 // ---------------------------------------------------------------------------
@@ -49,16 +71,51 @@ export default function AdminOnboardingPage() {
   // holds the current values typed into the create-project form
   const [createProjectForm, setCreateProjectForm] =
     useState<ProjectFormState>(EMPTY_FORM);
-  // bench search for filtering mentee bench by name
-  const [benchSearch, setBenchSearch] = useState("");
-  // bench search for filtering mentor bench by name
+  const [menteeBenchSearch, setMenteeBenchSearch] = useState("");
   const [mentorBenchSearch, setMentorBenchSearch] = useState("");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
   // fetch all pending/approved mentee applications for the bench
   const { data: applications = [], isLoading } = useOnboardingApplications();
   // fetch mentors who haven't been assigned to a project yet
   const { data: mentorApplications = [], isLoading: mentorLoading } =
     useUnassignedMentors();
+
+  const filteredMenteeApplications = useMemo(() => {
+    const start = dateRange?.from ? startOfDay(dateRange.from) : undefined;
+    const end = dateRange?.to ? endOfDay(dateRange.to) : undefined;
+    const hasDateRange = Boolean(start) || Boolean(end);
+
+    if (!hasDateRange) return applications;
+
+    return applications.filter((app) => {
+      if (!hasDateRange) return true;
+      const createdAt = parseISO(app.createdAt);
+      if (Number.isNaN(createdAt.getTime())) return false;
+      if (start && createdAt < start) return false;
+      if (end && createdAt > end) return false;
+      return true;
+    });
+  }, [applications, dateRange?.from, dateRange?.to]);
+
+  const filteredMentorApplications = useMemo(() => {
+    const start = dateRange?.from ? startOfDay(dateRange.from) : undefined;
+    const end = dateRange?.to ? endOfDay(dateRange.to) : undefined;
+    const hasDateRange = Boolean(start) || Boolean(end);
+
+    if (!hasDateRange) return mentorApplications;
+
+    return mentorApplications.filter((app) => {
+      if (!hasDateRange) return true;
+      const createdAt = parseISO(app.createdAt);
+      if (Number.isNaN(createdAt.getTime())) return false;
+      if (start && createdAt < start) return false;
+      if (end && createdAt > end) return false;
+      return true;
+    });
+  }, [mentorApplications, dateRange?.from, dateRange?.to]);
+
+  const hasActiveFilters = Boolean(dateRange?.from) || Boolean(dateRange?.to);
   // all existing projects — used to populate the kanban columns
   const { data: projectsData = [], isLoading: projectsLoading } =
     useGetProjects();
@@ -110,7 +167,7 @@ export default function AdminOnboardingPage() {
       id: applicationId,
       projectId,
     })),
-    applications,
+    applications: filteredMenteeApplications,
     onAssign: (id, projectId, onError) =>
       assignMentee.mutate({ applicationId: id, projectId }, { onError }),
     onUnassign: (id, projectId, onError) =>
@@ -123,7 +180,7 @@ export default function AdminOnboardingPage() {
       id: mentorId,
       projectId,
     })),
-    applications: mentorApplications,
+    applications: filteredMentorApplications,
     onAssign: (id, projectId, onError) =>
       assignMentor.mutate({ mentorId: id, projectId }, { onError }),
     onUnassign: (id, projectId, onError) =>
@@ -131,31 +188,37 @@ export default function AdminOnboardingPage() {
   });
 
   const menteeAssignedCount = useMemo(() => {
+    const visibleIds = new Set(filteredMenteeApplications.map((a) => a.id));
     const ids = new Set<string>();
     Object.values(menteeBoard.assignments).forEach((set) =>
-      set.forEach((id) => ids.add(id)),
+      set.forEach((id) => {
+        if (visibleIds.has(id)) ids.add(id);
+      }),
     );
     return ids.size;
-  }, [menteeBoard.assignments]);
+  }, [menteeBoard.assignments, filteredMenteeApplications]);
 
   const mentorAssignedCount = useMemo(() => {
+    const visibleIds = new Set(filteredMentorApplications.map((a) => a.id));
     const ids = new Set<string>();
     Object.values(mentorBoard.assignments).forEach((set) =>
-      set.forEach((id) => ids.add(id)),
+      set.forEach((id) => {
+        if (visibleIds.has(id)) ids.add(id);
+      }),
     );
     return ids.size;
-  }, [mentorBoard.assignments]);
+  }, [mentorBoard.assignments, filteredMentorApplications]);
 
   // quick summary numbers shown in the stat cards at the top of the mentee tab
   const menteeCounts = {
-    total: applications.length,
+    total: filteredMenteeApplications.length,
     pending: menteeBoard.bench.length,
     approved: menteeAssignedCount,
   };
 
   // same counts for the mentor tab
   const mentorCounts = {
-    total: mentorApplications.length,
+    total: filteredMentorApplications.length,
     pending: mentorBoard.bench.length,
     approved: mentorAssignedCount,
   };
@@ -164,6 +227,75 @@ export default function AdminOnboardingPage() {
   const openCreateProject = () => {
     setCreateProjectForm(EMPTY_FORM);
     setShowCreateProject(true);
+  };
+
+  const normalizeDomainForSave = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) return "";
+    const lowered = trimmed.toLowerCase();
+    const labelMatch = DOMAIN_OPTIONS.find(
+      (d) => DOMAIN_LABELS[d].toLowerCase() === lowered,
+    );
+    if (labelMatch) return labelMatch;
+    const keyMatch = DOMAIN_OPTIONS.find((d) => d.toLowerCase() === lowered);
+    if (keyMatch) return keyMatch;
+    return trimmed;
+  };
+
+  const renderBenchDateRangeAction = () => {
+    const hasRange = Boolean(dateRange?.from) || Boolean(dateRange?.to);
+    const label = dateRange?.from
+      ? dateRange.to
+        ? `${format(dateRange.from, "MMM dd, yyyy")} - ${format(
+            dateRange.to,
+            "MMM dd, yyyy",
+          )}`
+        : `${format(dateRange.from, "MMM dd, yyyy")} - …`
+      : "Pick a date range";
+
+    return (
+      <Popover>
+        <Button
+          asChild
+          variant="ghost"
+          size="icon-sm"
+          className={
+            hasRange
+              ? "bg-slate-50 text-[#000053] hover:bg-slate-100"
+              : "bg-slate-50 text-slate-400 hover:bg-slate-100"
+          }
+        >
+          <PopoverTrigger aria-label="Filter by date range">
+            <CalendarIcon className="h-3.5 w-3.5" />
+          </PopoverTrigger>
+        </Button>
+
+        <PopoverContent align="start" className="w-auto p-0">
+          <div className="flex items-center justify-between gap-3 border-b border-slate-200 bg-white p-2">
+            <p className="truncate text-[11px] font-medium text-slate-600">
+              {label}
+            </p>
+            {hasRange && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setDateRange(undefined)}
+              >
+                Clear
+              </Button>
+            )}
+          </div>
+          <Calendar
+            mode="range"
+            selected={dateRange}
+            onSelect={setDateRange}
+            numberOfMonths={2}
+            initialFocus
+          />
+        </PopoverContent>
+      </Popover>
+    );
   };
 
   return (
@@ -214,14 +346,22 @@ export default function AdminOnboardingPage() {
                       tone="emerald"
                     />
                   </div>
+
+                  {hasActiveFilters &&
+                    filteredMenteeApplications.length === 0 && (
+                      <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+                        No users found.
+                      </div>
+                    )}
                   <KanbanBoard
                     benchLabel="Mentee Bench"
                     benchBadgeText="Profiles"
                     benchEmptyText="No applicants on the bench."
                     assignmentLabel="Mentee Assignment"
+                    benchHeaderAction={renderBenchDateRangeAction()}
                     bench={menteeBoard.bench}
                     isLoading={isLoading}
-                    applications={applications}
+                    applications={filteredMenteeApplications}
                     assignments={menteeBoard.assignments}
                     projects={projects}
                     setProjects={setProjects}
@@ -240,11 +380,12 @@ export default function AdminOnboardingPage() {
                     dragCount={menteeBoard.dragCount}
                     onViewProfile={menteeBoard.setViewingProfile}
                     onAddProject={openCreateProject}
-                    benchSearch={benchSearch}
-                    onBenchSearchChange={setBenchSearch}
                     pendingAction={menteeBoard.pendingAction}
                     onConfirmAction={menteeBoard.confirmPendingAction}
                     onCancelAction={menteeBoard.cancelPendingAction}
+                    benchSearch={menteeBenchSearch}
+                    onBenchSearchChange={setMenteeBenchSearch}
+                    benchSearchMode="nameOrEmail"
                   />
                 </TabsContent>
 
@@ -269,14 +410,22 @@ export default function AdminOnboardingPage() {
                       tone="emerald"
                     />
                   </div>
+
+                  {hasActiveFilters &&
+                    filteredMentorApplications.length === 0 && (
+                      <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+                        No users found.
+                      </div>
+                    )}
                   <KanbanBoard
                     benchLabel="Mentor Bench"
                     benchBadgeText="Experts"
                     benchEmptyText="No mentors on the bench."
                     assignmentLabel="Mentor Assignment"
+                    benchHeaderAction={renderBenchDateRangeAction()}
                     bench={mentorBoard.bench}
                     isLoading={mentorLoading}
-                    applications={mentorApplications}
+                    applications={filteredMentorApplications}
                     assignments={mentorBoard.assignments}
                     projects={projects}
                     setProjects={setProjects}
@@ -295,11 +444,12 @@ export default function AdminOnboardingPage() {
                     dragCount={mentorBoard.dragCount}
                     onViewProfile={mentorBoard.setViewingProfile}
                     onAddProject={openCreateProject}
-                    benchSearch={mentorBenchSearch}
-                    onBenchSearchChange={setMentorBenchSearch}
                     pendingAction={mentorBoard.pendingAction}
                     onConfirmAction={mentorBoard.confirmPendingAction}
                     onCancelAction={mentorBoard.cancelPendingAction}
+                    benchSearch={mentorBenchSearch}
+                    onBenchSearchChange={setMentorBenchSearch}
+                    benchSearchMode="nameOrEmail"
                   />
                 </TabsContent>
               </Tabs>
@@ -330,7 +480,7 @@ export default function AdminOnboardingPage() {
               name: createProjectForm.name,
               // only send optional fields if they have a value
               description: createProjectForm.description || undefined,
-              domain: createProjectForm.domain,
+              domain: normalizeDomainForSave(createProjectForm.domain),
               batchNo: createProjectForm.batchNo || undefined,
             },
             {

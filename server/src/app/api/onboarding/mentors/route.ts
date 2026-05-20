@@ -27,17 +27,17 @@ export async function GET(_req: NextRequest) {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
-    // Fetch all active mentor users
+    // Fetch all mentor users (both active and inactive)
     const unassigned = await prisma.user.findMany({
       where: {
         role: Role.mentor,
-        isActive: true,
       },
       select: {
         id: true,
         firstName: true,
         lastName: true,
         email: true,
+        isActive: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -51,7 +51,7 @@ export async function GET(_req: NextRequest) {
       university: "-",
       degreeProgram: "-",
       cvLink: "#",
-      status: "approved" as const,
+      status: m.isActive ? ("approved" as const) : ("inactive" as const),
       createdAt: m.createdAt.toISOString(),
       updatedAt: m.updatedAt.toISOString(),
     }));

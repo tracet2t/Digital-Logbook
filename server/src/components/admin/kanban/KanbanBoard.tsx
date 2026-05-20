@@ -44,6 +44,7 @@ interface KanbanBoardProps {
   benchBadgeText: string;
   benchEmptyText: string;
   assignmentLabel: string;
+  benchHeaderAction?: React.ReactNode;
   bench: OnboardingApplication[];
   isLoading: boolean;
   applications: OnboardingApplication[];
@@ -63,6 +64,7 @@ interface KanbanBoardProps {
   onAddProject: () => void;
   benchSearch?: string;
   onBenchSearchChange?: (value: string) => void;
+  benchSearchMode?: "name" | "nameOrEmail";
   /** Pending action waiting for user confirmation */
   pendingAction: KanbanPendingAction | null;
   /** Call when user clicks "Confirm" in the dialog */
@@ -76,6 +78,7 @@ export function KanbanBoard({
   benchBadgeText,
   benchEmptyText,
   assignmentLabel,
+  benchHeaderAction,
   bench,
   isLoading,
   applications,
@@ -95,6 +98,7 @@ export function KanbanBoard({
   onAddProject,
   benchSearch = "",
   onBenchSearchChange,
+  benchSearchMode = "name",
   pendingAction,
   onConfirmAction,
   onCancelAction,
@@ -110,8 +114,22 @@ export function KanbanBoard({
   const filteredBench = useMemo(() => {
     if (!benchSearch.trim()) return bench;
     const q = benchSearch.toLowerCase();
-    return bench.filter((a) => a.fullName.toLowerCase().includes(q));
-  }, [bench, benchSearch]);
+    return bench.filter((a) => {
+      const matchesName = a.fullName.toLowerCase().includes(q);
+      if (matchesName) return true;
+
+      if (benchSearchMode === "nameOrEmail") {
+        return a.email.toLowerCase().includes(q);
+      }
+
+      return false;
+    });
+  }, [bench, benchSearch, benchSearchMode]);
+
+  const benchSearchPlaceholder =
+    benchSearchMode === "nameOrEmail"
+      ? "Search by name or email…"
+      : "Search by name...";
 
   // Local state for drag-and-drop of project cards
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
@@ -125,14 +143,19 @@ export function KanbanBoard({
   }
 
   function handleProjectDragEnd(event: DragEndEvent) {
+    const over = event.over;
+    if (!activeProjectId || over === null) {
+      setActiveProjectId(null);
+      handleDragEnd(event); // call original for member DnD
+      return;
+    }
+
     if (
-      activeProjectId &&
-      event.over !== null &&
       projects.some((p) => p.id === event.active.id) &&
-      projects.some((p) => p.id === event.over.id)
+      projects.some((p) => p.id === over.id)
     ) {
       const oldIndex = projects.findIndex((p) => p.id === event.active.id);
-      const newIndex = projects.findIndex((p) => p.id === event.over!.id);
+      const newIndex = projects.findIndex((p) => p.id === over.id);
       if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
         const nextProjects = arrayMove(projects, oldIndex, newIndex);
         setProjects(nextProjects);
@@ -173,30 +196,68 @@ export function KanbanBoard({
           <div
             ref={setBenchRef}
             className={[
-              "flex w-full shrink-0 flex-col rounded-2xl border-b pb-3 pl-2 pr-1 transition sm:w-56 sm:border-b-0 sm:border-r sm:pb-0 sm:pl-2 sm:pr-1 md:w-60 lg:w-72 lg:pl-2 lg:pr-2 2xl:w-72 3xl:w-80",
+              "flex w-full shrink-0 flex-col rounded-2xl border-b pb-3 pl-2 pr-1 transition sm:w-64 sm:border-b-0 sm:border-r sm:pb-0 sm:pl-2 sm:pr-1 md:w-72 lg:w-80 lg:pl-2 lg:pr-2 2xl:w-80 3xl:w-96",
               isBenchOver
                 ? "border-indigo-300 bg-indigo-50/60"
                 : "border-slate-100",
             ].join(" ")}
           >
-            <div className="mb-4 flex items-center justify-between pr-3 sm:pr-4 lg:pr-6">
+            <div className="mb-4 flex items-center justify-between pr-2 sm:pr-3 lg:pr-4">
               <h3 className="text-[10px] font-black uppercase tracking-[0.22em] text-[#000053]">
                 {benchLabel}
               </h3>
-              <Badge className="rounded-full border-0 bg-indigo-50 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-indigo-500 hover:bg-indigo-50">
-                {filteredBench.length} {benchBadgeText}
-              </Badge>
+              <div className="flex items-center gap-2">
+                {benchHeaderAction}
+                <Badge className="rounded-full border-0 bg-indigo-50 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-indigo-500 hover:bg-indigo-50">
+                  {filteredBench.length} {benchBadgeText}
+                </Badge>
+              </div>
+            </div>
+            {/* Status legend */}
+            <div className="mb-3 pr-2 sm:pr-3 lg:pr-4">
+              <div className="space-y-1.5">
+                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                  User Status
+                </p>
+                <div className="flex flex-wrap gap-3 text-[10px] font-semibold text-slate-700">
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-3 w-3 rounded-full bg-emerald-500" />
+                    Active
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-3 w-3 rounded-full bg-rose-500" />
+                    Inactive
+                  </span>
+                </div>
+                <p className="mt-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                  Invitation
+                </p>
+                <div className="flex flex-wrap gap-3 text-[10px] font-semibold text-slate-700">
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-3 w-3 rounded-full bg-emerald-500" />
+                    Accepted
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-3 w-3 rounded-full bg-amber-500" />
+                    Pending
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-3 w-3 rounded-full bg-rose-500" />
+                    Expired
+                  </span>
+                </div>
+              </div>
             </div>
             {/* Bench search */}
             {!isLoading && onBenchSearchChange && (
-              <div className="mb-2 pr-3 sm:pr-4 lg:pr-6">
+              <div className="mb-2 pr-2 sm:pr-3 lg:pr-4">
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
                   <input
                     type="search"
                     value={benchSearch}
                     onChange={(e) => onBenchSearchChange(e.target.value)}
-                    placeholder="Search by name..."
+                    placeholder={benchSearchPlaceholder}
                     className="h-8 w-full rounded-lg border border-[#dbe0e8] bg-white pl-8 pr-3 text-[11px] text-slate-700 outline-none transition focus:border-slate-400"
                   />
                 </div>
@@ -204,7 +265,7 @@ export function KanbanBoard({
             )}
             {/** Select All function :CheckBox */}
             {!isLoading && bench.length > 0 && (
-              <div className="pr-3 sm:pr-4 lg:pr-6">
+              <div className="pr-2 sm:pr-3 lg:pr-4">
                 <button
                   type="button"
                   onClick={() =>
@@ -226,7 +287,7 @@ export function KanbanBoard({
               </div>
             )}
             <ScrollArea className="max-h-64 sm:max-h-80 lg:max-h-none 2xl:flex-1">
-              <div className="space-y-2 pr-3 sm:pr-4 lg:pr-6">
+              <div className="space-y-2 pr-2 sm:pr-3 lg:pr-4">
                 {isLoading && (
                   <div className="space-y-2">
                     <Skeleton className="h-14 rounded-2xl" />
@@ -290,7 +351,7 @@ export function KanbanBoard({
             ) : (
               <div className="2xl:flex-1 2xl:overflow-y-auto">
                 <SortableContext items={projects.map((p) => p.id)}>
-                  <div className="grid grid-cols-2 gap-1.5 pb-2 pr-1 sm:gap-2 sm:grid-cols-3 lg:grid-cols-3 lg:gap-3 xl:grid-cols-4 2xl:grid-cols-4 2xl:gap-3 3xl:grid-cols-5 3xl:gap-3 4xl:grid-cols-6 4xl:gap-3">
+                  <div className="grid grid-cols-1 gap-1.5 pb-2 pr-1 sm:gap-2 sm:grid-cols-2 lg:grid-cols-2 lg:gap-3 xl:grid-cols-3 2xl:grid-cols-3 2xl:gap-3 3xl:grid-cols-4 3xl:gap-3 4xl:grid-cols-5 4xl:gap-3">
                     {projects.map((project) => {
                       const assignedIds =
                         assignments[project.id] ?? new Set<string>();

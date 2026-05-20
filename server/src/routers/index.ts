@@ -1,6 +1,14 @@
 import { os } from "@orpc/server";
 
 import {
+  deleteInvitation,
+  getInvitations,
+  sendBulkInvitations,
+  sendInvitation,
+  updateInvitationStatus,
+  validateInvitationToken,
+} from "./invitations";
+import {
   createApplication,
   getAllApplications,
   getApplicationByEmail,
@@ -23,6 +31,14 @@ export const router = os.router({
     getApplicationSummary,
     getAllApplications,
     updateApplicationStatus,
+  },
+  invitations: {
+    sendInvitation,
+    sendBulkInvitations,
+    getInvitations,
+    validateInvitationToken,
+    updateInvitationStatus,
+    deleteInvitation,
   },
 });
 

@@ -1,13 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { useBulkSendInvitations } from "@/_hooks/admin/useBulkInvitation";
+import { useGetAllProjects } from "@/_hooks/admin/useProject";
 import { useBulkUpload } from "@/_hooks/useBulkUpload";
 import { useBulkUploadTableStore } from "@/_stores/bulkUploadTableStore";
+
 import {
   buildInvitationsFromRows,
   validateBulkUploadRows,
+  validateProjectExistence,
 } from "@/lib/bulkUploadValidation";
 
 import { BulkUploadStep1 } from "./BulkUploadStep1";
@@ -39,9 +42,25 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
     sendBulkInvitations,
     isLoading: isSending,
     progress,
+    cancelBulkSend,
   } = useBulkSendInvitations();
+  const { data: projects = [], isLoading: isLoadingProjects } =
+    useGetAllProjects();
   const { data, cellErrors, setCellErrors } = useBulkUploadTableStore();
   const [submissionResult, setSubmissionResult] = useState<any>(null);
+
+  // Auto-validate whenever data, projects, or fieldMapping changes
+  useEffect(() => {
+    if (data.length > 0 && !isLoadingProjects) {
+      const fieldErrors = validateBulkUploadRows(data, fieldMapping);
+      const projectErrors = validateProjectExistence(
+        data,
+        fieldMapping,
+        projects,
+      );
+      setCellErrors([...fieldErrors, ...projectErrors]);
+    }
+  }, [data, projects, fieldMapping, isLoadingProjects, setCellErrors]);
 
   const handleFieldMappingAndValidate = (
     field: "email" | "firstName" | "lastName" | "role" | "project",
@@ -50,7 +69,14 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
     const nextMapping = { ...fieldMapping, [field]: column };
     handleFieldMapping(field, column);
     if (data.length > 0) {
-      setCellErrors(validateBulkUploadRows(data, nextMapping));
+      // Combine field validation and project validation
+      const fieldErrors = validateBulkUploadRows(data, nextMapping);
+      const projectErrors = validateProjectExistence(
+        data,
+        nextMapping,
+        projects,
+      );
+      setCellErrors([...fieldErrors, ...projectErrors]);
     }
   };
 
@@ -59,9 +85,9 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
     goToStep(2);
   };
 
-  const handleBackToUpload = () => {
-    goToStep(1);
-  };
+  // const handleBackToUpload = () => {
+  //   goToStep(1);
+  // };
 
   const handleSubmit = async () => {
     if (missingRequiredColumns.length > 0) return;
@@ -85,6 +111,13 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
     setSubmissionResult(null);
   };
 
+  const handleCancelFlow = () => {
+    cancelBulkSend();
+    resetUpload();
+    setSubmissionResult(null);
+    onCancel?.();
+  };
+
   const isSubmitDisabled =
     missingRequiredColumns.length > 0 ||
     !fieldMapping.email ||
@@ -92,7 +125,8 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
     !fieldMapping.role ||
     fieldMapping.role === "none" ||
     cellErrors.length > 0 ||
-    data.length === 0;
+    data.length === 0 ||
+    isLoadingProjects;
 
   return (
     <div className="w-full">
@@ -109,19 +143,20 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
           excelColumns={getExcelColumns()}
           fieldMapping={fieldMapping}
           onFieldMappingChange={handleFieldMappingAndValidate}
-          onBack={handleBackToUpload}
-          onCancel={onCancel}
+          onCancel={handleCancelFlow}
           onSubmit={handleSubmit}
           isSubmitting={isSending}
           progress={progress}
           missingRequiredColumns={missingRequiredColumns}
           isSubmitDisabled={isSubmitDisabled}
+          projects={projects}
+          isLoadingProjects={isLoadingProjects}
         />
       ) : (
         <BulkUploadStep3
           result={submissionResult}
           onNewUpload={handleNewUpload}
-          onClose={onCancel}
+          onClose={handleCancelFlow}
         />
       )}
     </div>

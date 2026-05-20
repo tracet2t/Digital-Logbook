@@ -31,6 +31,55 @@ export function BenchCard({
     ? { transform: CSS.Translate.toString(transform) }
     : undefined;
 
+  // For pending applications, show as Inactive user status
+  const userStatusLabel =
+    application.status?.toLowerCase() === "inactive" ||
+    application.status?.toLowerCase() === "pending"
+      ? "Inactive"
+      : "Active";
+
+  // For pending applications, show Pending invitation status
+  const invitationStatusLabel =
+    application.status?.toLowerCase() === "pending"
+      ? "Pending"
+      : application.invitationStatus === "Active"
+        ? "Accepted"
+        : application.invitationStatus;
+
+  const getInvitationBadgeClasses = () => {
+    if (selected) {
+      return "border-white/40 text-white";
+    }
+
+    // For pending applications, show Pending badge colors
+    if (application.status?.toLowerCase() === "pending") {
+      return "border-amber-300 text-amber-600";
+    }
+
+    switch (application.invitationStatus) {
+      case "Active":
+        return "border-emerald-300 text-emerald-600";
+      case "Pending":
+        return "border-amber-300 text-amber-600";
+      case "Expired":
+        return "border-rose-300 text-rose-600";
+      default:
+        return "border-slate-200 text-slate-600";
+    }
+  };
+
+  const getUserBadgeClasses = () => {
+    if (selected) {
+      return "border-white/40 text-white";
+    }
+
+    // For pending or inactive applications, show Inactive badge colors
+    return application.status?.toLowerCase() === "inactive" ||
+      application.status?.toLowerCase() === "pending"
+      ? "border-rose-300 text-rose-600"
+      : "border-emerald-300 text-emerald-600";
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -39,7 +88,7 @@ export function BenchCard({
       {...listeners}
       onClick={onClick}
       className={[
-        "group flex w-full min-w-0 cursor-grab items-center gap-3 rounded-2xl border p-3 transition active:cursor-grabbing",
+        "group flex w-full min-w-0 cursor-grab items-center gap-2 rounded-md border px-2.5 py-2 transition active:cursor-grabbing",
         isDragging ? "opacity-40 ring-2 ring-indigo-300" : "",
         selected
           ? "border-[#000053] bg-[#000053] text-white shadow-md"
@@ -63,7 +112,7 @@ export function BenchCard({
         )}
       </Button>
 
-      <Avatar className="h-9 w-9 shrink-0">
+      <Avatar className="h-8 w-8 shrink-0">
         <AvatarFallback
           className={[
             "text-[10px] font-bold",
@@ -78,23 +127,31 @@ export function BenchCard({
         <div className="flex items-center justify-between gap-2">
           <p
             className={[
-              "truncate text-xs font-bold",
+              "truncate text-xs font-semibold",
               selected ? "text-white" : "text-slate-800",
             ].join(" ")}
           >
             {application.fullName}
           </p>
-          {application.status === "inactive" && (
+        </div>
+        <div className="mt-0.5 flex flex-wrap items-center gap-1">
+          <Badge
+            className={[
+              "inline-flex items-center shrink-0 whitespace-nowrap rounded border px-1.5 py-0.5 text-[9px] font-semibold leading-tight bg-transparent sm:px-2 sm:text-[10px] lg:px-3 lg:text-[11px]",
+              getUserBadgeClasses(),
+            ].join(" ")}
+          >
+            {userStatusLabel}
+          </Badge>
+          {(application.invitationStatus ||
+            application.status?.toLowerCase() === "pending") && (
             <Badge
-              variant="secondary"
               className={[
-                "shrink-0 rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide",
-                selected
-                  ? "bg-white/20 text-white"
-                  : "bg-rose-50 text-rose-600",
+                "inline-flex items-center shrink-0 whitespace-nowrap rounded border px-1.5 py-0.5 text-[9px] font-semibold leading-tight bg-transparent sm:px-2 sm:text-[10px] lg:px-3 lg:text-[11px]",
+                getInvitationBadgeClasses(),
               ].join(" ")}
             >
-              Inactive
+              {invitationStatusLabel}
             </Badge>
           )}
         </div>
