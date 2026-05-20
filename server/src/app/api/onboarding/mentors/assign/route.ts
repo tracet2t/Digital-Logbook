@@ -1,12 +1,17 @@
+import { InvitationRepository } from "@/repositories/invitation_repository_impl";
 import { ProjectRepository } from "@/repositories/project_repository_impl";
 import getSession from "@/server_actions/getSession";
+import { Role } from "@prisma/client";
+import bcrypt from "bcrypt";
 import { NextRequest, NextResponse } from "next/server";
 
+import { sendEmail } from "@/lib/email";
 import prisma from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
 const projectRepo = new ProjectRepository();
+const invitationRepo = new InvitationRepository();
 
 /**
  * GET /api/onboarding/mentors/assign
@@ -72,6 +77,89 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Fetch mentor user data
+    const mentor = await prisma.user.findUnique({
+      where: { id: mentorId, role: Role.mentor },
+    });
+
+    if (!mentor) {
+      return NextResponse.json(
+        { message: "Mentor not found" },
+        { status: 404 },
+      );
+    }
+
+    // Check if this is the mentor's first project assignment
+    const existingAllocations = await prisma.projectMentor.findMany({
+      where: { mentorId },
+    });
+    const isFirstAssignment = existingAllocations.length === 0;
+
+    // Send invitation email on first assignment, or if no valid invitation exists
+    let invitationSent = false;
+    const existingInvitation = await prisma.invitation.findFirst({
+      where: { email: mentor.email, accepted: false },
+    });
+
+    const invitationExpired = existingInvitation
+      ? new Date(existingInvitation.expiresAt) < new Date()
+      : false;
+
+    // Send email if: (a) first assignment OR (b) no invitation exists OR (c) invitation expired
+    if (isFirstAssignment || !existingInvitation || invitationExpired) {
+      const invitedBy = session.getId();
+      if (!invitedBy) {
+        console.error("Cannot send invitation: session has no admin ID");
+      } else {
+        try {
+          // Generate a fresh temp password to include in the email
+          const emailTempPassword = Math.random().toString(36).slice(-8);
+          const emailHashedPassword = await bcrypt.hash(emailTempPassword, 10);
+
+          // Update the mentor's password to the one we'll send in the email
+          await prisma.user.update({
+            where: { id: mentor.id },
+            data: { passwordHash: emailHashedPassword },
+          });
+
+          // If invitation exists but expired, delete it first
+          if (existingInvitation && invitationExpired) {
+            await prisma.invitation.delete({
+              where: { id: existingInvitation.id },
+            });
+          }
+
+          const invitation = await invitationRepo.createInvite({
+            email: mentor.email,
+            role: Role.mentor,
+            invitedBy,
+          });
+
+          const loginUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/create-account?token=${invitation.token}&email=${encodeURIComponent(mentor.email)}`;
+
+          await sendEmail({
+            email: mentor.email,
+            name: `${mentor.firstName} ${mentor.lastName}`,
+            tempPassword: emailTempPassword,
+            message: `Your registration was successful. Your temporary password is: ${emailTempPassword}`,
+            loginUrl,
+            token: invitation.token,
+          });
+
+          invitationSent = true;
+          console.log(
+            `Invitation email sent to ${mentor.email} (${isFirstAssignment ? "first assignment" : invitationExpired ? "invitation expired" : "no invitation found"})`,
+          );
+        } catch (emailError) {
+          console.error("Failed to send invitation email:", emailError);
+        }
+      }
+    } else {
+      console.log(
+        `Valid invitation already exists for ${mentor.email}, skipping email send`,
+      );
+    }
+
     const result = await projectRepo.assignMentorToProject(projectId, mentorId);
 
     // Sync the mentor's batchNo to match the project's batchNo and activate
@@ -90,7 +178,11 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(
-      { message: result.message, data: result.data ?? null },
+      {
+        message: result.message,
+        invitationSent,
+        data: result.data ?? null,
+      },
       { status: result.success ? 201 : 200 },
     );
   } catch (error) {

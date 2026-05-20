@@ -2,9 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { endOfDay, format, parseISO, startOfDay } from "date-fns";
-import type { DateRange } from "react-day-picker";
-
 import {
   useAssignMenteeToProject,
   useAssignMentorToProject,
@@ -21,12 +18,24 @@ import {
   useGetProjects,
   useUpdateProjectOrder,
 } from "@/_hooks/projects";
-import { Calendar as CalendarIcon, CheckCircle2, UserCheck, UserRound } from "lucide-react";
+import { DOMAIN_LABELS, DOMAIN_OPTIONS } from "@/app/admin/projects/_constants";
+import { endOfDay, format, parseISO, startOfDay } from "date-fns";
+import {
+  Calendar as CalendarIcon,
+  CheckCircle2,
+  UserCheck,
+  UserRound,
+} from "lucide-react";
+import type { DateRange } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card } from "@/components/ui/card";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminPageLayout, PageHeader } from "@/components/admin";
 import {
@@ -41,7 +50,7 @@ import {
 const EMPTY_FORM: ProjectFormState = {
   name: "",
   description: "",
-  domain: "software",
+  domain: DOMAIN_LABELS.software,
   batchNo: "",
 };
 
@@ -220,6 +229,19 @@ export default function AdminOnboardingPage() {
     setShowCreateProject(true);
   };
 
+  const normalizeDomainForSave = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) return "";
+    const lowered = trimmed.toLowerCase();
+    const labelMatch = DOMAIN_OPTIONS.find(
+      (d) => DOMAIN_LABELS[d].toLowerCase() === lowered,
+    );
+    if (labelMatch) return labelMatch;
+    const keyMatch = DOMAIN_OPTIONS.find((d) => d.toLowerCase() === lowered);
+    if (keyMatch) return keyMatch;
+    return trimmed;
+  };
+
   const renderBenchDateRangeAction = () => {
     const hasRange = Boolean(dateRange?.from) || Boolean(dateRange?.to);
     const label = dateRange?.from
@@ -325,7 +347,8 @@ export default function AdminOnboardingPage() {
                     />
                   </div>
 
-                  {hasActiveFilters && filteredMenteeApplications.length === 0 && (
+                  {hasActiveFilters &&
+                    filteredMenteeApplications.length === 0 && (
                       <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
                         No users found.
                       </div>
@@ -388,7 +411,8 @@ export default function AdminOnboardingPage() {
                     />
                   </div>
 
-                  {hasActiveFilters && filteredMentorApplications.length === 0 && (
+                  {hasActiveFilters &&
+                    filteredMentorApplications.length === 0 && (
                       <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
                         No users found.
                       </div>
@@ -456,7 +480,7 @@ export default function AdminOnboardingPage() {
               name: createProjectForm.name,
               // only send optional fields if they have a value
               description: createProjectForm.description || undefined,
-              domain: createProjectForm.domain,
+              domain: normalizeDomainForSave(createProjectForm.domain),
               batchNo: createProjectForm.batchNo || undefined,
             },
             {

@@ -105,7 +105,7 @@ export default function RsuiteCalendar({
     resetFormData,
   );
 
-  const { handleSubmit, isSubmitting } = useSubmission(
+  const { handleSubmit, handleDelete, isSubmitting, isDeleting } = useSubmission(
     role,
     studentId,
     selectedUser || "",
@@ -381,11 +381,19 @@ export default function RsuiteCalendar({
             date={formData.date}
             defaultWorkingHours={workingHours}
             defaultNotes={notes}
+            defaultTechStack={technologies}
             review={review}
             isEditable={isEditable}
             onSubmit={(wh, n) => {
               if (!isSubmitting) handleSubmit({ workingHours: wh, notes: n });
             }}
+            onDelete={() => {
+              if (editingEvent?.id && !isDeleting) {
+                handleDelete(editingEvent.id);
+              }
+            }}
+            canDelete={Boolean(editingEvent?.id)}
+            isDeleting={isDeleting}
             onClose={handleClose}
           />
         )}
