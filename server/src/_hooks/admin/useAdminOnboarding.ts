@@ -17,6 +17,13 @@ export interface OnboardingApplication {
   status: OnboardingStatus;
   createdAt: string;
   updatedAt: string;
+  // User data (if user account exists)
+  user?: {
+    id: string;
+    isActive: boolean;
+    emailConfirmed: boolean;
+  };
+  // Invitation data
   invitationStatus?: InvitationStatus;
   invitationExpiresAt?: string;
 }
@@ -25,60 +32,17 @@ export const useOnboardingApplications = () => {
   return useQuery<OnboardingApplication[]>({
     queryKey: ["onboarding-applications"],
     queryFn: async () => {
-      const [applicationsRes, invitationsRes] = await Promise.all([
-        fetch("/api/onboarding", { cache: "no-store" }),
-        fetch("/api/invitations", { cache: "no-store" }),
-      ]);
+      const res = await fetch("/api/onboarding", { cache: "no-store" });
 
-      if (!applicationsRes.ok) {
-        const errorData = await applicationsRes.json().catch(() => null);
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
         throw new Error(
           errorData?.message || "Failed to fetch onboarding applications",
         );
       }
 
-      const applications = await applicationsRes.json();
-
-      // Fetch invitations to get status information
-      let invitationsByEmail: Record<
-        string,
-        { accepted: boolean; expiresAt: string }
-      > = {};
-
-      if (invitationsRes.ok) {
-        const invitations = await invitationsRes.json();
-        if (Array.isArray(invitations)) {
-          invitationsByEmail = invitations.reduce(
-            (acc, inv) => {
-              acc[inv.email] = {
-                accepted: inv.status === "Accepted",
-                expiresAt: inv.expiresAt,
-              };
-              return acc;
-            },
-            {} as Record<string, { accepted: boolean; expiresAt: string }>,
-          );
-        }
-      }
-
-      // Enhance applications with invitation status
-      return applications.map((app: OnboardingApplication) => {
-        const invitationData = invitationsByEmail[app.email];
-        if (invitationData) {
-          const invitationStatus: InvitationStatus = invitationData.accepted
-            ? "Active"
-            : new Date() > new Date(invitationData.expiresAt)
-              ? "Expired"
-              : "Pending";
-
-          return {
-            ...app,
-            invitationStatus,
-            invitationExpiresAt: invitationData.expiresAt,
-          };
-        }
-        return app;
-      });
+      // Applications now include user and invitation status from backend
+      return res.json();
     },
     staleTime: 0, // Always fetch fresh data
     refetchOnMount: true, // Refetch when component mounts
@@ -195,11 +159,20 @@ export const useAssignMenteeToProject = () => {
       return response.json();
     },
     onSuccess: async (data) => {
-      // Force immediate refetch (not just invalidate)
+      // Invalidate and refetch all related queries
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["onboarding-applications"],
+        }),
+        queryClient.invalidateQueries({ queryKey: ["onboarding-allocations"] }),
+        queryClient.invalidateQueries({ queryKey: ["projects"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-users"] }),
+      ]);
+      // Force immediate refetch
       await Promise.all([
         queryClient.refetchQueries({ queryKey: ["onboarding-applications"] }),
+        queryClient.refetchQueries({ queryKey: ["onboarding-allocations"] }),
         queryClient.refetchQueries({ queryKey: ["projects"] }),
-        queryClient.refetchQueries({ queryKey: ["admin-users"] }),
       ]);
       if (data.invitationSent) {
         toast.success("Mentee assigned to project. Invitation email sent.");
@@ -238,12 +211,20 @@ export const useUnassignMentee = () => {
       return response.json();
     },
     onSuccess: async () => {
-      // Force immediate refetch (not just invalidate)
+      // Invalidate and refetch all related queries
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["onboarding-applications"],
+        }),
+        queryClient.invalidateQueries({ queryKey: ["onboarding-allocations"] }),
+        queryClient.invalidateQueries({ queryKey: ["projects"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-users"] }),
+      ]);
+      // Force immediate refetch
       await Promise.all([
         queryClient.refetchQueries({ queryKey: ["onboarding-applications"] }),
         queryClient.refetchQueries({ queryKey: ["onboarding-allocations"] }),
         queryClient.refetchQueries({ queryKey: ["projects"] }),
-        queryClient.refetchQueries({ queryKey: ["admin-users"] }),
       ]);
       toast.success("Mentee set to inactive.");
     },
@@ -257,58 +238,17 @@ export const useUnassignedMentors = () => {
   return useQuery<OnboardingApplication[]>({
     queryKey: ["mentors"],
     queryFn: async () => {
-      const [mentorsRes, invitationsRes] = await Promise.all([
-        fetch("/api/onboarding/mentors", { cache: "no-store" }),
-        fetch("/api/invitations", { cache: "no-store" }),
-      ]);
+      const res = await fetch("/api/onboarding/mentors", {
+        cache: "no-store",
+      });
 
-      if (!mentorsRes.ok) {
-        const errorData = await mentorsRes.json().catch(() => null);
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
         throw new Error(errorData?.message || "Failed to fetch mentors");
       }
 
-      const mentors = await mentorsRes.json();
-
-      // Fetch invitations to get status information
-      let invitationsByEmail: Record<
-        string,
-        { accepted: boolean; expiresAt: string }
-      > = {};
-
-      if (invitationsRes.ok) {
-        const invitations = await invitationsRes.json();
-        if (Array.isArray(invitations)) {
-          invitationsByEmail = invitations.reduce(
-            (acc, inv) => {
-              acc[inv.email] = {
-                accepted: inv.status === "Accepted",
-                expiresAt: inv.expiresAt,
-              };
-              return acc;
-            },
-            {} as Record<string, { accepted: boolean; expiresAt: string }>,
-          );
-        }
-      }
-
-      // Enhance mentors with invitation status
-      return mentors.map((mentor: OnboardingApplication) => {
-        const invitationData = invitationsByEmail[mentor.email];
-        if (invitationData) {
-          const invitationStatus: InvitationStatus = invitationData.accepted
-            ? "Active"
-            : new Date() > new Date(invitationData.expiresAt)
-              ? "Expired"
-              : "Pending";
-
-          return {
-            ...mentor,
-            invitationStatus,
-            invitationExpiresAt: invitationData.expiresAt,
-          };
-        }
-        return mentor;
-      });
+      // Mentors now include user and invitation status from backend
+      return res.json();
     },
     staleTime: 0, // Always fetch fresh data
     refetchOnMount: true, // Refetch when component mounts
@@ -369,12 +309,18 @@ export const useAssignMentorToProject = () => {
       return response.json();
     },
     onSuccess: async (data) => {
-      // Force immediate refetch (not just invalidate)
+      // Invalidate and refetch all related queries
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["mentors"] }),
+        queryClient.invalidateQueries({ queryKey: ["mentor-allocations"] }),
+        queryClient.invalidateQueries({ queryKey: ["projects"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-users"] }),
+      ]);
+      // Force immediate refetch
       await Promise.all([
         queryClient.refetchQueries({ queryKey: ["mentors"] }),
         queryClient.refetchQueries({ queryKey: ["mentor-allocations"] }),
         queryClient.refetchQueries({ queryKey: ["projects"] }),
-        queryClient.refetchQueries({ queryKey: ["admin-users"] }),
       ]);
       if (data.invitationSent) {
         toast.success("Mentor assigned to project. Invitation email sent.");
@@ -413,12 +359,18 @@ export const useUnassignMentor = () => {
       return response.json();
     },
     onSuccess: async () => {
-      // Force immediate refetch (not just invalidate)
+      // Invalidate and refetch all related queries
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["mentors"] }),
+        queryClient.invalidateQueries({ queryKey: ["mentor-allocations"] }),
+        queryClient.invalidateQueries({ queryKey: ["projects"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-users"] }),
+      ]);
+      // Force immediate refetch
       await Promise.all([
         queryClient.refetchQueries({ queryKey: ["mentors"] }),
         queryClient.refetchQueries({ queryKey: ["mentor-allocations"] }),
         queryClient.refetchQueries({ queryKey: ["projects"] }),
-        queryClient.refetchQueries({ queryKey: ["admin-users"] }),
       ]);
       toast.success("Mentor removed from project.");
     },

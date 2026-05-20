@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 import BaseRepository from "./baseRepository";
 
 type MenteeApplication = any;
-type MenteeApplicationStatus = "pending" | "approved" | "rejected";
+type MenteeApplicationStatus = "pending" | "approved" | "rejected" | "inactive";
 
 /*
 
@@ -169,16 +169,18 @@ export class OnboardingRepository extends BaseRepository<MenteeApplication> {
   async getApplicationCountByStatus(): Promise<
     Record<MenteeApplicationStatus, number>
   > {
-    const [pending, approved, rejected] = await Promise.all([
+    const [pending, approved, rejected, inactive] = await Promise.all([
       this.modelClient.count({ where: { status: "pending" } }),
       this.modelClient.count({ where: { status: "approved" } }),
       this.modelClient.count({ where: { status: "rejected" } }),
+      this.modelClient.count({ where: { status: "inactive" } }),
     ]);
 
     return {
       pending,
       approved,
       rejected,
+      inactive,
     };
   }
 }
