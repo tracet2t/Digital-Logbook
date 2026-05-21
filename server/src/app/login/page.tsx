@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 
-import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
+import { CheckCircle2, Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
@@ -24,6 +24,7 @@ const LoginPage = () => {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [authSuccess, setAuthSuccess] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>(
     {},
   );
@@ -59,6 +60,7 @@ const LoginPage = () => {
     }
 
     setLoading(true);
+    setAuthSuccess(false);
     setToastData((prev) => ({
       ...prev,
       open: false,
@@ -73,12 +75,13 @@ const LoginPage = () => {
       const data = await res.json();
 
       if (res.ok) {
-        setToastData({
-          open: true,
-          title: "Access Granted",
-          description: "Welcome back. Initializing your workspace...",
-          variant: "default",
-        });
+        setAuthSuccess(true);
+        // setToastData({
+        //   open: true,
+        //   title: "Access Granted",
+        //   description: "Welcome back. Initializing your workspace...",
+        //   variant: "default",
+        // });
 
         if (data.redirectUrl) {
           setTimeout(() => {
@@ -86,6 +89,7 @@ const LoginPage = () => {
           }, 800);
         }
       } else {
+        setLoading(false);
         setToastData({
           open: true,
           title: "Authentication Failed",
@@ -97,18 +101,16 @@ const LoginPage = () => {
           email: "Invalid credentials",
           password: "Invalid credentials",
         });
-        setShake(true);
-        setTimeout(() => setShake(false), 600);
-        setLoading(false);
       }
     } catch (error) {
+      setLoading(false);
+      setAuthSuccess(false);
       setToastData({
         open: true,
         title: "Network Error",
         description: "Unable to reach the authentication gateway.",
         variant: "destructive",
       });
-      setLoading(false);
     }
   };
 
@@ -177,14 +179,16 @@ const LoginPage = () => {
           }}
         >
           <div
-            className={`flex-1 flex flex-col items-center justify-center p-16 md:p-24 w-full rounded-3xl backdrop-blur-md border shadow-2xl transition-all duration-300 ${shake ? "shake-animation" : ""}`}
+            className={`flex-1 flex flex-col items-center justify-center p-16 md:p-24 w-full rounded-3xl backdrop-blur-md border shadow-2xl transition-all duration-300 ${Object.keys(errors).length > 0 && shake ? "shake-animation" : ""}`}
             style={{
-              backgroundColor:
-                Object.keys(errors).length > 0
+              backgroundColor: authSuccess
+                ? "rgba(34, 197, 94, 0.1)"
+                : Object.keys(errors).length > 0
                   ? "rgba(248, 113, 113, 0.1)"
                   : "rgba(255, 255, 255, 0.1)",
-              borderColor:
-                Object.keys(errors).length > 0
+              borderColor: authSuccess
+                ? "rgba(34, 197, 94, 0.5)"
+                : Object.keys(errors).length > 0
                   ? "rgba(248, 113, 113, 0.3)"
                   : "rgba(255, 255, 255, 0.2)",
             }}
@@ -334,13 +338,28 @@ const LoginPage = () => {
 
                 <Button
                   type="submit"
-                  className="w-full h-14 bg-[#000053] dark:bg-white text-zinc-50 dark:text-zinc-950 hover:bg-[#1a1a7a] dark:hover:bg-zinc-200 font-black text-lg shadow-2xl transition-all active:scale-[0.98] rounded-xl tracking-widest"
-                  disabled={loading}
+                  className={`w-full h-14 font-black text-lg shadow-2xl transition-all active:scale-[0.98] rounded-xl tracking-widest ${
+                    Object.keys(errors).length > 0
+                      ? "bg-red-600 dark:bg-red-500 text-white hover:bg-red-700 dark:hover:bg-red-600"
+                      : authSuccess
+                        ? "bg-green-600 dark:bg-green-500 text-white hover:bg-green-700 dark:hover:bg-green-600"
+                        : "bg-[#000053] dark:bg-white text-zinc-50 dark:text-zinc-950 hover:bg-[#1a1a7a] dark:hover:bg-zinc-200"
+                  }`}
+                  disabled={loading || authSuccess}
                 >
-                  {loading ? (
+                  {authSuccess ? (
                     <div className="flex items-center gap-3">
-                      <Loader2 className="h-5 w-5 animate-spin font-black" />
+                      <CheckCircle2 className="h-7 w-7" />
+                      <span>DONE </span>
+                    </div>
+                  ) : loading ? (
+                    <div className="flex items-center gap-3">
+                      <Loader2 className="h-7 w-7 animate-spin font-black" />
                       <span>AUTHORIZING...</span>
+                    </div>
+                  ) : Object.keys(errors).length > 0 ? (
+                    <div className="flex items-center gap-3">
+                      <span>ERROR - TRY AGAIN</span>
                     </div>
                   ) : (
                     "SIGN IN"
