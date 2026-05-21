@@ -15,6 +15,8 @@ import TableStateRows from "@/components/admin/TableStateRows";
 
 export interface InvitationRow {
   id: string;
+  firstName?: string | null;
+  lastName?: string | null;
   email: string;
   role: string;
   project: string;
@@ -45,7 +47,7 @@ export default function InvitationsTable({
       <TableHeader>
         <TableRow className="bg-[#f8fafc] hover:bg-[#f8fafc]">
           <TableHead className="px-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-            Email
+            Name / Email
           </TableHead>
           <TableHead className="px-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">
             Role
@@ -72,40 +74,54 @@ export default function InvitationsTable({
         />
         {!loading &&
           !error &&
-          data.map((inv) => (
-            <TableRow key={inv.id} className="bg-white hover:bg-[#fbfcff]">
-              <TableCell className="px-4 py-3 font-medium text-slate-900">
-                {inv.email}
-              </TableCell>
-              <TableCell className="px-4 py-3">
-                <RoleBadge role={inv.role} />
-              </TableCell>
-              <TableCell className="px-4 py-3 text-slate-500">
-                {inv.project}
-              </TableCell>
-              <TableCell className="px-4 py-3">
-                <AdminStatusBadge status={inv.status} />
-              </TableCell>
-              <TableCell className="px-4 py-3 text-right">
-                <TableActionMenu
-                  ariaLabel={`Actions for ${inv.email}`}
-                  items={[
-                    { label: "View Details", onSelect: () => onView(inv) },
-                    {
-                      label: "Change Status",
-                      onSelect: () => onChangeStatus(inv),
-                    },
-                    {
-                      label: "Delete",
-                      onSelect: () => onDelete(inv.id),
-                      variant: "danger",
-                      separator: true,
-                    },
-                  ]}
-                />
-              </TableCell>
-            </TableRow>
-          ))}
+          data.map((inv) => {
+            const displayName = `${inv.firstName ?? ""} ${inv.lastName ?? ""}`
+              .trim()
+              .replace(/\s+/g, " ");
+            const nameToShow = displayName.length > 0 ? displayName : "—";
+
+            return (
+              <TableRow key={inv.id} className="bg-white hover:bg-[#fbfcff]">
+                <TableCell className="px-4 py-3 font-medium text-slate-900">
+                  <div className="space-y-0.5">
+                    <p className="text-sm font-semibold text-slate-900">
+                      {nameToShow}
+                    </p>
+                    <p className="text-xs font-normal text-slate-500">
+                      {inv.email}
+                    </p>
+                  </div>
+                </TableCell>
+                <TableCell className="px-4 py-3">
+                  <RoleBadge role={inv.role} />
+                </TableCell>
+                <TableCell className="px-4 py-3 text-slate-500">
+                  {inv.project}
+                </TableCell>
+                <TableCell className="px-4 py-3">
+                  <AdminStatusBadge status={inv.status} />
+                </TableCell>
+                <TableCell className="px-4 py-3 text-right">
+                  <TableActionMenu
+                    ariaLabel={`Actions for ${inv.email}`}
+                    items={[
+                      { label: "View Details", onSelect: () => onView(inv) },
+                      {
+                        label: "Change Status",
+                        onSelect: () => onChangeStatus(inv),
+                      },
+                      {
+                        label: "Delete",
+                        onSelect: () => onDelete(inv.id),
+                        variant: "danger",
+                        separator: true,
+                      },
+                    ]}
+                  />
+                </TableCell>
+              </TableRow>
+            );
+          })}
       </TableBody>
     </Table>
   );
