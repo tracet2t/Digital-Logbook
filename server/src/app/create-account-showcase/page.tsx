@@ -6,8 +6,10 @@ import { useOnboarding } from "@/_hooks/onboarding/useOnboarding";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   BookOpenText,
+  CheckCircle2,
   GraduationCap,
   Link as LinkIcon,
+  Loader2,
   Mail,
   User,
 } from "lucide-react";
@@ -48,6 +50,7 @@ type FormData = z.infer<typeof formSchema>;
 export default function CreateAccountShowcasePage() {
   const onboardingMutation = useOnboarding();
   const [shake, setShake] = React.useState(false);
+  const [onboardingSuccess, setOnboardingSuccess] = React.useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -61,9 +64,14 @@ export default function CreateAccountShowcasePage() {
   });
 
   const handleSubmit = async (values: FormData) => {
+    setOnboardingSuccess(false);
     onboardingMutation.mutate(values, {
       onSuccess: () => {
-        form.reset();
+        setOnboardingSuccess(true);
+        setTimeout(() => {
+          form.reset();
+          setOnboardingSuccess(false);
+        }, 1500);
       },
       onError: () => {
         setShake(true);
@@ -135,14 +143,16 @@ export default function CreateAccountShowcasePage() {
           }}
         >
           <div
-            className={`flex-1 flex flex-col items-center justify-center p-16 md:p-24 w-full rounded-3xl backdrop-blur-md border shadow-2xl transition-all duration-300 ${shake ? "shake-animation" : ""}`}
+            className={`flex-1 flex flex-col items-center justify-center p-16 md:p-24 w-full rounded-3xl backdrop-blur-md border shadow-2xl transition-all duration-300 ${Object.keys(form.formState.errors).length > 0 && shake ? "shake-animation" : ""}`}
             style={{
-              backgroundColor:
-                Object.keys(form.formState.errors).length > 0
+              backgroundColor: onboardingSuccess
+                ? "rgba(34, 197, 94, 0.1)"
+                : Object.keys(form.formState.errors).length > 0
                   ? "rgba(248, 113, 113, 0.1)"
                   : "rgba(255, 255, 255, 0.1)",
-              borderColor:
-                Object.keys(form.formState.errors).length > 0
+              borderColor: onboardingSuccess
+                ? "rgba(34, 197, 94, 0.5)"
+                : Object.keys(form.formState.errors).length > 0
                   ? "rgba(248, 113, 113, 0.3)"
                   : "rgba(255, 255, 255, 0.2)",
             }}
@@ -417,12 +427,34 @@ export default function CreateAccountShowcasePage() {
                   <div className="space-y-4 pt-4">
                     <Button
                       type="submit"
-                      disabled={onboardingMutation.isPending}
-                      className="h-12 w-full rounded-xl bg-[#000053] text-[14px] font-bold uppercase tracking-[0.08em] text-white hover:bg-[#1a1a7a] shadow-2xl transition-all active:scale-[0.98]"
+                      disabled={
+                        onboardingMutation.isPending || onboardingSuccess
+                      }
+                      className={`h-12 w-full rounded-xl text-[14px] font-bold uppercase tracking-[0.08em] shadow-2xl transition-all active:scale-[0.98] ${
+                        Object.keys(form.formState.errors).length > 0
+                          ? "bg-red-600 dark:bg-red-500 text-white hover:bg-red-700 dark:hover:bg-red-600"
+                          : onboardingSuccess
+                            ? "bg-green-600 dark:bg-green-500 text-white hover:bg-green-700 dark:hover:bg-green-600"
+                            : "bg-[#000053] text-white hover:bg-[#1a1a7a]"
+                      }`}
                     >
-                      {onboardingMutation.isPending
-                        ? "Submitting..."
-                        : "Create Mentee"}
+                      {onboardingSuccess ? (
+                        <div className="flex items-center gap-3">
+                          <CheckCircle2 className="h-6 w-6" />
+                          <span>DONE</span>
+                        </div>
+                      ) : onboardingMutation.isPending ? (
+                        <div className="flex items-center gap-3">
+                          <Loader2 className="h-6 w-6 animate-spin" />
+                          <span>Creating Account...</span>
+                        </div>
+                      ) : Object.keys(form.formState.errors).length > 0 ? (
+                        <div className="flex items-center gap-3">
+                          <span>ERROR - TRY AGAIN</span>
+                        </div>
+                      ) : (
+                        "Create Mentee"
+                      )}
                     </Button>
                   </div>
                 </form>
