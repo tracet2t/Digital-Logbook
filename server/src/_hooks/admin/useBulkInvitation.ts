@@ -34,9 +34,27 @@ export const useBulkSendInvitations = () => {
         invitations,
       });
     },
-    onSuccess: (result) => {
-      // Refresh invitations list
-      queryClient.invalidateQueries({ queryKey: ["invitations"] });
+    onSuccess: async (result) => {
+      // Invalidate and refetch all related queries
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["invitations"] }),
+        queryClient.invalidateQueries({ queryKey: ["mentors"] }),
+        queryClient.invalidateQueries({ queryKey: ["mentor-allocations"] }),
+        queryClient.invalidateQueries({
+          queryKey: ["onboarding-applications"],
+        }),
+        queryClient.invalidateQueries({ queryKey: ["onboarding-allocations"] }),
+        queryClient.invalidateQueries({ queryKey: ["projects"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-users"] }),
+      ]);
+      // Force immediate refetch
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ["mentors"] }),
+        queryClient.refetchQueries({ queryKey: ["mentor-allocations"] }),
+        queryClient.refetchQueries({ queryKey: ["onboarding-applications"] }),
+        queryClient.refetchQueries({ queryKey: ["onboarding-allocations"] }),
+        queryClient.refetchQueries({ queryKey: ["projects"] }),
+      ]);
 
       // Show summary toast
       if (result.failed === 0) {

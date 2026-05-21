@@ -280,6 +280,13 @@ export async function POST(req: NextRequest) {
       user.id,
     );
 
+    if (!allocationResult.success) {
+      return NextResponse.json(
+        { message: "Failed to assign mentee to project" },
+        { status: 409 },
+      );
+    }
+
     // 8. Sync the user's batchNo to match the project's batchNo and activate
     await prisma.user.update({
       where: { id: user.id },
@@ -297,15 +304,13 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       {
-        message: allocationResult.success
-          ? "Mentee assigned to project successfully"
-          : "Mentee was already assigned to this project",
+        message: "Mentee assigned to project successfully",
         invitationSent,
         user,
         application: updatedApplication,
         allocation: allocationResult.data ?? null,
       },
-      { status: allocationResult.success ? 201 : 200 },
+      { status: 201 },
     );
   } catch (error) {
     console.error("Error assigning mentee to project:", error);

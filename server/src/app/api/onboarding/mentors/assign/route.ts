@@ -162,6 +162,13 @@ export async function POST(req: NextRequest) {
 
     const result = await projectRepo.assignMentorToProject(projectId, mentorId);
 
+    if (!result.success) {
+      return NextResponse.json(
+        { message: result.message || "Failed to assign mentor to project" },
+        { status: 409 },
+      );
+    }
+
     // Sync the mentor's batchNo to match the project's batchNo and activate
     const project = await prisma.project.findUnique({
       where: { id: projectId },
@@ -183,7 +190,7 @@ export async function POST(req: NextRequest) {
         invitationSent,
         data: result.data ?? null,
       },
-      { status: result.success ? 201 : 200 },
+      { status: 201 },
     );
   } catch (error) {
     console.error("Error assigning mentor to project:", error);
