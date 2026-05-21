@@ -9,6 +9,7 @@ import {
   useRecentInvitations,
 } from "@/_hooks/admin/useInvitation";
 import { useGetProjects } from "@/_hooks/projects";
+import { BulkUploadTableProvider } from "@/_stores/bulkUploadTableStore";
 import { Plus, Search } from "lucide-react";
 import { z } from "zod";
 
@@ -16,7 +17,6 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminPageLayout } from "@/components/admin";
 import { BulkUploadTabs } from "@/components/admin/Invitations/BulkUploadTabs";
-import { BulkUploadTableProvider } from "@/_stores/bulkUploadTableStore";
 import PageHeader from "@/components/admin/PageHeader";
 import ChangeStatusDialog from "@/components/Invitations/dialogs/ChangeStatusDialog";
 import CreateInvitationDialog from "@/components/Invitations/dialogs/CreateInvitationDialog";
@@ -154,6 +154,10 @@ export default function InvitationsView() {
       ? invList
       : invList.filter(
           (inv) =>
+            `${inv.firstName ?? ""} ${inv.lastName ?? ""}`
+              .trim()
+              .toLowerCase()
+              .includes(query) ||
             inv.email.toLowerCase().includes(query) ||
             inv.role.toLowerCase().includes(query) ||
             inv.project.toLowerCase().includes(query),
