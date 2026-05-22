@@ -6,11 +6,9 @@ import { TECH_STACK_OPTIONS } from "@/app/student/_constants_tech_stacks";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Code2, X } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { toast } from "sonner";
+import { z } from "zod";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,6 +19,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -200,7 +200,10 @@ const activitySchema = z.object({
     .min(1, "Working hours must be at least 1")
     .max(12, "Working hours cannot exceed 12"),
   techStack: z.array(z.string()).default([]),
-  notes: z.string().max(300, "Notes cannot exceed 300 characters"),
+  notes: z
+    .string()
+    .min(1, "Notes are required — please describe your activity.")
+    .max(300, "Notes cannot exceed 300 characters"),
 });
 
 type ActivityFormValues = z.infer<typeof activitySchema>;
@@ -352,11 +355,14 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes</FormLabel>
+                  <FormLabel className="flex items-center gap-1">
+                    Notes
+                    <span className="text-red-500 font-bold">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Textarea
                       {...field}
-                      placeholder="Enter notes"
+                      placeholder="Describe what you worked on (required)"
                       disabled={!isEditable}
                       maxLength={300}
                     />
@@ -394,18 +400,22 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
           )}
         </div>
 
-        <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialog
+          open={deleteConfirmOpen}
+          onOpenChange={setDeleteConfirmOpen}
+        >
           <AlertDialogContent size="default">
             <AlertDialogHeader>
               <AlertDialogTitle>Delete submitted task?</AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. The selected task will be removed permanently.
+                This action cannot be undone. The selected task will be removed
+                permanently.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
-                  variant="destructive"
+                variant="destructive"
                 onClick={() => {
                   setDeleteConfirmOpen(false);
                   onDelete?.();

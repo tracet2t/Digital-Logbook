@@ -4,7 +4,7 @@ import { Calendar } from "rsuite";
 
 import "rsuite/dist/rsuite.min.css";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useSession } from "@/_hooks/core/useSession";
 import { useCalendarEvents } from "@/_hooks/useCalendarEvents";
@@ -23,6 +23,8 @@ import {
   type MenteeTaskRow,
 } from "@/app/mentor/calendar/AllMenteesCalendarView";
 
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import DateTaskTable from "@/components/DateTaskTable";
 import MentorStudentTaskDetailDialog from "@/components/mentorStudentTaskDetailDialog";
 import MentorTaskDetailDialog from "@/components/mentorTaskDetailDialog";
 import StudentTaskDetailDialog from "@/components/studentTaskDetailDialog";
@@ -54,6 +56,8 @@ export default function RsuiteCalendar({
   const [mounted, setMounted] = useState(false);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [isEditable, setIsEditable] = useState(true);
+  const [expandedDateKey, setExpandedDateKey] = useState<string | null>(null);
+  const taskTableRef = useRef<HTMLDivElement>(null);
   const [toast, setToast] = useState<{
     title: string;
     description: string;
@@ -123,6 +127,18 @@ export default function RsuiteCalendar({
       },
     );
 
+  // Auto-scroll to task table when expanded
+  useEffect(() => {
+    if (expandedDateKey && taskTableRef.current) {
+      setTimeout(() => {
+        taskTableRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 100);
+    }
+  }, [expandedDateKey]);
+
   // Initialize mounted state and selected date on first render
   useEffect(() => {
     setMounted(true);
@@ -157,12 +173,25 @@ export default function RsuiteCalendar({
   };
 
   //to open model when date is clicked — always opens a new task dialog
+  const handleShowAllTasks = (dateKey: string) => {
+    // Toggle: clicking the same date again closes the table
+    setExpandedDateKey((prev) => (prev === dateKey ? null : dateKey));
+  };
+
   const handleDateClick = (date: Date) => {
     const formattedDate = moment(date).format("YYYY-MM-DD");
 
     if (selectedUser === "all-mentees") {
       setAllMenteesTableDate(formattedDate);
       setAllMenteesTableMenteeId(null);
+      return;
+    }
+
+    const dateEvents = eventsByDate[formattedDate] || [];
+
+    // If more than 3 tasks, show the task list table instead
+    if (dateEvents.length > 3) {
+      handleShowAllTasks(formattedDate);
       return;
     }
 
@@ -217,6 +246,35 @@ export default function RsuiteCalendar({
     setTaskModalOpen(false);
   };
 
+  // Load event from DateTaskTable row click
+  const handleEventClickFromTable = async (event: CalendarEvent) => {
+    if (selectedUser === "all-mentees") return;
+    const formattedDate = moment(event.start).format("YYYY-MM-DD");
+
+    const today = moment().startOf("day");
+    const dayBeforeYesterday = moment().subtract(2, "days").startOf("day");
+    const eventDate = moment(event.start);
+
+    if (
+      eventDate.isSame(today, "day") ||
+      eventDate.isBetween(dayBeforeYesterday, today, "day", "[]")
+    ) {
+      setIsEditable(true);
+    } else {
+      setIsEditable(false);
+    }
+
+    await loadEventDirectly(event, formattedDate);
+    setTaskModalOpen(true);
+  };
+
+  const handleAddTaskFromTable = () => {
+    if (expandedDateKey) {
+      resetFormData(expandedDateKey);
+    }
+    setTaskModalOpen(true);
+  };
+
   // Table rows for all-mentees table
   const tableRows = useMemo<MenteeTaskRow[]>(() => {
     if (!allMenteesTableDate || selectedUser !== "all-mentees") return [];
@@ -267,9 +325,29 @@ export default function RsuiteCalendar({
       );
     }
 
+    // When more than 3 tasks, show a "+N" avatar button
+    if (dateEvents.length > 3) {
+      return (
+        <div className="flex h-full w-full items-center justify-center pt-1">
+          <Avatar
+            className="h-8 w-8 cursor-pointer transition-transform hover:scale-105"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleShowAllTasks(dateKey);
+            }}
+          >
+            <AvatarFallback className="bg-[#000053] text-white text-xs font-bold">
+              +{dateEvents.length}
+            </AvatarFallback>
+          </Avatar>
+        </div>
+      );
+    }
+
+    // Show individual pills (0-3 tasks) — current behavior
     return (
       <div className="w-full flex flex-col gap-1 pt-1">
-        {dateEvents.slice(0, 3).map((event) => {
+        {dateEvents.map((event) => {
           const styling = eventPropGetter(event, selectedUser || "");
           return (
             <div
@@ -351,6 +429,22 @@ export default function RsuiteCalendar({
             }}
           />
         )}
+
+        {/* Date task table — shown when a date with > 3 tasks is selected (non all-mentees mode) */}
+        {expandedDateKey &&
+          selectedUser !== "all-mentees" &&
+          eventsByDate[expandedDateKey]?.length > 3 && (
+            <div ref={taskTableRef} className="mt-4">
+              <DateTaskTable
+                dateKey={expandedDateKey}
+                events={eventsByDate[expandedDateKey]}
+                onRowClick={handleEventClickFromTable}
+                onAddTask={handleAddTaskFromTable}
+                onClose={() => setExpandedDateKey(null)}
+                showAddTask={false}
+              />
+            </div>
+          )}
 
         {/* Task Detail Dialogs - only mount after event data is loaded */}
         {taskModalOpen &&
