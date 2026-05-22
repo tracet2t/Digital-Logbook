@@ -42,9 +42,6 @@ export function useGenerateMenteePDF() {
       doc.setFillColor(0, 0, 83);
       doc.rect(0, 0, 595, 110, "F");
 
-      doc.setFillColor(10, 10, 120);
-      doc.rect(0, 70, 595, 40, "F");
-
       doc.setTextColor(255, 255, 255);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(18);
