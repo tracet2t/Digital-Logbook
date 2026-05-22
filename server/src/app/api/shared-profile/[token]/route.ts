@@ -140,10 +140,11 @@ export async function GET(
     let rejectedActivities = 0;
 
     for (const a of profileData.activities) {
-      const raw = (a.feedback[0]?.status ?? a.status ?? "").toLowerCase();
-      if (raw === "approved" || raw === "accepted") {
+      const fb = a.feedback[0]?.status?.toLowerCase();
+
+      if (fb === "approved" || fb === "accepted" || a.status === "accepted") {
         approvedActivities++;
-      } else if (raw === "rejected") {
+      } else if (fb === "rejected" || a.status === "rejected") {
         rejectedActivities++;
       } else {
         pendingActivities++;
