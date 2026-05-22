@@ -5,6 +5,7 @@ import { useState } from "react";
 interface ActivityRow {
   studentName: string;
   date: string;
+  submittedDate: string;
   timeSpent: number;
   activity: string;
   feedbackStatus: string;
@@ -69,21 +70,23 @@ export function useGenerateMenteePDF() {
       // ================= TABLE HEADER =================
       const colX = {
         date: margin,
-        hrs: margin + 80,
-        activity: margin + 130,
-        status: margin + 330,
-        feedback: margin + 410,
+        hrs: margin + 70,
+        submitted: margin + 110,
+        activity: margin + 200,
+        status: margin + 370,
+        feedback: margin + 440,
       };
 
       doc.setFillColor(240, 240, 240);
       doc.rect(margin, y - 10, 515, 20, "F");
 
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(8);
+      doc.setFontSize(7);
       doc.setTextColor(60, 60, 60);
 
-      doc.text("DATE", colX.date, y);
+      doc.text("TASK DATE", colX.date, y);
       doc.text("HRS", colX.hrs, y);
+      doc.text("SUBMITTED DATE", colX.submitted, y);
       doc.text("ACTIVITY NOTES", colX.activity, y);
       doc.text("STATUS", colX.status, y);
       doc.text("FEEDBACK", colX.feedback, y);
@@ -117,8 +120,18 @@ export function useGenerateMenteePDF() {
 
         doc.setTextColor(20, 20, 20);
 
+        const formattedSubmitted = new Date(
+          row.submittedDate,
+        ).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        });
+
         doc.text(row.date, colX.date, y);
         doc.text(String(row.timeSpent), colX.hrs, y);
+        doc.text(formattedSubmitted, colX.submitted, y);
         doc.text(activity, colX.activity, y);
 
         // ✅ STATUS AS TEXT ONLY
@@ -155,12 +168,11 @@ export function useGenerateMenteePDF() {
       const safeName = studentName.replace(/\s+/g, "_");
 
       doc.save(
-        `${safeName}_activity_report_${new Date().toISOString().slice(0, 10)}.pdf`
+        `${safeName}_activity_report_${new Date().toISOString().slice(0, 10)}.pdf`,
       );
-
     } catch (err) {
       console.error(err);
-      alert("PDF generation failed");
+      throw err; // re-throw so the caller (handleReport) knows it failed
     } finally {
       setIsExporting(false);
     }

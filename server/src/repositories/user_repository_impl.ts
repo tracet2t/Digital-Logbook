@@ -32,6 +32,7 @@ export class UserRepository extends BaseRepository<User> {
             date: true,
             timeSpent: true,
             notes: true,
+            createdAt: true,
             feedback: {
               select: {
                 status: true,
