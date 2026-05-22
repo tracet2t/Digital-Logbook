@@ -98,26 +98,27 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
     updateFormData,
     resetFormData,
   );
-  const { handleSubmit, handleDelete, isDeleting } = useSubmission(
-    role,
-    studentId,
-    selectedUser ?? "",
-    formData.date,
-    editingEvent,
-    feedbackActivityId,
-    () => {
-      setTaskModalOpen(false);
-      setSelectedDate(undefined);
-      resetFormData("");
-      setTimeout(() => {
-        refetchEvents();
-      }, 500);
-    },
-    (title, description) => {
-      setToast({ title, description });
-      setTimeout(() => setToast(null), 3000);
-    },
-  );
+  const { handleSubmit, handleDelete, isSubmitting, isDeleting } =
+    useSubmission(
+      role,
+      studentId,
+      selectedUser ?? "",
+      formData.date,
+      editingEvent,
+      feedbackActivityId,
+      () => {
+        setTaskModalOpen(false);
+        setSelectedDate(undefined);
+        resetFormData("");
+        setTimeout(() => {
+          refetchEvents();
+        }, 500);
+      },
+      (title, description) => {
+        setToast({ title, description });
+        setTimeout(() => setToast(null), 3000);
+      },
+    );
 
   // Auto-scroll to task table when expanded
   useEffect(() => {
@@ -177,13 +178,6 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
 
   const handleDateClick = (date: Date) => {
     const formattedDate = moment(date).format("YYYY-MM-DD");
-    const dateEvents = eventsByDate[formattedDate] || [];
-
-    // If more than 3 tasks, show the task list table instead
-    if (dateEvents.length > 3) {
-      handleShowAllTasks(formattedDate);
-      return;
-    }
 
     const today = moment().startOf("day");
     const dayBeforeYesterday = moment().subtract(2, "days").startOf("day");
@@ -374,6 +368,7 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
             defaultTechStack={technologies}
             review={review}
             isEditable={isEditable}
+            isSubmitting={isSubmitting}
             onSubmit={(wh, n, techs) => {
               handleSubmit({ workingHours: wh, notes: n, technologies: techs });
             }}

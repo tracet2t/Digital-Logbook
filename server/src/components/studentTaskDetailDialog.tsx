@@ -223,6 +223,7 @@ interface StudentTaskDetailDialogProps {
   ) => void;
   onDelete?: () => void;
   canDelete?: boolean;
+  isSubmitting?: boolean;
   isDeleting?: boolean;
   onClose: () => void;
 }
@@ -238,6 +239,7 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
   onSubmit,
   onDelete,
   canDelete = false,
+  isSubmitting = false,
   isDeleting = false,
   onClose,
 }) => {
@@ -279,10 +281,6 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
       );
       return;
     }
-
-    toast.warning(
-      "This action cannot be undone. The selected task will be permanently deleted.",
-    );
 
     setDeleteConfirmOpen(true);
   };
@@ -387,7 +385,11 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
           <DialogClose asChild>
             <Button variant="outline">Cancel</Button>
           </DialogClose>
-          {isEditable && <Button onClick={handleFormSubmit}>Save</Button>}
+          {isEditable && (
+            <Button onClick={handleFormSubmit} disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : "Save"}
+            </Button>
+          )}
           {isEditable && canDelete && (
             <Button
               type="button"

@@ -187,14 +187,6 @@ export default function RsuiteCalendar({
       return;
     }
 
-    const dateEvents = eventsByDate[formattedDate] || [];
-
-    // If more than 3 tasks, show the task list table instead
-    if (dateEvents.length > 3) {
-      handleShowAllTasks(formattedDate);
-      return;
-    }
-
     const today = moment().startOf("day");
     const dayBeforeYesterday = moment().subtract(2, "days").startOf("day");
 
@@ -488,6 +480,7 @@ export default function RsuiteCalendar({
             defaultTechStack={technologies}
             review={review}
             isEditable={isEditable}
+            isSubmitting={isSubmitting}
             onSubmit={(wh, n) => {
               if (!isSubmitting) handleSubmit({ workingHours: wh, notes: n });
             }}
