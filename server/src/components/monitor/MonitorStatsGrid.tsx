@@ -3,7 +3,7 @@ import {
   formatDelta,
   formatDeltaVs,
   formatMtdDelta,
-} from "@/app/admin/monitor/_utils/monitorFormatters";
+} from "@/utils/monitorFormatters";
 
 import MonitorStatCard from "@/components/admin/monitor/MonitorStatCard";
 

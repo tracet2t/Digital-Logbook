@@ -8,10 +8,7 @@ import {
 } from "@/_hooks/admin/useAdminMonitor";
 import { useAdminMonitorMentees } from "@/_hooks/admin/useAdminMonitorMentees";
 import { useAdminMonitorUsers } from "@/_hooks/admin/useAdminMonitorUsers";
-import {
-  matchesQuery,
-  normalizeQuery,
-} from "@/app/admin/monitor/_utils/monitorFormatters";
+import { matchesQuery, normalizeQuery } from "@/utils/monitorFormatters";
 
 export const useMonitorPage = () => {
   const [userFilter, setUserFilter] = useState("all");

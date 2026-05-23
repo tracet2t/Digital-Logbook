@@ -1,14 +1,14 @@
 "use client";
 
-import MonitorFiltersCard from "@/app/admin/monitor/_components/MonitorFiltersCard";
-import MonitorLists from "@/app/admin/monitor/_components/MonitorLists";
-import MonitorStatsGrid from "@/app/admin/monitor/_components/MonitorStatsGrid";
-import { useMonitorPage } from "@/app/admin/monitor/_hooks/useMonitorPage";
+import { useMonitorPage } from "@/_hooks/monitor/useMonitorPage";
 
 import { AdminPageLayout, PageHeader } from "@/components/admin";
 import MonitorMenteeDialog from "@/components/admin/monitor/MonitorMenteeDialog";
 import MonitorMentorDialog from "@/components/admin/monitor/MonitorMentorDialog";
 import MonitorUserDialog from "@/components/admin/monitor/MonitorUserDialog";
+import MonitorFiltersCard from "@/components/monitor/MonitorFiltersCard";
+import MonitorLists from "@/components/monitor/MonitorLists";
+import MonitorStatsGrid from "@/components/monitor/MonitorStatsGrid";
 
 export default function MonitorPage() {
   const {
