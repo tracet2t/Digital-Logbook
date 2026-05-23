@@ -1,13 +1,26 @@
+"use client";
+
 /**
  * TaskTimeline.tsx
- * Vertical timeline of the student's 5 most recent tasks,
+ * Vertical timeline of the student's recent tasks,
  * each with a status dot, title, timestamp, tech tags, and approval badge.
  */
+import { useEffect, useState } from "react";
+
 import { type Task } from "@/app/student/profile/_constants";
 import dayjs from "dayjs";
 import isToday from "dayjs/plugin/isToday";
 
 import { cn } from "@/lib/utils";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 dayjs.extend(isToday);
 
@@ -148,10 +161,35 @@ function TaskRow({ task, isLast }: TaskRowProps) {
 
 type Props = {
   tasks: Task[];
+  pageSize?: number;
+  showPagination?: boolean;
+  onTaskSelect?: (task: Task) => void;
 };
 
-/** Renders the 5 most recent tasks as a vertical timeline */
-export function TaskTimeline({ tasks }: Props) {
+const buildPageItems = (totalPages: number, currentPage: number) => {
+  if (totalPages <= 5) {
+    return Array.from({ length: totalPages }, (_, idx) => idx + 1);
+  }
+
+  const items: Array<number | "ellipsis"> = [1];
+  const start = Math.max(2, currentPage - 1);
+  const end = Math.min(totalPages - 1, currentPage + 1);
+
+  if (start > 2) items.push("ellipsis");
+  for (let page = start; page <= end; page += 1) items.push(page);
+  if (end < totalPages - 1) items.push("ellipsis");
+
+  items.push(totalPages);
+  return items;
+};
+
+/** Renders recent tasks as a vertical timeline */
+export function TaskTimeline({
+  tasks,
+  pageSize = 5,
+  showPagination = false,
+  onTaskSelect,
+}: Props) {
   if (tasks.length === 0) {
     return (
       <p className="font-inter text-[11px] text-[#94A3B8]">
@@ -160,13 +198,80 @@ export function TaskTimeline({ tasks }: Props) {
     );
   }
 
-  const recent = tasks.slice(0, 5);
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(tasks.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const startIndex = (safePage - 1) * pageSize;
+  const pageTasks = tasks.slice(startIndex, startIndex + pageSize);
+
+  useEffect(() => {
+    setPage(1);
+  }, [pageSize, tasks]);
+
+  useEffect(() => {
+    if (page !== safePage) {
+      setPage(safePage);
+    }
+  }, [page, safePage]);
 
   return (
-    <div className="flex flex-col">
-      {recent.map((task, idx) => (
-        <TaskRow key={task.id} task={task} isLast={idx === recent.length - 1} />
-      ))}
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col">
+        {pageTasks.map((task, idx) => {
+          const row = (
+            <TaskRow task={task} isLast={idx === pageTasks.length - 1} />
+          );
+
+          if (!onTaskSelect) {
+            return <div key={task.id}>{row}</div>;
+          }
+
+          return (
+            <button
+              key={task.id}
+              type="button"
+              onClick={() => onTaskSelect(task)}
+              className="rounded-lg text-left transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#000053]/40"
+            >
+              {row}
+            </button>
+          );
+        })}
+      </div>
+      {showPagination && totalPages > 1 && (
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                disabled={safePage === 1}
+              />
+            </PaginationItem>
+            {buildPageItems(totalPages, safePage).map((item, idx) => (
+              <PaginationItem key={`${item}-${idx}`}>
+                {item === "ellipsis" ? (
+                  <PaginationEllipsis />
+                ) : (
+                  <PaginationLink
+                    isActive={item === safePage}
+                    onClick={() => setPage(item)}
+                  >
+                    {item}
+                  </PaginationLink>
+                )}
+              </PaginationItem>
+            ))}
+            <PaginationItem>
+              <PaginationNext
+                onClick={() =>
+                  setPage((prev) => Math.min(totalPages, prev + 1))
+                }
+                disabled={safePage === totalPages}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
     </div>
   );
 }

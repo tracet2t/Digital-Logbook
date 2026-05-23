@@ -14,6 +14,7 @@ import { LogoConfig, MenuItem } from "@/components/AsideSidebar";
 export const ADMIN_MENU_ITEMS: MenuItem[] = [
   { label: "Dashboard", icon: <LayoutDashboard size={18} />, href: "/admin" },
   { label: "Users", icon: <Users size={18} />, href: "/admin/users" },
+  {label:"Monitor", icon: <Monitor size={18}/> ,href: "/admin/monitor "},
   {
     label: "Onboarding",
     icon: <UserCheck size={18} />,
