@@ -24,6 +24,10 @@ const LoginPage = () => {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>(
+    {},
+  );
+  const [shake, setShake] = useState(false);
   const [toastData, setToastData] = useState({
     open: false,
     title: "",
@@ -33,9 +37,28 @@ const LoginPage = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
+    setErrors({});
     const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
 
+    // Client-side validation
+    const newErrors: { email?: string; password?: string } = {};
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "Please enter a valid email";
+    }
+    if (!password || password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setShake(true);
+      setTimeout(() => setShake(false), 600);
+      return;
+    }
+
+    setLoading(true);
     setToastData((prev) => ({
       ...prev,
       open: false,
@@ -70,6 +93,12 @@ const LoginPage = () => {
             data.error || "Please verify your credentials and try again.",
           variant: "destructive",
         });
+        setErrors({
+          email: "Invalid credentials",
+          password: "Invalid credentials",
+        });
+        setShake(true);
+        setTimeout(() => setShake(false), 600);
         setLoading(false);
       }
     } catch (error) {
@@ -85,9 +114,19 @@ const LoginPage = () => {
 
   return (
     <ToastProvider>
+      <style>{`
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+          20%, 40%, 60%, 80% { transform: translateX(8px); }
+        }
+        .shake-animation {
+          animation: shake 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+        }
+      `}</style>
       <div className="min-h-screen flex bg-white dark:bg-zinc-950 font-sans antialiased">
         {/* Visual Brand Panel (Desktop) */}
-        <div className="hidden lg:flex relative w-7/12 flex-col justify-between p-16 bg-zinc-900 border-r border-zinc-800 overflow-hidden">
+        <div className="hidden lg:flex relative w-7/12 flex-col justify-between p-16 bg-zinc-900 overflow-hidden">
           <Image
             src="/login.png"
             alt="Product Visual"
@@ -130,115 +169,191 @@ const LoginPage = () => {
         </div>
 
         {/* Auth Interface */}
-        <div className="flex-1 flex flex-col items-center justify-center p-8 md:p-16">
-          <div className="w-full max-w-[420px] space-y-12">
-            <div className="lg:hidden flex flex-col items-center mb-4">
-              <Image
-                src="/logo.png"
-                width={180}
-                height={45}
-                alt="Logo"
-                className="h-auto w-full max-w-[180px]"
-              />
-            </div>
-
-            <div className="space-y-3 text-center lg:text-left">
-              <h2 className="text-5xl font-black text-zinc-900 dark:text-white tracking-tighter hover:text-blue-600 transition-colors cursor-default">
-                SIGN IN
-              </h2>
-              <p className="text-zinc-500 dark:text-zinc-400 font-medium text-lg leading-relaxed">
-                Connect your account to the central logbook network.
-              </p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-8">
-              <div className="space-y-5">
-                <div className="space-y-2.5">
-                  <Label
-                    htmlFor="email"
-                    className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1"
-                  >
-                    Email
-                  </Label>
-                  <div className="relative group">
-                    <Mail className="absolute left-4 top-4 h-4 w-4 text-zinc-400 group-focus-within:text-blue-500 transition-colors" />
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      placeholder="user@example.com"
-                      required
-                      disabled={loading}
-                      className="h-14 pl-12 bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 focus:ring-4 focus:ring-blue-500/10 transition-all text-base font-semibold rounded-xl"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between ml-1">
-                    <Label
-                      htmlFor="password"
-                      className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400"
-                    >
-                      Password
-                    </Label>
-                    <button
-                      type="button"
-                      className="text-xs font-black text-blue-600 hover:text-blue-500 tracking-tighter transition-colors"
-                    >
-                      FORGOT PASSWORD?
-                    </button>
-                  </div>
-                  <div className="relative group">
-                    <Lock className="absolute left-4 top-4 h-4 w-4 text-zinc-400 group-focus-within:text-blue-500 transition-colors" />
-                    <Input
-                      id="password"
-                      name="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="••••••••••••"
-                      required
-                      disabled={loading}
-                      className="h-14 pl-12 pr-12 bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 focus:ring-4 focus:ring-blue-500/10 transition-all text-base font-semibold rounded-xl"
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-2 top-2 h-10 w-10 hover:bg-transparent text-zinc-400 hover:text-zinc-900 transition-colors"
-                      onClick={() => setShowPassword(!showPassword)}
-                      disabled={loading}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-5 w-5" />
-                      ) : (
-                        <Eye className="h-5 w-5" />
-                      )}
-                    </Button>
-                  </div>
-                </div>
+        <div
+          className="flex-1 flex flex-col items-center justify-center p-5 md:p-5 "
+          style={{
+            backgroundImage:
+              "linear-gradient(135deg, #0e131b 0%, #0b0c10 33%, #0c0c11 66%, #0a0b10 100%)",
+          }}
+        >
+          <div
+            className={`flex-1 flex flex-col items-center justify-center p-16 md:p-24 w-full rounded-3xl backdrop-blur-md border shadow-2xl transition-all duration-300 ${shake ? "shake-animation" : ""}`}
+            style={{
+              backgroundColor:
+                Object.keys(errors).length > 0
+                  ? "rgba(248, 113, 113, 0.1)"
+                  : "rgba(255, 255, 255, 0.1)",
+              borderColor:
+                Object.keys(errors).length > 0
+                  ? "rgba(248, 113, 113, 0.3)"
+                  : "rgba(255, 255, 255, 0.2)",
+            }}
+          >
+            <div className="w-full max-w-[420px] space-y-12">
+              <div className="lg:hidden flex flex-col items-center mb-4">
+                <Image
+                  src="/logo.png"
+                  width={180}
+                  height={45}
+                  alt="Logo"
+                  className="h-auto w-full max-w-[180px]"
+                />
               </div>
 
-              <Button
-                type="submit"
-                className="w-full h-14 bg-[#000053] dark:bg-white text-zinc-50 dark:text-zinc-950 hover:bg-[#1a1a7a] dark:hover:bg-zinc-200 font-black text-lg shadow-2xl transition-all active:scale-[0.98] rounded-xl tracking-widest"
-                disabled={loading}
-              >
-                {loading ? (
-                  <div className="flex items-center gap-3">
-                    <Loader2 className="h-5 w-5 animate-spin font-black" />
-                    <span>AUTHORIZING...</span>
-                  </div>
-                ) : (
-                  "SIGN IN"
-                )}
-              </Button>
-            </form>
+              <div className="space-y-3 text-center lg:text-left">
+                <h2 className="text-5xl font-black text-white tracking-tighter hover:text-blue-300 transition-colors cursor-default">
+                  SIGN IN
+                </h2>
+                <p className="text-white/70 font-medium text-lg leading-relaxed">
+                  Connect your account to the central logbook network.
+                </p>
+              </div>
 
-            <div className="pt-8 text-center text-sm font-medium text-zinc-500">
-              New system user?{" "}
-              <button className="text-zinc-900 dark:text-white font-black hover:underline underline-offset-4 tracking-tight">
-                Contact Network Admin
-              </button>
+              <form onSubmit={handleSubmit} className="space-y-8">
+                <div className="space-y-5">
+                  <div className="space-y-2.5">
+                    <Label
+                      htmlFor="email"
+                      className="text-[10px] font-black uppercase tracking-[0.2em] ml-1 transition-colors"
+                      style={{
+                        color: errors.email
+                          ? "#f87171"
+                          : "rgba(255, 255, 255, 0.7)",
+                      }}
+                    >
+                      Email
+                    </Label>
+                    <div className="relative group">
+                      <Mail
+                        className="absolute left-4 top-4 h-4 w-4 transition-colors"
+                        style={{
+                          color: errors.email
+                            ? "#f87171"
+                            : "rgba(255, 255, 255, 0.5)",
+                        }}
+                      />
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        placeholder="user@example.com"
+                        required
+                        disabled={loading}
+                        className="h-14 pl-12 bg-white/10 backdrop-blur-sm border text-white placeholder:text-white/40 focus:ring-4 transition-all text-base font-semibold rounded-xl"
+                        style={{
+                          borderColor: errors.email
+                            ? "rgba(248, 113, 113, 0.5)"
+                            : "rgba(255, 255, 255, 0.2)",
+                          boxShadow: errors.email
+                            ? "0 0 0 4px rgba(248, 113, 113, 0.1)"
+                            : undefined,
+                        }}
+                      />
+                    </div>
+                    {errors.email && (
+                      <p
+                        className="text-xs font-bold ml-1 mt-1"
+                        style={{ color: "#f87171" }}
+                      >
+                        {errors.email}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2.5">
+                    <div className="flex items-center justify-between ml-1">
+                      <Label
+                        htmlFor="password"
+                        className="text-[10px] font-black uppercase tracking-[0.2em] transition-colors"
+                        style={{
+                          color: errors.password
+                            ? "#f87171"
+                            : "rgba(255, 255, 255, 0.7)",
+                        }}
+                      >
+                        Password
+                      </Label>
+                      <button
+                        type="button"
+                        className="text-xs font-black text-blue-300 hover:text-blue-200 tracking-tighter transition-colors"
+                      >
+                        FORGOT PASSWORD?
+                      </button>
+                    </div>
+                    <div className="relative group">
+                      <Lock
+                        className="absolute left-4 top-4 h-4 w-4 transition-colors"
+                        style={{
+                          color: errors.password
+                            ? "#f87171"
+                            : "rgba(255, 255, 255, 0.5)",
+                        }}
+                      />
+                      <Input
+                        id="password"
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••••••••"
+                        required
+                        disabled={loading}
+                        className="h-14 pl-12 pr-12 bg-white/10 backdrop-blur-sm border text-white placeholder:text-white/40 focus:ring-4 transition-all text-base font-semibold rounded-xl"
+                        style={{
+                          borderColor: errors.password
+                            ? "rgba(248, 113, 113, 0.5)"
+                            : "rgba(255, 255, 255, 0.2)",
+                          boxShadow: errors.password
+                            ? "0 0 0 4px rgba(248, 113, 113, 0.1)"
+                            : undefined,
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-2 top-2 h-10 w-10 hover:bg-transparent text-white/50 hover:text-white transition-colors"
+                        onClick={() => setShowPassword(!showPassword)}
+                        disabled={loading}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-5 w-5" />
+                        ) : (
+                          <Eye className="h-5 w-5" />
+                        )}
+                      </Button>
+                    </div>
+                    {errors.password && (
+                      <p
+                        className="text-xs font-bold ml-1 mt-1"
+                        style={{ color: "#f87171" }}
+                      >
+                        {errors.password}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full h-14 bg-[#000053] dark:bg-white text-zinc-50 dark:text-zinc-950 hover:bg-[#1a1a7a] dark:hover:bg-zinc-200 font-black text-lg shadow-2xl transition-all active:scale-[0.98] rounded-xl tracking-widest"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <div className="flex items-center gap-3">
+                      <Loader2 className="h-5 w-5 animate-spin font-black" />
+                      <span>AUTHORIZING...</span>
+                    </div>
+                  ) : (
+                    "SIGN IN"
+                  )}
+                </Button>
+              </form>
+
+              <div className="pt-8 text-center text-sm font-medium text-white/60">
+                New system user?{" "}
+                <button className="text-white font-black hover:underline underline-offset-4 tracking-tight">
+                  Contact Network Admin
+                </button>
+              </div>
             </div>
           </div>
         </div>
