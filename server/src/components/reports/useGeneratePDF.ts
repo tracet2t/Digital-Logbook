@@ -24,18 +24,15 @@ export function useGeneratePDF(
       // Header banner
       doc.setFillColor(6, 78, 124);
       doc.rect(0, 0, 595, 110, "F");
-      doc.setFillColor(12, 112, 162);
-      doc.rect(0, 70, 595, 40, "F");
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(20);
       doc.setFont("helvetica", "bold");
-      doc.text("LOGBOOK MENTORSHIP OS", margin, 36);
+      doc.text("LOGBOOK MENTORSHIP", margin, 36);
       doc.setFontSize(14);
       doc.setFont("helvetica", "normal");
       doc.text("Project Reports", margin, 58);
       doc.setFontSize(9);
       doc.text(`Generated at: ${new Date().toLocaleString()}`, margin, 74);
-      doc.text("Project Name · Mentor · Mentees Count · Date", margin, 88);
       doc.setTextColor(0, 0, 0);
 
       y = 128;
@@ -46,7 +43,6 @@ export function useGeneratePDF(
       // Summary row
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
-      doc.text(`Total rows exported: ${filteredReports.length}`, margin, y);
       if (dateFrom || dateTo) {
         const range = [
           dateFrom && `From: ${dateFrom}`,
@@ -102,7 +98,12 @@ export function useGeneratePDF(
         doc.text(projectText, colX.project + 3, y);
         doc.text(mentorText, colX.mentor, y);
         doc.text(String(row.studentsCount), colX.students + 20, y);
-        doc.text(row.date, colX.date, y);
+        const displayDate = new Date(row.rawDate).toLocaleDateString("en-US", {
+          month: "short",
+          day: "2-digit",
+          year: "numeric",
+        });
+        doc.text(displayDate, colX.date, y);
         y += 14;
         rowIndex++;
       }

@@ -136,6 +136,10 @@ export default function InvitationsMainContent({
       ? invList
       : invList.filter(
           (inv) =>
+            `${inv.firstName ?? ""} ${inv.lastName ?? ""}`
+              .trim()
+              .toLowerCase()
+              .includes(query) ||
             inv.email.toLowerCase().includes(query) ||
             inv.role.toLowerCase().includes(query) ||
             inv.project.toLowerCase().includes(query),

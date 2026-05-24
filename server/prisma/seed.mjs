@@ -1,10 +1,6 @@
 import { PrismaClient, WarningCategory } from "@prisma/client";
 import bcrypt from "bcrypt";
 
-
-
-
-
 const prisma = new PrismaClient();
 
 async function main() {
@@ -21,8 +17,9 @@ async function main() {
   await prisma.report.deleteMany();
   await prisma.mentorFeedback.deleteMany();
   await prisma.activity.deleteMany();
-  await prisma.user.deleteMany();
+  await prisma.article.deleteMany();
   await prisma.menteeApplication.deleteMany();
+  await prisma.user.deleteMany();
 
   const saltRounds = 10;
   const defaultPassword = "t2tuser";
