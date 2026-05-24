@@ -17,6 +17,7 @@ import { ProfileSkeleton } from "@/components/mentee/ProfileSkeleton";
 import { StatusIndicator } from "@/components/mentee/StatusIndicator";
 import { TaskTimeline } from "@/components/mentee/TaskTimeline";
 
+import { ShareProfileDialog } from "./_components/ShareProfileDialog";
 import { badgeIcon, getInitials, ICON_COLORS } from "./_constants";
 
 export default function MenteeProfilePage() {
@@ -90,15 +91,7 @@ export default function MenteeProfilePage() {
                     >
                       {profile.isActive ? "Active Mentee" : "Inactive"}
                     </Badge>
-                    <Button
-                      variant="outline"
-                      className="h-auto rounded-full border-[#000053] bg-white px-4 py-1 font-inter text-[10px] font-bold leading-[15px] tracking-[0.05em] text-[#000053] uppercase hover:bg-white"
-                      onClick={() =>
-                        navigator.clipboard.writeText(window.location.href)
-                      }
-                    >
-                      Share Profile
-                    </Button>
+                    <ShareProfileDialog />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
