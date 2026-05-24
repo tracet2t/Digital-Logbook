@@ -21,6 +21,7 @@ interface StudentEventData {
   timeSpent?: number;
   studentId?: string;
   technologies?: string[];
+  createdAt: string;
   feedback?: { status?: "pending" | "approved" | "rejected" }[];
 }
 
@@ -32,6 +33,7 @@ interface MentorEventData {
   workingHours?: number;
   studentId?: string;
   status?: "pending" | "approved" | "rejected";
+  createdAt: string;
 }
 
 // Converts raw data to CalendarEvent for students
@@ -48,7 +50,7 @@ export const convertToCalendarEvents = (
       start: startDate,
       end: endDate,
       status: item.feedback?.[0]?.status || "pending",
-      createdAt: new Date(),
+      createdAt: new Date(item.createdAt),
       studentId: item.studentId || "",
       timeSpent: item.timeSpent,
       notes: item.notes,
@@ -71,7 +73,7 @@ export const convertToCalendarEventsMentor = (
       start: startDate,
       end: endDate,
       status: item.status || "pending",
-      createdAt: new Date(),
+      createdAt: new Date(item.createdAt),
       studentId: item.studentId || "",
       timeSpent: item.workingHours,
       notes: item.activities,

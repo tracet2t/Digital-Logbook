@@ -71,17 +71,19 @@ const SidebarProvider = React.forwardRef<
     const isMobile = useIsMobile();
     const [openMobile, setOpenMobile] = React.useState(false);
 
-    // Read cookie on initialization to prevent flashes during navigation
-    const [_open, _setOpen] = React.useState(() => {
-      if (typeof window !== "undefined") {
-        const cookie = document.cookie
-          .split("; ")
-          .find((row) => row.startsWith(`${SIDEBAR_COOKIE_NAME}=`))
-          ?.split("=")[1];
-        if (cookie !== undefined) return cookie === "true";
+    // Always start with defaultOpen during SSR — read cookie only after hydration
+    const [_open, _setOpen] = React.useState(defaultOpen);
+
+    // Sync cookie value after mount so server & client HTML match during hydration
+    React.useEffect(() => {
+      const cookie = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith(`${SIDEBAR_COOKIE_NAME}=`))
+        ?.split("=")[1];
+      if (cookie !== undefined) {
+        _setOpen(cookie === "true");
       }
-      return defaultOpen;
-    });
+    }, []);
     const open = openProp ?? _open;
     const setOpen = React.useCallback(
       (value: boolean | ((value: boolean) => boolean)) => {

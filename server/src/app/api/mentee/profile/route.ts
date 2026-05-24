@@ -150,28 +150,44 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    // ─── FETCH ALL ACTIVITIES FOR ACCURATE STATISTICS ────
+ const allActivities = await prisma.activity.findMany({
+      where: { studentId: menteeId },
+      select: {
+        timeSpent: true,
+        status: true,
+        feedback: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: { status: true },
+        },
+      },
+    });
+
     // ─── CALCULATE STATISTICS ─────────────────────────────
-    // Uses same effective-status logic as TaskTimeline:
-    // feedback[0]?.status takes priority, falls back to activity.status,
-    // and normalises "approved" ↔ "accepted".
-    const totalActivities = profileData.activities.length;
+    // Uses effective-status logic consistent with the dashboard:
+    // - Approved: feedback status is "approved"/"accepted", or activity.status is "accepted"
+    // - Rejected: feedback status is "rejected", or activity.status is "rejected"
+    // - Pending:  remaining tasks where activity.status is "pending"
+    const totalActivities = allActivities.length;
 
     let approvedActivities = 0;
     let pendingActivities = 0;
     let rejectedActivities = 0;
 
-    for (const a of profileData.activities) {
-      const raw = (a.feedback[0]?.status ?? a.status ?? "").toLowerCase();
-      if (raw === "approved" || raw === "accepted") {
+    for (const a of allActivities) {
+      const fb = a.feedback[0]?.status?.toLowerCase();
+
+      if (fb === "approved" || fb === "accepted" || a.status === "accepted") {
         approvedActivities++;
-      } else if (raw === "rejected") {
+      } else if (fb === "rejected" || a.status === "rejected") {
         rejectedActivities++;
       } else {
         pendingActivities++;
       }
     }
 
-    const totalHours = profileData.activities.reduce(
+    const totalHours = allActivities.reduce(
       (sum, activity) => sum + (activity.timeSpent || 0),
       0,
     );
@@ -231,9 +247,7 @@ export async function GET(req: NextRequest) {
           totalActivities,
           approvedActivities,
           pendingActivities,
-          rejectedActivities: profileData.activities.filter(
-            (a) => a.feedback?.status === "rejected",
-          ).length,
+          rejectedActivities,
           totalHours: Math.round(totalHours * 100) / 100,
           profileCompletion: calculateProfileCompletion(profileData),
         },

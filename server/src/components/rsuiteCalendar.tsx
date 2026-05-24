@@ -4,7 +4,7 @@ import { Calendar } from "rsuite";
 
 import "rsuite/dist/rsuite.min.css";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useCalendarEvents } from "@/_hooks/useCalendarEvents";
 import { useEventForDate } from "@/_hooks/useEventForDate";
@@ -14,6 +14,7 @@ import { getSessionOnClient } from "@/server_actions/getSession";
 import moment from "moment";
 
 import { eventPropGetter } from "@/lib/calenderUtils";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Toast,
   ToastClose,
@@ -25,6 +26,7 @@ import {
 
 import "@/styles/rsuiteCalendar.css";
 
+import DateTaskTable from "./DateTaskTable";
 import MentorStudentTaskDetailDialog from "./mentorStudentTaskDetailDialog";
 import MentorTaskDetailDialog from "./mentorTaskDetailDialog";
 import StudentTaskDetailDialog from "./studentTaskDetailDialog";
@@ -65,6 +67,8 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
   const [role, setRole] = useState<string>("");
   const [studentId, setStudentId] = useState<string>("");
   const [isEditable, setIsEditable] = useState(true);
+  const [expandedDateKey, setExpandedDateKey] = useState<string | null>(null);
+  const taskTableRef = useRef<HTMLDivElement>(null);
   const [toast, setToast] = useState<{
     title: string;
     description: string;
@@ -94,26 +98,39 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
     updateFormData,
     resetFormData,
   );
-  const { handleSubmit, handleDelete, isDeleting } = useSubmission(
-    role,
-    studentId,
-    selectedUser ?? "",
-    formData.date,
-    editingEvent,
-    feedbackActivityId,
-    () => {
-      setTaskModalOpen(false);
-      setSelectedDate(undefined);
-      resetFormData("");
+  const { handleSubmit, handleDelete, isSubmitting, isDeleting } =
+    useSubmission(
+      role,
+      studentId,
+      selectedUser ?? "",
+      formData.date,
+      editingEvent,
+      feedbackActivityId,
+      () => {
+        setTaskModalOpen(false);
+        setSelectedDate(undefined);
+        resetFormData("");
+        setTimeout(() => {
+          refetchEvents();
+        }, 500);
+      },
+      (title, description) => {
+        setToast({ title, description });
+        setTimeout(() => setToast(null), 3000);
+      },
+    );
+
+  // Auto-scroll to task table when expanded
+  useEffect(() => {
+    if (expandedDateKey && taskTableRef.current) {
       setTimeout(() => {
-        refetchEvents();
-      }, 500);
-    },
-    (title, description) => {
-      setToast({ title, description });
-      setTimeout(() => setToast(null), 3000);
-    },
-  );
+        taskTableRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 100);
+    }
+  }, [expandedDateKey]);
 
   // Fetch session data
   useEffect(() => {
@@ -152,6 +169,11 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
 
   const handleSelect = (date: Date) => {
     handleDateClick(date);
+  };
+
+  const handleShowAllTasks = (dateKey: string) => {
+    // Toggle: clicking the same date again closes the table
+    setExpandedDateKey((prev) => (prev === dateKey ? null : dateKey));
   };
 
   const handleDateClick = (date: Date) => {
@@ -200,14 +222,62 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
     setTaskModalOpen(false);
   };
 
+  // Load event from DateTaskTable row click — same as handleEventClick but takes the event directly
+  const handleEventClickFromTable = async (event: CalendarEvent) => {
+    const formattedDate = moment(event.start).format("YYYY-MM-DD");
+
+    const today = moment().startOf("day");
+    const dayBeforeYesterday = moment().subtract(2, "days").startOf("day");
+    const eventDate = moment(event.start);
+
+    if (
+      eventDate.isSame(today, "day") ||
+      eventDate.isBetween(dayBeforeYesterday, today, "day", "[]")
+    ) {
+      setIsEditable(true);
+    } else {
+      setIsEditable(false);
+    }
+
+    await loadEventDirectly(event, formattedDate);
+    setTaskModalOpen(true);
+  };
+
+  const handleAddTaskFromTable = () => {
+    if (expandedDateKey) {
+      resetFormData(expandedDateKey);
+    }
+    setTaskModalOpen(true);
+  };
+
   // Custom cell renderer to show events with grid layout
   const renderCell = (date: Date) => {
     const dateKey = moment(date).format("YYYY-MM-DD");
     const dateEvents = eventsByDate[dateKey] || [];
 
+    // When more than 3 tasks, show a "+N" avatar button
+    if (dateEvents.length > 3) {
+      return (
+        <div className="flex h-full w-full items-center justify-center pt-1">
+          <Avatar
+            className="h-8 w-8 cursor-pointer transition-transform hover:scale-105"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleShowAllTasks(dateKey);
+            }}
+          >
+            <AvatarFallback className="bg-[#000053] text-white text-xs font-bold">
+              +{dateEvents.length}
+            </AvatarFallback>
+          </Avatar>
+        </div>
+      );
+    }
+
+    // Show individual pills (0-3 tasks) — current behavior
     return (
       <div className="w-full flex flex-col gap-1 pt-1">
-        {dateEvents.slice(0, 3).map((event) => {
+        {dateEvents.map((event) => {
           const styling = eventPropGetter(event, selectedUser || "");
           return (
             <div
@@ -246,6 +316,22 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
           )}
         </div>
 
+        {/* Date task table — shown when a date with > 3 tasks is selected */}
+        {expandedDateKey && eventsByDate[expandedDateKey]?.length > 3 && (
+          <div
+            ref={taskTableRef}
+            className="px-3 sm:px-4 md:px-6 pb-3 sm:pb-4 md:pb-6"
+          >
+            <DateTaskTable
+              dateKey={expandedDateKey}
+              events={eventsByDate[expandedDateKey]}
+              onRowClick={handleEventClickFromTable}
+              onAddTask={handleAddTaskFromTable}
+              onClose={() => setExpandedDateKey(null)}
+            />
+          </div>
+        )}
+
         {/* Task Detail Dialogs - only mount the relevant one */}
         {taskModalOpen && role === "mentor" && selectedUser !== studentId && (
           <MentorTaskDetailDialog
@@ -282,6 +368,7 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
             defaultTechStack={technologies}
             review={review}
             isEditable={isEditable}
+            isSubmitting={isSubmitting}
             onSubmit={(wh, n, techs) => {
               handleSubmit({ workingHours: wh, notes: n, technologies: techs });
             }}
