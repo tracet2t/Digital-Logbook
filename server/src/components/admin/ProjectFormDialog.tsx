@@ -37,6 +37,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
 interface ProjectFormDialogProps {
@@ -195,13 +202,24 @@ export default function ProjectFormDialog({
 
           <div className="space-y-1.5">
             <Label>Batch No (optional)</Label>
-            <Input
-              value={form.batchNo}
-              onChange={(e) =>
-                onFormChange({ ...form, batchNo: e.target.value })
+            <Select
+              value={form.batchNo || ""}
+              onValueChange={(value) =>
+                onFormChange({ ...form, batchNo: value === "none" ? "" : value })
               }
-              placeholder="e.g. Batch - 04"
-            />
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select batch no..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">— None —</SelectItem>
+                {[1, 2, 3, 4, 5, 6].map((n) => (
+                  <SelectItem key={n} value={`Batch-${n}`}>
+                    Batch - {n}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
