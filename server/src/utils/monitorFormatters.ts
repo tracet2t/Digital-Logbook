@@ -10,21 +10,9 @@ const formatDeltaVs = (delta: number) => {
   return `${sign}${delta} vs yesterday`;
 };
 
-const formatMtdDelta = (delta: number) => {
-  if (delta === 0) return "0% MTD";
-  const sign = delta > 0 ? "+" : "";
-  return `${sign}${delta}% MTD`;
-};
-
 const normalizeQuery = (value: string) => value.trim().toLowerCase();
 
 const matchesQuery = (value: string, query: string) =>
   value.toLowerCase().includes(query);
 
-export {
-  formatDelta,
-  formatDeltaVs,
-  formatMtdDelta,
-  normalizeQuery,
-  matchesQuery,
-};
+export { formatDelta, formatDeltaVs, normalizeQuery, matchesQuery };

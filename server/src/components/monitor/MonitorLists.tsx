@@ -87,6 +87,7 @@ export default function MonitorLists({
                 onRemind={onRemind}
                 isReminding={remindingMentorId === mentor.id}
                 onSelect={onMentorSelect}
+                onMenteeSelect={onMenteeSelect}
               />
             ))
           )}

@@ -1,9 +1,5 @@
 import type { MonitorStats } from "@/_hooks/admin/useAdminMonitor";
-import {
-  formatDelta,
-  formatDeltaVs,
-  formatMtdDelta,
-} from "@/utils/monitorFormatters";
+import { formatDelta } from "@/utils/monitorFormatters";
 
 import MonitorStatCard from "@/components/admin/monitor/MonitorStatCard";
 
@@ -13,7 +9,7 @@ interface MonitorStatsGridProps {
 
 export default function MonitorStatsGrid({ stats }: MonitorStatsGridProps) {
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
       <MonitorStatCard
         label="Mentors"
         value={stats?.mentors.value ?? 0}
@@ -33,31 +29,11 @@ export default function MonitorStatsGrid({ stats }: MonitorStatsGridProps) {
         label="Submissions Today"
         value={stats?.submissionsToday.value ?? 0}
         helperText={
-          stats ? formatDeltaVs(stats.submissionsToday.delta) : undefined
+          stats
+            ? `Previous submissions: ${stats.submissionsToday.previousTotal}`
+            : undefined
         }
-        helperTone={
-          stats && stats.submissionsToday.delta > 0 ? "success" : "neutral"
-        }
-      />
-      <MonitorStatCard
-        label="Missed Reviews"
-        value={stats?.missedReviews.value ?? 0}
-        helperText={
-          stats ? `${stats.missedReviews.value} unresolved` : undefined
-        }
-        helperTone={
-          stats && stats.missedReviews.value > 0 ? "danger" : "neutral"
-        }
-      />
-      <MonitorStatCard
-        label="Completion Rate"
-        value={`${stats?.completionRate.value ?? 0}%`}
-        helperText={
-          stats ? formatMtdDelta(stats.completionRate.delta) : undefined
-        }
-        helperTone={
-          stats && stats.completionRate.delta >= 0 ? "success" : "danger"
-        }
+        helperTone="neutral"
       />
     </div>
   );

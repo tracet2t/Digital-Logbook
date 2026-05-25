@@ -3,7 +3,7 @@ import { Role } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 import { addDays, getDateLabel, startOfDay } from "@/lib/monitor/date-format";
-import { getMissedCutoff, getReviewStatus } from "@/lib/monitor/review-status";
+import { getReviewStatus } from "@/lib/monitor/review-status";
 import prisma from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -34,8 +34,6 @@ export async function GET() {
     const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
     const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
-    const missedCutoff = getMissedCutoff(now);
-
     const [
       mentorCount,
       menteeCount,
@@ -45,11 +43,7 @@ export async function GET() {
       menteesPrevMonth,
       submissionsToday,
       submissionsYesterday,
-      missedReviews,
-      currentMonthTotal,
-      currentMonthReviewed,
-      prevMonthTotal,
-      prevMonthReviewed,
+      totalSubmissions,
       mentors,
     ] = await Promise.all([
       prisma.user.count({ where: { role: Role.mentor } }),
@@ -79,42 +73,12 @@ export async function GET() {
         },
       }),
       prisma.activity.count({
-        where: { createdAt: { gte: todayStart, lt: tomorrowStart } },
+        where: { date: { gte: todayStart, lt: tomorrowStart } },
       }),
       prisma.activity.count({
-        where: { createdAt: { gte: yesterdayStart, lt: todayStart } },
+        where: { date: { gte: yesterdayStart, lt: todayStart } },
       }),
-      prisma.activity.count({
-        where: {
-          createdAt: { lt: missedCutoff },
-          status: "pending",
-          feedback: { none: {} },
-        },
-      }),
-      prisma.activity.count({
-        where: { createdAt: { gte: monthStart, lt: nextMonthStart } },
-      }),
-      prisma.activity.count({
-        where: {
-          createdAt: { gte: monthStart, lt: nextMonthStart },
-          OR: [
-            { feedback: { some: {} } },
-            { status: { in: ["accepted", "rejected"] } },
-          ],
-        },
-      }),
-      prisma.activity.count({
-        where: { createdAt: { gte: prevMonthStart, lt: monthStart } },
-      }),
-      prisma.activity.count({
-        where: {
-          createdAt: { gte: prevMonthStart, lt: monthStart },
-          OR: [
-            { feedback: { some: {} } },
-            { status: { in: ["accepted", "rejected"] } },
-          ],
-        },
-      }),
+      prisma.activity.count(),
       prisma.user.findMany({
         where: { role: Role.mentor },
         orderBy: { createdAt: "desc" },
@@ -136,13 +100,10 @@ export async function GET() {
     const menteeDelta = menteesThisMonth - menteesPrevMonth;
 
     const submissionsDelta = submissionsToday - submissionsYesterday;
-
-    const completionRate = calculateRate(
-      currentMonthReviewed,
-      currentMonthTotal,
+    const previousSubmissionsTotal = Math.max(
+      0,
+      totalSubmissions - submissionsToday,
     );
-    const prevCompletionRate = calculateRate(prevMonthReviewed, prevMonthTotal);
-    const completionDelta = completionRate - prevCompletionRate;
 
     const projectIds = Array.from(
       new Set(
@@ -321,9 +282,11 @@ export async function GET() {
       stats: {
         mentors: { value: mentorCount, delta: mentorDelta },
         mentees: { value: menteeCount, delta: menteeDelta },
-        submissionsToday: { value: submissionsToday, delta: submissionsDelta },
-        missedReviews: { value: missedReviews },
-        completionRate: { value: completionRate, delta: completionDelta },
+        submissionsToday: {
+          value: submissionsToday,
+          delta: submissionsDelta,
+          previousTotal: previousSubmissionsTotal,
+        },
       },
       mentors: mentorCards,
     });

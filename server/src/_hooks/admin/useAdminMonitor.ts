@@ -10,9 +10,7 @@ export type MonitorMenteeStatus = "reviewed" | "pending" | "missed";
 export interface MonitorStats {
   mentors: { value: number; delta: number };
   mentees: { value: number; delta: number };
-  submissionsToday: { value: number; delta: number };
-  missedReviews: { value: number };
-  completionRate: { value: number; delta: number };
+  submissionsToday: { value: number; delta: number; previousTotal: number };
 }
 
 export interface MonitorMenteeRow {
