@@ -6,10 +6,9 @@ import { TECH_STACK_OPTIONS } from "@/app/student/_constants_tech_stacks";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Code2, X } from "lucide-react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +19,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -199,7 +200,10 @@ const activitySchema = z.object({
     .min(1, "Working hours must be at least 1")
     .max(12, "Working hours cannot exceed 12"),
   techStack: z.array(z.string()).default([]),
-  notes: z.string().max(300, "Notes cannot exceed 300 characters"),
+  notes: z
+    .string()
+    .min(1, "Notes are required — please describe your activity.")
+    .max(300, "Notes cannot exceed 300 characters"),
 });
 
 type ActivityFormValues = z.infer<typeof activitySchema>;
@@ -219,6 +223,7 @@ interface StudentTaskDetailDialogProps {
   ) => void;
   onDelete?: () => void;
   canDelete?: boolean;
+  isSubmitting?: boolean;
   isDeleting?: boolean;
   onClose: () => void;
 }
@@ -234,10 +239,12 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
   onSubmit,
   onDelete,
   canDelete = false,
+  isSubmitting = false,
   isDeleting = false,
   onClose,
 }) => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const hasMentorDecision = review.trim().length > 0;
 
   const form = useForm<ActivityFormValues>({
     resolver: zodResolver(activitySchema),
@@ -265,6 +272,13 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
 
   const handleDeleteClick = () => {
     if (!onDelete || !canDelete) {
+      return;
+    }
+
+    if (hasMentorDecision) {
+      toast.error(
+        "This task cannot be deleted because it has already been approved or rejected by the mentor.",
+      );
       return;
     }
 
@@ -339,11 +353,14 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes</FormLabel>
+                  <FormLabel className="flex items-center gap-1">
+                    Notes
+                    <span className="text-red-500 font-bold">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Textarea
                       {...field}
-                      placeholder="Enter notes"
+                      placeholder="Describe what you worked on (required)"
                       disabled={!isEditable}
                       maxLength={300}
                     />
@@ -368,11 +385,15 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
           <DialogClose asChild>
             <Button variant="outline">Cancel</Button>
           </DialogClose>
-          {isEditable && <Button onClick={handleFormSubmit}>Save</Button>}
+          {isEditable && (
+            <Button onClick={handleFormSubmit} disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : "Save"}
+            </Button>
+          )}
           {isEditable && canDelete && (
             <Button
               type="button"
-              variant="warning"
+              variant="destructive"
               onClick={handleDeleteClick}
               disabled={isDeleting}
             >
@@ -381,18 +402,22 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
           )}
         </div>
 
-        <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialog
+          open={deleteConfirmOpen}
+          onOpenChange={setDeleteConfirmOpen}
+        >
           <AlertDialogContent size="default">
             <AlertDialogHeader>
               <AlertDialogTitle>Delete submitted task?</AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. The selected task will be removed permanently.
+                This action cannot be undone. The selected task will be removed
+                permanently.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
-                variant="warning"
+                variant="destructive"
                 onClick={() => {
                   setDeleteConfirmOpen(false);
                   onDelete?.();

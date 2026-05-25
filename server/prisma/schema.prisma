@@ -41,7 +41,8 @@ model User {
 
   projectTechnologies ProjectTechnology[]
 
-  articles     Article[]        @relation("ArticleAuthor")
+  articles        Article[]        @relation("ArticleAuthor")
+  sharedProfile   SharedProfile?
 
   @@map("users")
 }
@@ -242,6 +243,20 @@ model ProjectTechnology {
 
   @@unique([projectId, studentId, name])
   @@map("projectTechnologies")
+}
+
+model SharedProfile {
+  id        String   @id @default(uuid())
+  studentId String   @unique
+  token     String   @unique @default(uuid())
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  expiresAt DateTime?
+
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("sharedProfiles")
 }
 
 enum TimeAllocationStatus {

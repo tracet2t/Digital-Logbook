@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 
 import { useCompleteRegistration } from "@/_hooks/admin/useCompleteRegistration";
-import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
+import { CheckCircle2, Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -38,6 +38,7 @@ export default function CreateAccount() {
     confirmPassword?: string;
   }>({});
   const [shake, setShake] = useState(false);
+  const [accountSuccess, setAccountSuccess] = useState(false);
   const [toastData, setToastData] = useState({
     open: false,
     title: "",
@@ -83,10 +84,13 @@ export default function CreateAccount() {
 
     setErrors({});
 
+    setAccountSuccess(false);
+
     completeRegistration(
       { email, token, tempPassword, newPassword },
       {
         onSuccess: () => {
+          setAccountSuccess(true);
           setToastData({
             open: true,
             title: "Account Created",
@@ -180,14 +184,16 @@ export default function CreateAccount() {
           }}
         >
           <div
-            className={`flex-1 flex flex-col items-center justify-center p-16 md:p-24 w-full rounded-3xl backdrop-blur-md border shadow-2xl transition-all duration-300 ${shake ? "shake-animation" : ""}`}
+            className={`flex-1 flex flex-col items-center justify-center p-16 md:p-24 w-full rounded-3xl backdrop-blur-md border shadow-2xl transition-all duration-300 ${Object.keys(errors).length > 0 && shake ? "shake-animation" : ""}`}
             style={{
-              backgroundColor:
-                Object.keys(errors).length > 0
+              backgroundColor: accountSuccess
+                ? "rgba(34, 197, 94, 0.1)"
+                : Object.keys(errors).length > 0
                   ? "rgba(248, 113, 113, 0.1)"
                   : "rgba(255, 255, 255, 0.1)",
-              borderColor:
-                Object.keys(errors).length > 0
+              borderColor: accountSuccess
+                ? "rgba(34, 197, 94, 0.5)"
+                : Object.keys(errors).length > 0
                   ? "rgba(248, 113, 113, 0.3)"
                   : "rgba(255, 255, 255, 0.2)",
             }}
@@ -459,13 +465,28 @@ export default function CreateAccount() {
                 <div className="pt-4">
                   <Button
                     type="submit"
-                    className="w-full h-12 bg-[#000053] text-white hover:bg-[#1a1a7a] font-bold text-[14px] uppercase tracking-[0.08em] shadow-2xl transition-all active:scale-[0.98] rounded-xl"
-                    disabled={isPending}
+                    className={`w-full h-12 font-bold text-[14px] uppercase tracking-[0.08em] shadow-2xl transition-all active:scale-[0.98] rounded-xl ${
+                      Object.keys(errors).length > 0
+                        ? "bg-red-600 dark:bg-red-500 text-white hover:bg-red-700 dark:hover:bg-red-600"
+                        : accountSuccess
+                          ? "bg-green-600 dark:bg-green-500 text-white hover:bg-green-700 dark:hover:bg-green-600"
+                          : "bg-[#000053] text-white hover:bg-[#1a1a7a]"
+                    }`}
+                    disabled={isPending || accountSuccess}
                   >
-                    {isPending ? (
+                    {accountSuccess ? (
                       <div className="flex items-center gap-3">
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <CheckCircle2 className="h-6 w-6" />
+                        <span>DONE</span>
+                      </div>
+                    ) : isPending ? (
+                      <div className="flex items-center gap-3">
+                        <Loader2 className="h-6 w-6 animate-spin" />
                         <span>Initializing...</span>
+                      </div>
+                    ) : Object.keys(errors).length > 0 ? (
+                      <div className="flex items-center gap-3">
+                        <span>ERROR - TRY AGAIN</span>
                       </div>
                     ) : (
                       "Complete Registration"
