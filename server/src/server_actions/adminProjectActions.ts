@@ -92,6 +92,27 @@ export async function getAdminProjectStats(): Promise<AdminProjectStats> {
   };
 }
 
+/** Checks whether a project with the same name (case-insensitive) and batch already exists. */
+export async function checkDuplicateProject(
+  name: string,
+  batchNo: string | undefined,
+  excludeId?: string,
+): Promise<boolean> {
+  const trimmedName = name.trim();
+  const trimmedBatch = batchNo?.trim() || null;
+
+  const existing = await prisma.project.findFirst({
+    where: {
+      name: { equals: trimmedName, mode: "insensitive" },
+      batchNo: trimmedBatch,
+      ...(excludeId ? { id: { not: excludeId } } : {}),
+    },
+    select: { id: true },
+  });
+
+  return existing !== null;
+}
+
 export async function createProject(
   name: string,
   description: string,
@@ -101,6 +122,12 @@ export async function createProject(
   const session = await getSession();
   const createdBy = session.getId();
   if (!createdBy) throw new Error("Unauthorized");
+
+  const isDuplicate = await checkDuplicateProject(name, batchNo);
+  if (isDuplicate) {
+    throw new Error("Project name already exists.");
+  }
+
   await prisma.project.create({
     data: {
       name: name.trim(),
@@ -119,6 +146,11 @@ export async function updateProject(
   domain: string,
   batchNo?: string,
 ): Promise<void> {
+  const isDuplicate = await checkDuplicateProject(name, batchNo, id);
+  if (isDuplicate) {
+    throw new Error("Project name already exists.");
+  }
+
   await prisma.project.update({
     where: { id },
     data: {

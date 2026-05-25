@@ -23,6 +23,7 @@ import {
   getAdminProjectStats,
   updateProject,
 } from "@/server_actions/adminProjectActions";
+import { toast } from "sonner";
 
 export function useProjectsPage() {
   const [page, setPage] = useState(1);
@@ -85,6 +86,10 @@ export function useProjectsPage() {
       );
       setEditProject(null);
       reload();
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to update project",
+      );
     } finally {
       setEditSaving(false);
     }
@@ -103,6 +108,10 @@ export function useProjectsPage() {
       setShowCreate(false);
       setCreateForm(EMPTY_FORM);
       reload();
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to create project",
+      );
     } finally {
       setCreateSaving(false);
     }
@@ -159,6 +168,36 @@ export function useProjectsPage() {
     currentPage * ITEMS_PER_PAGE,
   );
 
+  /** Client-side duplicate name validation for the create form. */
+  const createNameError = useMemo(() => {
+    if (!createForm.name.trim() || !showCreate) return "";
+    const trimmed = createForm.name.trim().toLowerCase();
+    const batch = createForm.batchNo || "";
+    const all = stats?.projects ?? [];
+    return all.some(
+      (p) =>
+        p.name.trim().toLowerCase() === trimmed && (p.batchNo || "") === batch,
+    )
+      ? "Project name already exists."
+      : "";
+  }, [createForm.name, createForm.batchNo, stats?.projects, showCreate]);
+
+  /** Client-side duplicate name validation for the edit form (excludes current project). */
+  const editNameError = useMemo(() => {
+    if (!editForm.name.trim() || !editProject) return "";
+    const trimmed = editForm.name.trim().toLowerCase();
+    const batch = editForm.batchNo || "";
+    const all = stats?.projects ?? [];
+    return all.some(
+      (p) =>
+        p.id !== editProject.id &&
+        p.name.trim().toLowerCase() === trimmed &&
+        (p.batchNo || "") === batch,
+    )
+      ? "Project name already exists."
+      : "";
+  }, [editForm.name, editForm.batchNo, editProject?.id, stats?.projects]);
+
   return {
     // Data
     stats,
@@ -180,6 +219,7 @@ export function useProjectsPage() {
     editForm,
     setEditForm,
     editSaving,
+    editNameError,
     handleEditSave,
     openEdit,
     closeEdit: () => setEditProject(null),
@@ -188,6 +228,7 @@ export function useProjectsPage() {
     createForm,
     setCreateForm,
     createSaving,
+    createNameError,
     handleCreateSave,
     openCreate,
     closeCreate: () => setShowCreate(false),

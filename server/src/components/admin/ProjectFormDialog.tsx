@@ -46,6 +46,7 @@ interface ProjectFormDialogProps {
   saving: boolean;
   saveLabel: string;
   savingLabel: string;
+  nameError?: string;
   onFormChange: (form: ProjectFormValues) => void;
   onSave: () => void;
   onClose: () => void;
@@ -58,11 +59,13 @@ export default function ProjectFormDialog({
   saving,
   saveLabel,
   savingLabel,
+  nameError,
   onFormChange,
   onSave,
   onClose,
 }: ProjectFormDialogProps) {
-  const canSave = form.name.trim().length > 0 && form.domain.trim().length > 0;
+  const canSave =
+    form.name.trim().length > 0 && form.domain.trim().length > 0 && !nameError;
 
   const [domainOpen, setDomainOpen] = useState(false);
   const [domainSearch, setDomainSearch] = useState("");
@@ -94,6 +97,9 @@ export default function ProjectFormDialog({
               onChange={(e) => onFormChange({ ...form, name: e.target.value })}
               placeholder="Enter project name"
             />
+            {nameError && (
+              <p className="mt-1 text-[13px] text-red-500">{nameError}</p>
+            )}
           </div>
 
           <div className="space-y-1.5">
