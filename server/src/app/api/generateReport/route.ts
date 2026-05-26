@@ -4,7 +4,7 @@ import getSession from "@/server_actions/getSession";
 import { Role } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
-import { reportQueue } from "@/lib/queue";
+import { reportQueue } from "@/lib/queues/reportQueue";
 
 const reportRepository = new ReportRepository();
 

@@ -6,6 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "worker": "tsx src/worker/index.ts",
+    "worker:dev": "tsx watch src/worker/index.ts",
     "lint": "next lint",
     "generate": "prisma generate",
     "seed": "node prisma/seed.mjs",

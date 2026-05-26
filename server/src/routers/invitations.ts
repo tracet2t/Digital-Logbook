@@ -17,8 +17,8 @@ import {
 import { registerStudent } from "@/services/registerstudent";
 import { Invitation, Role } from "@prisma/client";
 
-import { invitationQueue } from "@/lib/invitationQueue";
 import prisma from "@/lib/prisma";
+import { invitationQueue } from "@/lib/queues/invitationQueue";
 
 // Initialize repositories
 const invitationRepository = new InvitationRepository();

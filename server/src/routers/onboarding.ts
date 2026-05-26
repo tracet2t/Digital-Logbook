@@ -15,8 +15,8 @@ import {
 import { Role } from "@prisma/client";
 import { z } from "zod";
 
-import { onboardingQueue } from "@/lib/onboardingQueue";
 import prisma from "@/lib/prisma";
+import { onboardingQueue } from "@/lib/queues/onboardingQueue";
 
 // Initialize repository
 const onboardingRepository = new OnboardingRepository();
