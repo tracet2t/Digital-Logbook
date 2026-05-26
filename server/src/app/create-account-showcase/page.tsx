@@ -7,10 +7,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   BookOpenText,
   CheckCircle2,
+  CreditCard,
   GraduationCap,
   Link as LinkIcon,
   Loader2,
   Mail,
+  MapPin,
+  Phone,
   User,
 } from "lucide-react";
 import Image from "next/image";
@@ -33,6 +36,12 @@ import { Input } from "@/components/ui/input";
 const formSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters."),
   email: z.string().email("Please enter a valid email address."),
+  nic: z.string().min(1, "NIC number is required."),
+  mobileNumber: z
+    .string()
+    .min(1, "Mobile number is required.")
+    .regex(/^[0-9+\s\-()]{7,20}$/, "Please enter a valid mobile number."),
+  address: z.string().min(5, "Address must be at least 5 characters."),
   university: z.string().min(2, "University is required."),
   degreeProgram: z.string().min(2, "Degree program is required."),
   cvLink: z
@@ -57,6 +66,9 @@ export default function CreateAccountShowcasePage() {
     defaultValues: {
       fullName: "",
       email: "",
+      nic: "",
+      mobileNumber: "",
+      address: "",
       university: "",
       degreeProgram: "",
       cvLink: "",
@@ -72,10 +84,6 @@ export default function CreateAccountShowcasePage() {
           form.reset();
           setOnboardingSuccess(false);
         }, 1500);
-      },
-      onError: () => {
-        setShake(true);
-        setTimeout(() => setShake(false), 600);
       },
       onError: () => {
         setShake(true);
@@ -275,6 +283,155 @@ export default function CreateAccountShowcasePage() {
                       </FormItem>
                     )}
                   />
+
+                  {/* NIC */}
+                  <FormField
+                    control={form.control}
+                    name="nic"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel
+                          className="text-[11px] font-bold uppercase tracking-[0.18em] transition-colors"
+                          style={{
+                            color: form.formState.errors.nic
+                              ? "#f87171"
+                              : "rgba(255, 255, 255, 0.7)",
+                          }}
+                        >
+                          NIC Number
+                        </FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <CreditCard
+                              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors"
+                              style={{
+                                color: form.formState.errors.nic
+                                  ? "#f87171"
+                                  : "rgba(255, 255, 255, 0.5)",
+                              }}
+                            />
+                            <Input
+                              {...field}
+                              placeholder="200012345678"
+                              className="h-12 bg-white/10 backdrop-blur-sm border text-white placeholder:text-white/40 pl-10 text-[15px] focus:ring-4 transition-all rounded-xl"
+                              style={{
+                                borderColor: form.formState.errors.nic
+                                  ? "rgba(248, 113, 113, 0.5)"
+                                  : "rgba(255, 255, 255, 0.2)",
+                                boxShadow: form.formState.errors.nic
+                                  ? "0 0 0 4px rgba(248, 113, 113, 0.1)"
+                                  : undefined,
+                              }}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage
+                          className="text-[12px] font-bold"
+                          style={{ color: "#f87171" }}
+                        />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Mobile & Address side-by-side on sm+ */}
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    <FormField
+                      control={form.control}
+                      name="mobileNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel
+                            className="text-[11px] font-bold uppercase tracking-[0.18em] transition-colors"
+                            style={{
+                              color: form.formState.errors.mobileNumber
+                                ? "#f87171"
+                                : "rgba(255, 255, 255, 0.7)",
+                            }}
+                          >
+                            Mobile Number
+                          </FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Phone
+                                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors"
+                                style={{
+                                  color: form.formState.errors.mobileNumber
+                                    ? "#f87171"
+                                    : "rgba(255, 255, 255, 0.5)",
+                                }}
+                              />
+                              <Input
+                                {...field}
+                                placeholder="+94 71 234 5678"
+                                className="h-12 bg-white/10 backdrop-blur-sm border text-white placeholder:text-white/40 pl-10 text-[15px] focus:ring-4 transition-all rounded-xl"
+                                style={{
+                                  borderColor: form.formState.errors
+                                    .mobileNumber
+                                    ? "rgba(248, 113, 113, 0.5)"
+                                    : "rgba(255, 255, 255, 0.2)",
+                                  boxShadow: form.formState.errors.mobileNumber
+                                    ? "0 0 0 4px rgba(248, 113, 113, 0.1)"
+                                    : undefined,
+                                }}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage
+                            className="text-[12px] font-bold"
+                            style={{ color: "#f87171" }}
+                          />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="address"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel
+                            className="text-[11px] font-bold uppercase tracking-[0.18em] transition-colors"
+                            style={{
+                              color: form.formState.errors.address
+                                ? "#f87171"
+                                : "rgba(255, 255, 255, 0.7)",
+                            }}
+                          >
+                            Address
+                          </FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <MapPin
+                                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors"
+                                style={{
+                                  color: form.formState.errors.address
+                                    ? "#f87171"
+                                    : "rgba(255, 255, 255, 0.5)",
+                                }}
+                              />
+                              <Input
+                                {...field}
+                                placeholder="123 Main St, Colombo 07"
+                                className="h-12 bg-white/10 backdrop-blur-sm border text-white placeholder:text-white/40 pl-10 text-[15px] focus:ring-4 transition-all rounded-xl"
+                                style={{
+                                  borderColor: form.formState.errors.address
+                                    ? "rgba(248, 113, 113, 0.5)"
+                                    : "rgba(255, 255, 255, 0.2)",
+                                  boxShadow: form.formState.errors.address
+                                    ? "0 0 0 4px rgba(248, 113, 113, 0.1)"
+                                    : undefined,
+                                }}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage
+                            className="text-[12px] font-bold"
+                            style={{ color: "#f87171" }}
+                          />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
                   <div className="grid gap-5 sm:grid-cols-2">
                     <FormField
