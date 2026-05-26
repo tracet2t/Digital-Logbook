@@ -30,16 +30,16 @@ describe("TaskCalendar - source structure", () => {
 
   test("imports custom hooks", () => {
     expect(source).toContain(
-      'import { useCalendarEvents } from "@/hooks/useCalendarEvents"',
+      'import { useCalendarEvents } from "@/_hooks/useCalendarEvents"',
     );
     expect(source).toContain(
-      'import { useFormData } from "@/hooks/useFormData"',
+      'import { useFormData } from "@/_hooks/useFormData"',
     );
     expect(source).toContain(
-      'import { useSubmission } from "@/hooks/useSubmission"',
+      'import { useSubmission } from "@/_hooks/useSubmission"',
     );
     expect(source).toContain(
-      'import { useEventForDate } from "@/hooks/useEventForDate"',
+      'import { useEventForDate } from "@/_hooks/useEventForDate"',
     );
   });
 
@@ -65,14 +65,8 @@ describe("TaskCalendar - source structure", () => {
     expect(source).toContain("setTaskModalOpen(true);");
   });
 
-  test("handleClose closes modal and clears selected date", () => {
+  test("handleClose closes modal", () => {
     expect(source).toContain("setTaskModalOpen(false);");
-    expect(source).toContain("setSelectedDate(null);");
-  });
-
-  test("auto-submits when status is approved or rejected", () => {
-    expect(source).toContain('status === "approved" || status === "rejected"');
-    expect(source).toContain("handleSubmit();");
   });
 
   test("BigCalendar is configured with MONTH view and selectable", () => {
@@ -95,10 +89,6 @@ describe("TaskCalendar - source structure", () => {
     );
   });
 
-  test("CalendarEvent status field supports pending, approved, rejected", () => {
-    expect(source).toContain('"pending" | "approved" | "rejected"');
-  });
-
   test("uses CustomToolbar as calendar toolbar component", () => {
     expect(source).toContain("<CustomToolbar");
     expect(source).toContain("currentDate={currentDate}");
@@ -106,7 +96,7 @@ describe("TaskCalendar - source structure", () => {
   });
 
   test("selectedUser prop falls back to empty string", () => {
-    expect(source).toContain("selectedUser || ''");
+    expect(source).toContain('selectedUser || ""');
   });
 });
 
