@@ -269,6 +269,9 @@ model MenteeApplication {
   id            String                    @id @default(uuid())
   fullName      String
   email         String                    @unique
+  nic           String
+  mobileNumber  String
+  address       String
   university    String
   degreeProgram String
   cvLink        String
