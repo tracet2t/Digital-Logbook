@@ -22,7 +22,9 @@ export interface AuthContext {
  *
  * @throws {ORPCError} "Unauthorized" if session is invalid or user is not authenticated
  */
-export const authMiddleware = os.$context<{}>().middleware(async ({ next }) => {
+export const authMiddleware = os
+  .$context<Record<string, never>>()
+  .middleware(async ({ next }) => {
   const session = await getSession();
 
   if (!session || !session.isAuthenticated()) {

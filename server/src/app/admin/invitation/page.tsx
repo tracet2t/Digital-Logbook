@@ -10,10 +10,12 @@ import {
 } from "@/_hooks/admin/useInvitation";
 import { useGetProjects } from "@/_hooks/projects";
 import { BulkUploadTableProvider } from "@/_stores/bulkUploadTableStore";
-import { Plus, Search } from "lucide-react";
+import { PanelLeft, Plus, Search } from "lucide-react";
+import Image from "next/image";
 import { z } from "zod";
 
 import { Card } from "@/components/ui/card";
+import { useSidebar } from "@/components/ui/sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminPageLayout } from "@/components/admin";
 import { BulkUploadTabs } from "@/components/admin/Invitations/BulkUploadTabs";
@@ -26,6 +28,7 @@ import InvitationsTable, {
   InvitationRow,
 } from "@/components/Invitations/InvitationsTable";
 import InvitationsStats from "@/components/Invitations/InvitationStats";
+import { ADMIN_LOGO_CONFIG } from "@/utils/config/adminSidebarConfig";
 
 // Constants
 const ITEMS_PER_PAGE = 10;

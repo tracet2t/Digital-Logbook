@@ -15,6 +15,7 @@ export interface MonitorMenteeCardData {
   totalHours: number;
   tasks: MonitorMenteeTask[];
   taskStatus: "pending" | "reviewed" | "missed" | null;
+  warningType: "low" | "medium" | "high" | null;
 }
 
 interface MonitorMenteeResponse {

@@ -190,14 +190,6 @@ export function TaskTimeline({
   showPagination = false,
   onTaskSelect,
 }: Props) {
-  if (tasks.length === 0) {
-    return (
-      <p className="font-inter text-[11px] text-[#94A3B8]">
-        No tasks logged yet.
-      </p>
-    );
-  }
-
   const [page, setPage] = useState(1);
   const totalPages = Math.max(1, Math.ceil(tasks.length / pageSize));
   const safePage = Math.min(page, totalPages);
@@ -213,6 +205,14 @@ export function TaskTimeline({
       setPage(safePage);
     }
   }, [page, safePage]);
+
+  if (tasks.length === 0) {
+    return (
+      <p className="font-inter text-[11px] text-[#94A3B8]">
+        No tasks logged yet.
+      </p>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">

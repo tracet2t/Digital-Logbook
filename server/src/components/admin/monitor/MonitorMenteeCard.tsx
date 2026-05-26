@@ -35,6 +35,15 @@ const taskStatusLabels: Record<
   missed: "Missed",
 };
 
+const warningRingStyles: Record<
+  NonNullable<MonitorMenteeCardData["warningType"]>,
+  string
+> = {
+  low: "ring-amber-300",
+  medium: "ring-orange-400",
+  high: "ring-rose-500",
+};
+
 export default function MonitorMenteeCard({
   mentee,
   onSelect,
@@ -42,6 +51,10 @@ export default function MonitorMenteeCard({
   const handleSelect = () => {
     onSelect?.(mentee.id);
   };
+
+  const warningRingClass = mentee.warningType
+    ? `ring-2 ring-offset-2 ring-offset-white ${warningRingStyles[mentee.warningType]}`
+    : "";
 
   return (
     <Card
@@ -57,7 +70,9 @@ export default function MonitorMenteeCard({
       }}
     >
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e8f0fe] text-sm font-semibold text-[#0a0f57]">
+        <div
+          className={`flex h-10 w-10 items-center justify-center rounded-full bg-[#e8f0fe] text-sm font-semibold text-[#0a0f57] ${warningRingClass}`}
+        >
           {getInitials(mentee.name)}
         </div>
         <div>

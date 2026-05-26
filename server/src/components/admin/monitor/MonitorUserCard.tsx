@@ -35,6 +35,15 @@ const taskStatusLabels: Record<
   missed: "Missed",
 };
 
+const warningRingStyles: Record<
+  NonNullable<MonitorUserCardData["warningType"]>,
+  string
+> = {
+  low: "ring-amber-300",
+  medium: "ring-orange-400",
+  high: "ring-rose-500",
+};
+
 const formatProjects = (projects: string[]) => {
   if (projects.length === 0) return "No projects";
   if (projects.length <= 2) return projects.join(", ");
@@ -48,6 +57,10 @@ export default function MonitorUserCard({
   const handleSelect = () => {
     onSelect?.(user.id);
   };
+
+  const warningRingClass = user.warningType
+    ? `ring-2 ring-offset-2 ring-offset-white ${warningRingStyles[user.warningType]}`
+    : "";
 
   return (
     <Card
@@ -63,7 +76,9 @@ export default function MonitorUserCard({
       }}
     >
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e8f0fe] text-sm font-semibold text-[#0a0f57]">
+        <div
+          className={`flex h-10 w-10 items-center justify-center rounded-full bg-[#e8f0fe] text-sm font-semibold text-[#0a0f57] ${warningRingClass}`}
+        >
           {getInitials(user.firstName, user.lastName)}
         </div>
         <div className="flex-1">

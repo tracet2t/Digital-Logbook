@@ -163,7 +163,7 @@ export default function ProjectFormDialog({
                             setDomainSearch("");
                           }}
                         >
-                          Add "{normalizedDomainSearch}"
+                          {`Add "${normalizedDomainSearch}"`}
                         </CommandItem>
                       </CommandGroup>
                     )}

@@ -71,7 +71,7 @@ export const GET = async (_req: NextRequest) => {
     // Only sum hours for students whose project allocation has been actively accepted by the mentor
     const acceptedStudentIds = new Set(
       mentees
-        // @ts-ignore - Prisma type generation issue
+        // @ts-expect-error - Prisma type generation issue
         .filter((m) => m.timeAllocationStatus === "accepted")
         .map((m) => m.student.id)
     );
@@ -177,7 +177,7 @@ export const GET = async (_req: NextRequest) => {
             pending: "PENDING",
             rejected: "REJECTED",
           };
-          // @ts-ignore - Prisma type generation issue with status field
+          // @ts-expect-error - Prisma type generation issue with status field
           dashboardStatus = statusMap[activityState] ?? "PENDING";
         }
 

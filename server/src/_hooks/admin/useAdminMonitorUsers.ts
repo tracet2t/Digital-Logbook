@@ -13,6 +13,7 @@ export interface MonitorUserCardData {
   createdAt: string;
   assignedProjects: string[];
   taskStatus: "pending" | "reviewed" | "missed" | null;
+  warningType: "low" | "medium" | "high" | null;
 }
 
 export const useAdminMonitorUsers = () =>

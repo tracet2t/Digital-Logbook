@@ -1,5 +1,5 @@
 import getSession from "@/server_actions/getSession";
-import { Role } from "@prisma/client";
+import { Role, WarningCategory } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 import { formatShortDate } from "@/lib/monitor/date-format";
@@ -8,6 +8,21 @@ import { extractTaskName } from "@/lib/monitor/task-format";
 import prisma from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
+
+const WARNING_RANK: Record<WarningCategory, number> = {
+  low: 1,
+  medium: 2,
+  high: 3,
+};
+
+const getHigherWarning = (
+  current: WarningCategory | null,
+  next: WarningCategory | null,
+) => {
+  if (!next) return current;
+  if (!current) return next;
+  return WARNING_RANK[next] > WARNING_RANK[current] ? next : current;
+};
 
 export async function GET() {
   try {
@@ -31,6 +46,29 @@ export async function GET() {
     }
 
     const studentIds = mentees.map((mentee) => mentee.id);
+
+    const warningStatuses = await prisma.warningStatus.findMany({
+      where: {
+        studentId: { in: studentIds },
+        warningType: { not: null },
+      },
+      select: {
+        studentId: true,
+        warningType: true,
+      },
+    });
+
+    const warningByStudent = new Map<string, WarningCategory | null>();
+
+    for (const warning of warningStatuses) {
+      warningByStudent.set(
+        warning.studentId,
+        getHigherWarning(
+          warningByStudent.get(warning.studentId) ?? null,
+          warning.warningType ?? null,
+        ),
+      );
+    }
 
     const activities = await prisma.activity.findMany({
       where: { studentId: { in: studentIds } },
@@ -85,12 +123,15 @@ export async function GET() {
         hours: activity.timeSpent ?? 0,
       }));
 
+      const warningType = warningByStudent.get(mentee.id) ?? null;
+
       return {
         id: mentee.id,
         name: `${mentee.firstName} ${mentee.lastName}`,
         totalHours: Math.round(totalHours * 10) / 10,
         tasks,
         taskStatus,
+        warningType,
       };
     });
 
