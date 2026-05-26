@@ -11,6 +11,9 @@ export interface OnboardingApplication {
   id: string;
   fullName: string;
   email: string;
+  nic: string;
+  mobileNumber: string;
+  address: string;
   university: string;
   degreeProgram: string;
   cvLink: string;

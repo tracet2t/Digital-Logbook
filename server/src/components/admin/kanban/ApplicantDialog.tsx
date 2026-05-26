@@ -1,14 +1,17 @@
 "use client";
 
+import { OnboardingApplication } from "@/_hooks/admin/useAdminOnboarding";
 import {
   CalendarDays,
+  CreditCard,
   ExternalLink,
   GraduationCap,
   Mail,
+  MapPin,
+  Phone,
   University,
 } from "lucide-react";
 
-import { OnboardingApplication } from "@/hooks/admin/useAdminOnboarding";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Dialog,
@@ -62,6 +65,24 @@ export function ApplicantDialog({
               <Mail className="h-3.5 w-3.5 text-indigo-400" />
               <span className="break-all text-[11px] font-bold text-slate-600">
                 {application.email}
+              </span>
+            </div>
+            <div className="flex items-center gap-2.5 rounded-xl bg-slate-50 p-2.5">
+              <CreditCard className="h-3.5 w-3.5 text-indigo-400" />
+              <span className="text-[11px] font-bold text-slate-600">
+                {application.nic}
+              </span>
+            </div>
+            <div className="flex items-center gap-2.5 rounded-xl bg-slate-50 p-2.5">
+              <Phone className="h-3.5 w-3.5 text-indigo-400" />
+              <span className="text-[11px] font-bold text-slate-600">
+                {application.mobileNumber}
+              </span>
+            </div>
+            <div className="flex items-center gap-2.5 rounded-xl bg-slate-50 p-2.5">
+              <MapPin className="h-3.5 w-3.5 text-indigo-400" />
+              <span className="text-[11px] font-bold text-slate-600">
+                {application.address}
               </span>
             </div>
             <div className="flex items-center gap-2.5 rounded-xl bg-slate-50 p-2.5">
