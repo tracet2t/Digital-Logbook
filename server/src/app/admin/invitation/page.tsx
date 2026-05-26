@@ -10,12 +10,10 @@ import {
 } from "@/_hooks/admin/useInvitation";
 import { useGetProjects } from "@/_hooks/projects";
 import { BulkUploadTableProvider } from "@/_stores/bulkUploadTableStore";
-import { PanelLeft, Plus, Search } from "lucide-react";
-import Image from "next/image";
+import { Plus, Search } from "lucide-react";
 import { z } from "zod";
 
 import { Card } from "@/components/ui/card";
-import { useSidebar } from "@/components/ui/sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminPageLayout } from "@/components/admin";
 import { BulkUploadTabs } from "@/components/admin/Invitations/BulkUploadTabs";
@@ -28,7 +26,6 @@ import InvitationsTable, {
   InvitationRow,
 } from "@/components/Invitations/InvitationsTable";
 import InvitationsStats from "@/components/Invitations/InvitationStats";
-import { ADMIN_LOGO_CONFIG } from "@/utils/config/adminSidebarConfig";
 
 // Constants
 const ITEMS_PER_PAGE = 10;
@@ -41,30 +38,6 @@ const inviteSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
   project: z.string().min(1, { message: "Project is required" }),
 });
-
-function InvitationMobileHeader() {
-  const { toggleSidebar } = useSidebar();
-
-  return (
-    <header className="sticky top-0 z-30 flex items-center justify-between border-b border-[#e3e6ef] bg-white px-4 py-3 md:hidden">
-      <button
-        type="button"
-        onClick={toggleSidebar}
-        aria-label="Open sidebar"
-        className="flex h-7 w-7 items-center justify-center rounded-sm text-[#111827] transition-colors hover:bg-slate-100"
-      >
-        <PanelLeft size={13} strokeWidth={2.1} />
-      </button>
-      <Image
-        src={ADMIN_LOGO_CONFIG.expanded.src}
-        alt="Digital Logbook"
-        width={120}
-        height={32}
-        className="h-8 w-auto object-contain"
-      />
-    </header>
-  );
-}
 
 export default function InvitationsView() {
   // State

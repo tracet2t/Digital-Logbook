@@ -82,7 +82,7 @@ export default function MonitorMenteeCard({
             </p>
             {mentee.taskStatus && (
               <Badge
-                variant="outline"
+                variant="default"
                 className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${taskStatusStyles[mentee.taskStatus]}`}
               >
                 {taskStatusLabels[mentee.taskStatus]}

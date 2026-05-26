@@ -14,7 +14,8 @@
     "migrate:testdb": "dotenv -e .env.test -- npx prisma migrate dev",
     "db:studio": "npx prisma studio",
     "db:delete": "npx prisma migrate reset --force",
-    "db:reset": "npm run db:delete && npm run migrate:maindb && npm run seed"
+    "db:reset": "npm run db:delete && npm run migrate:maindb && npm run seed",
+    "ci": "npm run lint && tsc --noEmit && npm test"
   },
   "engines": {
     "node": "22.7.0",
@@ -101,6 +102,7 @@
     "@jest/globals": "^29.7.0",
     "@jest/types": "^29.6.3",
     "@tanstack/eslint-plugin-query": "^5.91.5",
+    "@testing-library/react": "^16.3.0",
     "@types/babel__generator": "^7.6.8",
     "@types/babel__template": "^7.4.4",
     "@types/babel__traverse": "^7.20.6",

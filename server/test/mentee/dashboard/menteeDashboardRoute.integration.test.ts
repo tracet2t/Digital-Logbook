@@ -93,21 +93,6 @@ async function createFeedback(args: {
   return feedback;
 }
 
-function createSessionToken(payload: {
-  email: string;
-  id: string | null;
-  role: Role;
-  fname: string;
-  lname: string;
-}) {
-  const header = Buffer.from(
-    JSON.stringify({ alg: "none", typ: "JWT" }),
-  ).toString("base64");
-  const body = Buffer.from(JSON.stringify(payload)).toString("base64");
-  const signature = "sig";
-  return header + "." + body + "." + signature;
-}
-
 function createDashboardRequest(args: {
   page?: string | number;
   pageSize?: string | number;

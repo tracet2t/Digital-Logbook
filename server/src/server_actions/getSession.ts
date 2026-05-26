@@ -11,7 +11,7 @@ import { select } from "@/lib/extras";
 
 class JwtPayloadSession {
   public payload: any;
-  role: string | null;
+  role: Role | null = null;
 
   constructor(payload: string) {
     this.payload = payload;

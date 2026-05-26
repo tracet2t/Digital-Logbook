@@ -8,7 +8,7 @@ import "@orpc/server/fetch";
 
 export const dynamic = "force-dynamic";
 
-const handler = new RPCHandler(router, {
+const handler = new RPCHandler(router as any, {
   plugins: [new RatelimitHandlerPlugin() as any],
   interceptors: [
     onError((error) => {

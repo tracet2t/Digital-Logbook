@@ -1,4 +1,4 @@
-import type { MonitorMentorCard } from "@/_hooks/admin/useAdminMonitor";
+import type { MonitorMentorCard as MonitorMentorCardData } from "@/_hooks/admin/useAdminMonitor";
 import type { MonitorMenteeCardData } from "@/_hooks/admin/useAdminMonitorMentees";
 import type { MonitorUserCardData } from "@/_hooks/admin/useAdminMonitorUsers";
 
@@ -15,7 +15,7 @@ interface MonitorListsProps {
   menteeError?: Error | null;
   isUsersLoading: boolean;
   usersError?: Error | null;
-  filteredMentors: MonitorMentorCard[];
+  filteredMentors: MonitorMentorCardData[];
   filteredMentees: MonitorMenteeCardData[];
   filteredUsers: MonitorUserCardData[];
   remindingMentorId: string | null;

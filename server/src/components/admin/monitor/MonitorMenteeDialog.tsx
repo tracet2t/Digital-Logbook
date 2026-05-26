@@ -3,7 +3,9 @@
 import { useMemo, useState } from "react";
 
 import dayjs from "dayjs";
-import CalendarHeatmap from "react-calendar-heatmap";
+import CalendarHeatmap, {
+  type ReactCalendarHeatmapValue,
+} from "react-calendar-heatmap";
 
 import "react-calendar-heatmap/dist/styles.css";
 import "@/styles/activityHeatmap.css";
@@ -58,10 +60,14 @@ const buildHeatmapData = (
   }));
 };
 
-const getHeatmapColorClass = (value: { count?: number } | null) => {
-  if (!value || value.count === 0) return "color-empty";
-  if (value.count === 1) return "color-scale-3";
-  if (value.count === 2) return "color-scale-5";
+const getHeatmapColorClass = (
+  value: ReactCalendarHeatmapValue<string> | undefined,
+) => {
+  const count = value?.count ?? 0;
+
+  if (count === 0) return "color-empty";
+  if (count === 1) return "color-scale-3";
+  if (count === 2) return "color-scale-5";
   return "color-scale-10";
 };
 
@@ -198,8 +204,10 @@ export default function MonitorMenteeDialog({
                       values={heatmapData}
                       classForValue={getHeatmapColorClass}
                       showWeekdayLabels
-                      titleForValue={(value: any) => {
-                        if (!value || !value.date) return "No tasks";
+                      titleForValue={(
+                        value?: ReactCalendarHeatmapValue<string>,
+                      ) => {
+                        if (!value?.date) return "No tasks";
                         const formattedDate = dayjs(value.date)
                           .format("DD MMM YYYY")
                           .toUpperCase();

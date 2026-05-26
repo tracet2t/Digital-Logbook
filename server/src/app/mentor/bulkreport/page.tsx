@@ -1,112 +1,121 @@
-'use client'; 
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from "react";
+
+import { Parser } from "json2csv";
+import { useRouter } from "next/navigation";
+
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 
-import { Button } from '@/components/ui/button';
-import { Parser } from 'json2csv';
-
 const BulkReports: React.FC = () => {
-  const router = useRouter(); 
+  const router = useRouter();
 
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-interface Activity {
-  id: string;
-  date: string;
-  notes: string;
-  timeSpent: number;
-  feedback: any[]; // You can type this according to your feedback structure if needed
-}
+  interface Activity {
+    id: string;
+    date: string;
+    notes: string;
+    timeSpent: number;
+    feedback: any[]; // You can type this according to your feedback structure if needed
+  }
 
-interface Student {
-  id: string;
-  firstName: string;
-  lastName: string;
-  activities: Activity[];
-}
+  interface Student {
+    id: string;
+    firstName: string;
+    lastName: string;
+    activities: Activity[];
+  }
 
-interface ReportData {
-  id: string;
-  student: Student;
-  mentorId: string;
-  studentId: string;
-}
+  interface ReportData {
+    id: string;
+    student: Student;
+    mentorId: string;
+    studentId: string;
+  }
 
-interface Report {
-  id: string;
-  mentorId: string;
-  reportData: ReportData[];
-  status: string;
-  generatedAt: string;
-}
+  interface Report {
+    id: string;
+    mentorId: string;
+    reportData: ReportData[];
+    status: string;
+    generatedAt: string;
+  }
 
-// Function to handle report generation using json2csv
-const handleReport = async (report: Report): Promise<void> => {
-  try {
-    if (!report || report.reportData.length === 0) {
-      console.error("No data available");
-      return;
-    }
+  // Function to handle report generation using json2csv
+  const handleReport = async (report: Report): Promise<void> => {
+    try {
+      if (!report || report.reportData.length === 0) {
+        console.error("No data available");
+        return;
+      }
 
-    // Extract data and structure it for CSV generation
-    const formattedData: any[] = [];
-    
-    report.reportData.forEach((reportItem: ReportData) => {
-      const { student } = reportItem;
-      const { firstName, lastName, activities } = student;
+      // Extract data and structure it for CSV generation
+      const formattedData: any[] = [];
 
-      activities.forEach((activity: Activity) => {
-        formattedData.push({
-          reportId: report.id,
-          mentorId: report.mentorId,
-          status: report.status,
-          generatedAt: report.generatedAt,
-          reportDataId: reportItem.id,
-          studentId: student.id,
-          studentFirstName: firstName,
-          studentLastName: lastName,
-          activityId: activity.id,
-          activityDate: activity.date,
-          activityNotes: activity.notes,
-          timeSpent: activity.timeSpent,
+      report.reportData.forEach((reportItem: ReportData) => {
+        const { student } = reportItem;
+        const { firstName, lastName, activities } = student;
+
+        activities.forEach((activity: Activity) => {
+          formattedData.push({
+            reportId: report.id,
+            mentorId: report.mentorId,
+            status: report.status,
+            generatedAt: report.generatedAt,
+            reportDataId: reportItem.id,
+            studentId: student.id,
+            studentFirstName: firstName,
+            studentLastName: lastName,
+            activityId: activity.id,
+            activityDate: activity.date,
+            activityNotes: activity.notes,
+            timeSpent: activity.timeSpent,
+          });
         });
       });
-    });
 
-    // Define the fields for the CSV
-    const fields = [
-      'reportId', 'mentorId', 'status', 'generatedAt',
-      'reportDataId', 'studentId', 'studentFirstName', 'studentLastName',
-      'activityId', 'activityDate', 'activityNotes', 'timeSpent'
-    ];
-    
-    const json2csvParser = new Parser({ fields });
-    const csv = json2csvParser.parse(formattedData);
+      // Define the fields for the CSV
+      const fields = [
+        "reportId",
+        "mentorId",
+        "status",
+        "generatedAt",
+        "reportDataId",
+        "studentId",
+        "studentFirstName",
+        "studentLastName",
+        "activityId",
+        "activityDate",
+        "activityNotes",
+        "timeSpent",
+      ];
 
-    // Trigger download of the CSV
-    const csvContent = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-    const a = document.createElement('a');
-    a.href = csvContent;
-    a.download = 'mentee_bulk_activity_report.csv'; // Customize the filename
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+      const json2csvParser = new Parser({ fields });
+      const csv = json2csvParser.parse(formattedData);
 
-  } catch (error) {
-    console.error('Error generating report:', error);
-  }
-};
+      // Trigger download of the CSV
+      const csvContent =
+        "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+      const a = document.createElement("a");
+      a.href = csvContent;
+      a.download = "mentee_bulk_activity_report.csv"; // Customize the filename
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (error) {
+      console.error("Error generating report:", error);
+    }
+  };
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -125,7 +134,7 @@ const handleReport = async (report: Report): Promise<void> => {
         setLoading(false);
       }
     };
-  
+
     fetchReports();
   }, []);
 
@@ -139,10 +148,10 @@ const handleReport = async (report: Report): Promise<void> => {
         >
           <span className="mr-2 font-bold">&larr;</span> Back
         </button>
-
-        
       </div>
-      <h1 className="text-3xl font-bold text-gray-800 mb-10 mt-1 text-center">Bulk Reports</h1>
+      <h1 className="text-3xl font-bold text-gray-800 mb-10 mt-1 text-center">
+        Bulk Reports
+      </h1>
       {loading && <p className="text-blue-500">Loading reports...</p>}
       {error && <p className="text-red-500">{error}</p>}
       {!loading && !error && (
@@ -150,10 +159,18 @@ const handleReport = async (report: Report): Promise<void> => {
           <Table className="w-full divide-y divide-gray-200">
             <TableHeader>
               <TableRow>
-                <TableCell className="p-4 font-semibold text-left">Date</TableCell>
-                <TableCell className="p-4 font-semibold text-left">Bulk Report Generation Id</TableCell>
-                <TableCell className="p-4 font-semibold text-left">Status</TableCell>
-                <TableCell className="p-4 font-semibold text-left">Link</TableCell>
+                <TableCell className="p-4 font-semibold text-left">
+                  Date
+                </TableCell>
+                <TableCell className="p-4 font-semibold text-left">
+                  Bulk Report Generation Id
+                </TableCell>
+                <TableCell className="p-4 font-semibold text-left">
+                  Status
+                </TableCell>
+                <TableCell className="p-4 font-semibold text-left">
+                  Link
+                </TableCell>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -167,10 +184,13 @@ const handleReport = async (report: Report): Promise<void> => {
                     <TableCell className="p-4">
                       <span
                         className={`inline-block px-2 py-1 rounded-full text-white ${
-                          report.status === 'pending' ? 'bg-yellow-500' :
-                          report.status === 'completed' ? 'bg-green-500' :
-                          report.status === 'wip' ? 'bg-blue-500' :
-                          'bg-red-500'
+                          report.status === "pending"
+                            ? "bg-yellow-500"
+                            : report.status === "completed"
+                              ? "bg-green-500"
+                              : report.status === "wip"
+                                ? "bg-blue-500"
+                                : "bg-red-500"
                         }`}
                       >
                         {report.status}
@@ -178,9 +198,15 @@ const handleReport = async (report: Report): Promise<void> => {
                     </TableCell>
                     <TableCell className="p-4">
                       {report.reportData ? (
-                        <Button onClick={()=> {handleReport(report)}} 
-                        className='border-2 border-blue-500 text-blue-500 px-4 py-2 bg-[#F0F8FF] rounded-md hover:border-blue-600 hover:bg-blue-100'
-                        > Download </Button>
+                        <Button
+                          onClick={() => {
+                            handleReport(report);
+                          }}
+                          className="border-2 border-blue-500 text-blue-500 px-4 py-2 bg-[#F0F8FF] rounded-md hover:border-blue-600 hover:bg-blue-100"
+                        >
+                          {" "}
+                          Download{" "}
+                        </Button>
                       ) : (
                         <span className="text-gray-500">N/A</span>
                       )}
@@ -189,7 +215,10 @@ const handleReport = async (report: Report): Promise<void> => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={4} className="p-4 text-center text-gray-500">
+                  <TableCell
+                    colSpan={4}
+                    className="p-4 text-center text-gray-500"
+                  >
                     No reports found.
                   </TableCell>
                 </TableRow>

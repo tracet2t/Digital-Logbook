@@ -322,7 +322,7 @@ export default function InvitationsMainContent({
       />
       <DeleteInvitationDialog
         open={!!deleteId}
-        onOpenChange={(open: any) => !open && setDeleteId(null)}
+        onOpenChange={(open: boolean) => !open && setDeleteId(null)}
         onDelete={() =>
           deleteId &&
           deleteInvitation(

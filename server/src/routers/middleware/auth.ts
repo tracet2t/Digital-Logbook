@@ -2,11 +2,13 @@ import getSession from "@/server_actions/getSession";
 import { ORPCError, os } from "@orpc/server";
 import { Role } from "@prisma/client";
 
+import type { AppContext } from "./base";
+
 /**
  * Context interface for authenticated users
  */
 export interface AuthContext {
-  session: any;
+  session: NonNullable<AppContext["session"]>;
   userId: string;
   userRole: Role | null;
 }
@@ -23,22 +25,27 @@ export interface AuthContext {
  * @throws {ORPCError} "Unauthorized" if session is invalid or user is not authenticated
  */
 export const authMiddleware = os
-  .$context<Record<string, never>>()
+  .$context<AppContext>()
   .middleware(async ({ next }) => {
-  const session = await getSession();
+    const session = await getSession();
 
-  if (!session || !session.isAuthenticated()) {
-    throw new ORPCError("Unauthorized");
-  }
+    if (!session || !session.isAuthenticated()) {
+      throw new ORPCError("Unauthorized");
+    }
 
-  return next({
-    context: {
-      session,
-      userId: session.getId(),
-      userRole: session.getRole(),
-    },
+    const userId = session.getId();
+    if (!userId) {
+      throw new ORPCError("Unauthorized");
+    }
+
+    return next({
+      context: {
+        session,
+        userId,
+        userRole: session.getRole(),
+      },
+    });
   });
-});
 
 /**
  * Super Admin authorization middleware

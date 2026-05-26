@@ -1,12 +1,4 @@
-import {
-  BarChart2,
-  Book,
-  BookKey,
-  Calendar,
-  LayoutDashboard,
-  School,
-  Users,
-} from "lucide-react";
+import { Calendar, LayoutDashboard, Users } from "lucide-react";
 
 import { LogoConfig, MenuItem } from "@/components/AsideSidebar";
 

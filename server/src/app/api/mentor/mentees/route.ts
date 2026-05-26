@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 import prisma from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export const GET = async (req: NextRequest) => {
   try {
     const session = await getSession();
@@ -113,7 +115,6 @@ export const GET = async (req: NextRequest) => {
       // Determine if the student's project allocation has been accepted overall
       const acceptedStudentIds = new Set(
         allocations
-          // @ts-expect-error - Prisma type generation issue
           .filter((a) => a.timeAllocationStatus === "accepted")
           .map((a) => a.studentId),
       );

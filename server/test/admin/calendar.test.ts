@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+
 import moment from "moment";
 
 // ============================================================================
@@ -7,10 +8,7 @@ import moment from "moment";
 // ============================================================================
 
 describe("TaskCalendar - source structure", () => {
-  const filePath = path.resolve(
-    __dirname,
-    "../../src/components/calendar.tsx",
-  );
+  const filePath = path.resolve(__dirname, "../../src/components/calendar.tsx");
 
   const source = fs.readFileSync(filePath, "utf8");
 
@@ -19,16 +17,30 @@ describe("TaskCalendar - source structure", () => {
   });
 
   test("imports all three dialog components", () => {
-    expect(source).toContain('import MentorTaskDetailDialog from "./mentorTaskDetailDialog"');
-    expect(source).toContain('import MentorStudentTaskDetailDialog from "./mentorStudentTaskDetailDialog"');
-    expect(source).toContain('import StudentTaskDetailDialog from "./studentTaskDetailDialog"');
+    expect(source).toContain(
+      'import MentorTaskDetailDialog from "./mentorTaskDetailDialog"',
+    );
+    expect(source).toContain(
+      'import MentorStudentTaskDetailDialog from "./mentorStudentTaskDetailDialog"',
+    );
+    expect(source).toContain(
+      'import StudentTaskDetailDialog from "./studentTaskDetailDialog"',
+    );
   });
 
   test("imports custom hooks", () => {
-    expect(source).toContain('import { useCalendarEvents } from "@/hooks/useCalendarEvents"');
-    expect(source).toContain('import { useFormData } from "@/hooks/useFormData"');
-    expect(source).toContain('import { useSubmission } from "@/hooks/useSubmission"');
-    expect(source).toContain('import { useEventForDate } from "@/hooks/useEventForDate"');
+    expect(source).toContain(
+      'import { useCalendarEvents } from "@/hooks/useCalendarEvents"',
+    );
+    expect(source).toContain(
+      'import { useFormData } from "@/hooks/useFormData"',
+    );
+    expect(source).toContain(
+      'import { useSubmission } from "@/hooks/useSubmission"',
+    );
+    expect(source).toContain(
+      'import { useEventForDate } from "@/hooks/useEventForDate"',
+    );
   });
 
   test("fetches session on mount and sets studentId and role", () => {
@@ -78,7 +90,9 @@ describe("TaskCalendar - source structure", () => {
   test("renders toast conditionally", () => {
     expect(source).toContain("{toast && (");
     expect(source).toContain("<ToastTitle>{toast.title}</ToastTitle>");
-    expect(source).toContain("<ToastDescription>{toast.description}</ToastDescription>");
+    expect(source).toContain(
+      "<ToastDescription>{toast.description}</ToastDescription>",
+    );
   });
 
   test("CalendarEvent status field supports pending, approved, rejected", () => {
@@ -148,6 +162,8 @@ describe("TaskCalendar - CalendarEvent status", () => {
   type EventStatus = "pending" | "approved" | "rejected";
 
   const validStatuses: EventStatus[] = ["pending", "approved", "rejected"];
+  const shouldAutoSubmit = (status: EventStatus) =>
+    status === "approved" || status === "rejected";
 
   test("all valid status values are accepted", () => {
     validStatuses.forEach((s) => {
@@ -157,20 +173,17 @@ describe("TaskCalendar - CalendarEvent status", () => {
 
   test("auto-submit triggers for approved status", () => {
     const status: EventStatus = "approved";
-    const shouldSubmit = status === "approved" || status === "rejected";
-    expect(shouldSubmit).toBe(true);
+    expect(shouldAutoSubmit(status)).toBe(true);
   });
 
   test("auto-submit triggers for rejected status", () => {
     const status: EventStatus = "rejected";
-    const shouldSubmit = status === "approved" || status === "rejected";
-    expect(shouldSubmit).toBe(true);
+    expect(shouldAutoSubmit(status)).toBe(true);
   });
 
   test("auto-submit does not trigger for pending status", () => {
     const status: EventStatus = "pending";
-    const shouldSubmit = status === "approved" || status === "rejected";
-    expect(shouldSubmit).toBe(false);
+    expect(shouldAutoSubmit(status)).toBe(false);
   });
 });
 

@@ -243,6 +243,7 @@ export function TaskTimeline({
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious
+                size="default"
                 onClick={() => setPage((prev) => Math.max(1, prev - 1))}
                 disabled={safePage === 1}
               />
@@ -253,6 +254,7 @@ export function TaskTimeline({
                   <PaginationEllipsis />
                 ) : (
                   <PaginationLink
+                    size="default"
                     isActive={item === safePage}
                     onClick={() => setPage(item)}
                   >
@@ -263,6 +265,7 @@ export function TaskTimeline({
             ))}
             <PaginationItem>
               <PaginationNext
+                size="default"
                 onClick={() =>
                   setPage((prev) => Math.min(totalPages, prev + 1))
                 }
