@@ -359,7 +359,7 @@ const LoginPage = () => {
                     </div>
                   ) : Object.keys(errors).length > 0 ? (
                     <div className="flex items-center gap-3">
-                      <span>ERROR - TRY AGAIN</span>
+                      <span>TRY AGAIN</span>
                     </div>
                   ) : (
                     "SIGN IN"

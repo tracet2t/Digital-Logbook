@@ -160,7 +160,7 @@ export default function CreateAccountShowcasePage() {
             <div className="w-full max-w-[520px] space-y-8">
               <div className="mb-10 space-y-2 text-left">
                 <h2 className="text-4xl font-black tracking-tight text-white">
-                  Create Account
+                  Register as a Mentee
                 </h2>
                 <p className="text-[15px] text-white/70">
                   Enter your details to begin your journey.
@@ -446,14 +446,14 @@ export default function CreateAccountShowcasePage() {
                       ) : onboardingMutation.isPending ? (
                         <div className="flex items-center gap-3">
                           <Loader2 className="h-6 w-6 animate-spin" />
-                          <span>Creating Account...</span>
+                          <span>Submitting...</span>
                         </div>
                       ) : Object.keys(form.formState.errors).length > 0 ? (
                         <div className="flex items-center gap-3">
-                          <span>ERROR - TRY AGAIN</span>
+                          <span>TRY AGAIN</span>
                         </div>
                       ) : (
-                        "Create Mentee"
+                        "Submit Application"
                       )}
                     </Button>
                   </div>
