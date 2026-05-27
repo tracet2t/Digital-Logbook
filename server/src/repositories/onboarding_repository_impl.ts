@@ -1,3 +1,4 @@
+import { decryptNIC, encryptNIC } from "@/lib/encryption";
 import prisma from "@/lib/prisma";
 
 import BaseRepository from "./baseRepository";
@@ -16,15 +17,34 @@ export class OnboardingRepository extends BaseRepository<MenteeApplication> {
     super(prisma.menteeApplication);
   }
 
+  private decryptApp(app: MenteeApplication | null): MenteeApplication | null {
+    if (app?.nic) {
+      try {
+        return { ...app, nic: decryptNIC(app.nic) };
+      } catch {
+        return app;
+      }
+    }
+    return app;
+  }
+
+  async getAll(
+    options: Record<string, any> = {},
+  ): Promise<MenteeApplication[]> {
+    const apps = await super.getAll(options);
+    return apps.map((a) => this.decryptApp(a)!);
+  }
+
   /**
    * Find a mentee application by email address
    * @param email - The email to search for
    * @returns The mentee application if found, null otherwise
    */
   async findByEmail(email: string): Promise<MenteeApplication | null> {
-    return this.modelClient.findUnique({
+    const app = await this.modelClient.findUnique({
       where: { email },
     });
+    return this.decryptApp(app);
   }
 
   /**
@@ -35,10 +55,11 @@ export class OnboardingRepository extends BaseRepository<MenteeApplication> {
   async findByStatus(
     status: MenteeApplicationStatus,
   ): Promise<MenteeApplication[]> {
-    return this.modelClient.findMany({
+    const apps = await this.modelClient.findMany({
       where: { status },
       orderBy: { createdAt: "desc" },
     });
+    return apps.map((a) => this.decryptApp(a)!);
   }
 
   /**
@@ -110,6 +131,7 @@ export class OnboardingRepository extends BaseRepository<MenteeApplication> {
     return this.modelClient.create({
       data: {
         ...data,
+        nic: encryptNIC(data.nic),
         status: "pending",
       },
     });
@@ -121,7 +143,8 @@ export class OnboardingRepository extends BaseRepository<MenteeApplication> {
    * @returns The mentee application with all fields, null if not found
    */
   async getApplicationById(id: string): Promise<MenteeApplication | null> {
-    return this.getById(id);
+    const app = await this.getById(id);
+    return this.decryptApp(app);
   }
 
   /**
@@ -134,7 +157,7 @@ export class OnboardingRepository extends BaseRepository<MenteeApplication> {
     startDate: Date,
     endDate: Date,
   ): Promise<MenteeApplication[]> {
-    return this.modelClient.findMany({
+    const apps = await this.modelClient.findMany({
       where: {
         createdAt: {
           gte: startDate,
@@ -143,6 +166,7 @@ export class OnboardingRepository extends BaseRepository<MenteeApplication> {
       },
       orderBy: { createdAt: "desc" },
     });
+    return apps.map((a) => this.decryptApp(a)!);
   }
 
   /**
@@ -151,7 +175,7 @@ export class OnboardingRepository extends BaseRepository<MenteeApplication> {
    * @returns Array of matching mentee applications
    */
   async searchApplications(searchTerm: string): Promise<MenteeApplication[]> {
-    return this.modelClient.findMany({
+    const apps = await this.modelClient.findMany({
       where: {
         OR: [
           { fullName: { contains: searchTerm, mode: "insensitive" } },
@@ -160,6 +184,7 @@ export class OnboardingRepository extends BaseRepository<MenteeApplication> {
       },
       orderBy: { createdAt: "desc" },
     });
+    return apps.map((a) => this.decryptApp(a)!);
   }
 
   /**
