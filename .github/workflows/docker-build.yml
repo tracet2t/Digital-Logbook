@@ -5,6 +5,16 @@ on:
     branches: [dev-stage, development]
   pull_request:
     branches: [dev-stage, development]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to run checks on"
+        required: false
+        default: "development"
+        type: choice
+        options:
+          - development
+          - dev-stage
 
 jobs:
   docker-build:
