@@ -1,5 +1,7 @@
-import prisma from "@/lib/prisma";
 import { Project } from "@prisma/client";
+
+import prisma from "@/lib/prisma";
+
 import BaseRepository from "./baseRepository";
 
 //-- Project Repository --//
@@ -192,6 +194,7 @@ export class ProjectRepository extends BaseRepository<Project> {
   // Get all projects with mentor and mentee counts
   async getAllProjectsWithCounts() {
     const projects = await prisma.project.findMany({
+      orderBy: [{ projectOrder: "asc" }, { createdAt: "asc" }],
       include: {
         mentors: true,
         assignments: true,
@@ -270,5 +273,18 @@ export class ProjectRepository extends BaseRepository<Project> {
       where: { mentorId },
       include: { project: true },
     });
+  }
+  // Get email addresses of all mentors assigned to a project
+  async getProjectMentorsEmails(projectId: string): Promise<string[]> {
+    const mentors = await prisma.projectMentor.findMany({
+      where: { projectId },
+      include: {
+        mentor: {
+          select: { email: true },
+        },
+      },
+    });
+
+    return mentors.map((m) => m.mentor.email);
   }
 }

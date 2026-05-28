@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import getSession from "@/server_actions/getSession";
-import { parse } from "json2csv";
 import { UserRepository } from "@/repositories/user_repository_impl";
+import getSession from "@/server_actions/getSession";
 import { Activity, MentorFeedback } from "@prisma/client";
+import { parse } from "json2csv";
+import { NextRequest, NextResponse } from "next/server";
 
 const userRepository = new UserRepository();
 
@@ -27,7 +27,9 @@ export const GET = async (req: NextRequest) => {
     }
 
     const url = new URL(req.url);
-    const menteeId = url.searchParams.get("menteeId");
+    const menteeId =
+      url.searchParams.get("menteeId") ?? url.searchParams.get("studentId");
+    const format = url.searchParams.get("format");
 
     if (!menteeId) {
       return NextResponse.json(
@@ -63,6 +65,13 @@ export const GET = async (req: NextRequest) => {
       "feedbackStatus",
       "feedbackNotes",
     ];
+
+    if (format === "json") {
+      return NextResponse.json({
+        studentName: `${userWithActivities.firstName} ${userWithActivities.lastName}`,
+        activities,
+      });
+    }
 
     const csv = parse(activities, { fields });
 

@@ -18,6 +18,7 @@ model User {
   isActive         Boolean          @default(true)
   isFirstTimeLogin Boolean          @default(true)
   invitedBy        String?
+  batchNo          String?
 
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
@@ -30,6 +31,8 @@ model User {
 
   badges           UserBadge[]
 
+  warningStatuses  WarningStatus[]
+
   invitationsSent  Invitation[]     @relation("InvitationSender")
 
   projectAllocations ProjectAllocation[] @relation(name: "StudentProjects")
@@ -38,20 +41,24 @@ model User {
 
   projectTechnologies ProjectTechnology[]
 
+  articles     Article[]        @relation("ArticleAuthor")
+
   @@map("users")
 }
 
 model Activity {
-  id        String   @id @default(uuid())
+  id        String         @id @default(uuid())
   studentId String
   date      DateTime
   timeSpent Int
   notes     String?
+  technologies String[]    @default([])
+  status    ActivityStatus @default(pending)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
 
-  student   User     @relation(fields: [studentId], references: [id])
+  student   User           @relation(fields: [studentId], references: [id])
 
   feedback  MentorFeedback[]
 
@@ -104,7 +111,7 @@ model MentorActivity {
 model Invitation {
   id         String   @id @default(uuid())
   email      String
-  role       Role
+  role       Role @default(student)
   token      String   @unique
   invitedBy  String?
   projectId  String?
@@ -123,7 +130,9 @@ model Project {
   id          String        @id @default(uuid())
   name        String
   description String?
-  domain      ProjectDomain
+  domain      String
+  batchNo     String?
+  projectOrder Int          @default(0)
 
   createdBy   String
 
@@ -144,6 +153,7 @@ model ProjectAllocation {
   studentId String
 
   assignedAt DateTime @default(now())
+  timeAllocationStatus TimeAllocationStatus @default(inReview)
 
   project    Project  @relation(fields: [projectId], references: [id])
   student    User     @relation(fields: [studentId], references: [id], name: "StudentProjects")
@@ -204,19 +214,17 @@ enum FeedbackStatus {
   pending
 }
 
+enum ActivityStatus {
+  pending
+  accepted
+  rejected
+}
+
 enum ProcessStatus {
   pending
   error
   completed
   wip
-}
-
-enum ProjectDomain {
-  software
-  film
-  training
-  research
-  other
 }
 
 model ProjectTechnology {
@@ -234,4 +242,120 @@ model ProjectTechnology {
 
   @@unique([projectId, studentId, name])
   @@map("projectTechnologies")
+}
+
+enum TimeAllocationStatus {
+  inReview
+  accepted
+  rejected
+}
+
+model MenteeApplication {
+  id            String                    @id @default(uuid())
+  fullName      String
+  email         String                    @unique
+  university    String
+  degreeProgram String
+  cvLink        String
+  status        MenteeApplicationStatus   @default(pending)
+
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+
+  @@map("menteeApplications")
+}
+
+enum MenteeApplicationStatus {
+  pending
+  approved
+  rejected
+  inactive
+}
+
+enum WarningCategory {
+  low
+  medium
+  high
+}
+
+model WarningStatus {
+  id          String          @id @default(uuid())
+  studentId   String
+  comment     String
+  warningType WarningCategory?
+  student     User            @relation(fields: [studentId], references: [id])
+
+  @@map("warningStatuses")
+}
+
+// CMS 
+
+model Article {
+  id            String        @id @default(cuid())
+  title         String
+  slug          String        @unique
+  excerpt       String?
+  content       String        @db.Text
+  featuredImage String?
+  status        ArticleStatus @default(DRAFT)
+  isHero        Boolean       @default(false)
+  isEvent       Boolean       @default(false)
+  publishedAt   DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Only superAdmin users can author articles
+  authorId      String
+  author        User          @relation("ArticleAuthor", fields: [authorId], references: [id])
+
+  tags          ArticleTag[]
+  seo           ArticleSeo?
+  event         ArticleEvent?
+
+  @@map("articles")
+}
+
+model ArticleTag {
+  id        String  @id @default(cuid())
+  articleId String
+  label     String
+
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, label])
+  @@map("articleTags")
+}
+
+model ArticleSeo {
+  id          String  @id @default(cuid())
+  articleId   String  @unique
+  metaTitle   String?
+  metaDesc    String?
+  ogImage     String?
+
+  article     Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@map("articleSeo")
+}
+
+model ArticleEvent {
+  id            String   @id @default(cuid())
+  articleId     String   @unique
+  eventDate     DateTime?
+  eventTime     String?
+  location      String?
+  tag           String?
+  venue         String?
+  venueMapLink  String?
+  registerLink  String?
+
+  article       Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@map("articleEvents")
+}
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
 }

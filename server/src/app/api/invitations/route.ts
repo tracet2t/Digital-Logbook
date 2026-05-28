@@ -2,7 +2,7 @@ import { InvitationRepository } from "@/repositories/invitation_repository_impl"
 import { UserRepository } from "@/repositories/user_repository_impl";
 import getSession from "@/server_actions/getSession";
 import { registerStudent } from "@/services/registerstudent";
-import { Invitation, Project, Role } from "@prisma/client";
+import { Invitation, Role } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 import { sendEmail } from "@/lib/email";
@@ -22,6 +22,8 @@ type InvitationWithInviter = Invitation & {
 // Type for mapped invitation response
 interface MappedInvitation {
   id: string;
+  firstName: string | null;
+  lastName: string | null;
   email: string;
   role: string;
   project: string;
@@ -54,10 +56,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const invitedBy = session.getId();
+    const inviterEmail = session.getUsername();
+    const inviterUser = inviterEmail
+      ? await userRepository.getByEmail(inviterEmail)
+      : null;
+    const invitedBy = inviterUser?.id ?? session.getId();
     if (!invitedBy) {
       return NextResponse.json(
         { message: "Unauthorized: Invalid session" },
+        { status: 401 },
+      );
+    }
+    if (!inviterUser) {
+      return NextResponse.json(
+        { message: "Unauthorized: Inviter account not found" },
         { status: 401 },
       );
     }
@@ -65,6 +77,15 @@ export async function POST(req: NextRequest) {
     // 3. Parse and validate the request body
     const body = await req.json();
     const { email, role, firstName, lastName, projectId } = body;
+
+    // Log incoming payload for debugging (avoid logging sensitive tokens)
+    console.info("[invitation] create payload:", {
+      email,
+      role,
+      firstName,
+      lastName,
+      projectId,
+    });
 
     if (!email || !role) {
       return NextResponse.json(
@@ -223,6 +244,13 @@ export async function GET(req: NextRequest) {
 
     const projectById = new Map(projects.map((p) => [p.id, p.name]));
 
+    const emailSet = new Set(invitations.map((inv) => inv.email));
+    const users = await prisma.user.findMany({
+      where: { email: { in: Array.from(emailSet) } },
+      select: { email: true, firstName: true, lastName: true },
+    });
+    const userByEmail = new Map(users.map((u) => [u.email, u]));
+
     const now = new Date();
 
     const mapped: MappedInvitation[] = invitations.map((inv) => {
@@ -232,11 +260,15 @@ export async function GET(req: NextRequest) {
           ? "Expired"
           : "Pending";
 
+      const user = userByEmail.get(inv.email);
+
       return {
         id: inv.id,
+        firstName: user?.firstName ?? null,
+        lastName: user?.lastName ?? null,
         email: inv.email,
         role: inv.role,
-        project: inv.projectId ? projectById.get(inv.projectId) ?? "—" : "—",
+        project: inv.projectId ? (projectById.get(inv.projectId) ?? "—") : "—",
         status,
         createdAt: inv.createdAt,
         expiresAt: inv.expiresAt,

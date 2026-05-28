@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" role="img" aria-label="Mentor workspace">
+  <rect width="1200" height="700" fill="#f4f7ff"/>
+  <rect x="0" y="0" width="1200" height="70" fill="#0a1f6b"/>
+  <rect x="0" y="70" width="250" height="630" fill="#132d86"/>
+  <rect x="290" y="110" width="870" height="90" rx="12" fill="#ffffff" stroke="#d8e0ff"/>
+  <rect x="290" y="220" width="430" height="420" rx="12" fill="#ffffff" stroke="#d8e0ff"/>
+  <rect x="740" y="220" width="420" height="420" rx="12" fill="#ffffff" stroke="#d8e0ff"/>
+  <rect x="320" y="258" width="240" height="16" rx="5" fill="#1a43b8"/>
+  <rect x="320" y="292" width="360" height="12" rx="4" fill="#6f88dc"/>
+  <rect x="320" y="320" width="320" height="12" rx="4" fill="#6f88dc"/>
+  <rect x="770" y="258" width="200" height="16" rx="5" fill="#1a43b8"/>
+  <rect x="770" y="292" width="360" height="12" rx="4" fill="#6f88dc"/>
+  <rect x="770" y="320" width="320" height="12" rx="4" fill="#6f88dc"/>
+</svg>

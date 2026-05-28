@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+
 import { useRouter } from "next/navigation";
+
 // import { toast } from "react-toastify";
 
 export default function PasswordResetPage() {
@@ -54,6 +56,7 @@ export default function PasswordResetPage() {
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
         <h1 className="text-2xl font-bold mb-4">Reset Your Password</h1>
+        {error && <p className="text-sm text-red-600">{error}</p>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label

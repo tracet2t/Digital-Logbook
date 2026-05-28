@@ -1,14 +1,17 @@
 "use server";
+
 /* 
 Credit for this entire method goes to B. Saranga
 */
-import { select } from "@/lib/extras";
-import { cookies } from "next/headers";
-import { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
 import { Role } from "@/types";
+import { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
+import { cookies } from "next/headers";
+
+import { select } from "@/lib/extras";
 
 class JwtPayloadSession {
   public payload: any;
+  role: Role | null = null;
 
   constructor(payload: string) {
     this.payload = payload;

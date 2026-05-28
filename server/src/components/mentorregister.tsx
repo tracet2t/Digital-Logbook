@@ -86,9 +86,7 @@ const RegistrationForm: React.FC = () => {
         {/* Registration Form within a Card */}
         <Card className="w-full max-w-md mx-auto mt-20">
           <CardHeader>
-            <CardTitle className="text-center">
-              Register a New Mentee
-            </CardTitle>
+            <CardTitle className="text-center">Register a New Mentee</CardTitle>
             <CardDescription className="text-center">
               Fill in the details below to register a new mentee.
             </CardDescription>
@@ -120,7 +118,12 @@ const RegistrationForm: React.FC = () => {
                 />
               </div>
               <CardFooter className="flex justify-center">
-                <Button type="submit" variant="blue" size="lg">
+                <Button
+                  type="submit"
+                  variant="default"
+                  size="lg"
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
                   Register
                 </Button>
               </CardFooter>

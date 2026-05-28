@@ -1,7 +1,9 @@
+import { MentorFeedback, type Prisma } from "@prisma/client";
+
 import prisma from "@/lib/prisma";
-import {MentorFeedback,} from "@prisma/client";
+
 import BaseRepository from "./baseRepository";
-import crypto from "crypto"
+
 /*
 
       //-- Mentor Feedback Repository --//
@@ -69,40 +71,50 @@ export class MentorFeedbackRepository extends BaseRepository<MentorFeedback> {
    * @param studentId - Mentee user ID
    * @returns Array of feedback records with mentor details and activity info
    */
-  async getMenteeFeedbackHistory(studentId: string): Promise<Array<{
-    id: string;
-    activityId: string;
-    mentorId: string;
-    mentorName: string;
-    status: "approved" | "rejected" | "pending";
-    feedbackNotes: string | null;
-    activityDate: Date;
-    feedbackDate: Date;
-  }>> {
-    const feedbackRecords = await this.modelClient.findMany({
-      where: {
-        activity: {
-          studentId,
-        },
-      },
+  async getMenteeFeedbackHistory(studentId: string): Promise<
+    Array<{
+      id: string;
+      activityId: string;
+      mentorId: string;
+      mentorName: string;
+      status: "approved" | "rejected" | "pending";
+      feedbackNotes: string | null;
+      activityDate: Date;
+      feedbackDate: Date;
+    }>
+  > {
+    type FeedbackWithRelations = Prisma.MentorFeedbackGetPayload<{
       include: {
-        activity: {
-          select: {
-            date: true,
+        activity: { select: { date: true } };
+        mentor: { select: { id: true; firstName: true; lastName: true } };
+      };
+    }>;
+
+    const feedbackRecords: FeedbackWithRelations[] =
+      await this.modelClient.findMany({
+        where: {
+          activity: {
+            studentId,
           },
         },
-        mentor: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
+        include: {
+          activity: {
+            select: {
+              date: true,
+            },
+          },
+          mentor: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+            },
           },
         },
-      },
-      orderBy: {
-        createdAt: "desc", // Newest first
-      },
-    });
+        orderBy: {
+          createdAt: "desc", // Newest first
+        },
+      });
 
     return feedbackRecords.map((feedback) => ({
       id: feedback.id,

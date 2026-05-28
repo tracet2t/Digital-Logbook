@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
-import { Role } from "@prisma/client";
 import getSession from "@/server_actions/getSession";
+import { Role } from "@prisma/client";
+import { NextResponse } from "next/server";
+
 import prisma from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +25,7 @@ export async function GET() {
         lastName: true,
         role: true,
         isActive: true,
+        batchNo: true,
         createdAt: true,
       },
       orderBy: {
@@ -51,9 +53,15 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
-    const { id, isActive } = (await request.json()) as { id: string; isActive: boolean };
+    const { id, isActive } = (await request.json()) as {
+      id: string;
+      isActive: boolean;
+    };
     if (!id || typeof isActive !== "boolean") {
-      return NextResponse.json({ message: "Invalid request body" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Invalid request body" },
+        { status: 400 },
+      );
     }
 
     const updated = await prisma.user.update({
@@ -65,7 +73,10 @@ export async function PATCH(request: Request) {
     return NextResponse.json(updated, { status: 200 });
   } catch (error) {
     console.error("Error updating user status:", error);
-    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
 
@@ -87,13 +98,18 @@ export async function DELETE(request: Request) {
 
     await prisma.$transaction(async (tx) => {
       // Delete feedback for this user's activities
-      const activities = await tx.activity.findMany({ where: { studentId: id }, select: { id: true } });
+      const activities = await tx.activity.findMany({
+        where: { studentId: id },
+        select: { id: true },
+      });
       const activityIds = activities.map((a) => a.id);
-      await tx.mentorFeedback.deleteMany({ where: { activityId: { in: activityIds } } });
+      await tx.mentorFeedback.deleteMany({
+        where: { activityId: { in: activityIds } },
+      });
       await tx.activity.deleteMany({ where: { studentId: id } });
 
       // Delete feedback this user gave as mentor
-      await tx.mentorFeedback.deleteMany({ where: { mentorActivity: { mentorId: id } } });
+      await tx.mentorFeedback.deleteMany({ where: { mentorId: id } });
       await tx.mentorActivity.deleteMany({ where: { mentorId: id } });
 
       // Delete reports, badges, allocations
@@ -103,8 +119,21 @@ export async function DELETE(request: Request) {
       await tx.projectMentor.deleteMany({ where: { mentorId: id } });
 
       // Null-out invitations sent by this user, then delete their own invitation
-      await tx.invitation.updateMany({ where: { invitedBy: id }, data: { invitedBy: null } });
-      await tx.invitation.deleteMany({ where: { email: (await tx.user.findUnique({ where: { id }, select: { email: true } }))?.email ?? "" } });
+      await tx.invitation.updateMany({
+        where: { invitedBy: id },
+        data: { invitedBy: null },
+      });
+      await tx.invitation.deleteMany({
+        where: {
+          email:
+            (
+              await tx.user.findUnique({
+                where: { id },
+                select: { email: true },
+              })
+            )?.email ?? "",
+        },
+      });
 
       await tx.user.delete({ where: { id } });
     });
@@ -112,6 +141,9 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ message: "User deleted" }, { status: 200 });
   } catch (error) {
     console.error("Error deleting user:", error);
-    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }

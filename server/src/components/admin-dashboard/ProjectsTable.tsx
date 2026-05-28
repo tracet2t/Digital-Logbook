@@ -1,6 +1,7 @@
 "use client";
 
-import { Globe, Trash2 } from "lucide-react";
+import { getDomainIcon, getDomainLabel } from "@/app/admin/projects/_constants";
+import { Trash2 } from "lucide-react";
 
 import {
   Table,
@@ -17,6 +18,7 @@ export interface ProjectRow {
   id: string;
   name: string;
   domain: string;
+  batchNo?: string;
   mentors: number;
   students: number;
   createdBy: string;
@@ -30,8 +32,6 @@ interface ProjectsTableProps {
   data: ProjectRow[];
   loading: boolean;
   error?: boolean;
-  domainIcons: Record<string, React.ReactNode>;
-  domainLabels: Record<string, string>;
   onView: (project: ProjectRow) => void;
   onEdit: (project: ProjectRow) => void;
   onDelete: (id: string) => void;
@@ -41,8 +41,6 @@ export default function ProjectsTable({
   data,
   loading,
   error = false,
-  domainIcons,
-  domainLabels,
   onView,
   onEdit,
   onDelete,
@@ -90,14 +88,23 @@ export default function ProjectsTable({
               <TableCell className="px-4 py-3 font-medium text-slate-900">
                 <div className="flex items-center gap-3">
                   <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-[#F0F0F0] shrink-0">
-                    {domainIcons[project.domain] ?? <Globe size={18} />}
+                    {getDomainIcon(project.domain)}
                   </div>
-                  <span>{project.name}</span>
+                  <div className="flex flex-col items-start">
+                    <span className="font-medium text-slate-900 leading-tight">
+                      {project.name}
+                    </span>
+                    {project.batchNo && (
+                      <span className="inline-block mt-1 px-3 py-0.5 rounded-full bg-[#EBEBEB] text-[11px] font-semibold text-blue-600 leading-tight">
+                        {project.batchNo}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </TableCell>
               <TableCell className="px-4 py-3">
                 <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-[#EBEBEB] text-slate-900">
-                  {domainLabels[project.domain] ?? project.domain}
+                  {getDomainLabel(project.domain)}
                 </span>
               </TableCell>
               <TableCell className="px-4 py-3 text-slate-900 font-medium">

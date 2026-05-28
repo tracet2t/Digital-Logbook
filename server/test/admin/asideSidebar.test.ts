@@ -9,34 +9,37 @@ describe("AsideSidebar", () => {
 
   const source = fs.readFileSync(filePath, "utf8");
 
-  test("defines expected main menu routes", () => {
-    expect(source).toContain('{ label: "Dashboard", icon: <LayoutDashboard size={18} />, href: "/admin" }');
-    expect(source).toContain('{ label: "Users", icon: <Users size={18} />, href: "/admin/users" }');
-    expect(source).toContain('{ label: "Invitations", icon: <Mail size={18} />, href: "/admin/invitation" }');
-    expect(source).toContain('href: "/admin/projects"');
-    expect(source).toContain('{ label: "Badges", icon: <Award size={18} />, href: "/admin/badges" }');
-    expect(source).toContain('{ label: "Reports", icon: <BarChart2 size={18} />, href: "/admin/reports" }');
+  test("defines MenuItem and LogoConfig interfaces", () => {
+    expect(source).toContain("export interface MenuItem");
+    expect(source).toContain("export interface LogoConfig");
+    expect(source).toContain("label: string;");
+    expect(source).toContain("icon: ReactNode;");
+    expect(source).toContain("href: string;");
   });
 
-  test("formats known roles and falls back for unknown roles", () => {
-    expect(source).toContain('if (role === "superAdmin") return "Super Admin";');
-    expect(source).toContain('if (role === "mentor") return "Mentor";');
-    expect(source).toContain('if (role === "student") return "Student";');
-    expect(source).toContain("return role;");
+  test("builds logo header with collapsed/expanded states", () => {
+    expect(source).toContain("function LogoHeader");
+    expect(source).toContain("collapsed");
+    expect(source).toContain(
+      "logoSrc = collapsed ? logo.collapsed : logo.expanded",
+    );
+    expect(source).toContain("SidebarHeader");
   });
 
-  test("builds initials with fallback", () => {
-    expect(source).toContain('return `${fname?.[0] ?? ""}${lname?.[0] ?? ""}`.toUpperCase() || "?";');
+  test("renders NavMenu with menu items from props", () => {
+    expect(source).toContain("function NavMenu");
+    expect(source).toContain("pathname");
+    expect(source).toContain("onNavigate");
+    expect(source).toContain("menu.map");
   });
 
   test("loads session user on mount", () => {
-    expect(source).toContain("getSessionOnClient().then((session) => {");
-    expect(source).toContain("if (session) setUser(session as UserInfo);");
+    expect(source).toContain("getSessionOnClient().then((s) => {");
+    expect(source).toContain("if (s) setUser(s as UserInfo);");
   });
 
-  test("renders settings navigation and logout form", () => {
-    expect(source).toContain('router.push("/admin/settings")');
-    expect(source).toContain('<form action="/api/logout" method="post" className="w-full">');
-    expect(source).toContain("Logout");
+  test("calls navigate on router.push and closes mobile sidebar", () => {
+    expect(source).toContain("router.push(href);");
+    expect(source).toContain("setOpenMobile(false);");
   });
 });

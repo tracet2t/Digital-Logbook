@@ -1,0 +1,47 @@
+/* ─────────────────────────────────────────────
+   Digital Logbook — Custom Styles
+   ───────────────────────────────────────────── */
+
+/* Logo size — 2x the default (default: 1.2rem) */
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+  height: 2.4rem;
+  width: auto;
+}
+
+/* Match navbar color to logo's dark purple-navy background */
+.md-header {
+  background-color: #0d0f24 !important;
+}
+
+.md-tabs {
+  background-color: #0d0f24 !important;
+}
+
+/* Thin accent line under the tabs bar */
+.md-tabs {
+  border-bottom: 2px solid rgba(120, 100, 255, 0.25) !important;
+}
+
+/* Active/hover tab highlight — matches logo's purple accent */
+.md-tabs__link--active,
+.md-tabs__link:hover {
+  color: #9b7fff !important;
+}
+
+/* Tab text — bright white for readability */
+.md-tabs__link {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* Subtle right border after logo to visually separate it from site name */
+.md-header__button.md-logo {
+  padding-right: 0.8rem !important;
+  margin-right: 0.4rem !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Search bar blend */
+.md-search__form {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}

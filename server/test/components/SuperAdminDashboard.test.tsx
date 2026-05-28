@@ -1,11 +1,12 @@
 import React from "react";
+
+import { useAdminDashboard } from "@/_hooks/admin/useAdminDashboard";
 import { renderToStaticMarkup } from "react-dom/server";
 
-import SuperAdminDashboard from "@/components/admin-dashboard/SuperAdminDashboard";
-import StatsGrid from "@/components/admin-dashboard/StatsGrid";
-import RecentProjectsTable from "@/components/admin-dashboard/RecentProjectsTable";
-import { useAdminDashboard } from "@/hooks/admin/useAdminDashboard";
 import { PageHeader } from "@/components/admin";
+import RecentProjectsTable from "@/components/admin-dashboard/RecentProjectsTable";
+import StatsGrid from "@/components/admin-dashboard/StatsGrid";
+import SuperAdminDashboard from "@/components/admin-dashboard/SuperAdminDashboard";
 
 jest.mock("lucide-react", () => {
   const icon = ({ className }: { className?: string }) => (
@@ -22,7 +23,7 @@ jest.mock("lucide-react", () => {
   };
 });
 
-jest.mock("@/hooks/admin/useAdminDashboard", () => ({
+jest.mock("@/_hooks/admin/useAdminDashboard", () => ({
   useAdminDashboard: jest.fn(),
 }));
 
@@ -43,24 +44,38 @@ jest.mock("@/components/ui/button", () => ({
 }));
 
 jest.mock("@/components/ui/dialog", () => ({
-  Dialog: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DialogClose: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DialogContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  Dialog: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  DialogClose: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  DialogContent: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
   DialogDescription: ({ children }: { children: React.ReactNode }) => (
     <p>{children}</p>
   ),
-  DialogFooter: ({ children }: { children: React.ReactNode }) => <footer>{children}</footer>,
-  DialogHeader: ({ children }: { children: React.ReactNode }) => <header>{children}</header>,
-  DialogTitle: ({ children }: { children: React.ReactNode }) => <h2>{children}</h2>,
+  DialogFooter: ({ children }: { children: React.ReactNode }) => (
+    <footer>{children}</footer>
+  ),
+  DialogHeader: ({ children }: { children: React.ReactNode }) => (
+    <header>{children}</header>
+  ),
+  DialogTitle: ({ children }: { children: React.ReactNode }) => (
+    <h2>{children}</h2>
+  ),
 }));
 
 jest.mock("@/components/admin", () => ({
   AdminPageLayout: ({ children }: { children: React.ReactNode }) => (
     <section>{children}</section>
   ),
-  PageHeader: jest.fn(({ title, subtitle }: { title: string; subtitle: string }) => (
-    <header>{`${title} ${subtitle}`}</header>
-  )),
+  PageHeader: jest.fn(
+    ({ title, subtitle }: { title: string; subtitle: string }) => (
+      <header>{`${title} ${subtitle}`}</header>
+    ),
+  ),
 }));
 
 jest.mock("@/components/admin-dashboard/StatsGrid", () => ({
@@ -140,8 +155,7 @@ describe("SuperAdminDashboard component", () => {
     expect(PageHeader).toHaveBeenCalledWith(
       expect.objectContaining({
         title: "Admin Super Dashboard",
-        subtitle:
-          "Welcome back, Alex! Here’s your latest platform summary.",
+        subtitle: "Welcome back, Alex! Here’s your latest platform summary.",
       }),
       {},
     );

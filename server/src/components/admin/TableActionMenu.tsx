@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 
 export interface ActionItem {
   label: string;

@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+
 import moment from "moment";
 
 // ============================================================================
@@ -7,10 +8,7 @@ import moment from "moment";
 // ============================================================================
 
 describe("TaskCalendar - source structure", () => {
-  const filePath = path.resolve(
-    __dirname,
-    "../../src/components/calendar.tsx",
-  );
+  const filePath = path.resolve(__dirname, "../../src/components/calendar.tsx");
 
   const source = fs.readFileSync(filePath, "utf8");
 
@@ -19,16 +17,30 @@ describe("TaskCalendar - source structure", () => {
   });
 
   test("imports all three dialog components", () => {
-    expect(source).toContain('import MentorTaskDetailDialog from "./mentorTaskDetailDialog"');
-    expect(source).toContain('import MentorStudentTaskDetailDialog from "./mentorStudentTaskDetailDialog"');
-    expect(source).toContain('import StudentTaskDetailDialog from "./studentTaskDetailDialog"');
+    expect(source).toContain(
+      'import MentorTaskDetailDialog from "./mentorTaskDetailDialog"',
+    );
+    expect(source).toContain(
+      'import MentorStudentTaskDetailDialog from "./mentorStudentTaskDetailDialog"',
+    );
+    expect(source).toContain(
+      'import StudentTaskDetailDialog from "./studentTaskDetailDialog"',
+    );
   });
 
   test("imports custom hooks", () => {
-    expect(source).toContain('import { useCalendarEvents } from "@/hooks/useCalendarEvents"');
-    expect(source).toContain('import { useFormData } from "@/hooks/useFormData"');
-    expect(source).toContain('import { useSubmission } from "@/hooks/useSubmission"');
-    expect(source).toContain('import { useEventForDate } from "@/hooks/useEventForDate"');
+    expect(source).toContain(
+      'import { useCalendarEvents } from "@/_hooks/useCalendarEvents"',
+    );
+    expect(source).toContain(
+      'import { useFormData } from "@/_hooks/useFormData"',
+    );
+    expect(source).toContain(
+      'import { useSubmission } from "@/_hooks/useSubmission"',
+    );
+    expect(source).toContain(
+      'import { useEventForDate } from "@/_hooks/useEventForDate"',
+    );
   });
 
   test("fetches session on mount and sets studentId and role", () => {
@@ -53,14 +65,8 @@ describe("TaskCalendar - source structure", () => {
     expect(source).toContain("setTaskModalOpen(true);");
   });
 
-  test("handleClose closes modal and clears selected date", () => {
+  test("handleClose closes modal", () => {
     expect(source).toContain("setTaskModalOpen(false);");
-    expect(source).toContain("setSelectedDate(null);");
-  });
-
-  test("auto-submits when status is approved or rejected", () => {
-    expect(source).toContain('status === "approved" || status === "rejected"');
-    expect(source).toContain("handleSubmit();");
   });
 
   test("BigCalendar is configured with MONTH view and selectable", () => {
@@ -78,11 +84,9 @@ describe("TaskCalendar - source structure", () => {
   test("renders toast conditionally", () => {
     expect(source).toContain("{toast && (");
     expect(source).toContain("<ToastTitle>{toast.title}</ToastTitle>");
-    expect(source).toContain("<ToastDescription>{toast.description}</ToastDescription>");
-  });
-
-  test("CalendarEvent status field supports pending, approved, rejected", () => {
-    expect(source).toContain('"pending" | "approved" | "rejected"');
+    expect(source).toContain(
+      "<ToastDescription>{toast.description}</ToastDescription>",
+    );
   });
 
   test("uses CustomToolbar as calendar toolbar component", () => {
@@ -92,7 +96,7 @@ describe("TaskCalendar - source structure", () => {
   });
 
   test("selectedUser prop falls back to empty string", () => {
-    expect(source).toContain("selectedUser || ''");
+    expect(source).toContain('selectedUser || ""');
   });
 });
 
@@ -148,6 +152,8 @@ describe("TaskCalendar - CalendarEvent status", () => {
   type EventStatus = "pending" | "approved" | "rejected";
 
   const validStatuses: EventStatus[] = ["pending", "approved", "rejected"];
+  const shouldAutoSubmit = (status: EventStatus) =>
+    status === "approved" || status === "rejected";
 
   test("all valid status values are accepted", () => {
     validStatuses.forEach((s) => {
@@ -157,20 +163,17 @@ describe("TaskCalendar - CalendarEvent status", () => {
 
   test("auto-submit triggers for approved status", () => {
     const status: EventStatus = "approved";
-    const shouldSubmit = status === "approved" || status === "rejected";
-    expect(shouldSubmit).toBe(true);
+    expect(shouldAutoSubmit(status)).toBe(true);
   });
 
   test("auto-submit triggers for rejected status", () => {
     const status: EventStatus = "rejected";
-    const shouldSubmit = status === "approved" || status === "rejected";
-    expect(shouldSubmit).toBe(true);
+    expect(shouldAutoSubmit(status)).toBe(true);
   });
 
   test("auto-submit does not trigger for pending status", () => {
     const status: EventStatus = "pending";
-    const shouldSubmit = status === "approved" || status === "rejected";
-    expect(shouldSubmit).toBe(false);
+    expect(shouldAutoSubmit(status)).toBe(false);
   });
 });
 

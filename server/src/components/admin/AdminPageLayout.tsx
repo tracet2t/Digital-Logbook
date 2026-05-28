@@ -1,8 +1,3 @@
-"use client";
-
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import AsideSidebar from "@/components/AsideSidebar";
-
 interface AdminPageLayoutProps {
   children: React.ReactNode;
   /** Tailwind bg class for the page background. Defaults to bg-[#f5f7fb] */
@@ -10,24 +5,12 @@ interface AdminPageLayoutProps {
 }
 
 /**
- * Shared layout wrapper for all admin pages.
- * Renders the sidebar alongside page content.
- *
- * Usage:
- *   <AdminPageLayout className="bg-[#f1f1f9]">
- *     <div className="flex-1 p-8 space-y-6 min-w-0">
- *       ...page content...
- *     </div>
- *   </AdminPageLayout>
+ * Content background wrapper for admin pages.
+ * The sidebar and SidebarProvider are provided by the shared admin layout.tsx.
  */
 export default function AdminPageLayout({
   children,
   className = "bg-[#f5f7fb]",
 }: AdminPageLayoutProps) {
-  return (
-    <SidebarProvider>
-      <AsideSidebar />
-      <SidebarInset className={className}>{children}</SidebarInset>
-    </SidebarProvider>
-  );
+  return <div className={`min-h-screen ${className}`}>{children}</div>;
 }

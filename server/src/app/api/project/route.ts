@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import getSession from "@/server_actions/getSession";
 import { ProjectRepository } from "@/repositories/project_repository_impl";
+import getSession from "@/server_actions/getSession";
+import { NextRequest, NextResponse } from "next/server";
 
+import prisma from "@/lib/prisma";
 
 const projectRepo = new ProjectRepository();
 
@@ -56,15 +57,14 @@ export async function POST(req: NextRequest) {
     if (userRole !== "superAdmin") {
       return NextResponse.json(
         {
-          message:
-            "Forbidden - Only super admins  can create projects",
+          message: "Forbidden - Only super admins  can create projects",
         },
         { status: 403 },
       );
     }
 
     const body = await req.json();
-    const { name, description, domain } = body;
+    const { name, description, domain, batchNo } = body;
 
     if (!name || !domain) {
       return NextResponse.json(
@@ -73,11 +73,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const maxOrder = await prisma.project.aggregate({
+      _max: { projectOrder: true },
+    });
+    const nextOrder = (maxOrder._max.projectOrder ?? -1) + 1;
+
     const created = await projectRepo.create({
       name,
       description: description || undefined,
       domain,
+      batchNo: batchNo?.trim() || null,
       createdBy: userId,
+      projectOrder: nextOrder,
     } as any);
 
     return NextResponse.json(
@@ -103,12 +110,24 @@ export async function PATCH(req: NextRequest) {
     }
 
     const userRole = session.getRole();
-    if (userRole !== "superAdmin" ) {
+    if (userRole !== "superAdmin") {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
     const body = await req.json();
-    const { projectId, studentId, mentorId } = body;
+    const { projectId, studentId, mentorId, order } = body;
+
+    if (Array.isArray(order)) {
+      await prisma.$transaction(
+        order.map((id: string, index: number) =>
+          prisma.project.update({
+            where: { id },
+            data: { projectOrder: index },
+          }),
+        ),
+      );
+      return NextResponse.json({ success: true }, { status: 200 });
+    }
 
     if (!projectId) {
       return NextResponse.json(

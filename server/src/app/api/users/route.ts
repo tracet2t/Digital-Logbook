@@ -1,11 +1,12 @@
 // src/api/users.ts - Get students for a mentor via project assignments
-import { NextRequest, NextResponse } from "next/server";
 import getSession from "@/server_actions/getSession";
+import { NextRequest, NextResponse } from "next/server";
+
 import prisma from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-export const GET = async (req: NextRequest) => {
+export const GET = async (_req: NextRequest) => {
   try {
     const session = await getSession();
     if (!session) {

@@ -1,10 +1,11 @@
 // server_actions/registerUser.ts
 "use server";
 
-import prisma from "@/lib/prisma";
-import bcrypt from "bcrypt";
 import { UserRepository } from "@/repositories/user_repository_impl";
 import { Role } from "@prisma/client";
+import bcrypt from "bcrypt";
+
+import prisma from "@/lib/prisma";
 
 interface RegisterUserData {
   firstName: string;
@@ -28,10 +29,6 @@ export async function registerStudent(data: RegisterUserData) {
     throw new Error(`Invalid role. Must be one of: ${validRoles.join(", ")}`);
   }
 
-  if (role === Role.student && !projectId) {
-    throw new Error("projectId is required for students");
-  }
-
   // --- Generate temporary password ---
   const tempPassword = Math.random().toString(36).slice(-8);
   const hashedPassword = await bcrypt.hash(tempPassword, 10);
@@ -45,6 +42,7 @@ export async function registerStudent(data: RegisterUserData) {
     email,
     role,
     invitedBy,
+    batchNo: null,
     passwordHash: hashedPassword,
     emailConfirmed: false,
     isFirstTimeLogin: true,
