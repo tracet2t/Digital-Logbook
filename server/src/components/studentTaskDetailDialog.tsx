@@ -11,6 +11,16 @@ import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Command,
   CommandEmpty,
   CommandGroup,
@@ -207,6 +217,9 @@ interface StudentTaskDetailDialogProps {
     notes: string,
     technologies: string[],
   ) => void;
+  onDelete?: () => void;
+  canDelete?: boolean;
+  isDeleting?: boolean;
   onClose: () => void;
 }
 
@@ -219,8 +232,13 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
   review,
   isEditable,
   onSubmit,
+  onDelete,
+  canDelete = false,
+  isDeleting = false,
   onClose,
 }) => {
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+
   const form = useForm<ActivityFormValues>({
     resolver: zodResolver(activitySchema),
     defaultValues: {
@@ -245,6 +263,14 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
     onSubmit(data.workingHours, data.notes, data.techStack);
   });
 
+  const handleDeleteClick = () => {
+    if (!onDelete || !canDelete) {
+      return;
+    }
+
+    setDeleteConfirmOpen(true);
+  };
+
   return (
     <Dialog
       open={open}
@@ -252,7 +278,7 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
         if (!isOpen) onClose();
       }}
     >
-      <DialogContent className="!max-w-lg">
+      <DialogContent className="w-[calc(100%-2rem)] max-w-[88vw] max-h-[86vh] overflow-y-auto sm:!max-w-lg sm:max-h-[85vh]">
         <DialogHeader>
           <DialogTitle>Task Details</DialogTitle>
           <DialogDescription>
@@ -343,7 +369,41 @@ const StudentTaskDetailDialog: React.FC<StudentTaskDetailDialogProps> = ({
             <Button variant="outline">Cancel</Button>
           </DialogClose>
           {isEditable && <Button onClick={handleFormSubmit}>Save</Button>}
+          {isEditable && canDelete && (
+            <Button
+              type="button"
+              variant="warning"
+              onClick={handleDeleteClick}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          )}
         </div>
+
+        <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+          <AlertDialogContent size="default">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete submitted task?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. The selected task will be removed permanently.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                variant="warning"
+                onClick={() => {
+                  setDeleteConfirmOpen(false);
+                  onDelete?.();
+                }}
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </DialogContent>
     </Dialog>
   );

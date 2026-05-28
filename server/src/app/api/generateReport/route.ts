@@ -8,7 +8,9 @@ import { reportQueue } from "@/lib/queue";
 
 const reportRepository = new ReportRepository();
 
-export const POST = async (req: NextRequest) => {
+export const dynamic = "force-dynamic";
+
+export const POST = async (_req: NextRequest) => {
   try {
     const session = await getSession();
 
@@ -52,7 +54,7 @@ export const POST = async (req: NextRequest) => {
   }
 };
 
-export const GET = async (req: NextRequest) => {
+export const GET = async (_req: NextRequest) => {
   try {
     const session = await getSession();
 

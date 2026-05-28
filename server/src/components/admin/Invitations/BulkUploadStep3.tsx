@@ -189,7 +189,7 @@ export function BulkUploadStep3({
                   <TableRow key={idx} className="bg-white hover:bg-[#fbfcff]">
                     <TableCell className="px-4 py-3">
                       <Badge
-                        variant="outline"
+                        variant="failed"
                         className="border-[#EF4444] text-[#EF4444]"
                       >
                         {error.row}

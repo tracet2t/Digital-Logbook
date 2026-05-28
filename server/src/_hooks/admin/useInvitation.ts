@@ -24,12 +24,12 @@ interface InvitationResponse {
   };
 }
 
-interface GetInvitationResponse {
-  valid: boolean;
-  email?: string;
-  role?: string;
-  message?: string;
-}
+// interface GetInvitationResponse {
+//   valid: boolean;
+//   email?: string;
+//   role?: string;
+//   message?: string;
+// }
 
 export const useInvitation = () => {
   const queryClient = useQueryClient();
@@ -49,9 +49,28 @@ export const useInvitation = () => {
 
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Invalidate and refetch all related queries
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["invitations"] }),
+        queryClient.invalidateQueries({ queryKey: ["mentors"] }),
+        queryClient.invalidateQueries({ queryKey: ["mentor-allocations"] }),
+        queryClient.invalidateQueries({
+          queryKey: ["onboarding-applications"],
+        }),
+        queryClient.invalidateQueries({ queryKey: ["onboarding-allocations"] }),
+        queryClient.invalidateQueries({ queryKey: ["projects"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-users"] }),
+      ]);
+      // Force immediate refetch
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ["mentors"] }),
+        queryClient.refetchQueries({ queryKey: ["mentor-allocations"] }),
+        queryClient.refetchQueries({ queryKey: ["onboarding-applications"] }),
+        queryClient.refetchQueries({ queryKey: ["onboarding-allocations"] }),
+        queryClient.refetchQueries({ queryKey: ["projects"] }),
+      ]);
       toast.success("Invitation sent successfully!");
-      queryClient.invalidateQueries({ queryKey: ["invitations"] });
     },
     onError: (error) => {
       toast.error(error.message || "Failed to send invitation");
@@ -87,9 +106,28 @@ export const useExpireInvitation = () => {
         throw new Error(errorData.message || "Failed to expire invitation");
       }
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Invalidate and refetch all related queries
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["invitations"] }),
+        queryClient.invalidateQueries({ queryKey: ["mentors"] }),
+        queryClient.invalidateQueries({ queryKey: ["mentor-allocations"] }),
+        queryClient.invalidateQueries({
+          queryKey: ["onboarding-applications"],
+        }),
+        queryClient.invalidateQueries({ queryKey: ["onboarding-allocations"] }),
+        queryClient.invalidateQueries({ queryKey: ["projects"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-users"] }),
+      ]);
+      // Force immediate refetch
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ["mentors"] }),
+        queryClient.refetchQueries({ queryKey: ["mentor-allocations"] }),
+        queryClient.refetchQueries({ queryKey: ["onboarding-applications"] }),
+        queryClient.refetchQueries({ queryKey: ["onboarding-allocations"] }),
+        queryClient.refetchQueries({ queryKey: ["projects"] }),
+      ]);
       toast.success("Invitation marked as expired.");
-      queryClient.invalidateQueries({ queryKey: ["invitations"] });
     },
     onError: (error) => {
       toast.error(error.message || "Failed to expire invitation");
@@ -118,9 +156,28 @@ export const useChangeInvitationStatus = () => {
         );
       }
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Invalidate and refetch all related queries
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["invitations"] }),
+        queryClient.invalidateQueries({ queryKey: ["mentors"] }),
+        queryClient.invalidateQueries({ queryKey: ["mentor-allocations"] }),
+        queryClient.invalidateQueries({
+          queryKey: ["onboarding-applications"],
+        }),
+        queryClient.invalidateQueries({ queryKey: ["onboarding-allocations"] }),
+        queryClient.invalidateQueries({ queryKey: ["projects"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-users"] }),
+      ]);
+      // Force immediate refetch
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ["mentors"] }),
+        queryClient.refetchQueries({ queryKey: ["mentor-allocations"] }),
+        queryClient.refetchQueries({ queryKey: ["onboarding-applications"] }),
+        queryClient.refetchQueries({ queryKey: ["onboarding-allocations"] }),
+        queryClient.refetchQueries({ queryKey: ["projects"] }),
+      ]);
       toast.success("Invitation status updated.");
-      queryClient.invalidateQueries({ queryKey: ["invitations"] });
     },
     onError: (error) => {
       toast.error(error.message || "Failed to update invitation status");
@@ -141,9 +198,28 @@ export const useDeleteInvitation = () => {
         throw new Error(errorData.message || "Failed to delete invitation");
       }
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Invalidate and refetch all related queries
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["invitations"] }),
+        queryClient.invalidateQueries({ queryKey: ["mentors"] }),
+        queryClient.invalidateQueries({ queryKey: ["mentor-allocations"] }),
+        queryClient.invalidateQueries({
+          queryKey: ["onboarding-applications"],
+        }),
+        queryClient.invalidateQueries({ queryKey: ["onboarding-allocations"] }),
+        queryClient.invalidateQueries({ queryKey: ["projects"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-users"] }),
+      ]);
+      // Force immediate refetch
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ["mentors"] }),
+        queryClient.refetchQueries({ queryKey: ["mentor-allocations"] }),
+        queryClient.refetchQueries({ queryKey: ["onboarding-applications"] }),
+        queryClient.refetchQueries({ queryKey: ["onboarding-allocations"] }),
+        queryClient.refetchQueries({ queryKey: ["projects"] }),
+      ]);
       toast.success("Invitation and user data deleted.");
-      queryClient.invalidateQueries({ queryKey: ["invitations"] });
     },
     onError: (error) => {
       toast.error(error.message || "Failed to delete invitation");

@@ -1,6 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 import getSession from "@/server_actions/getSession";
+import { NextRequest, NextResponse } from "next/server";
+
+import prisma from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
 
 export const GET = async (_req: NextRequest) => {
   try {
@@ -13,7 +16,7 @@ export const GET = async (_req: NextRequest) => {
     if (!mentorId) {
       return NextResponse.json(
         { message: "User ID not found" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -28,7 +31,9 @@ export const GET = async (_req: NextRequest) => {
 
     // Fetch total mentees (students assigned to mentor's projects)
     const mentees = await prisma.projectAllocation.findMany({
-      where: { projectId: { in: projectIds.length > 0 ? projectIds : undefined } },
+      where: {
+        projectId: { in: projectIds.length > 0 ? projectIds : undefined },
+      },
       include: {
         student: {
           select: {
@@ -53,7 +58,9 @@ export const GET = async (_req: NextRequest) => {
 
     // Fetch student activities for working hours calculation
     const studentActivities = await prisma.activity.findMany({
-      where: { studentId: { in: studentIds.length > 0 ? studentIds : undefined } },
+      where: {
+        studentId: { in: studentIds.length > 0 ? studentIds : undefined },
+      },
       select: {
         studentId: true,
         timeSpent: true,
@@ -67,13 +74,12 @@ export const GET = async (_req: NextRequest) => {
     });
 
     let totalWorkingHours = 0;
-    
+
     // Only sum hours for students whose project allocation has been actively accepted by the mentor
     const acceptedStudentIds = new Set(
       mentees
-        // @ts-ignore - Prisma type generation issue
         .filter((m) => m.timeAllocationStatus === "accepted")
-        .map((m) => m.student.id)
+        .map((m) => m.student.id),
     );
 
     for (const a of studentActivities) {
@@ -81,10 +87,14 @@ export const GET = async (_req: NextRequest) => {
       if (a.feedback && a.feedback.length > 0) {
         activityStatus = a.feedback[0].status as any;
       }
-      
-      const normalizedStatus = activityStatus === "accepted" ? "approved" : activityStatus;
-      
-      if (normalizedStatus === "approved" && acceptedStudentIds.has(a.studentId)) {
+
+      const normalizedStatus =
+        activityStatus === "accepted" ? "approved" : activityStatus;
+
+      if (
+        normalizedStatus === "approved" &&
+        acceptedStudentIds.has(a.studentId)
+      ) {
         totalWorkingHours += a.timeSpent;
       }
     }
@@ -99,7 +109,9 @@ export const GET = async (_req: NextRequest) => {
 
     // Fetch recently active mentees with latest activity
     const recentlyActiveMentees = await prisma.projectAllocation.findMany({
-      where: { projectId: { in: projectIds.length > 0 ? projectIds : undefined } },
+      where: {
+        projectId: { in: projectIds.length > 0 ? projectIds : undefined },
+      },
       include: {
         student: {
           select: {
@@ -136,8 +148,7 @@ export const GET = async (_req: NextRequest) => {
         const initials =
           allocation.student.firstName.charAt(0) +
           allocation.student.lastName.charAt(0);
-        const name =
-          `${allocation.student.firstName} ${allocation.student.lastName}`;
+        const name = `${allocation.student.firstName} ${allocation.student.lastName}`;
 
         // Calculate time since last activity
         let lastActivityText = "Never";
@@ -162,7 +173,7 @@ export const GET = async (_req: NextRequest) => {
           }
         }
 
-        // Map activity status to dashboard status  
+        // Map activity status to dashboard status
         let dashboardStatus: "ACCEPTED" | "PENDING" | "REJECTED" = "PENDING";
         if (latestActivity) {
           let activityState = latestActivity.status ?? "pending";
@@ -171,13 +182,13 @@ export const GET = async (_req: NextRequest) => {
             activityState = latestActivity.feedback[0].status as any;
           }
 
-          const statusMap: Record<string, "ACCEPTED" | "PENDING" | "REJECTED"> = {
-            accepted: "ACCEPTED",
-            approved: "ACCEPTED",
-            pending: "PENDING",
-            rejected: "REJECTED",
-          };
-          // @ts-ignore - Prisma type generation issue with status field
+          const statusMap: Record<string, "ACCEPTED" | "PENDING" | "REJECTED"> =
+            {
+              accepted: "ACCEPTED",
+              approved: "ACCEPTED",
+              pending: "PENDING",
+              rejected: "REJECTED",
+            };
           dashboardStatus = statusMap[activityState] ?? "PENDING";
         }
 
@@ -189,7 +200,7 @@ export const GET = async (_req: NextRequest) => {
           lastActivity: lastActivityText,
           status: dashboardStatus,
         };
-      })
+      }),
     );
 
     return NextResponse.json({
@@ -205,7 +216,7 @@ export const GET = async (_req: NextRequest) => {
     console.error("Error fetching mentor dashboard data:", error);
     return NextResponse.json(
       { message: "Error fetching mentor dashboard data" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 };

@@ -1,8 +1,18 @@
 "use client";
 
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useRef, useState } from "react";
+
+import { DOMAIN_LABELS, DOMAIN_OPTIONS } from "@/app/admin/projects/_constants";
 
 import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
   Dialog,
   DialogClose,
@@ -14,21 +24,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-
-const DOMAINS = [
-  { value: "software", label: "Software" },
-  { value: "film", label: "Film" },
-  { value: "training", label: "Training" },
-  { value: "research", label: "Research" },
-  { value: "other", label: "Other" },
-] as const;
 
 export interface ProjectFormState {
   name: string;
@@ -54,6 +54,21 @@ export function CreateProjectDialog({
   onSubmit,
   isPending,
 }: CreateProjectDialogProps) {
+  const [domainOpen, setDomainOpen] = useState(false);
+  const [domainSearch, setDomainSearch] = useState("");
+  const domainInputRef = useRef<HTMLInputElement>(null);
+
+  const normalizedDomainSearch = domainSearch.trim();
+  const domainSuggestions = DOMAIN_OPTIONS.map((d) => DOMAIN_LABELS[d]);
+  const filteredDomains = domainSuggestions.filter((opt) =>
+    opt.toLowerCase().includes(domainSearch.toLowerCase()),
+  );
+  const canAddCustomDomain =
+    normalizedDomainSearch.length > 0 &&
+    !domainSuggestions.some(
+      (opt) => opt.toLowerCase() === normalizedDomainSearch.toLowerCase(),
+    );
+
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onOpenChange(false)}>
       <DialogContent className="w-[calc(100%-2.5rem)] max-w-[22rem] sm:max-w-md">
@@ -83,21 +98,88 @@ export function CreateProjectDialog({
           </div>
           <div className="space-y-1.5">
             <Label>Domain</Label>
-            <Select
-              value={form.domain}
-              onValueChange={(v) => onFormChange((f) => ({ ...f, domain: v }))}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {DOMAINS.map((d) => (
-                  <SelectItem key={d.value} value={d.value}>
-                    {d.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={domainOpen} onOpenChange={setDomainOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between gap-2 rounded-lg border border-input bg-background px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  onClick={() => {
+                    setDomainOpen(true);
+                    setTimeout(() => domainInputRef.current?.focus(), 0);
+                  }}
+                >
+                  <span className="truncate text-left">
+                    {form.domain.trim()
+                      ? form.domain
+                      : "Search or add domain..."}
+                  </span>
+                  <span className="text-xs text-muted-foreground">▼</span>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent
+                className="w-[--radix-popover-trigger-width] p-0"
+                align="start"
+              >
+                <Command shouldFilter={false}>
+                  <CommandInput
+                    ref={domainInputRef}
+                    placeholder="Search or add domain..."
+                    value={domainSearch}
+                    onValueChange={setDomainSearch}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && normalizedDomainSearch) {
+                        e.preventDefault();
+                        onFormChange((f) => ({
+                          ...f,
+                          domain: normalizedDomainSearch,
+                        }));
+                        setDomainOpen(false);
+                        setDomainSearch("");
+                      }
+                    }}
+                  />
+                  <CommandList>
+                    {canAddCustomDomain && (
+                      <CommandGroup heading="Custom">
+                        <CommandItem
+                          value={normalizedDomainSearch}
+                          onSelect={() => {
+                            onFormChange((f) => ({
+                              ...f,
+                              domain: normalizedDomainSearch,
+                            }));
+                            setDomainOpen(false);
+                            setDomainSearch("");
+                          }}
+                        >
+                          {`Add "${normalizedDomainSearch}"`}
+                        </CommandItem>
+                      </CommandGroup>
+                    )}
+                    {filteredDomains.length > 0 && (
+                      <CommandGroup heading="Suggestions">
+                        {filteredDomains.map((opt) => (
+                          <CommandItem
+                            key={opt}
+                            value={opt}
+                            onSelect={() => {
+                              onFormChange((f) => ({ ...f, domain: opt }));
+                              setDomainOpen(false);
+                              setDomainSearch("");
+                            }}
+                          >
+                            {opt}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    )}
+                    {!canAddCustomDomain && filteredDomains.length === 0 && (
+                      <CommandEmpty>No results found.</CommandEmpty>
+                    )}
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
           <div className="space-y-1.5">
             <Label>Batch No (optional)</Label>

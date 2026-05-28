@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export type OnboardingStatus = "pending" | "approved" | "rejected" | "inactive";
+export type InvitationStatus = "Active" | "Pending" | "Expired";
 
 export interface OnboardingApplication {
   id: string;
@@ -16,23 +17,36 @@ export interface OnboardingApplication {
   status: OnboardingStatus;
   createdAt: string;
   updatedAt: string;
+  // User data (if user account exists)
+  user?: {
+    id: string;
+    isActive: boolean;
+    emailConfirmed: boolean;
+  };
+  // Invitation data
+  invitationStatus?: InvitationStatus;
+  invitationExpiresAt?: string;
 }
 
 export const useOnboardingApplications = () => {
   return useQuery<OnboardingApplication[]>({
     queryKey: ["onboarding-applications"],
     queryFn: async () => {
-      const response = await fetch("/api/onboarding", { cache: "no-store" });
+      const res = await fetch("/api/onboarding", { cache: "no-store" });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
         throw new Error(
           errorData?.message || "Failed to fetch onboarding applications",
         );
       }
 
-      return response.json();
+      // Applications now include user and invitation status from backend
+      return res.json();
     },
+    staleTime: 0, // Always fetch fresh data
+    refetchOnMount: true, // Refetch when component mounts
+    refetchOnWindowFocus: false, // Don't refetch on window focus
   });
 };
 
@@ -60,13 +74,16 @@ export const useUpdateOnboardingStatus = () => {
 
       return response.json();
     },
-    onSuccess: (_, variables) => {
+    onSuccess: async (_, variables) => {
+      // Force immediate refetch (not just invalidate)
+      await queryClient.refetchQueries({
+        queryKey: ["onboarding-applications"],
+      });
       toast.success(
         variables.status === "approved"
           ? "Application approved"
           : "Application rejected",
       );
-      queryClient.invalidateQueries({ queryKey: ["onboarding-applications"] });
     },
     onError: (error) => {
       toast.error(error.message || "Failed to update onboarding status");
@@ -141,14 +158,27 @@ export const useAssignMenteeToProject = () => {
 
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
+      // Invalidate and refetch all related queries
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["onboarding-applications"],
+        }),
+        queryClient.invalidateQueries({ queryKey: ["onboarding-allocations"] }),
+        queryClient.invalidateQueries({ queryKey: ["projects"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-users"] }),
+      ]);
+      // Force immediate refetch
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ["onboarding-applications"] }),
+        queryClient.refetchQueries({ queryKey: ["onboarding-allocations"] }),
+        queryClient.refetchQueries({ queryKey: ["projects"] }),
+      ]);
       if (data.invitationSent) {
         toast.success("Mentee assigned to project. Invitation email sent.");
       } else {
         toast.success("Mentee assigned to project.");
       }
-      queryClient.invalidateQueries({ queryKey: ["onboarding-applications"] });
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
     onError: (error) => {
       toast.error(error.message || "Failed to assign mentee to project");
@@ -180,11 +210,23 @@ export const useUnassignMentee = () => {
 
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Invalidate and refetch all related queries
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["onboarding-applications"],
+        }),
+        queryClient.invalidateQueries({ queryKey: ["onboarding-allocations"] }),
+        queryClient.invalidateQueries({ queryKey: ["projects"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-users"] }),
+      ]);
+      // Force immediate refetch
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ["onboarding-applications"] }),
+        queryClient.refetchQueries({ queryKey: ["onboarding-allocations"] }),
+        queryClient.refetchQueries({ queryKey: ["projects"] }),
+      ]);
       toast.success("Mentee set to inactive.");
-      queryClient.invalidateQueries({ queryKey: ["onboarding-applications"] });
-      queryClient.invalidateQueries({ queryKey: ["onboarding-allocations"] });
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
     onError: (error) => {
       toast.error(error.message || "Failed to remove mentee from project");
@@ -196,17 +238,21 @@ export const useUnassignedMentors = () => {
   return useQuery<OnboardingApplication[]>({
     queryKey: ["mentors"],
     queryFn: async () => {
-      const response = await fetch("/api/onboarding/mentors", {
+      const res = await fetch("/api/onboarding/mentors", {
         cache: "no-store",
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
         throw new Error(errorData?.message || "Failed to fetch mentors");
       }
 
-      return response.json();
+      // Mentors now include user and invitation status from backend
+      return res.json();
     },
+    staleTime: 0, // Always fetch fresh data
+    refetchOnMount: true, // Refetch when component mounts
+    refetchOnWindowFocus: false, // Don't refetch on window focus
   });
 };
 
@@ -242,7 +288,7 @@ export const useAssignMentorToProject = () => {
   const queryClient = useQueryClient();
 
   return useMutation<
-    { message: string; data: unknown },
+    { message: string; invitationSent: boolean; data: unknown },
     Error,
     { mentorId: string; projectId: string }
   >({
@@ -262,11 +308,25 @@ export const useAssignMentorToProject = () => {
 
       return response.json();
     },
-    onSuccess: () => {
-      toast.success("Mentor assigned to project.");
-      queryClient.invalidateQueries({ queryKey: ["mentors"] });
-      queryClient.invalidateQueries({ queryKey: ["mentor-allocations"] });
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
+    onSuccess: async (data) => {
+      // Invalidate and refetch all related queries
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["mentors"] }),
+        queryClient.invalidateQueries({ queryKey: ["mentor-allocations"] }),
+        queryClient.invalidateQueries({ queryKey: ["projects"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-users"] }),
+      ]);
+      // Force immediate refetch
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ["mentors"] }),
+        queryClient.refetchQueries({ queryKey: ["mentor-allocations"] }),
+        queryClient.refetchQueries({ queryKey: ["projects"] }),
+      ]);
+      if (data.invitationSent) {
+        toast.success("Mentor assigned to project. Invitation email sent.");
+      } else {
+        toast.success("Mentor assigned to project.");
+      }
     },
     onError: (error) => {
       toast.error(error.message || "Failed to assign mentor to project");
@@ -298,11 +358,21 @@ export const useUnassignMentor = () => {
 
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Invalidate and refetch all related queries
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["mentors"] }),
+        queryClient.invalidateQueries({ queryKey: ["mentor-allocations"] }),
+        queryClient.invalidateQueries({ queryKey: ["projects"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-users"] }),
+      ]);
+      // Force immediate refetch
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ["mentors"] }),
+        queryClient.refetchQueries({ queryKey: ["mentor-allocations"] }),
+        queryClient.refetchQueries({ queryKey: ["projects"] }),
+      ]);
       toast.success("Mentor removed from project.");
-      queryClient.invalidateQueries({ queryKey: ["mentors"] });
-      queryClient.invalidateQueries({ queryKey: ["mentor-allocations"] });
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
     onError: (error) => {
       toast.error(error.message || "Failed to remove mentor from project");

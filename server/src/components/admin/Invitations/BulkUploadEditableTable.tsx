@@ -1,15 +1,30 @@
 "use client";
 
 import React, { useMemo } from "react";
+
 import {
+  BulkUploadCellError,
+  useBulkUploadTableStore,
+} from "@/_stores/bulkUploadTableStore";
+import {
+  AlertCircle,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  AlertCircle,
   Trash2,
 } from "lucide-react";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -34,25 +49,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-
-import {
-  BulkUploadCellError,
-  useBulkUploadTableStore,
-} from "@/_stores/bulkUploadTableStore";
-import { validateBulkUploadRows } from "@/lib/bulkUploadValidation";
 
 export function BulkUploadEditableTable({
   fieldMapping,
+  projects = [],
 }: {
   fieldMapping: {
     email: string;
@@ -61,6 +61,11 @@ export function BulkUploadEditableTable({
     role: string;
     project: string;
   };
+  projects?: Array<{
+    id: string;
+    name: string;
+    description: string | null;
+  }>;
 }) {
   const {
     data,
@@ -71,7 +76,6 @@ export function BulkUploadEditableTable({
     selectedRowIds,
     isDeleteDialogOpen,
     setData,
-    setCellErrors,
     setCurrentPage,
     setPageSize,
     toggleRowSelection,
@@ -111,10 +115,6 @@ export function BulkUploadEditableTable({
       : selectAllRows(currentPageRowIds);
   };
 
-  const revalidate = (rows: typeof data) => {
-    setCellErrors(validateBulkUploadRows(rows, fieldMapping));
-  };
-
   const handleCellUpdate = (
     rowIndex: number,
     column: string,
@@ -124,7 +124,6 @@ export function BulkUploadEditableTable({
       index === rowIndex ? { ...row, [column]: value } : row,
     );
     setData(updated);
-    revalidate(updated);
   };
 
   const handleConfirmDelete = () => {
@@ -136,7 +135,6 @@ export function BulkUploadEditableTable({
     setData(remaining);
     deselectAllRows();
     closeDeleteDialog();
-    revalidate(remaining);
   };
 
   return (
@@ -201,30 +199,89 @@ export function BulkUploadEditableTable({
                 {columns.map((column) => {
                   const error = getCellError(rowIndex, column);
                   const hasError = Boolean(error);
+                  const isProjectColumn =
+                    column === fieldMapping.project &&
+                    fieldMapping.project !== "none";
+                  const currentValue = String(row[column] ?? "");
+                  const isEmpty = !currentValue || currentValue.trim() === "";
 
                   return (
                     <TableCell key={`${row.id}-${column}`} className="p-1">
                       <div className="relative">
-                        <Input
-                          value={String(row[column] ?? "")}
-                          onChange={(event) =>
-                            handleCellUpdate(
-                              startIndex + rowIndex,
-                              column,
-                              event.target.value,
-                            )
-                          }
-                          className={`h-9 text-sm ${
-                            hasError
-                              ? "border-red-500 bg-red-50"
-                              : "border-slate-200"
-                          }`}
-                        />
+                        {isProjectColumn ? (
+                          <>
+                            {isEmpty ? (
+                              <Select
+                                value={currentValue}
+                                onValueChange={(value) =>
+                                  handleCellUpdate(
+                                    startIndex + rowIndex,
+                                    column,
+                                    value,
+                                  )
+                                }
+                              >
+                                <SelectTrigger className="h-9 text-sm border-slate-200 w-full">
+                                  <SelectValue placeholder="Select project..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {projects.length > 0 ? (
+                                    projects.map((project) => (
+                                      <SelectItem
+                                        key={project.id}
+                                        value={project.name}
+                                      >
+                                        {project.name}
+                                      </SelectItem>
+                                    ))
+                                  ) : (
+                                    <div className="p-2 text-sm text-slate-500">
+                                      No projects available
+                                    </div>
+                                  )}
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <Input
+                                value={currentValue}
+                                onChange={(event) =>
+                                  handleCellUpdate(
+                                    startIndex + rowIndex,
+                                    column,
+                                    event.target.value,
+                                  )
+                                }
+                                className={`h-9 text-sm ${
+                                  hasError
+                                    ? "border-red-500 bg-red-50"
+                                    : "border-slate-200"
+                                }`}
+                                placeholder="Enter project name"
+                              />
+                            )}
+                          </>
+                        ) : (
+                          <Input
+                            value={currentValue}
+                            onChange={(event) =>
+                              handleCellUpdate(
+                                startIndex + rowIndex,
+                                column,
+                                event.target.value,
+                              )
+                            }
+                            className={`h-9 text-sm ${
+                              hasError
+                                ? "border-red-500 bg-red-50"
+                                : "border-slate-200"
+                            }`}
+                          />
+                        )}
                         {hasError && (
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                                <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
                                   <AlertCircle className="h-4 w-4 text-red-500" />
                                 </div>
                               </TooltipTrigger>
@@ -254,10 +311,13 @@ export function BulkUploadEditableTable({
         </Table>
       </div>
 
-      <div className="flex items-center justify-between px-2">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-3 px-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex w-full items-center gap-2 sm:w-auto">
           <span className="text-sm text-slate-500">Rows per page:</span>
-          <Select value={String(pageSize)} onValueChange={(v) => setPageSize(Number(v))}>
+          <Select
+            value={String(pageSize)}
+            onValueChange={(v) => setPageSize(Number(v))}
+          >
             <SelectTrigger className="h-8 w-[70px]">
               <SelectValue />
             </SelectTrigger>
@@ -271,11 +331,12 @@ export function BulkUploadEditableTable({
           </Select>
         </div>
 
-        <div className="text-sm text-slate-500">
-          {data.length === 0 ? 0 : startIndex + 1} to {endIndex} of {data.length}
+        <div className="w-full text-sm text-slate-500 sm:w-auto sm:text-center">
+          {data.length === 0 ? 0 : startIndex + 1} to {endIndex} of{" "}
+          {data.length}
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex w-full flex-wrap items-center justify-between gap-2 sm:w-auto sm:flex-nowrap sm:justify-end">
           {[
             {
               icon: ChevronsLeft,
@@ -338,7 +399,10 @@ export function BulkUploadEditableTable({
             </AlertDialogTitle>
             <AlertDialogDescription>
               {selectedCount === 1 ? (
-                <>Are you sure you want to delete this row? This cannot be undone.</>
+                <>
+                  Are you sure you want to delete this row? This cannot be
+                  undone.
+                </>
               ) : (
                 <>
                   Are you sure you want to delete {selectedCount} rows? This
@@ -353,7 +417,7 @@ export function BulkUploadEditableTable({
               onClick={handleConfirmDelete}
               className="bg-red-600 hover:bg-red-600"
             >
-              Delete
+              MentorMentor Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

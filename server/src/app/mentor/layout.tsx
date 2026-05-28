@@ -13,21 +13,12 @@ import {
 } from "@/components/ui/sidebar";
 import AsideSidebar from "@/components/AsideSidebar";
 
-interface AdminPageLayoutProps {
-  children: React.ReactNode;
-  /** Tailwind bg class for the page background. Defaults to bg-[#f5f7fb] */
-  className?: string;
-}
-
-function MentorLayout({
-  children,
-  className = "bg-[#f5f7fb]",
-}: AdminPageLayoutProps) {
+function MentorLayout({ children }: { children: React.ReactNode }) {
   return (
     <div>
       <SidebarProvider>
         <AsideSidebar menu={MENTOR_MENU_ITEMS} logo={MENTOR_LOGO_CONFIG} />
-        <SidebarInset className={className}>
+        <SidebarInset className="bg-[#f5f7fb]">
           {/* Mobile top bar — visible only on mobile */}
           <header className="flex md:hidden items-center justify-between px-4 py-3 bg-white border-b border-[#e3e6ef] sticky top-0 z-30">
             <SidebarTrigger className="h-9 w-9 [&_svg]:size-5" />

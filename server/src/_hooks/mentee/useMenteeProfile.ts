@@ -6,10 +6,11 @@
 "use client";
 
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
+
 import {
-  MenteeProfileResponse,
   MenteeProfileData,
   MenteeProfileError,
+  MenteeProfileResponse,
 } from "@/types/menteeProfile";
 
 const MENTEE_PROFILE_QUERY_KEY = ["mentee-profile"];
@@ -30,29 +31,35 @@ async function fetchMenteeProfile(): Promise<MenteeProfileData> {
   if (!response.ok) {
     const errorData: MenteeProfileError = await response.json();
     throw new Error(
-      errorData.message || `Failed to fetch mentee profile (${response.status})`
+      errorData.message ||
+        `Failed to fetch mentee profile (${response.status})`,
     );
   }
 
-  const data: MenteeProfileResponse = await response.json();
+  const data = (await response.json()) as
+    | MenteeProfileResponse
+    | MenteeProfileError;
 
   if (!data.success) {
-    throw new Error(data.message || "Failed to fetch mentee profile");
+    const errorMessage =
+      "message" in data ? data.message : "Failed to fetch mentee profile";
+
+    throw new Error(errorMessage);
   }
 
-  return data.data;
+  return (data as MenteeProfileResponse).data;
 }
 
 /**
  * Hook to fetch mentee profile with React Query
- * 
+ *
  * @example
  * ```tsx
  * const { data, isLoading, error } = useMenteeProfile();
- * 
+ *
  * if (isLoading) return <LoadingSpinner />;
  * if (error) return <ErrorMessage error={error.message} />;
- * 
+ *
  * return (
  *   <div>
  *     <h1>{data?.profile.fullName}</h1>
@@ -74,12 +81,12 @@ export function useMenteeProfile(): UseQueryResult<MenteeProfileData, Error> {
 
 /**
  * Hook to refresh mentee profile data
- * 
+ *
  * @example
  * ```tsx
  * const queryClient = useQueryClient();
  * const { refetch } = useMenteeProfile();
- * 
+ *
  * const handleUpdate = async () => {
  *   await refetch();
  * };
@@ -97,7 +104,7 @@ export function useMenteeProfileRefresh() {
 
 /**
  * Hook to get specific profile section
- * 
+ *
  * @example
  * ```tsx
  * const { data: statistics } = useMenteeProfile();
@@ -105,7 +112,7 @@ export function useMenteeProfileRefresh() {
  * ```
  */
 export function useMenteeProfileSection<K extends keyof MenteeProfileData>(
-  section: K
+  section: K,
 ): UseQueryResult<MenteeProfileData[K] | undefined, Error> {
   return useQuery({
     queryKey: [...MENTEE_PROFILE_QUERY_KEY, section],

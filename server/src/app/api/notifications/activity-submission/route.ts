@@ -1,12 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
 import { ProjectRepository } from "@/repositories/project_repository_impl";
-import { ActivityRepository } from "@/repositories/activity_repository_impl";
-import { sendActivitySubmissionNotification } from "@/lib/emailNotifications";
 import getSession from "@/server_actions/getSession";
+import { NextRequest, NextResponse } from "next/server";
+
+import { sendActivitySubmissionNotification } from "@/lib/emailNotifications";
 import prisma from "@/lib/prisma";
 
 const projectRepository = new ProjectRepository();
-const activityRepository = new ActivityRepository();
+
+export const dynamic = "force-dynamic";
 
 export const POST = async (req: NextRequest) => {
   try {
@@ -20,7 +21,7 @@ export const POST = async (req: NextRequest) => {
     if (!studentId || !taskDate) {
       return NextResponse.json(
         { message: "Missing studentId or taskDate" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -44,7 +45,7 @@ export const POST = async (req: NextRequest) => {
     if (!student) {
       return NextResponse.json(
         { message: "Student not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -54,7 +55,7 @@ export const POST = async (req: NextRequest) => {
     for (const allocation of studentProjects) {
       try {
         const mentorEmails = await projectRepository.getProjectMentorsEmails(
-          allocation.projectId
+          allocation.projectId,
         );
 
         if (mentorEmails.length > 0) {
@@ -67,7 +68,7 @@ export const POST = async (req: NextRequest) => {
       } catch (error) {
         console.error(
           `Error sending notification for project ${allocation.projectId}:`,
-          error
+          error,
         );
         // Continue with other projects even if one fails
       }
@@ -75,14 +76,14 @@ export const POST = async (req: NextRequest) => {
 
     return NextResponse.json(
       { message: "Notifications sent successfully" },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Error in activity submission notification:", error);
     // Don't return error to client - notifications are not critical
     return NextResponse.json(
       { message: "Notification processing completed" },
-      { status: 200 }
+      { status: 200 },
     );
   }
 };

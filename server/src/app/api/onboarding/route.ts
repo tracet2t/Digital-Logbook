@@ -161,37 +161,134 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: "desc" },
     });
 
-    // Also include students created directly (via invitation) who have no MenteeApplication
-    const appEmails = new Set(
-      (applications as { email: string }[]).map((a) => a.email),
+    // Get unique emails from applications
+    const appEmailList = (applications as { email: string }[]).map(
+      (a) => a.email,
     );
+
+    // Fetch all users for these emails
+    const applicationUsers = await prisma.user.findMany({
+      where: { email: { in: appEmailList } },
+      select: { email: true, id: true, isActive: true, emailConfirmed: true },
+    });
+
+    // Fetch all invitations for these emails
+    const invitations = await prisma.invitation.findMany({
+      where: { email: { in: appEmailList } },
+      orderBy: { createdAt: "desc" },
+    });
+
+    // Create maps for quick lookup
+    const userByEmail = new Map(applicationUsers.map((u) => [u.email, u]));
+    const invitationByEmail = new Map(invitations.map((i) => [i.email, i]));
+
+    // Enrich applications with user and invitation data
+    const enrichedApplications = applications.map((app) => {
+      const user = userByEmail.get(app.email);
+      const invitation = invitationByEmail.get(app.email);
+
+      // Determine invitation status
+      let invitationStatus: "Active" | "Pending" | "Expired" | undefined;
+      let invitationExpiresAt: string | undefined;
+
+      if (invitation) {
+        invitationExpiresAt = invitation.expiresAt.toISOString();
+        const now = new Date();
+
+        if (invitation.accepted) {
+          invitationStatus = "Active";
+        } else if (new Date(invitation.expiresAt) < now) {
+          invitationStatus = "Expired";
+        } else {
+          invitationStatus = "Pending";
+        }
+      }
+
+      return {
+        ...app,
+        // Add user data
+        user: user
+          ? {
+              id: user.id,
+              isActive: user.isActive,
+              emailConfirmed: user.emailConfirmed,
+            }
+          : undefined,
+        // Add invitation status
+        invitationStatus,
+        invitationExpiresAt,
+      };
+    });
+
+    // Also include students created directly (via invitation) who have no MenteeApplication
+    const appEmails = new Set(appEmailList);
     const directStudents = await prisma.user.findMany({
-      where: { role: Role.student },
+      where: {
+        role: Role.student,
+        email: { notIn: Array.from(appEmails) },
+      },
       select: {
         id: true,
         firstName: true,
         lastName: true,
         email: true,
         isActive: true,
+        emailConfirmed: true,
         createdAt: true,
         updatedAt: true,
       },
     });
-    const extraStudents = directStudents
-      .filter((u) => !appEmails.has(u.email))
-      .map((u) => ({
+
+    // Fetch invitations for direct students
+    const directEmails = directStudents.map((u) => u.email);
+    const directInvitations = await prisma.invitation.findMany({
+      where: { email: { in: directEmails } },
+      orderBy: { createdAt: "desc" },
+    });
+    const directInvitationByEmail = new Map(
+      directInvitations.map((i) => [i.email, i]),
+    );
+
+    const extraStudents = directStudents.map((u) => {
+      const invitation = directInvitationByEmail.get(u.email);
+
+      let invitationStatus: "Active" | "Pending" | "Expired" | undefined;
+      let invitationExpiresAt: string | undefined;
+
+      if (invitation) {
+        invitationExpiresAt = invitation.expiresAt.toISOString();
+        const now = new Date();
+
+        if (invitation.accepted) {
+          invitationStatus = "Active";
+        } else if (new Date(invitation.expiresAt) < now) {
+          invitationStatus = "Expired";
+        } else {
+          invitationStatus = "Pending";
+        }
+      }
+
+      return {
         id: u.id,
         fullName: `${u.firstName} ${u.lastName}`,
         email: u.email,
         university: "-",
         degreeProgram: "-",
         cvLink: "#",
-        status: (u.isActive ? "approved" : "inactive") as const,
+        status: u.isActive ? ("approved" as const) : ("inactive" as const),
         createdAt: u.createdAt.toISOString(),
         updatedAt: u.updatedAt.toISOString(),
-      }));
+        user: {
+          id: u.id,
+          isActive: u.isActive,
+          emailConfirmed: u.emailConfirmed,
+        },
+        invitationStatus,
+        invitationExpiresAt,
+      };
+    });
 
-    return NextResponse.json([...applications, ...extraStudents], {
+    return NextResponse.json([...enrichedApplications, ...extraStudents], {
       status: 200,
     });
   } catch (error) {

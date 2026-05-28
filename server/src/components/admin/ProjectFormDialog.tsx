@@ -5,7 +5,23 @@
 
 "use client";
 
+import { useRef, useState } from "react";
+
+import {
+  DOMAIN_LABELS,
+  DOMAIN_OPTIONS,
+  type ProjectFormValues,
+} from "@/app/admin/projects/_constants";
+
 import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
   Dialog,
   DialogClose,
@@ -17,19 +33,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-
-import {
-  DOMAIN_LABELS,
-  DOMAIN_OPTIONS,
-  type ProjectFormValues,
-} from "@/app/admin/projects/_constants";
 
 interface ProjectFormDialogProps {
   open: boolean;
@@ -54,6 +62,23 @@ export default function ProjectFormDialog({
   onSave,
   onClose,
 }: ProjectFormDialogProps) {
+  const canSave = form.name.trim().length > 0 && form.domain.trim().length > 0;
+
+  const [domainOpen, setDomainOpen] = useState(false);
+  const [domainSearch, setDomainSearch] = useState("");
+  const domainInputRef = useRef<HTMLInputElement>(null);
+
+  const normalizedDomainSearch = domainSearch.trim();
+  const domainSuggestions = DOMAIN_OPTIONS.map((d) => DOMAIN_LABELS[d]);
+  const filteredDomains = domainSuggestions.filter((opt) =>
+    opt.toLowerCase().includes(domainSearch.toLowerCase()),
+  );
+  const canAddCustomDomain =
+    normalizedDomainSearch.length > 0 &&
+    !domainSuggestions.some(
+      (opt) => opt.toLowerCase() === normalizedDomainSearch.toLowerCase(),
+    );
+
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="max-w-md">
@@ -84,21 +109,88 @@ export default function ProjectFormDialog({
 
           <div className="space-y-1.5">
             <Label>Domain</Label>
-            <Select
-              value={form.domain}
-              onValueChange={(v) => onFormChange({ ...form, domain: v })}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {DOMAIN_OPTIONS.map((d) => (
-                  <SelectItem key={d} value={d}>
-                    {DOMAIN_LABELS[d]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={domainOpen} onOpenChange={setDomainOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between gap-2 rounded-lg border border-input bg-background px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  onClick={() => {
+                    setDomainOpen(true);
+                    setTimeout(() => domainInputRef.current?.focus(), 0);
+                  }}
+                >
+                  <span className="truncate text-left">
+                    {form.domain.trim()
+                      ? form.domain
+                      : "Search or add domain..."}
+                  </span>
+                  <span className="text-xs text-muted-foreground">▼</span>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent
+                className="w-[--radix-popover-trigger-width] p-0"
+                align="start"
+              >
+                <Command shouldFilter={false}>
+                  <CommandInput
+                    ref={domainInputRef}
+                    placeholder="Search or add domain..."
+                    value={domainSearch}
+                    onValueChange={setDomainSearch}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && normalizedDomainSearch) {
+                        e.preventDefault();
+                        onFormChange({
+                          ...form,
+                          domain: normalizedDomainSearch,
+                        });
+                        setDomainOpen(false);
+                        setDomainSearch("");
+                      }
+                    }}
+                  />
+                  <CommandList>
+                    {canAddCustomDomain && (
+                      <CommandGroup heading="Custom">
+                        <CommandItem
+                          value={normalizedDomainSearch}
+                          onSelect={() => {
+                            onFormChange({
+                              ...form,
+                              domain: normalizedDomainSearch,
+                            });
+                            setDomainOpen(false);
+                            setDomainSearch("");
+                          }}
+                        >
+                          {`Add "${normalizedDomainSearch}"`}
+                        </CommandItem>
+                      </CommandGroup>
+                    )}
+                    {filteredDomains.length > 0 && (
+                      <CommandGroup heading="Suggestions">
+                        {filteredDomains.map((opt) => (
+                          <CommandItem
+                            key={opt}
+                            value={opt}
+                            onSelect={() => {
+                              onFormChange({ ...form, domain: opt });
+                              setDomainOpen(false);
+                              setDomainSearch("");
+                            }}
+                          >
+                            {opt}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    )}
+                    {!canAddCustomDomain && filteredDomains.length === 0 && (
+                      <CommandEmpty>No results found.</CommandEmpty>
+                    )}
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="space-y-1.5">
@@ -122,7 +214,7 @@ export default function ProjectFormDialog({
           <Button
             className="bg-[#000053] text-white hover:bg-[#000053]"
             onClick={onSave}
-            disabled={saving || !form.name.trim()}
+            disabled={saving || !canSave}
           >
             {saving ? savingLabel : saveLabel}
           </Button>
