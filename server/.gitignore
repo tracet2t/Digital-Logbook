@@ -34,7 +34,7 @@ yarn-error.log*
 .env.development
 .env.test
 .env.production
-.env.example
+# .env.example is intentionally committed — it contains no real secrets
 
 # vercel
 .vercel

@@ -552,6 +552,9 @@ async function main() {
       data: {
         fullName: "Alexander Hamilton",
         email: "alex.hamilton@university.edu",
+        nic: "123456789V",
+        mobileNumber: "+94771234567",
+        address: "123 Main Street, Colombo",
         university: "State University",
         degreeProgram: "B.S. Computer Science",
         cvLink:
