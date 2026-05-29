@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { useMenteeDashboard } from "@/_hooks/mentee";
 import { useIsMobile } from "@/_hooks/use-mobile";
-import { CheckCircle2, Clock, Eye, ListChecks } from "lucide-react";
+import { CheckCircle2, Clock, Eye, ListChecks, XCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -57,16 +57,20 @@ const PAGE_SIZE = 7;
 
 const ANALYTICS_META = [
   {
-    label: "TOTAL HOURS LOGGED",
+    label: "TOTAL WORKING HOURS",
     icon: <Clock className="h-6 w-6 text-[#000053]" />,
   },
   {
-    label: "TASKS COMPLETED",
+    label: "Approved tasks",
     icon: <ListChecks className="h-6 w-6 text-[#000053]" />,
   },
   {
     label: "PENDING APPROVALS",
     icon: <CheckCircle2 className="h-6 w-6 text-[#000053]" />,
+  },
+  {
+    label: "REJECTED",
+    icon: <XCircle className="h-6 w-6 text-[#000053]" />,
   },
 ];
 
@@ -194,8 +198,9 @@ export default function StudentDashboardPage() {
 
   const analytics = [
     { ...ANALYTICS_META[0], value: data?.stats.totalHoursLogged ?? 0 },
-    { ...ANALYTICS_META[1], value: data?.stats.tasksCompleted ?? 0 },
+    { ...ANALYTICS_META[1], value: data?.stats.approvedTasks ?? 0 },
     { ...ANALYTICS_META[2], value: data?.stats.pendingApprovals ?? 0 },
+    { ...ANALYTICS_META[3], value: data?.stats.rejectedTasks ?? 0 },
   ];
 
   const openDetails = (item: ActivityRow) => {
@@ -215,7 +220,7 @@ export default function StudentDashboardPage() {
         <PageHeader title="Mentee Dashboard" subtitle="Analytics Overview" />
 
         {/* Analytics Cards */}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4 mt-5 mb-6">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4 mt-5 mb-6">
           {analytics.map((item) => (
             <Card
               key={item.label}
@@ -253,29 +258,26 @@ export default function StudentDashboardPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="border-b border-[#e3ebf8]">
-                    <TableHead className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#737373] h-10 pl-6">
+                    <TableHead className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#737373] h-10 px-6">
                       Task Name
                     </TableHead>
-                    <TableHead className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#737373] h-10">
+                    <TableHead className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#737373] h-10 px-6">
                       Date
                     </TableHead>
-                    <TableHead className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#737373] h-10">
+                    <TableHead className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#737373] h-10 px-6">
                       Hours
                     </TableHead>
-                    <TableHead className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#737373] h-10">
+                    <TableHead className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#737373] h-10 px-6">
                       Status
                     </TableHead>
-                    <TableHead className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#737373] h-10">
+                    <TableHead className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#737373] h-10 px-6">
                       Feedback
-                    </TableHead>
-                    <TableHead className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#737373] h-10 text-right pr-6">
-                      Actions
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   <TableStateRows
-                    colSpan={6}
+                    colSpan={5}
                     loading={isLoading}
                     error={error?.message}
                     empty={!isLoading && activities.length === 0}
@@ -289,36 +291,22 @@ export default function StudentDashboardPage() {
                         className="border-b border-[#e3ebf8] hover:bg-[#f5f7fb] transition-colors cursor-pointer"
                         onClick={() => openDetails(item)}
                       >
-                        <TableCell className="font-semibold text-[15px] text-[#0A0A0A] pl-6">
+                        <TableCell className="font-semibold text-[15px] text-[#0A0A0A] px-6">
                           {item.taskName}
                         </TableCell>
-                        <TableCell className="text-[15px] text-[#737373]">
+                        <TableCell className="text-[15px] text-[#737373] px-6">
                           {item.date}
                         </TableCell>
-                        <TableCell className="text-[15px] font-bold text-[#000053]">
+                        <TableCell className="text-[15px] font-bold text-[#000053] px-6">
                           {item.hours} hrs
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="px-6">
                           <AdminStatusBadge
                             status={item.status.toLowerCase()}
                           />
                         </TableCell>
-                        <TableCell className="text-[15px] text-[#0A0A0A]">
+                        <TableCell className="text-[15px] text-[#0A0A0A] px-6">
                           {item.status === "PENDING" ? "-" : item.feedback}
-                        </TableCell>
-                        <TableCell className="text-right pr-6">
-                          <TableActionMenu
-                            ariaLabel={`Actions for activity on ${item.date}`}
-                            items={[
-                              {
-                                label: "View",
-                                icon: (
-                                  <Eye className="h-4 w-4 text-[#000053]" />
-                                ),
-                                onSelect: () => openDetails(item),
-                              },
-                            ]}
-                          />
                         </TableCell>
                       </TableRow>
                     ))}

@@ -1,30 +1,27 @@
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 import getSession from "@/server_actions/getSession";
+import { NextRequest, NextResponse } from "next/server";
+
+import prisma from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
 /**
  * GET /api/mentee/profile
- * 
- * Secure endpoint to retrieve comprehensive mentee profile data with role-based access control.
- * Returns: user profile, assigned projects, mentor information, activity statistics, badges
- * 
- * Authentication: Required (JWT token in HTTP-only cookie)
- * Authorization: student role only
+ Secure endpoint to retrieve comprehensive mentee profile data with role-based access control.
+
  */
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     // ─── AUTHENTICATION ────────────────────────────────────
     const session = await getSession();
 
     if (!session?.isAuthenticated()) {
       return NextResponse.json(
-        { 
+        {
           success: false,
-          message: "Unauthorized - Please login to access profile" 
+          message: "Unauthorized - Please login to access profile",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -32,22 +29,22 @@ export async function GET(req: NextRequest) {
     const role = session.getRole();
     if (role !== "student") {
       return NextResponse.json(
-        { 
+        {
           success: false,
-          message: "Forbidden - Only students can access this endpoint" 
+          message: "Forbidden - Only students can access this endpoint",
         },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
     const menteeId = session.getId();
     if (!menteeId) {
       return NextResponse.json(
-        { 
+        {
           success: false,
-          message: "User ID not found in session" 
+          message: "User ID not found in session",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -108,6 +105,8 @@ export async function GET(req: NextRequest) {
                 status: true,
                 feedbackNotes: true,
               },
+              orderBy: { createdAt: "desc" },
+              take: 1,
             },
           },
           orderBy: { date: "desc" },
@@ -118,11 +117,11 @@ export async function GET(req: NextRequest) {
 
     if (!profileData) {
       return NextResponse.json(
-        { 
+        {
           success: false,
-          message: "Mentee profile not found" 
+          message: "Mentee profile not found",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -153,18 +152,46 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    // ─── FETCH ALL ACTIVITIES FOR ACCURATE STATISTICS ────
+    const allActivities = await prisma.activity.findMany({
+      where: { studentId: menteeId },
+      select: {
+        timeSpent: true,
+        status: true,
+        feedback: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: { status: true },
+        },
+      },
+    });
+
     // ─── CALCULATE STATISTICS ─────────────────────────────
-    const totalActivities = profileData.activities.length;
-    const approvedActivities = profileData.activities.filter(
-      (a) => a.feedback?.status === "approved"
-    ).length;
-    const pendingActivities = profileData.activities.filter(
-      (a) => a.status === "pending"
-    ).length;
-    
-    const totalHours = profileData.activities.reduce(
+    // Uses effective-status logic consistent with the dashboard:
+    // - Approved: feedback status is "approved"/"accepted", or activity.status is "accepted"
+    // - Rejected: feedback status is "rejected", or activity.status is "rejected"
+    // - Pending:  remaining tasks where activity.status is "pending"
+    const totalActivities = allActivities.length;
+
+    let approvedActivities = 0;
+    let pendingActivities = 0;
+    let rejectedActivities = 0;
+
+    for (const a of allActivities) {
+      const fb = a.feedback[0]?.status?.toLowerCase();
+
+      if (fb === "approved" || fb === "accepted" || a.status === "accepted") {
+        approvedActivities++;
+      } else if (fb === "rejected" || a.status === "rejected") {
+        rejectedActivities++;
+      } else {
+        pendingActivities++;
+      }
+    }
+
+    const totalHours = allActivities.reduce(
       (sum, activity) => sum + (activity.timeSpent || 0),
-      0
+      0,
     );
 
     // ─── CONSTRUCT RESPONSE ────────────────────────────────
@@ -185,7 +212,7 @@ export async function GET(req: NextRequest) {
           createdAt: profileData.createdAt,
           updatedAt: profileData.updatedAt,
         },
-        
+
         // Assigned projects
         projects: profileData.projectAllocations.map((allocation) => ({
           id: allocation.project.id,
@@ -195,7 +222,7 @@ export async function GET(req: NextRequest) {
           allocationStatus: allocation.timeAllocationStatus,
           assignedAt: allocation.assignedAt,
         })),
-        
+
         // Mentor information
         mentor: mentorInfo
           ? {
@@ -207,7 +234,7 @@ export async function GET(req: NextRequest) {
               projectAssigned: mentorInfo.project.name,
             }
           : null,
-        
+
         // Badges and achievements
         badges: profileData.badges.map((ub) => ({
           id: ub.badge.id,
@@ -216,27 +243,25 @@ export async function GET(req: NextRequest) {
           iconUrl: ub.badge.iconUrl,
           awardedAt: ub.awardedAt,
         })),
-        
+
         // Activity statistics
         statistics: {
           totalActivities,
           approvedActivities,
           pendingActivities,
-          rejectedActivities: profileData.activities.filter(
-            (a) => a.feedback?.status === "rejected"
-          ).length,
+          rejectedActivities,
           totalHours: Math.round(totalHours * 100) / 100,
           profileCompletion: calculateProfileCompletion(profileData),
         },
-        
+
         // Recent activities
         recentActivities: profileData.activities.map((activity) => ({
           id: activity.id,
           date: activity.date,
           timeSpent: activity.timeSpent,
           status: activity.status,
-          feedbackStatus: activity.feedback?.status || null,
-          feedbackNotes: activity.feedback?.feedbackNotes || null,
+          feedbackStatus: activity.feedback[0]?.status || null,
+          feedbackNotes: activity.feedback[0]?.feedbackNotes || null,
         })),
       },
       timestamp: new Date().toISOString(),
@@ -247,12 +272,12 @@ export async function GET(req: NextRequest) {
     console.error("Error fetching mentee profile:", error);
 
     return NextResponse.json(
-      { 
+      {
         success: false,
         message: "Internal server error while fetching profile data",
         ...(process.env.NODE_ENV === "development" && { error: String(error) }),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -260,12 +285,24 @@ export async function GET(req: NextRequest) {
 /**
  * Calculate profile completion percentage based on filled fields
  */
-function calculateProfileCompletion(profileData: any): number {
+type ProfileCompletionInput = {
+  firstName: string | null;
+  lastName: string | null;
+  email: string | null;
+  batchNo: string | null;
+  projectAllocations?: Array<unknown>;
+  badges?: Array<unknown>;
+  activities?: Array<unknown>;
+};
+
+function calculateProfileCompletion(
+  profileData: ProfileCompletionInput,
+): number {
   let completed = 0;
   let total = 0;
 
   // Required fields
-  const requiredFields = [
+  const requiredFields: Array<keyof ProfileCompletionInput> = [
     "firstName",
     "lastName",
     "email",
@@ -274,13 +311,20 @@ function calculateProfileCompletion(profileData: any): number {
 
   requiredFields.forEach((field) => {
     total++;
-    if (profileData[field]) completed++;
+    const value = profileData[field];
+    if (typeof value === "string") {
+      if (value.trim().length > 0) completed++;
+    } else if (Array.isArray(value)) {
+      if (value.length > 0) completed++;
+    } else if (value) {
+      completed++;
+    }
   });
 
   // Optional but valuable fields
-  if (profileData.projectAllocations?.length > 0) completed++;
-  if (profileData.badges?.length > 0) completed++;
-  if (profileData.activities?.length > 0) completed++;
+  if ((profileData.projectAllocations?.length ?? 0) > 0) completed++;
+  if ((profileData.badges?.length ?? 0) > 0) completed++;
+  if ((profileData.activities?.length ?? 0) > 0) completed++;
 
   total += 3;
 

@@ -2,6 +2,9 @@
 
 import React from "react";
 
+import { useBulkUploadTableStore } from "@/_stores/bulkUploadTableStore";
+import { Loader2 } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
 import { BulkUploadEditableTable } from "./BulkUploadEditableTable";
 
 interface BulkUploadStep2Props {
@@ -32,7 +36,6 @@ interface BulkUploadStep2Props {
     field: "email" | "firstName" | "lastName" | "role" | "project",
     column: string,
   ) => void;
-  onBack?: () => void;
   onCancel?: () => void;
   onSubmit?: () => void;
   isSubmitting?: boolean;
@@ -43,6 +46,12 @@ interface BulkUploadStep2Props {
   };
   missingRequiredColumns?: string[];
   isSubmitDisabled?: boolean;
+  projects?: Array<{
+    id: string;
+    name: string;
+    description: string | null;
+  }>;
+  isLoadingProjects?: boolean;
 }
 
 const formatFileSize = (bytes: number): string => {
@@ -58,15 +67,19 @@ export function BulkUploadStep2({
   excelColumns,
   fieldMapping,
   onFieldMappingChange,
-  onBack = () => {},
   onCancel = () => {},
   onSubmit = () => {},
   isSubmitting = false,
   progress = { current: 0, total: 0, percentage: 0 },
   missingRequiredColumns = [],
   isSubmitDisabled = false,
+  projects = [],
+  isLoadingProjects = false,
 }: BulkUploadStep2Props) {
   const hasMissingRequired = missingRequiredColumns.length > 0;
+  const { cellErrors } = useBulkUploadTableStore();
+  const hasValidationErrors = cellErrors.length > 0;
+  const showMissingRequired = hasMissingRequired || hasValidationErrors;
 
   return (
     <div className="space-y-6 w-full">
@@ -100,9 +113,9 @@ export function BulkUploadStep2({
                   </>
                 )}
               </div>
-              {hasMissingRequired ? (
+              {showMissingRequired ? (
                 <Badge className="bg-orange-100 text-orange-800">
-                  Missing Required Columns
+                  Fix Required Cells
                 </Badge>
               ) : (
                 <Badge className="bg-[#22C55E] text-white">
@@ -223,16 +236,26 @@ export function BulkUploadStep2({
 
               <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
-                  System Field: Project
+                  System Field: Project{" "}
+                  {isLoadingProjects && (
+                    <span className="text-orange-600">(Loading...)</span>
+                  )}
                 </p>
                 <Select
                   value={fieldMapping.project}
                   onValueChange={(value) =>
                     onFieldMappingChange("project", value)
                   }
+                  disabled={isLoadingProjects}
                 >
                   <SelectTrigger className="h-9 border-[#dbe0e8]">
-                    <SelectValue placeholder="Select column" />
+                    <SelectValue
+                      placeholder={
+                        isLoadingProjects
+                          ? "Loading projects..."
+                          : "Select column"
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None</SelectItem>
@@ -243,6 +266,23 @@ export function BulkUploadStep2({
                     ))}
                   </SelectContent>
                 </Select>
+                {/* Show available projects for reference */}
+                {projects && projects.length > 0 && (
+                  <div className="mt-2 rounded border border-blue-200 bg-blue-50 p-2 text-xs">
+                    <p className="mb-1 font-semibold text-blue-900">
+                      Available Projects ({projects.length}):
+                    </p>
+                    <p className="text-blue-700">
+                      {projects.map((p) => p.name).join(", ")}
+                    </p>
+                  </div>
+                )}
+                {projects && projects.length === 0 && !isLoadingProjects && (
+                  <p className="mt-2 text-xs text-orange-600">
+                    ⚠️ No projects found. Create projects first before bulk
+                    inviting users.
+                  </p>
+                )}
               </div>
             </div>
 
@@ -260,7 +300,10 @@ export function BulkUploadStep2({
           <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
             Preview Data ({fileInfo?.rows ?? 0} rows)
           </p>
-          <BulkUploadEditableTable fieldMapping={fieldMapping} />
+          <BulkUploadEditableTable
+            fieldMapping={fieldMapping}
+            projects={projects}
+          />
         </div>
       </div>
 
@@ -290,15 +333,8 @@ export function BulkUploadStep2({
       )}
 
       {/* Buttons */}
-      <div className="flex flex-col gap-3 pt-6 border-t border-[#e4e7ed] sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-          <Button
-            onClick={onBack}
-            variant="outline"
-            className="h-10 w-full border-[#d9dde5] px-6 text-slate-700 hover:bg-slate-50 sm:w-auto"
-          >
-            ← Back to Upload
-          </Button>
+      <div className="flex flex-col items-stretch gap-3 pt-6 border-t border-[#e4e7ed] sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
           <Button
             onClick={onCancel}
             variant="outline"
@@ -313,7 +349,11 @@ export function BulkUploadStep2({
           disabled={isSubmitting || isSubmitDisabled}
           className="h-10 w-full bg-[#000053] px-6 font-semibold text-white hover:bg-[#000053] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
         >
-          {isSubmitting ? "SENDING..." : "COMPLETE UPLOAD"} →
+          {isSubmitting ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            "Send Invitations →"
+          )}
         </Button>
       </div>
     </div>

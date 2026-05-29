@@ -1,9 +1,11 @@
 //log the user
-import { NextRequest, NextResponse } from "next/server";
+import { InvitationRepository } from "@/repositories/invitation_repository_impl";
+import { UserRepository } from "@/repositories/user_repository_impl";
 import bcrypt from "bcrypt";
 import * as jose from "jose";
-import { UserRepository } from "@/repositories/user_repository_impl";
-import { InvitationRepository } from "@/repositories/invitation_repository_impl";
+import { NextRequest, NextResponse } from "next/server";
+
+export const dynamic = "force-dynamic";
 
 const invitationRepository = new InvitationRepository();
 const userRepository = new UserRepository();
@@ -60,7 +62,7 @@ export async function POST(req: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // 4. Create the user
-    const newUser: any = await userRepository.create({
+    const newUser = await userRepository.create({
       email: invitation.email,
       passwordHash: hashedPassword,
       firstName,
@@ -70,6 +72,7 @@ export async function POST(req: NextRequest) {
       isFirstTimeLogin: true,
       invitedBy: invitation.invitedBy,
       isActive: true, // Default value
+      batchNo: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });

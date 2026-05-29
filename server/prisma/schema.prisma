@@ -41,6 +41,9 @@ model User {
 
   projectTechnologies ProjectTechnology[]
 
+  articles        Article[]        @relation("ArticleAuthor")
+  sharedProfile   SharedProfile?
+
   @@map("users")
 }
 
@@ -128,7 +131,7 @@ model Project {
   id          String        @id @default(uuid())
   name        String
   description String?
-  domain      ProjectDomain
+  domain      String
   batchNo     String?
   projectOrder Int          @default(0)
 
@@ -225,14 +228,6 @@ enum ProcessStatus {
   wip
 }
 
-enum ProjectDomain {
-  software
-  film
-  training
-  research
-  other
-}
-
 model ProjectTechnology {
   id        String   @id @default(uuid())
   projectId String
@@ -250,6 +245,20 @@ model ProjectTechnology {
   @@map("projectTechnologies")
 }
 
+model SharedProfile {
+  id        String   @id @default(uuid())
+  studentId String   @unique
+  token     String   @unique @default(uuid())
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  expiresAt DateTime?
+
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("sharedProfiles")
+}
+
 enum TimeAllocationStatus {
   inReview
   accepted
@@ -260,6 +269,9 @@ model MenteeApplication {
   id            String                    @id @default(uuid())
   fullName      String
   email         String                    @unique
+  nic           String
+  mobileNumber  String
+  address       String
   university    String
   degreeProgram String
   cvLink        String
@@ -292,4 +304,76 @@ model WarningStatus {
   student     User            @relation(fields: [studentId], references: [id])
 
   @@map("warningStatuses")
+}
+
+// CMS 
+
+model Article {
+  id            String        @id @default(cuid())
+  title         String
+  slug          String        @unique
+  excerpt       String?
+  content       String        @db.Text
+  featuredImage String?
+  status        ArticleStatus @default(DRAFT)
+  isHero        Boolean       @default(false)
+  isEvent       Boolean       @default(false)
+  publishedAt   DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Only superAdmin users can author articles
+  authorId      String
+  author        User          @relation("ArticleAuthor", fields: [authorId], references: [id])
+
+  tags          ArticleTag[]
+  seo           ArticleSeo?
+  event         ArticleEvent?
+
+  @@map("articles")
+}
+
+model ArticleTag {
+  id        String  @id @default(cuid())
+  articleId String
+  label     String
+
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, label])
+  @@map("articleTags")
+}
+
+model ArticleSeo {
+  id          String  @id @default(cuid())
+  articleId   String  @unique
+  metaTitle   String?
+  metaDesc    String?
+  ogImage     String?
+
+  article     Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@map("articleSeo")
+}
+
+model ArticleEvent {
+  id            String   @id @default(cuid())
+  articleId     String   @unique
+  eventDate     DateTime?
+  eventTime     String?
+  location      String?
+  tag           String?
+  venue         String?
+  venueMapLink  String?
+  registerLink  String?
+
+  article       Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@map("articleEvents")
+}
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
 }

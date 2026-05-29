@@ -31,6 +31,10 @@ yarn-error.log*
 # local env files
 .env*.local
 .env
+.env.development
+.env.test
+.env.production
+# .env.example is intentionally committed — it contains no real secrets
 
 # vercel
 .vercel

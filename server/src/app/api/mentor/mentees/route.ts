@@ -1,6 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 import getSession from "@/server_actions/getSession";
+import { NextRequest, NextResponse } from "next/server";
+
+import prisma from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
 
 export const GET = async (req: NextRequest) => {
   try {
@@ -11,7 +14,10 @@ export const GET = async (req: NextRequest) => {
 
     const mentorId = session.getId();
     if (!mentorId) {
-      return NextResponse.json({ message: "User ID not found" }, { status: 401 });
+      return NextResponse.json(
+        { message: "User ID not found" },
+        { status: 401 },
+      );
     }
 
     const url = new URL(req.url);
@@ -26,7 +32,12 @@ export const GET = async (req: NextRequest) => {
 
     if (projectIds.length === 0) {
       return NextResponse.json({
-        summary: { archiveTotal: 0, activeProjects: 0, avgCompletionHours: 0, pendingReviews: 0 },
+        summary: {
+          archiveTotal: 0,
+          activeProjects: 0,
+          avgCompletionHours: 0,
+          pendingReviews: 0,
+        },
         rows: [],
         total: 0,
       });
@@ -50,7 +61,12 @@ export const GET = async (req: NextRequest) => {
 
     if (studentIds.length === 0) {
       return NextResponse.json({
-        summary: { archiveTotal: 0, activeProjects: 0, avgCompletionHours: 0, pendingReviews: 0 },
+        summary: {
+          archiveTotal: 0,
+          activeProjects: 0,
+          avgCompletionHours: 0,
+          pendingReviews: 0,
+        },
         rows: [],
         total: 0,
       });
@@ -93,18 +109,24 @@ export const GET = async (req: NextRequest) => {
         activityStatus = a.feedback[0].status as any;
       }
 
-      const normalizedStatus = activityStatus === "accepted" ? "approved" : activityStatus;
-      
+      const normalizedStatus =
+        activityStatus === "accepted" ? "approved" : activityStatus;
+
       // Determine if the student's project allocation has been accepted overall
       const acceptedStudentIds = new Set(
         allocations
-          // @ts-ignore - Prisma type generation issue
           .filter((a) => a.timeAllocationStatus === "accepted")
-          .map((a) => a.studentId)
+          .map((a) => a.studentId),
       );
 
-      if (normalizedStatus === "approved" && acceptedStudentIds.has(a.studentId)) {
-        minutesById.set(a.studentId, (minutesById.get(a.studentId) ?? 0) + a.timeSpent);
+      if (
+        normalizedStatus === "approved" &&
+        acceptedStudentIds.has(a.studentId)
+      ) {
+        minutesById.set(
+          a.studentId,
+          (minutesById.get(a.studentId) ?? 0) + a.timeSpent,
+        );
       } else if (normalizedStatus === "pending") {
         pendingReviews++;
       }

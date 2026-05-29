@@ -1,6 +1,52 @@
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 import getSession from "@/server_actions/getSession";
+import { NextRequest, NextResponse } from "next/server";
+
+import prisma from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
+
+function formatLastActivity(date: Date | null): string {
+  if (!date) return "Never";
+
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+
+  if (diffMs < 0) return "Just now";
+
+  const diffSeconds = Math.floor(diffMs / 1000);
+  if (diffSeconds < 60) return "Just now";
+
+  const diffMins = Math.floor(diffSeconds / 60);
+  if (diffMins < 60) {
+    return `${diffMins} min${diffMins === 1 ? "" : "s"} ago`;
+  }
+
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) {
+    return `${diffHours} hour${diffHours === 1 ? "" : "s"} ago`;
+  }
+
+  const startOfToday = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+  ).getTime();
+  const startOfThatDay = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+  ).getTime();
+  const diffDays = Math.floor((startOfToday - startOfThatDay) / 86400000);
+
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
 
 export const GET = async (_req: NextRequest) => {
   try {
@@ -13,7 +59,7 @@ export const GET = async (_req: NextRequest) => {
     if (!mentorId) {
       return NextResponse.json(
         { message: "User ID not found" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -26,80 +72,21 @@ export const GET = async (_req: NextRequest) => {
     const projectCount = mentorProjects.length;
     const projectIds = mentorProjects.map((p) => p.project.id);
 
-    // Fetch total mentees (students assigned to mentor's projects)
-    const mentees = await prisma.projectAllocation.findMany({
-      where: { projectId: { in: projectIds.length > 0 ? projectIds : undefined } },
-      include: {
-        student: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-          },
+    if (projectIds.length === 0) {
+      return NextResponse.json({
+        stats: {
+          totalMentees: 0,
+          projects: projectCount,
+          totalWorkingHours: 0,
+          averageWorkingHours: 0,
         },
-        project: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-      distinct: ["studentId"],
-    });
-
-    const menteeCount = mentees.length;
-
-    const studentIds = mentees.map((m) => m.student.id);
-
-    // Fetch student activities for working hours calculation
-    const studentActivities = await prisma.activity.findMany({
-      where: { studentId: { in: studentIds.length > 0 ? studentIds : undefined } },
-      select: {
-        studentId: true,
-        timeSpent: true,
-        status: true,
-        feedback: {
-          orderBy: { createdAt: "desc" },
-          take: 1,
-          select: { status: true },
-        },
-      },
-    });
-
-    let totalWorkingHours = 0;
-    
-    // Only sum hours for students whose project allocation has been actively accepted by the mentor
-    const acceptedStudentIds = new Set(
-      mentees
-        // @ts-ignore - Prisma type generation issue
-        .filter((m) => m.timeAllocationStatus === "accepted")
-        .map((m) => m.student.id)
-    );
-
-    for (const a of studentActivities) {
-      let activityStatus = a.status ?? "pending";
-      if (a.feedback && a.feedback.length > 0) {
-        activityStatus = a.feedback[0].status as any;
-      }
-      
-      const normalizedStatus = activityStatus === "accepted" ? "approved" : activityStatus;
-      
-      if (normalizedStatus === "approved" && acceptedStudentIds.has(a.studentId)) {
-        totalWorkingHours += a.timeSpent;
-      }
+        recentlyActiveMentees: [],
+      });
     }
 
-    // timeSpent is already in hours
-    // totalWorkingHours = Math.round(totalWorkingHours);
-
-    const averageWorkingHours =
-      menteeCount > 0
-        ? Math.round((totalWorkingHours / menteeCount) * 10) / 10
-        : 0;
-
-    // Fetch recently active mentees with latest activity
-    const recentlyActiveMentees = await prisma.projectAllocation.findMany({
-      where: { projectId: { in: projectIds.length > 0 ? projectIds : undefined } },
+    // Fetch total mentees (students assigned to mentor's projects)
+    const mentees = await prisma.projectAllocation.findMany({
+      where: { projectId: { in: projectIds } },
       include: {
         student: {
           select: {
@@ -116,15 +103,91 @@ export const GET = async (_req: NextRequest) => {
         },
       },
       orderBy: { assignedAt: "desc" },
-      take: 5,
+      distinct: ["studentId"],
     });
 
-    // Get latest activity for each mentee
+    const menteeCount = mentees.length;
+
+    const studentIds = mentees.map((m) => m.student.id);
+
+    // Fetch student activities for working hours calculation
+    const studentActivities = await prisma.activity.findMany({
+      where: { studentId: { in: studentIds } },
+      select: {
+        studentId: true,
+        timeSpent: true,
+        status: true,
+        feedback: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: { status: true },
+        },
+      },
+    });
+
+    let totalWorkingHours = 0;
+
+    // Only sum hours for students whose project allocation has been actively accepted by the mentor
+    const acceptedStudentIds = new Set(
+      mentees
+        .filter((m) => m.timeAllocationStatus === "accepted")
+        .map((m) => m.student.id),
+    );
+
+    for (const a of studentActivities) {
+      let activityStatus = a.status ?? "pending";
+      if (a.feedback && a.feedback.length > 0) {
+        activityStatus = a.feedback[0].status as any;
+      }
+
+      const normalizedStatus =
+        activityStatus === "accepted" ? "approved" : activityStatus;
+
+      if (
+        normalizedStatus === "approved" &&
+        acceptedStudentIds.has(a.studentId)
+      ) {
+        totalWorkingHours += a.timeSpent;
+      }
+    }
+
+    // timeSpent is already in hours
+    // totalWorkingHours = Math.round(totalWorkingHours);
+
+    const averageWorkingHours =
+      menteeCount > 0
+        ? Math.round((totalWorkingHours / menteeCount) * 10) / 10
+        : 0;
+
+    // Fetch recently active mentees with latest activity
+    // Recently active mentees should be based on most recently submitted task.
+    // We compute lastSubmittedAt per student using Activity.createdAt and sort.
+    const lastSubmittedByStudent = await prisma.activity.groupBy({
+      by: ["studentId"],
+      where: { studentId: { in: studentIds } },
+      _max: { createdAt: true },
+    });
+
+    const lastSubmittedMap = new Map<string, Date>();
+    for (const row of lastSubmittedByStudent) {
+      if (row._max.createdAt) {
+        lastSubmittedMap.set(row.studentId, row._max.createdAt);
+      }
+    }
+
+    const menteesSortedBySubmission = [...mentees].sort((a, b) => {
+      const aTime = lastSubmittedMap.get(a.student.id)?.getTime() ?? -1;
+      const bTime = lastSubmittedMap.get(b.student.id)?.getTime() ?? -1;
+      return bTime - aTime;
+    });
+
+    const topRecentlyActive = menteesSortedBySubmission.slice(0, 5);
+
     const recentMenteesWithActivity = await Promise.all(
-      recentlyActiveMentees.map(async (allocation) => {
-        const latestActivity = await prisma.activity.findFirst({
+      topRecentlyActive.map(async (allocation) => {
+        const latestSubmittedActivity = await prisma.activity.findFirst({
           where: { studentId: allocation.student.id },
-          orderBy: { date: "desc" },
+          orderBy: { createdAt: "desc" },
           include: {
             feedback: {
               orderBy: { createdAt: "desc" },
@@ -136,48 +199,30 @@ export const GET = async (_req: NextRequest) => {
         const initials =
           allocation.student.firstName.charAt(0) +
           allocation.student.lastName.charAt(0);
-        const name =
-          `${allocation.student.firstName} ${allocation.student.lastName}`;
+        const name = `${allocation.student.firstName} ${allocation.student.lastName}`;
 
-        // Calculate time since last activity
-        let lastActivityText = "Never";
-        if (latestActivity) {
-          const now = new Date();
-          const lastDate = new Date(latestActivity.date);
-          const diffMs = now.getTime() - lastDate.getTime();
-          const diffMins = Math.floor(diffMs / 60000);
-          const diffHours = Math.floor(diffMs / 3600000);
-          const diffDays = Math.floor(diffMs / 86400000);
+        const lastSubmittedAt =
+          lastSubmittedMap.get(allocation.student.id) ?? null;
+        const lastActivityText = formatLastActivity(lastSubmittedAt);
 
-          if (diffMins < 60) {
-            lastActivityText = `${diffMins} mins ago`;
-          } else if (diffHours < 24) {
-            lastActivityText = `${diffHours} hours ago`;
-          } else if (diffDays === 1) {
-            lastActivityText = "Yesterday";
-          } else if (diffDays < 7) {
-            lastActivityText = `${diffDays} days ago`;
-          } else {
-            lastActivityText = lastDate.toLocaleDateString();
-          }
-        }
-
-        // Map activity status to dashboard status  
+        // Map activity status to dashboard status
         let dashboardStatus: "ACCEPTED" | "PENDING" | "REJECTED" = "PENDING";
-        if (latestActivity) {
-          let activityState = latestActivity.status ?? "pending";
-          // Override with highest-priority status from feedback if it exists
-          if (latestActivity.feedback && latestActivity.feedback.length > 0) {
-            activityState = latestActivity.feedback[0].status as any;
+        if (latestSubmittedActivity) {
+          let activityState = latestSubmittedActivity.status ?? "pending";
+          if (
+            latestSubmittedActivity.feedback &&
+            latestSubmittedActivity.feedback.length > 0
+          ) {
+            activityState = latestSubmittedActivity.feedback[0].status as any;
           }
 
-          const statusMap: Record<string, "ACCEPTED" | "PENDING" | "REJECTED"> = {
-            accepted: "ACCEPTED",
-            approved: "ACCEPTED",
-            pending: "PENDING",
-            rejected: "REJECTED",
-          };
-          // @ts-ignore - Prisma type generation issue with status field
+          const statusMap: Record<string, "ACCEPTED" | "PENDING" | "REJECTED"> =
+            {
+              accepted: "ACCEPTED",
+              approved: "ACCEPTED",
+              pending: "PENDING",
+              rejected: "REJECTED",
+            };
           dashboardStatus = statusMap[activityState] ?? "PENDING";
         }
 
@@ -189,7 +234,7 @@ export const GET = async (_req: NextRequest) => {
           lastActivity: lastActivityText,
           status: dashboardStatus,
         };
-      })
+      }),
     );
 
     return NextResponse.json({
@@ -205,7 +250,7 @@ export const GET = async (_req: NextRequest) => {
     console.error("Error fetching mentor dashboard data:", error);
     return NextResponse.json(
       { message: "Error fetching mentor dashboard data" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 };

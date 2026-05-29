@@ -1,7 +1,9 @@
-import { InvitationRepository } from "../src/repositories/invitation_repository_impl";
-import prisma from "../src/lib/prisma";
-import { Role } from "@prisma/client";
 import crypto from "crypto";
+
+import { Role } from "@prisma/client";
+
+import prisma from "../src/lib/prisma";
+import { InvitationRepository } from "../src/repositories/invitation_repository_impl";
 
 jest.mock("../src/lib/prisma", () => ({
   __esModule: true,
@@ -18,7 +20,7 @@ describe("InvitationRepository", () => {
   const repo = new InvitationRepository();
 
   test("should create an invitation successfully", async () => {
-    jest.spyOn(crypto, "randomBytes").mockImplementation((size: number) => {
+    jest.spyOn(crypto, "randomBytes").mockImplementation((_size: number) => {
       // ignore size, always return same buffer for test
       return Buffer.from("mocktokenmocktokenmocktokenmocktoken");
     });
@@ -165,8 +167,8 @@ describe("InvitationRepository", () => {
     let capturedToken = "";
 
     // Mock crypto.randomBytes to actually generate a "random" token
-    jest.spyOn(crypto, "randomBytes").mockImplementation((size) => {
-      const buf = Buffer.alloc(size, "a"); // 32 bytes of 'a' for test
+    jest.spyOn(crypto, "randomBytes").mockImplementation((_size) => {
+      const buf = Buffer.alloc(32, "a"); // 32 bytes of 'a' for test
       capturedToken = buf.toString("hex");
       return buf;
     });
@@ -193,7 +195,7 @@ describe("InvitationRepository", () => {
     const tokens: string[] = [];
     let counter = 0;
 
-    jest.spyOn(crypto, "randomBytes").mockImplementation((size) => {
+    jest.spyOn(crypto, "randomBytes").mockImplementation((_size) => {
       counter++;
       const buf = Buffer.from("token" + counter + "0000000000000000000000"); // 32 bytes
       return buf;
@@ -227,14 +229,6 @@ describe("InvitationRepository", () => {
 
   //Token Expiration rejection test
   test("should reject expired invitations", async () => {
-    const expiredInvite = {
-      id: "expired-id",
-      email: "expired@test.com",
-      token: "expired-token",
-      accepted: false,
-      expiresAt: new Date(Date.now() - 1000 * 60), // past
-    };
-
     (prisma.invitation.findFirst as jest.Mock).mockResolvedValue(null);
 
     const result = await repo.findValidInvite(

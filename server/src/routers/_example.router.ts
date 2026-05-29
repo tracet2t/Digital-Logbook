@@ -55,7 +55,8 @@ export const getPrivateExample = authedProcedure
   .output(z.object({ message: z.string(), userId: z.string() }))
   .handler(async ({ context }) => {
     // Access authenticated user context
-    const { userId, userRole } = context;
+    const userId = context.userId ?? "unknown";
+    const { userRole } = context;
 
     return {
       message: `Hello user ${userId} with role ${userRole}`,

@@ -67,6 +67,26 @@ services:
       - 8.8.8.8 # Google's public DNS
       - 1.1.1.1 # Cloudflare's public DNS
 
+  worker:
+    container_name: bullmq-worker
+    build:
+      context: ./server
+      dockerfile: Dockerfile.worker
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@pgdb:5432/postgres?schema=public"
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASS: ${EMAIL_PASS}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - mynetwork
+    restart: unless-stopped
+
 volumes:
   postgres:
     driver: local

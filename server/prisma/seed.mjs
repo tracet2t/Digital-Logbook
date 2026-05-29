@@ -1,10 +1,6 @@
 import { PrismaClient, WarningCategory } from "@prisma/client";
 import bcrypt from "bcrypt";
 
-
-
-
-
 const prisma = new PrismaClient();
 
 async function main() {
@@ -21,8 +17,9 @@ async function main() {
   await prisma.report.deleteMany();
   await prisma.mentorFeedback.deleteMany();
   await prisma.activity.deleteMany();
-  await prisma.user.deleteMany();
+  await prisma.article.deleteMany();
   await prisma.menteeApplication.deleteMany();
+  await prisma.user.deleteMany();
 
   const saltRounds = 10;
   const defaultPassword = "t2tuser";
@@ -555,6 +552,9 @@ async function main() {
       data: {
         fullName: "Alexander Hamilton",
         email: "alex.hamilton@university.edu",
+        nic: "123456789V",
+        mobileNumber: "+94771234567",
+        address: "123 Main Street, Colombo",
         university: "State University",
         degreeProgram: "B.S. Computer Science",
         cvLink:

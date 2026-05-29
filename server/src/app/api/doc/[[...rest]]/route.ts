@@ -17,7 +17,7 @@ import { Role } from "@prisma/client";
  * Powered by oRPC's OpenAPIHandler
  */
 
-const openAPIHandler = new OpenAPIHandler(router, {
+const openAPIHandler = new OpenAPIHandler(router as any, {
   interceptors: [
     onError((error) => {
       console.error("oRPC Playground Error:", error);

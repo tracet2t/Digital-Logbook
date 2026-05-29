@@ -39,11 +39,21 @@ export default function ChangeStatusDialog({
         <DialogHeader>
           <DialogTitle>Change User Status</DialogTitle>
           <DialogDescription>
-            Select the new status for{" "}
+            Update the account status for{" "}
             <span className="font-semibold text-slate-900">{user?.name}</span>.
             Deactivating a user will prevent them from logging in.
           </DialogDescription>
         </DialogHeader>
+
+        {/* Show current status */}
+        <div className="px-1 py-2 bg-slate-50 rounded-md border border-slate-200">
+          <p className="mb-1 text-[11px] font-bold uppercase text-slate-500">
+            Current Status
+          </p>
+          <p className="text-sm font-semibold text-slate-900">{user?.status}</p>
+        </div>
+
+        {/* Select new status */}
         <div className="px-1 py-2">
           <p className="mb-1.5 text-[11px] font-bold uppercase text-slate-500">
             New Status
@@ -63,7 +73,9 @@ export default function ChangeStatusDialog({
         </div>
         <div className="flex flex-row-reverse gap-2 mt-6">
           <DialogClose asChild>
-            <button className="btn btn-outline" disabled={isMutating}>Cancel</button>
+            <button className="btn btn-outline" disabled={isMutating}>
+              Cancel
+            </button>
           </DialogClose>
           <button
             disabled={isMutating || pendingStatus === user?.status}

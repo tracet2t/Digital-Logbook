@@ -15,8 +15,8 @@ import {
 import { Role } from "@prisma/client";
 import { z } from "zod";
 
-import { onboardingQueue } from "@/lib/onboardingQueue";
 import prisma from "@/lib/prisma";
+import { onboardingQueue } from "@/lib/queues/onboardingQueue";
 
 // Initialize repository
 const onboardingRepository = new OnboardingRepository();
@@ -71,6 +71,9 @@ export const createApplication = rateLimitedPublicProcedure
     const application = await onboardingRepository.createApplication({
       fullName: input.fullName,
       email: input.email.toLowerCase(),
+      nic: input.nic,
+      mobileNumber: input.mobileNumber,
+      address: input.address,
       university: input.university,
       degreeProgram: input.degreeProgram,
       cvLink: input.cvLink,
@@ -305,6 +308,9 @@ export const getAllApplications = authedProcedure
         id: u.id,
         fullName: `${u.firstName} ${u.lastName}`,
         email: u.email,
+        nic: "-",
+        mobileNumber: "-",
+        address: "-",
         university: "-",
         degreeProgram: "-",
         cvLink: "#",

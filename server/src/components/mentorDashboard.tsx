@@ -8,7 +8,6 @@ import {
   useProjectStudents,
 } from "@/_hooks/mentor/useMentorFilter";
 import RsuiteCalendar from "@/app/mentor/calendar/RsuiteCalendar";
-import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/admin";
@@ -50,8 +49,6 @@ const MentorDashboard = () => {
     selectedProjectOverride ?? mentorProjects[0]?.id ?? null;
 
   const { data: fetchedStudents = [] } = useProjectStudents(selectedProject);
-
-  const router = useRouter();
 
   // Derive project students list from fetched data (replaces useEffect + useState)
   const projectStudents = useMemo(() => {

@@ -9,6 +9,10 @@ export interface SubmitFormValues {
   technologies?: string[];
 }
 
+interface DeletePayload {
+  id: string;
+}
+
 interface SubmitPayload {
   type: "activity" | "mentorActivity" | "feedback";
   formValues: SubmitFormValues;
@@ -129,8 +133,47 @@ export const useSubmission = (
     },
   });
 
+  const deleteMutation = useMutation<any, Error, DeletePayload>({
+    mutationFn: async ({ id }) => {
+      const res = await fetch(
+        `http://localhost:3000/api/activity?id=${encodeURIComponent(id)}`,
+        {
+          method: "DELETE",
+        },
+      );
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to delete activity");
+      }
+
+      return res.json();
+    },
+    onSuccess: () => {
+      showToast("Activity Deleted", "Activity deleted successfully.");
+
+      queryClient.invalidateQueries({ queryKey: ["calendarEvents"] });
+      queryClient.invalidateQueries({ queryKey: ["eventForDate"] });
+      queryClient.invalidateQueries({ queryKey: ["eventFeedback"] });
+      queryClient.invalidateQueries({ queryKey: ["mentor-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["mentee-activities"] });
+      queryClient.invalidateQueries({ queryKey: ["mentee-feedback-history"] });
+      queryClient.invalidateQueries({ queryKey: ["mentee-dashboard"] });
+      onSuccess();
+    },
+    onError: (error) => {
+      showToast(
+        "Error",
+        error.message || "Error deleting activity. Please try again.",
+      );
+    },
+  });
+
   const mutateRef = useRef(mutation.mutate);
   mutateRef.current = mutation.mutate;
+
+  const deleteMutateRef = useRef(deleteMutation.mutate);
+  deleteMutateRef.current = deleteMutation.mutate;
 
   const handleSubmit = useCallback(
     (formValues: SubmitFormValues) => {
@@ -151,5 +194,22 @@ export const useSubmission = (
     [role, selectedUser, studentId, editingEvent],
   );
 
-  return { handleSubmit, isSubmitting: mutation.isPending };
+  const handleDelete = useCallback(
+    (id: string) => {
+      if (role !== "student") {
+        showToast("Error", "Only students can delete activities.");
+        return;
+      }
+
+      deleteMutateRef.current({ id });
+    },
+    [role, showToast],
+  );
+
+  return {
+    handleSubmit,
+    handleDelete,
+    isSubmitting: mutation.isPending,
+    isDeleting: deleteMutation.isPending,
+  };
 };

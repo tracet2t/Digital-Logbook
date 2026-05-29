@@ -16,7 +16,7 @@ import ProjectsTable from "@/components/admin-dashboard/ProjectsTable";
 import ProjectFormDialog from "@/components/admin/ProjectFormDialog";
 import ViewProjectDialog from "@/components/admin/ViewProjectDialog";
 
-import { DOMAIN_ICONS, DOMAIN_LABELS, ITEMS_PER_PAGE } from "./_constants";
+import { ITEMS_PER_PAGE } from "./_constants";
 
 export default function ProjectsPage() {
   const {
@@ -35,6 +35,7 @@ export default function ProjectsPage() {
     editForm,
     setEditForm,
     editSaving,
+    editNameError,
     handleEditSave,
     openEdit,
     closeEdit,
@@ -42,6 +43,7 @@ export default function ProjectsPage() {
     createForm,
     setCreateForm,
     createSaving,
+    createNameError,
     handleCreateSave,
     openCreate,
     closeCreate,
@@ -90,8 +92,6 @@ export default function ProjectsPage() {
                 <ProjectsTable
                   data={pagedProjects}
                   loading={loading}
-                  domainIcons={DOMAIN_ICONS}
-                  domainLabels={DOMAIN_LABELS}
                   onView={(project) => setViewProject(project as any)}
                   onEdit={(project) => openEdit(project as any)}
                   onDelete={setDeleteId}
@@ -122,6 +122,7 @@ export default function ProjectsPage() {
         saving={editSaving}
         saveLabel="Save Changes"
         savingLabel="Saving..."
+        nameError={editNameError}
         onFormChange={setEditForm}
         onSave={handleEditSave}
         onClose={closeEdit}
@@ -134,6 +135,7 @@ export default function ProjectsPage() {
         saving={createSaving}
         saveLabel="Create Project"
         savingLabel="Creating..."
+        nameError={createNameError}
         onFormChange={setCreateForm}
         onSave={handleCreateSave}
         onClose={closeCreate}

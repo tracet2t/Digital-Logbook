@@ -52,8 +52,9 @@ export class ActivityRepository extends BaseRepository<Activity> {
   ): Promise<{
     stats: {
       totalHoursLogged: number;
-      tasksCompleted: number;
+      approvedTasks: number;
       pendingApprovals: number;
+      rejectedTasks: number;
     };
     activities: Array<{
       taskName: string;
@@ -77,6 +78,7 @@ export class ActivityRepository extends BaseRepository<Activity> {
       totalHoursAggregate,
       completedCount,
       pendingCount,
+      rejectedCount,
       totalItems,
       activities,
     ] = await prisma.$transaction([
@@ -85,10 +87,26 @@ export class ActivityRepository extends BaseRepository<Activity> {
         _sum: { timeSpent: true },
       }),
       prisma.activity.count({
-        where: { studentId, status: "accepted" },
+        where: {
+          studentId,
+          feedback: { some: { status: "approved" } },
+        },
       }),
       prisma.activity.count({
-        where: { studentId, status: "pending" },
+        where: {
+          studentId,
+          status: "pending",
+          feedback: { none: { status: { in: ["approved", "rejected"] } } },
+        },
+      }),
+      prisma.activity.count({
+        where: {
+          studentId,
+          OR: [
+            { status: "rejected" },
+            { feedback: { some: { status: "rejected" } } },
+          ],
+        },
       }),
       prisma.activity.count({
         where: { studentId },
@@ -120,8 +138,9 @@ export class ActivityRepository extends BaseRepository<Activity> {
     return {
       stats: {
         totalHoursLogged: totalHoursAggregate._sum.timeSpent ?? 0,
-        tasksCompleted: completedCount,
+        approvedTasks: completedCount,
         pendingApprovals: pendingCount,
+        rejectedTasks: rejectedCount,
       },
       activities: activities.map((activity) => {
         const latestFeedback = activity.feedback[0];

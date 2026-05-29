@@ -1,9 +1,17 @@
-import { Worker } from 'bullmq';
-import { generateCSVReport } from '@/lib/reportGenerator'; // Function to generate the CSV report
-//import { generateDummyCSVReport } from '@/lib/reportGenerator';
-import prisma from '@/lib/prisma';
+import { Worker } from "bullmq";
 
-const reportWorker = new Worker('bulk-report-queue', async job => {
+// Import queue workers to ensure they start processing jobs
+// Workers are imported for their side effects (initialization), not direct usage
+// @ts-expect-error - imported for side effects only
+import { invitationWorker } from "@/lib/invitationQueue";
+// @ts-expect-error - imported for side effects only
+import { onboardingWorker } from "@/lib/onboardingQueue";
+//import { generateDummyCSVReport } from '@/lib/reportGenerator';
+import prisma from "@/lib/prisma";
+import { generateCSVReport } from "@/lib/reportGenerator"; // Function to generate the CSV report
+
+// @ts-expect-error - variable declared for side effects only
+const reportWorker = new Worker("bulk-report-queue", async (job) => {
   try {
     const { mentorId } = job.data;
     const reportId = job.id;
@@ -15,16 +23,16 @@ const reportWorker = new Worker('bulk-report-queue', async job => {
     await prisma.report.update({
       where: { id: reportId },
       data: {
-        reportData: {}, 
+        reportData: {},
         generatedAt: new Date(),
       },
     });
 
-    // Update the report to "DONE" with the link to the file
+    // Update the report to "DONE" with the link to the files
     await prisma.report.update({
       where: { id: reportId },
       data: {
-        reportData: { link: `/downloads/${csvPath}` }, 
+        reportData: { link: `/downloads/${csvPath}` },
       },
     });
   } catch (error) {
@@ -53,4 +61,3 @@ const reportWorker = new Worker('bulk-report-queue', async job => {
     console.error("Report generation error:", error);
   }
 });*/
-

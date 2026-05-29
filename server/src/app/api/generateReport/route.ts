@@ -4,11 +4,13 @@ import getSession from "@/server_actions/getSession";
 import { Role } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
-import { reportQueue } from "@/lib/queue";
+import { reportQueue } from "@/lib/queues/reportQueue";
 
 const reportRepository = new ReportRepository();
 
-export const POST = async (req: NextRequest) => {
+export const dynamic = "force-dynamic";
+
+export const POST = async (_req: NextRequest) => {
   try {
     const session = await getSession();
 
@@ -52,7 +54,7 @@ export const POST = async (req: NextRequest) => {
   }
 };
 
-export const GET = async (req: NextRequest) => {
+export const GET = async (_req: NextRequest) => {
   try {
     const session = await getSession();
 

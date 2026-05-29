@@ -14,6 +14,18 @@ export const createApplicationSchema = z
       .string()
       .email("Invalid email address")
       .describe("Email address for communication"),
+    nic: z
+      .string()
+      .min(1, "NIC number is required")
+      .describe("National Identity Card number"),
+    mobileNumber: z
+      .string()
+      .min(1, "Mobile number is required")
+      .describe("Mobile phone number"),
+    address: z
+      .string()
+      .min(1, "Address is required")
+      .describe("Student residential address"),
     university: z
       .string()
       .min(1, "University is required")
@@ -22,10 +34,7 @@ export const createApplicationSchema = z
       .string()
       .min(1, "Degree program is required")
       .describe("Degree program or major"),
-    cvLink: z
-      .string()
-      .url("Invalid CV link")
-      .describe("URL link to the applicant's CV/Resume"),
+    cvLink: z.string().describe("URL link to the applicant's CV/Resume"),
   })
   .describe("Create a new mentee application");
 
@@ -98,6 +107,9 @@ export const applicationSchema = z
     id: z.string().describe("Unique identifier"),
     fullName: z.string().describe("Full name of the applicant"),
     email: z.string().describe("Email address"),
+    nic: z.string().describe("National Identity Card number"),
+    mobileNumber: z.string().describe("Mobile phone number"),
+    address: z.string().describe("Student residential address"),
     university: z.string().describe("University name"),
     degreeProgram: z.string().describe("Degree program"),
     cvLink: z.string().describe("Link to CV/Resume"),

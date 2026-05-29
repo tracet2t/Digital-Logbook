@@ -5,6 +5,16 @@ on:
     branches: [dev-stage, development]
   pull_request:
     branches: [dev-stage, development]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to run checks on"
+        required: false
+        default: "development"
+        type: choice
+        options:
+          - development
+          - dev-stage
 
 jobs:
   docker-build:
@@ -15,6 +25,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch || github.ref }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

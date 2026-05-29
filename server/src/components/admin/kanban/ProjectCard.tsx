@@ -1,12 +1,15 @@
 "use client";
 
+import { useMemo, useState } from "react";
+
+import { OnboardingApplication } from "@/_hooks/admin/useAdminOnboarding";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Briefcase, X } from "lucide-react";
+import { Move, Search, X } from "lucide-react";
 
-import { OnboardingApplication } from "@/hooks/admin/useAdminOnboarding";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -40,6 +43,30 @@ function DraggableAssignedRow({
     ? { transform: CSS.Translate.toString(transform) }
     : undefined;
 
+  const userStatusLabel =
+    app.status?.toLowerCase() === "inactive" ? "Inactive" : "Active";
+
+  const invitationStatusLabel =
+    app.invitationStatus === "Active" ? "Accepted" : app.invitationStatus;
+
+  const getUserBadgeClasses = () =>
+    app.status?.toLowerCase() === "inactive"
+      ? "border-rose-300 text-rose-600"
+      : "border-emerald-300 text-emerald-600";
+
+  const getInvitationBadgeClasses = () => {
+    switch (app.invitationStatus) {
+      case "Active":
+        return "border-emerald-300 text-emerald-600";
+      case "Pending":
+        return "border-amber-300 text-amber-600";
+      case "Expired":
+        return "border-rose-300 text-rose-600";
+      default:
+        return "border-slate-200 text-slate-600";
+    }
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -51,19 +78,50 @@ function DraggableAssignedRow({
         onViewProfile(app);
       }}
       className={[
-        "group/item flex h-8 cursor-grab items-center justify-between rounded-2xl border border-transparent bg-white px-2 py-1 shadow-sm transition active:cursor-grabbing hover:border-indigo-100 sm:h-9 sm:px-3 sm:py-1.5 lg:h-10",
+        "group/item flex w-[94%] mx-auto cursor-grab items-center justify-between rounded-md border border-transparent bg-white px-2 py-2 shadow-sm transition active:cursor-grabbing hover:border-indigo-100 sm:px-3 sm:py-2",
         isDragging ? "opacity-40 ring-2 ring-indigo-300" : "",
       ].join(" ")}
     >
-      <div className="flex min-w-0 items-center gap-2">
+      <div className="flex min-w-0 items-start gap-2">
         <Avatar className="h-6 w-6 shrink-0 sm:h-7 sm:w-7">
           <AvatarFallback className="bg-[#000053] text-[9px] font-bold text-white">
             {getInitials(app.fullName)}
           </AvatarFallback>
         </Avatar>
-        <span className="truncate text-[10px] font-bold text-slate-700 sm:text-[11px]">
-          {app.fullName}
-        </span>
+        <div className="min-w-0">
+          <div className="flex items-center justify-between gap-2">
+            <span className="block min-w-0 truncate text-[10px] font-bold text-slate-700 sm:text-[11px]">
+              {app.fullName}
+            </span>
+            <span
+              className={
+                app.status?.toLowerCase() === "inactive"
+                  ? "h-2 w-2 shrink-0 rounded-full bg-rose-500"
+                  : "h-2 w-2 shrink-0 rounded-full bg-emerald-500"
+              }
+            />
+          </div>
+          <div className="mt-0 flex flex-nowrap items-center gap-0.5">
+            <Badge
+              className={[
+                "inline-flex items-center shrink-0 whitespace-nowrap rounded border px-1.5 py-0.5 text-[9px] font-semibold leading-tight bg-transparent sm:px-2 sm:text-[10px] lg:px-3 lg:text-[11px]",
+                getUserBadgeClasses(),
+              ].join(" ")}
+            >
+              {userStatusLabel}
+            </Badge>
+            {app.invitationStatus && (
+              <Badge
+                className={[
+                  "inline-flex items-center shrink-0 whitespace-nowrap rounded border px-1.5 py-0.5 text-[9px] font-semibold leading-tight bg-transparent sm:px-2 sm:text-[10px] lg:px-3 lg:text-[11px]",
+                  getInvitationBadgeClasses(),
+                ].join(" ")}
+              >
+                {invitationStatusLabel}
+              </Badge>
+            )}
+          </div>
+        </div>
       </div>
       <Button
         variant="ghost"
@@ -96,7 +154,6 @@ export function ProjectCard({
     transition,
     isDragging,
     isSorting,
-    over,
   } = useSortable({ id: project.id });
 
   // Droppable for member assignment
@@ -109,6 +166,20 @@ export function ProjectCard({
     setSortableRef(node);
     setDroppableRef(node);
   };
+
+  // Search functionality
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Filter assigned applications by search query
+  const filteredApplications = useMemo(() => {
+    if (!searchQuery.trim()) return assignedApplications;
+    const q = searchQuery.toLowerCase();
+    return assignedApplications.filter((app) => {
+      const matchesName = app.fullName.toLowerCase().includes(q);
+      const matchesEmail = app.email.toLowerCase().includes(q);
+      return matchesName || matchesEmail;
+    });
+  }, [assignedApplications, searchQuery]);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -127,7 +198,7 @@ export function ProjectCard({
       ref={setRef}
       style={style}
       className={[
-        "group flex h-[175px] min-w-0 flex-col rounded-2xl border p-2 transition-all duration-200 max-sm:h-[155px] sm:h-[185px] md:h-[175px] sm:p-2.5 lg:h-auto lg:min-h-[280px] lg:p-5",
+        "group flex h-[175px] flex-1 flex-col rounded-2xl border p-2 transition-all duration-200 max-sm:h-[155px] sm:h-[185px] md:h-[175px] sm:p-2.5 lg:h-auto lg:min-h-[280px] lg:p-5 min-w-0",
         isDragging
           ? "border-[#000053] bg-white/90 shadow-2xl scale-[1.03]"
           : isOver
@@ -141,20 +212,35 @@ export function ProjectCard({
         <button
           type="button"
           className={[
-            "drag-handle flex h-7 w-7 items-center justify-center rounded-xl shadow-sm transition sm:h-8 sm:w-8 cursor-grab active:cursor-grabbing",
+            "drag-handle flex h-7 w-7 items-center justify-center rounded-lg shadow-sm transition sm:h-8 sm:w-8 cursor-grab active:cursor-grabbing",
             isOver
               ? "bg-[#000053] text-white"
               : "bg-white text-slate-300 group-hover:bg-[#000053] group-hover:text-white",
           ].join(" ")}
-          tabIndex={0}
           aria-label="Drag project card"
           ref={setActivatorNodeRef}
           {...attributes}
           {...listeners}
         >
-          <Briefcase className="h-4 w-4" />
+          <Move className="h-4 w-4" />
         </button>
       </div>
+
+      {/* Search input for members in this project */}
+      {assignedApplications.length > 0 && (
+        <div className="mb-2">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-slate-400" />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search members..."
+              className="h-7 w-full rounded-lg border border-slate-200 bg-white pl-7 pr-2 text-[10px] text-slate-700 outline-none transition focus:border-slate-400 sm:text-[11px]"
+            />
+          </div>
+        </div>
+      )}
 
       <h4 className="mb-0.5 line-clamp-2 text-[11px] font-black uppercase tracking-tight text-[#000053] sm:text-xs lg:text-sm">
         {project.name}
@@ -170,19 +256,27 @@ export function ProjectCard({
         </p>
       )}
       {/* Scrollbar to kanban project card */}
-      <div className="flex flex-1 flex-col gap-1.5 overflow-hidden">
+      <div className="flex flex-1 min-h-0 flex-col gap-1.5">
         {assignedApplications.length > 0 ? (
           <ScrollArea className="max-h-[146px] pr-1 sm:max-h-[162px] md:max-h-[162px] lg:max-h-[178px]">
-            <div className="flex flex-col gap-1.5">
-              {assignedApplications.map((app) => (
-                <DraggableAssignedRow
-                  key={app.id}
-                  app={app}
-                  onUnassign={onUnassign}
-                  onViewProfile={onViewProfile}
-                />
-              ))}
-            </div>
+            {filteredApplications.length > 0 ? (
+              <div className="flex flex-col gap-1.5">
+                {filteredApplications.map((app) => (
+                  <DraggableAssignedRow
+                    key={app.id}
+                    app={app}
+                    onUnassign={onUnassign}
+                    onViewProfile={onViewProfile}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center py-4">
+                <p className="text-[9px] text-slate-400">
+                  No members match your search
+                </p>
+              </div>
+            )}
           </ScrollArea>
         ) : (
           <div
