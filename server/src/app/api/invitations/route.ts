@@ -22,6 +22,8 @@ type InvitationWithInviter = Invitation & {
 // Type for mapped invitation response
 interface MappedInvitation {
   id: string;
+  firstName: string | null;
+  lastName: string | null;
   email: string;
   role: string;
   project: string;
@@ -242,6 +244,13 @@ export async function GET(req: NextRequest) {
 
     const projectById = new Map(projects.map((p) => [p.id, p.name]));
 
+    const emailSet = new Set(invitations.map((inv) => inv.email));
+    const users = await prisma.user.findMany({
+      where: { email: { in: Array.from(emailSet) } },
+      select: { email: true, firstName: true, lastName: true },
+    });
+    const userByEmail = new Map(users.map((u) => [u.email, u]));
+
     const now = new Date();
 
     const mapped: MappedInvitation[] = invitations.map((inv) => {
@@ -251,8 +260,12 @@ export async function GET(req: NextRequest) {
           ? "Expired"
           : "Pending";
 
+      const user = userByEmail.get(inv.email);
+
       return {
         id: inv.id,
+        firstName: user?.firstName ?? null,
+        lastName: user?.lastName ?? null,
         email: inv.email,
         role: inv.role,
         project: inv.projectId ? (projectById.get(inv.projectId) ?? "—") : "—",

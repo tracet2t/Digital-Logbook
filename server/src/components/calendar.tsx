@@ -7,6 +7,7 @@ import {
   Calendar as BigCalendar,
   momentLocalizer,
   Views,
+  type ToolbarProps,
 } from "react-big-calendar";
 
 import "react-big-calendar/lib/css/react-big-calendar.css";
@@ -17,14 +18,9 @@ import { useFormData } from "@/_hooks/useFormData";
 import { useSubmission } from "@/_hooks/useSubmission";
 import { getSessionOnClient } from "@/server_actions/getSession";
 
-import {
-  convertToCalendarEvents,
-  convertToCalendarEventsMentor,
-  eventPropGetter,
-} from "@/lib/calenderUtils";
+import { eventPropGetter } from "@/lib/calenderUtils";
 // Adjust the import path according to your project structure
 
-import { Button } from "@/components/ui/button";
 import {
   Toast,
   ToastClose,
@@ -42,49 +38,12 @@ import StudentTaskDetailDialog from "./studentTaskDetailDialog";
 moment.locale("en-GB");
 const localizer = momentLocalizer(moment);
 
-interface FormData {
-  studentId: string;
-  date: string;
-  timeSpent: number;
-  notes?: string;
-  status?: string;
-  review?: string;
-}
-
-interface FeedbackData {
-  review: string;
-  status: string;
-  mentorId: string;
-}
-
-interface MentorFormData {
-  date: string;
-  workingHours: number;
-  activities: string;
-}
-
-interface CalendarEvent {
-  id: string;
-  title: string;
-  start: Date;
-  end: Date;
-  allDay?: boolean;
-  color?: string;
-  createdAt: Date;
-  studentId: string;
-  timeSpent?: number;
-  notes?: string;
-  status: "pending" | "approved" | "rejected"; // New field for status
-}
-
 interface TaskCalendarProps {
   selectedUser: string; // New prop for selectedUser
 }
 
 const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [session, setSession] = useState(null);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [role, setRole] = useState<string>("");
   const [studentId, setStudentId] = useState<string>("");
@@ -100,6 +59,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     role,
     selectedUser,
   );
+  type CalendarEvent = (typeof events)[number];
   const {
     formData,
     workingHours,
@@ -127,7 +87,6 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
     feedbackActivityId,
     () => {
       setTaskModalOpen(false);
-      setSelectedDate(undefined);
       resetFormData("");
       setTimeout(() => {
         refetchEvents();
@@ -142,7 +101,6 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   useEffect(() => {
     getSessionOnClient()
       .then((data) => {
-        setSession(data);
         setStudentId(data.id);
         setRole(data.role);
       })
@@ -152,7 +110,6 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
   }, []);
 
   const handleDateClick = (date: Date) => {
-    setSelectedDate(date);
     const formattedDate = moment(date).format("YYYY-MM-DD");
 
     const today = moment().startOf("day");
@@ -173,7 +130,6 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
 
   const handleClose = () => {
     setTaskModalOpen(false);
-    setSelectedDate(undefined);
   };
 
   return (
@@ -239,7 +195,7 @@ const TaskCalendar: React.FC<TaskCalendarProps> = ({ selectedUser }) => {
             onSelectEvent={(event) => handleDateClick(event.start)}
             selectable
             components={{
-              toolbar: (toolbar: any) => (
+              toolbar: (toolbar: ToolbarProps<CalendarEvent, object>) => (
                 <CustomToolbar
                   toolbar={toolbar}
                   currentDate={currentDate}

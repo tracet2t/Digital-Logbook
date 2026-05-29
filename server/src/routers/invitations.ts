@@ -77,6 +77,10 @@ export const sendInvitation = superAdminProcedure
     const { email, role, firstName, lastName, projectId } = input;
     const invitedBy = context.userId;
 
+    if (!invitedBy) {
+      throw errors.UNAUTHORIZED();
+    }
+
     // ✓ Validate email configuration BEFORE processing
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
       const errorMessage =
@@ -153,9 +157,13 @@ export const sendBulkInvitations = superAdminProcedure
   })
   .input(sendBulkInvitationsInputSchema)
   .output(sendBulkInvitationsOutputSchema)
-  .handler(async ({ input, context }) => {
+  .handler(async ({ input, context, errors }) => {
     const invitedBy = context.userId;
     const { invitations } = input;
+
+    if (!invitedBy) {
+      throw errors.UNAUTHORIZED();
+    }
 
     // ✓ Validate email configuration BEFORE processing any invitations
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {

@@ -152,7 +152,7 @@ export function CreateProjectDialog({
                             setDomainSearch("");
                           }}
                         >
-                          Add "{normalizedDomainSearch}"
+                          {`Add "${normalizedDomainSearch}"`}
                         </CommandItem>
                       </CommandGroup>
                     )}

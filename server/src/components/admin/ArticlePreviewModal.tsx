@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Calendar,
-  Clock,
-  Eye,
-  EyeOff,
-  Image as ImageIcon,
-  X,
-} from "lucide-react";
+import { Calendar, Clock, EyeOff, Image as ImageIcon, X } from "lucide-react";
 
 import {
   Dialog,

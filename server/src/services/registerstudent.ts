@@ -42,6 +42,7 @@ export async function registerStudent(data: RegisterUserData) {
     email,
     role,
     invitedBy,
+    batchNo: null,
     passwordHash: hashedPassword,
     emailConfirmed: false,
     isFirstTimeLogin: true,

@@ -29,15 +29,6 @@ import MentorStudentTaskDetailDialog from "./mentorStudentTaskDetailDialog";
 import MentorTaskDetailDialog from "./mentorTaskDetailDialog";
 import StudentTaskDetailDialog from "./studentTaskDetailDialog";
 
-interface FormData {
-  studentId: string;
-  date: string;
-  timeSpent: number;
-  notes?: string;
-  status?: string;
-  review?: string;
-}
-
 interface CalendarEvent {
   id: string;
   title: string;
@@ -61,7 +52,6 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [mounted, setMounted] = useState(false);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
-  const [session, setSession] = useState(null);
   const [role, setRole] = useState<string>("");
   const [studentId, setStudentId] = useState<string>("");
   const [isEditable, setIsEditable] = useState(true);
@@ -87,7 +77,7 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
     updateFormData,
     resetFormData,
   } = useFormData();
-  const { fetchEventForDate, loadEventDirectly } = useEventForDate(
+  const { loadEventDirectly } = useEventForDate(
     role,
     studentId,
     selectedUser ?? "",
@@ -124,7 +114,6 @@ export default function RsuiteCalendar({ selectedUser }: RsuiteCalendarProps) {
   useEffect(() => {
     getSessionOnClient()
       .then((data) => {
-        setSession(data);
         setStudentId(data.id);
         setRole(data.role);
       })

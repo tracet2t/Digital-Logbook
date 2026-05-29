@@ -8,7 +8,7 @@ import {
 
 export function withAuthMiddleware(middleware: NextMiddleware): NextMiddleware {
   return async (request: NextRequest, event: NextFetchEvent) => {
-    let token = request.cookies.get("token");
+    const token = request.cookies.get("token");
 
     if (!token) {
       return NextResponse.redirect(`${process.env.BASE_URL}/login`);

@@ -23,7 +23,7 @@ jest.mock("lucide-react", () => {
   };
 });
 
-jest.mock("@/hooks/admin/useAdminDashboard", () => ({
+jest.mock("@/_hooks/admin/useAdminDashboard", () => ({
   useAdminDashboard: jest.fn(),
 }));
 

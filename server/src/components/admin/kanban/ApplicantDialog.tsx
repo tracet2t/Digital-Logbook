@@ -1,5 +1,6 @@
 "use client";
 
+import { OnboardingApplication } from "@/_hooks/admin/useAdminOnboarding";
 import {
   CalendarDays,
   ExternalLink,
@@ -8,7 +9,6 @@ import {
   University,
 } from "lucide-react";
 
-import { OnboardingApplication } from "@/hooks/admin/useAdminOnboarding";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Dialog,

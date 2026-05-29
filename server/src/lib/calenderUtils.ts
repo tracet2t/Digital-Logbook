@@ -80,9 +80,12 @@ export const convertToCalendarEventsMentor = (
 };
 
 // Styles for calendar events
-export const eventPropGetter = (event: CalendarEvent, selectedUser: string) => {
+export const eventPropGetter = (
+  event: CalendarEvent,
+  _selectedUser: string,
+) => {
   let backgroundColor = "#3a5ac7"; // Default background color
-  let textColor = "white"; // Default text color (white)
+  const textColor = "white"; // Default text color (white)
 
   // Customize based on event status
   switch (event.status) {

@@ -43,7 +43,7 @@ interface CalendarEvent {
 
 interface RsuiteCalendarProps {
   selectedUser?: string;
-  allMentees?: { id: string; name: string }[];
+  allMentees?: { id: string; name: string; avatar?: string | null }[];
 }
 
 export default function RsuiteCalendar({
@@ -93,11 +93,7 @@ export default function RsuiteCalendar({
     resetFormData,
   } = useFormData();
 
-  const {
-    fetchEventForDate,
-    loadEventDirectly,
-    isLoading: isEventLoading,
-  } = useEventForDate(
+  const { loadEventDirectly, isLoading: isEventLoading } = useEventForDate(
     role,
     studentId,
     selectedUser || "",
@@ -105,22 +101,23 @@ export default function RsuiteCalendar({
     resetFormData,
   );
 
-  const { handleSubmit, handleDelete, isSubmitting, isDeleting } = useSubmission(
-    role,
-    studentId,
-    selectedUser || "",
-    formData.date,
-    editingEvent,
-    feedbackActivityId,
-    () => {
-      setTaskModalOpen(false);
-      resetFormData("");
-    },
-    (title, description) => {
-      setToast({ title, description });
-      setTimeout(() => setToast(null), 3000);
-    },
-  );
+  const { handleSubmit, handleDelete, isSubmitting, isDeleting } =
+    useSubmission(
+      role,
+      studentId,
+      selectedUser || "",
+      formData.date,
+      editingEvent,
+      feedbackActivityId,
+      () => {
+        setTaskModalOpen(false);
+        resetFormData("");
+      },
+      (title, description) => {
+        setToast({ title, description });
+        setTimeout(() => setToast(null), 3000);
+      },
+    );
 
   // Initialize mounted state and selected date on first render
   useEffect(() => {
@@ -214,6 +211,15 @@ export default function RsuiteCalendar({
     setTaskModalOpen(false);
   };
 
+  const normalizedMentees = useMemo(
+    () =>
+      (allMentees ?? []).map((mentee) => ({
+        ...mentee,
+        avatar: mentee.avatar ?? undefined,
+      })),
+    [allMentees],
+  );
+
   // Table rows for all-mentees table
   const tableRows = useMemo<MenteeTaskRow[]>(() => {
     if (!allMenteesTableDate || selectedUser !== "all-mentees") return [];
@@ -224,7 +230,7 @@ export default function RsuiteCalendar({
       ? dayEvents.filter((e) => e.studentId === allMenteesTableMenteeId)
       : dayEvents;
     return filteredEvents.map((e) => {
-      const mentee = allMentees?.find((m) => m.id === e.studentId);
+      const mentee = normalizedMentees.find((m) => m.id === e.studentId);
       return {
         name: mentee?.name ?? "Unknown",
         avatar: mentee?.avatar,
@@ -240,7 +246,7 @@ export default function RsuiteCalendar({
     allMenteesTableDate,
     allMenteesTableMenteeId,
     events,
-    allMentees,
+    normalizedMentees,
     selectedUser,
   ]);
 
@@ -251,14 +257,14 @@ export default function RsuiteCalendar({
 
     // All-mentees mode: show one avatar per mentee with tasks
     if (selectedUser === "all-mentees") {
-      const uniqueMenteeIds = [
-        ...new Set(dateEvents.map((e) => e.studentId).filter(Boolean)),
-      ];
+      const uniqueMenteeIds = Array.from(
+        new Set(dateEvents.map((e) => e.studentId).filter(Boolean)),
+      );
       return (
         <MenteeAvatarCell
           dateKey={dateKey}
           menteeIds={uniqueMenteeIds}
-          allMentees={allMentees ?? []}
+          allMentees={normalizedMentees}
           onAvatarClick={handleAvatarClick}
         />
       );
@@ -291,7 +297,7 @@ export default function RsuiteCalendar({
   };
 
   const selectedMenteeName = allMenteesTableMenteeId
-    ? (allMentees?.find((m) => m.id === allMenteesTableMenteeId)?.name ??
+    ? (normalizedMentees.find((m) => m.id === allMenteesTableMenteeId)?.name ??
       "Mentee")
     : null;
 
