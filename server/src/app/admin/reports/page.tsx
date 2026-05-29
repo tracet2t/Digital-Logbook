@@ -8,7 +8,6 @@ import {
   PageHeader,
 } from "@/components/admin";
 import { ReportsFilters } from "@/components/reports/ReportsFilters";
-import { ReportsStatCards } from "@/components/reports/ReportsStatCards";
 import { ReportsTable } from "@/components/reports/ReportsTable";
 import { ITEMS_PER_PAGE } from "@/components/reports/types";
 import { useGeneratePDF } from "@/components/reports/useGeneratePDF";
@@ -50,7 +49,7 @@ export default function ReportsPage() {
     <AdminPageLayout className="bg-[#f1f1f9]">
       <div className="flex-1 p-8">
         <Card className="p-6 space-y-6">
-          {/* Header + stat summary */}
+          {/* Header */}
           <Card className="p-6 space-y-4">
             <PageHeader
               title="Reports"
@@ -64,11 +63,12 @@ export default function ReportsPage() {
                 </Button>
               }
             />
-            <ReportsStatCards
-              totalGenerated={tableRows.length}
-              pendingReports={0}
-              completedReports={tableRows.length}
-            />
+            <div className="rounded-xl border border-[#E5E5E5] bg-[#fafafa] px-4 py-3 text-sm text-[#737373]">
+              <span className="font-medium text-[#0A0A0A]">
+                Total Generated Reports:
+              </span>{" "}
+              <span>{tableRows.length}</span>
+            </div>
           </Card>
 
           {/* Filters */}
