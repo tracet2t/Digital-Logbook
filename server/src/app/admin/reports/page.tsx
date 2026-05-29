@@ -110,7 +110,7 @@ export default function ReportsPage() {
               totalPages={totalPages}
               total={filteredReports.length}
               itemsPerPage={ITEMS_PER_PAGE}
-              itemLabel="entries"
+              itemLabel="Entries"
               onPageChange={setPage}
             />
           </Card>
