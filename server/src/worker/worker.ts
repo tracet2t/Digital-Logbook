@@ -28,7 +28,7 @@ const reportWorker = new Worker("bulk-report-queue", async (job) => {
       },
     });
 
-    // Update the report to "DONE" with the link to the file
+    // Update the report to "DONE" with the link to the files
     await prisma.report.update({
       where: { id: reportId },
       data: {
