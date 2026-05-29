@@ -41,7 +41,8 @@ model User {
 
   projectTechnologies ProjectTechnology[]
 
-  articles     Article[]        @relation("ArticleAuthor")
+  articles        Article[]        @relation("ArticleAuthor")
+  sharedProfile   SharedProfile?
 
   @@map("users")
 }
@@ -244,6 +245,20 @@ model ProjectTechnology {
   @@map("projectTechnologies")
 }
 
+model SharedProfile {
+  id        String   @id @default(uuid())
+  studentId String   @unique
+  token     String   @unique @default(uuid())
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  expiresAt DateTime?
+
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("sharedProfiles")
+}
+
 enum TimeAllocationStatus {
   inReview
   accepted
@@ -254,6 +269,9 @@ model MenteeApplication {
   id            String                    @id @default(uuid())
   fullName      String
   email         String                    @unique
+  nic           String
+  mobileNumber  String
+  address       String
   university    String
   degreeProgram String
   cvLink        String

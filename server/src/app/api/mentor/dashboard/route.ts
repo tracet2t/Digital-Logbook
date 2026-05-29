@@ -5,6 +5,49 @@ import prisma from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
+function formatLastActivity(date: Date | null): string {
+  if (!date) return "Never";
+
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+
+  if (diffMs < 0) return "Just now";
+
+  const diffSeconds = Math.floor(diffMs / 1000);
+  if (diffSeconds < 60) return "Just now";
+
+  const diffMins = Math.floor(diffSeconds / 60);
+  if (diffMins < 60) {
+    return `${diffMins} min${diffMins === 1 ? "" : "s"} ago`;
+  }
+
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) {
+    return `${diffHours} hour${diffHours === 1 ? "" : "s"} ago`;
+  }
+
+  const startOfToday = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+  ).getTime();
+  const startOfThatDay = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+  ).getTime();
+  const diffDays = Math.floor((startOfToday - startOfThatDay) / 86400000);
+
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 export const GET = async (_req: NextRequest) => {
   try {
     const session = await getSession();
@@ -29,11 +72,21 @@ export const GET = async (_req: NextRequest) => {
     const projectCount = mentorProjects.length;
     const projectIds = mentorProjects.map((p) => p.project.id);
 
+    if (projectIds.length === 0) {
+      return NextResponse.json({
+        stats: {
+          totalMentees: 0,
+          projects: projectCount,
+          totalWorkingHours: 0,
+          averageWorkingHours: 0,
+        },
+        recentlyActiveMentees: [],
+      });
+    }
+
     // Fetch total mentees (students assigned to mentor's projects)
     const mentees = await prisma.projectAllocation.findMany({
-      where: {
-        projectId: { in: projectIds.length > 0 ? projectIds : undefined },
-      },
+      where: { projectId: { in: projectIds } },
       include: {
         student: {
           select: {
@@ -49,6 +102,7 @@ export const GET = async (_req: NextRequest) => {
           },
         },
       },
+      orderBy: { assignedAt: "desc" },
       distinct: ["studentId"],
     });
 
@@ -58,9 +112,7 @@ export const GET = async (_req: NextRequest) => {
 
     // Fetch student activities for working hours calculation
     const studentActivities = await prisma.activity.findMany({
-      where: {
-        studentId: { in: studentIds.length > 0 ? studentIds : undefined },
-      },
+      where: { studentId: { in: studentIds } },
       select: {
         studentId: true,
         timeSpent: true,
@@ -108,35 +160,34 @@ export const GET = async (_req: NextRequest) => {
         : 0;
 
     // Fetch recently active mentees with latest activity
-    const recentlyActiveMentees = await prisma.projectAllocation.findMany({
-      where: {
-        projectId: { in: projectIds.length > 0 ? projectIds : undefined },
-      },
-      include: {
-        student: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-          },
-        },
-        project: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-      orderBy: { assignedAt: "desc" },
-      take: 5,
+    // Recently active mentees should be based on most recently submitted task.
+    // We compute lastSubmittedAt per student using Activity.createdAt and sort.
+    const lastSubmittedByStudent = await prisma.activity.groupBy({
+      by: ["studentId"],
+      where: { studentId: { in: studentIds } },
+      _max: { createdAt: true },
     });
 
-    // Get latest activity for each mentee
+    const lastSubmittedMap = new Map<string, Date>();
+    for (const row of lastSubmittedByStudent) {
+      if (row._max.createdAt) {
+        lastSubmittedMap.set(row.studentId, row._max.createdAt);
+      }
+    }
+
+    const menteesSortedBySubmission = [...mentees].sort((a, b) => {
+      const aTime = lastSubmittedMap.get(a.student.id)?.getTime() ?? -1;
+      const bTime = lastSubmittedMap.get(b.student.id)?.getTime() ?? -1;
+      return bTime - aTime;
+    });
+
+    const topRecentlyActive = menteesSortedBySubmission.slice(0, 5);
+
     const recentMenteesWithActivity = await Promise.all(
-      recentlyActiveMentees.map(async (allocation) => {
-        const latestActivity = await prisma.activity.findFirst({
+      topRecentlyActive.map(async (allocation) => {
+        const latestSubmittedActivity = await prisma.activity.findFirst({
           where: { studentId: allocation.student.id },
-          orderBy: { date: "desc" },
+          orderBy: { createdAt: "desc" },
           include: {
             feedback: {
               orderBy: { createdAt: "desc" },
@@ -150,36 +201,19 @@ export const GET = async (_req: NextRequest) => {
           allocation.student.lastName.charAt(0);
         const name = `${allocation.student.firstName} ${allocation.student.lastName}`;
 
-        // Calculate time since last activity
-        let lastActivityText = "Never";
-        if (latestActivity) {
-          const now = new Date();
-          const lastDate = new Date(latestActivity.date);
-          const diffMs = now.getTime() - lastDate.getTime();
-          const diffMins = Math.floor(diffMs / 60000);
-          const diffHours = Math.floor(diffMs / 3600000);
-          const diffDays = Math.floor(diffMs / 86400000);
-
-          if (diffMins < 60) {
-            lastActivityText = `${diffMins} mins ago`;
-          } else if (diffHours < 24) {
-            lastActivityText = `${diffHours} hours ago`;
-          } else if (diffDays === 1) {
-            lastActivityText = "Yesterday";
-          } else if (diffDays < 7) {
-            lastActivityText = `${diffDays} days ago`;
-          } else {
-            lastActivityText = lastDate.toLocaleDateString();
-          }
-        }
+        const lastSubmittedAt =
+          lastSubmittedMap.get(allocation.student.id) ?? null;
+        const lastActivityText = formatLastActivity(lastSubmittedAt);
 
         // Map activity status to dashboard status
         let dashboardStatus: "ACCEPTED" | "PENDING" | "REJECTED" = "PENDING";
-        if (latestActivity) {
-          let activityState = latestActivity.status ?? "pending";
-          // Override with highest-priority status from feedback if it exists
-          if (latestActivity.feedback && latestActivity.feedback.length > 0) {
-            activityState = latestActivity.feedback[0].status as any;
+        if (latestSubmittedActivity) {
+          let activityState = latestSubmittedActivity.status ?? "pending";
+          if (
+            latestSubmittedActivity.feedback &&
+            latestSubmittedActivity.feedback.length > 0
+          ) {
+            activityState = latestSubmittedActivity.feedback[0].status as any;
           }
 
           const statusMap: Record<string, "ACCEPTED" | "PENDING" | "REJECTED"> =

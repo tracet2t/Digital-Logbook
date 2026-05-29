@@ -35,6 +35,7 @@ export default function ProjectsPage() {
     editForm,
     setEditForm,
     editSaving,
+    editNameError,
     handleEditSave,
     openEdit,
     closeEdit,
@@ -42,6 +43,7 @@ export default function ProjectsPage() {
     createForm,
     setCreateForm,
     createSaving,
+    createNameError,
     handleCreateSave,
     openCreate,
     closeCreate,
@@ -120,6 +122,7 @@ export default function ProjectsPage() {
         saving={editSaving}
         saveLabel="Save Changes"
         savingLabel="Saving..."
+        nameError={editNameError}
         onFormChange={setEditForm}
         onSave={handleEditSave}
         onClose={closeEdit}
@@ -132,6 +135,7 @@ export default function ProjectsPage() {
         saving={createSaving}
         saveLabel="Create Project"
         savingLabel="Creating..."
+        nameError={createNameError}
         onFormChange={setCreateForm}
         onSave={handleCreateSave}
         onClose={closeCreate}

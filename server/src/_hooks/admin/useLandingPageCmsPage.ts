@@ -1,111 +1,143 @@
 import { useCallback, useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { CmsCard } from "@/app/admin/landing-page-cms/_constants";
 import { toast } from "sonner";
 
+const ARTICLES_KEY = ["articles"] as const;
+
 export function useLandingPageCmsPage() {
-  const [cards, setCards] = useState<CmsCard[]>([]);
+  const queryClient = useQueryClient();
+
+  // ── Fetch cards ──────────────────────────────────────────────────────────
+  const { data: cards = [], isLoading } = useQuery<CmsCard[]>({
+    queryKey: ARTICLES_KEY,
+    queryFn: async () => {
+      const res = await fetch("/api/articles");
+      if (!res.ok) throw new Error("Failed to load articles");
+      return res.json();
+    },
+  });
+
   const [activeId, setActiveId] = useState<string>("");
   const [showToast, setShowToast] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
-  // ── Load cards from DB on mount ──────────────────────────────────────────
+  // Auto-select first card when data loads and nothing is selected yet
   useEffect(() => {
-    fetch("/api/articles")
-      .then((r) => r.json())
-      .then((data: CmsCard[]) => {
-        setCards(data);
-        if (data.length > 0) setActiveId(data[0].id);
-      })
-      .catch(() => toast.error("Failed to load events"))
-      .finally(() => setIsLoading(false));
-  }, []);
+    if (cards.length > 0 && !activeId) {
+      setActiveId(cards[0].id);
+    }
+  }, [cards, activeId]);
 
   const activeCard = cards.find((c) => c.id === activeId) ?? cards[0];
 
-  // ── Local update (optimistic) ────────────────────────────────────────────
+  // ── Local optimistic update (keystroke-level) ────────────────────────────
   const update = useCallback(
-    (patch: Partial<CmsCard>) =>
-      setCards((prev) =>
-        prev.map((c) => (c.id === activeId ? { ...c, ...patch } : c)),
-      ),
-    [activeId],
+    (patch: Partial<CmsCard>) => {
+      queryClient.setQueryData<CmsCard[]>(
+        ARTICLES_KEY,
+        (old) =>
+          old?.map((c) => (c.id === activeId ? { ...c, ...patch } : c)) ?? [],
+      );
+    },
+    [activeId, queryClient],
   );
 
   // ── Save draft (PUT current card) ────────────────────────────────────────
-  const saveDraft = useCallback(async () => {
-    const card = cards.find((c) => c.id === activeId);
-    if (!card) return;
-    try {
+  const { mutate: saveDraftMut, isPending: isSaving } = useMutation({
+    mutationFn: async (card: CmsCard) => {
       const res = await fetch(`/api/articles/${card.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(card),
       });
       if (!res.ok) throw new Error();
-      const saved: CmsCard = await res.json();
-      setCards((prev) => prev.map((c) => (c.id === saved.id ? saved : c)));
+      return res.json() as Promise<CmsCard>;
+    },
+    onSuccess: (saved) => {
+      queryClient.setQueryData<CmsCard[]>(
+        ARTICLES_KEY,
+        (old) => old?.map((c) => (c.id === saved.id ? saved : c)) ?? [],
+      );
       toast.success("Draft saved", {
         description: "Your changes have been saved.",
       });
-    } catch {
-      toast.error("Failed to save draft");
-    }
-  }, [activeId, cards]);
+    },
+    onError: () => toast.error("Failed to save draft"),
+  });
+
+  // Wrap to match existing call signature (no argument, picks active card)
+  const saveDraft = useCallback(() => {
+    const card = queryClient
+      .getQueryData<CmsCard[]>(ARTICLES_KEY)
+      ?.find((c) => c.id === activeId);
+    if (card) saveDraftMut(card);
+  }, [activeId, queryClient, saveDraftMut]);
 
   // ── Add new card (POST) ──────────────────────────────────────────────────
-  const addCard = useCallback(async () => {
-    const newCard = {
-      title: "Draft Event Title",
-      description: "Enter a short summary for the landing page...",
-      date: "TBD — SET DATE",
-      rawDate: "",
-      rawTime: "",
-      isVisible: false,
-      imageName: null,
-      imageUrl: null,
-      tag: "DRAFT",
-      registerLink: "",
-      venue: "",
-      venueMapLink: "",
-    };
-    try {
+  const { mutate: addCard, isPending: isAdding } = useMutation({
+    mutationFn: async () => {
+      const newCard = {
+        title: "Draft Event Title",
+        description: "Enter a short summary for the landing page...",
+        date: "TBD — SET DATE",
+        rawDate: "",
+        rawTime: "",
+        isVisible: false,
+        imageName: null,
+        imageUrl: null,
+        tag: "DRAFT",
+        registerLink: "",
+        venue: "",
+        venueMapLink: "",
+      };
       const res = await fetch("/api/articles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newCard),
       });
       if (!res.ok) throw new Error();
-      const created: CmsCard = await res.json();
-      setCards((prev) => [...prev, created]);
+      return res.json() as Promise<CmsCard>;
+    },
+    onSuccess: (created) => {
+      queryClient.setQueryData<CmsCard[]>(ARTICLES_KEY, (old) =>
+        old ? [...old, created] : [created],
+      );
       setActiveId(created.id);
-    } catch {
-      toast.error("Failed to create event");
-    }
-  }, []);
+    },
+    onError: () => toast.error("Failed to create event"),
+  });
 
   // ── Delete active card (DELETE) ──────────────────────────────────────────
-  const deleteActive = useCallback(async () => {
-    if (!activeId) return;
-    try {
-      const res = await fetch(`/api/articles/${activeId}`, {
+  const { mutate: deleteActiveMut, isPending: isDeleting } = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/articles/${id}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error();
-      const remaining = cards.filter((c) => c.id !== activeId);
-      setCards(remaining);
+    },
+    onSuccess: () => {
+      const remaining =
+        queryClient
+          .getQueryData<CmsCard[]>(ARTICLES_KEY)
+          ?.filter((c) => c.id !== activeId) ?? [];
+      queryClient.setQueryData<CmsCard[]>(ARTICLES_KEY, remaining);
       setActiveId(remaining.length > 0 ? remaining[0].id : "");
       toast.success("Event deleted");
-    } catch {
-      toast.error("Failed to delete event");
-    }
-  }, [activeId, cards]);
+    },
+    onError: () => toast.error("Failed to delete event"),
+  });
+
+  // Wrap to match existing call signature (no argument, picks active id)
+  const deleteActive = useCallback(() => {
+    if (activeId) deleteActiveMut(activeId);
+  }, [activeId, deleteActiveMut]);
 
   // ── Publish (save all cards to DB) ───────────────────────────────────────
-  const publish = useCallback(async () => {
-    try {
+  const { mutate: publishMut, isPending: isPublishing } = useMutation({
+    mutationFn: async (allCards: CmsCard[]) => {
       await Promise.all(
-        cards.map((card) =>
+        allCards.map((card) =>
           fetch(`/api/articles/${card.id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -113,12 +145,18 @@ export function useLandingPageCmsPage() {
           }),
         ),
       );
+    },
+    onSuccess: () => {
       setShowToast(true);
       setTimeout(() => setShowToast(false), 4000);
-    } catch {
-      toast.error("Failed to publish changes");
-    }
-  }, [cards]);
+    },
+    onError: () => toast.error("Failed to publish changes"),
+  });
+
+  const publish = useCallback(() => {
+    const allCards = queryClient.getQueryData<CmsCard[]>(ARTICLES_KEY) ?? [];
+    publishMut(allCards);
+  }, [queryClient, publishMut]);
 
   return {
     cards,

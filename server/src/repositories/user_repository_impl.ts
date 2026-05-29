@@ -1,5 +1,7 @@
+import { User } from "@prisma/client";
+
 import prisma from "@/lib/prisma";
-import { User,} from "@prisma/client";
+
 import BaseRepository from "./baseRepository";
 
 /*
@@ -32,6 +34,7 @@ export class UserRepository extends BaseRepository<User> {
             date: true,
             timeSpent: true,
             notes: true,
+            createdAt: true,
             feedback: {
               select: {
                 status: true,
@@ -43,13 +46,10 @@ export class UserRepository extends BaseRepository<User> {
       },
     });
   }
-   async updateByEmail(email: string, data: Partial<User>) {
+  async updateByEmail(email: string, data: Partial<User>) {
     return this.modelClient.update({
       where: { email },
       data,
     });
   }
 }
-
-
-

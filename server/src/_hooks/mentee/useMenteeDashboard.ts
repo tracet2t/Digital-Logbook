@@ -6,8 +6,9 @@ export type MenteeDashboardStatus = "APPROVED" | "PENDING" | "REJECTED";
 
 export interface MenteeDashboardStats {
   totalHoursLogged: number;
-  tasksCompleted: number;
+  approvedTasks: number;
   pendingApprovals: number;
+  rejectedTasks: number;
 }
 
 export interface MenteeDashboardActivity {
@@ -35,9 +36,12 @@ export const useMenteeDashboard = (page: number, pageSize: number) => {
   return useQuery<MenteeDashboardResponse, Error>({
     queryKey: ["mentee-dashboard", page, pageSize],
     queryFn: async () => {
-      const res = await fetch(`/api/mentee/dashboard?page=${page}&pageSize=${pageSize}`, {
-        cache: "no-store",
-      });
+      const res = await fetch(
+        `/api/mentee/dashboard?page=${page}&pageSize=${pageSize}`,
+        {
+          cache: "no-store",
+        },
+      );
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => null);

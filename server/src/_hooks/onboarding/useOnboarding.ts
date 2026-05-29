@@ -11,6 +11,9 @@ import { orpcClient } from "@/lib/orpc";
 type CreateApplicationInput = {
   fullName: string;
   email: string;
+  nic: string;
+  mobileNumber: string;
+  address: string;
   university: string;
   degreeProgram: string;
   cvLink: string;

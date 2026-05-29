@@ -50,6 +50,7 @@ export const GET = async (req: NextRequest) => {
       (activity: Activity & { feedback: MentorFeedback[] }) => ({
         studentName: `${userWithActivities.firstName} ${userWithActivities.lastName}`,
         date: activity.date.toISOString().split("T")[0],
+        submittedDate: activity.createdAt.toISOString(),
         timeSpent: activity.timeSpent,
         activity: activity.notes || "No Activity",
         feedbackStatus: activity.feedback[0]?.status || "N/A",
@@ -60,6 +61,7 @@ export const GET = async (req: NextRequest) => {
     const fields = [
       "studentName",
       "date",
+      "submittedDate",
       "timeSpent",
       "activity",
       "feedbackStatus",

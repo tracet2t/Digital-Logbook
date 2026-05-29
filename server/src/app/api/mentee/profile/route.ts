@@ -7,12 +7,8 @@ export const dynamic = "force-dynamic";
 
 /**
  * GET /api/mentee/profile
- *
- * Secure endpoint to retrieve comprehensive mentee profile data with role-based access control.
- * Returns: user profile, assigned projects, mentor information, activity statistics, badges
- *
- * Authentication: Required (JWT token in HTTP-only cookie)
- * Authorization: student role only
+ Secure endpoint to retrieve comprehensive mentee profile data with role-based access control.
+
  */
 export async function GET(_req: NextRequest) {
   try {
@@ -156,16 +152,44 @@ export async function GET(_req: NextRequest) {
       },
     });
 
-    // ─── CALCULATE STATISTICS ─────────────────────────────
-    const totalActivities = profileData.activities.length;
-    const approvedActivities = profileData.activities.filter(
-      (a) => a.feedback?.[0]?.status === "approved",
-    ).length;
-    const pendingActivities = profileData.activities.filter(
-      (a) => a.status === "pending",
-    ).length;
+    // ─── FETCH ALL ACTIVITIES FOR ACCURATE STATISTICS ────
+    const allActivities = await prisma.activity.findMany({
+      where: { studentId: menteeId },
+      select: {
+        timeSpent: true,
+        status: true,
+        feedback: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: { status: true },
+        },
+      },
+    });
 
-    const totalHours = profileData.activities.reduce(
+    // ─── CALCULATE STATISTICS ─────────────────────────────
+    // Uses effective-status logic consistent with the dashboard:
+    // - Approved: feedback status is "approved"/"accepted", or activity.status is "accepted"
+    // - Rejected: feedback status is "rejected", or activity.status is "rejected"
+    // - Pending:  remaining tasks where activity.status is "pending"
+    const totalActivities = allActivities.length;
+
+    let approvedActivities = 0;
+    let pendingActivities = 0;
+    let rejectedActivities = 0;
+
+    for (const a of allActivities) {
+      const fb = a.feedback[0]?.status?.toLowerCase();
+
+      if (fb === "approved" || fb === "accepted" || a.status === "accepted") {
+        approvedActivities++;
+      } else if (fb === "rejected" || a.status === "rejected") {
+        rejectedActivities++;
+      } else {
+        pendingActivities++;
+      }
+    }
+
+    const totalHours = allActivities.reduce(
       (sum, activity) => sum + (activity.timeSpent || 0),
       0,
     );
@@ -225,26 +249,20 @@ export async function GET(_req: NextRequest) {
           totalActivities,
           approvedActivities,
           pendingActivities,
-          rejectedActivities: profileData.activities.filter(
-            (a) => a.feedback?.[0]?.status === "rejected",
-          ).length,
+          rejectedActivities,
           totalHours: Math.round(totalHours * 100) / 100,
           profileCompletion: calculateProfileCompletion(profileData),
         },
 
         // Recent activities
-        recentActivities: profileData.activities.map((activity) => {
-          const feedbackEntry = activity.feedback?.[0];
-
-          return {
-            id: activity.id,
-            date: activity.date,
-            timeSpent: activity.timeSpent,
-            status: activity.status,
-            feedbackStatus: feedbackEntry?.status || null,
-            feedbackNotes: feedbackEntry?.feedbackNotes || null,
-          };
-        }),
+        recentActivities: profileData.activities.map((activity) => ({
+          id: activity.id,
+          date: activity.date,
+          timeSpent: activity.timeSpent,
+          status: activity.status,
+          feedbackStatus: activity.feedback[0]?.status || null,
+          feedbackNotes: activity.feedback[0]?.feedbackNotes || null,
+        })),
       },
       timestamp: new Date().toISOString(),
     };
@@ -293,7 +311,14 @@ function calculateProfileCompletion(
 
   requiredFields.forEach((field) => {
     total++;
-    if (profileData[field]) completed++;
+    const value = profileData[field];
+    if (typeof value === "string") {
+      if (value.trim().length > 0) completed++;
+    } else if (Array.isArray(value)) {
+      if (value.length > 0) completed++;
+    } else if (value) {
+      completed++;
+    }
   });
 
   // Optional but valuable fields
