@@ -4,17 +4,32 @@ import { useState } from "react";
 
 import { ReportRow } from "./types";
 
-// Hook that builds and downloads a PDF
+// Hook that saves a report record then builds and downloads a PDF
 export function useGeneratePDF(
   filteredReports: ReportRow[],
   dateFrom: string,
   dateTo: string,
+  onGenerated?: () => void,
 ) {
   const [isExporting, setIsExporting] = useState(false);
 
   const generatePDF = async () => {
     setIsExporting(true);
     try {
+      // 1. Persist a report record so the count updates
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
+        await fetch("/api/generateReport", {
+          method: "POST",
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+      } catch {
+        // Non-blocking — PDF still downloads even if the save fails
+      }
+
+      // 2. Generate the PDF
       const jsPDFModule = await import("jspdf");
       const jsPDF = jsPDFModule.default;
       const doc = new jsPDF({ unit: "pt", format: "a4" });
@@ -113,6 +128,7 @@ export function useGeneratePDF(
       console.error("PDF generation error", err);
       alert("Unable to generate PDF. Please try again.");
     } finally {
+      onGenerated?.();
       setIsExporting(false);
     }
   };

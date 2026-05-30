@@ -1,5 +1,9 @@
 "use client";
 
+import { useCallback, useEffect, useState } from "react";
+
+import { FileText } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -17,6 +21,23 @@ import { useReportsFilters } from "@/components/reports/useReportsFilters";
 export default function ReportsPage() {
   // Fetch raw report rows from the API
   const { tableRows, isLoading, fetchError } = useReportsData();
+
+  // Fetch actual generated report count from the Report model
+  const [reportCount, setReportCount] = useState(0);
+  const loadReportCount = useCallback(async () => {
+    try {
+      const res = await fetch("/api/generateReport", { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        setReportCount(Array.isArray(data) ? data.length : 0);
+      }
+    } catch {
+      // Silently ignore — count defaults to 0
+    }
+  }, []);
+  useEffect(() => {
+    loadReportCount();
+  }, [loadReportCount]);
 
   // Manage filter state and derive paginated/filtered data
   const {
@@ -43,13 +64,15 @@ export default function ReportsPage() {
     filteredReports,
     dateFrom,
     dateTo,
+    loadReportCount, // refresh count after generating
   );
 
   return (
     <AdminPageLayout className="bg-[#f1f1f9]">
       <div className="flex-1 p-8">
         <Card className="p-6 space-y-6">
-          <div className="space-y-4">
+          {/* Header and report total */}
+          <Card className="p-6 space-y-4">
             <PageHeader
               title="Reports"
               action={
@@ -62,16 +85,18 @@ export default function ReportsPage() {
                 </Button>
               }
             />
-
-            <div className="flex items-center gap-3 rounded-xl border border-[#E5E5E5] bg-[#fafafa] px-4 py-3">
-              <span className="text-sm font-medium text-[#525252]">
-                Total Generated Reports
-              </span>
-              <span className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-[#000053]">
-                {tableRows.length}
-              </span>
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#E5E5E5] bg-[#fafafa] px-4 py-3">
+              <div>
+                <p className="text-sm font-medium text-[#737373]">
+                  Total Generated Reports
+                </p>
+                <p className="text-2xl font-bold text-[#0A0A0A]">
+                  {reportCount}
+                </p>
+              </div>
+              <FileText className="text-[#737373]" size={28} />
             </div>
-          </div>
+          </Card>
 
           {/* Filters */}
           <ReportsFilters
