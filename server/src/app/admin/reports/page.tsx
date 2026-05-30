@@ -22,22 +22,9 @@ export default function ReportsPage() {
   // Fetch raw report rows from the API
   const { tableRows, isLoading, fetchError } = useReportsData();
 
-  // Fetch actual generated report count from the Report model
-  const [reportCount, setReportCount] = useState(0);
-  const loadReportCount = useCallback(async () => {
-    try {
-      const res = await fetch("/api/generateReport", { cache: "no-store" });
-      if (res.ok) {
-        const data = await res.json();
-        setReportCount(Array.isArray(data) ? data.length : 0);
-      }
-    } catch {
-      // Silently ignore — count defaults to 0
-    }
-  }, []);
-  useEffect(() => {
-    loadReportCount();
-  }, [loadReportCount]);
+  // Show total based on the rows used to populate the table so the header
+  // always matches the displayed projects/mentors list.
+  const reportCount = tableRows.length;
 
   // Manage filter state and derive paginated/filtered data
   const {
@@ -64,7 +51,6 @@ export default function ReportsPage() {
     filteredReports,
     dateFrom,
     dateTo,
-    loadReportCount, // refresh count after generating
   );
 
   return (
