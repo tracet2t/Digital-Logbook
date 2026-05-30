@@ -20,11 +20,14 @@ export function useGeneratePDF(
       try {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 5000);
-        await fetch("/api/generateReport", {
-          method: "POST",
-          signal: controller.signal,
-        });
-        clearTimeout(timeout);
+        try {
+          await fetch("/api/generateReport", {
+            method: "POST",
+            signal: controller.signal,
+          });
+        } finally {
+          clearTimeout(timeout);
+        }
       } catch {
         // Non-blocking — PDF still downloads even if the save fails
       }

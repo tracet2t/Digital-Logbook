@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import React from "react";
 
 import { FileText } from "lucide-react";
 
@@ -22,9 +22,8 @@ export default function ReportsPage() {
   // Fetch raw report rows from the API
   const { tableRows, isLoading, fetchError } = useReportsData();
 
-  // Show total based on the rows used to populate the table so the header
-  // always matches the displayed projects/mentors list.
-  const reportCount = tableRows.length;
+  // Show total based on the rows used to populate the table — we'll
+  // derive this from the filtered results below so it matches pagination.
 
   // Manage filter state and derive paginated/filtered data
   const {
@@ -52,6 +51,9 @@ export default function ReportsPage() {
     dateFrom,
     dateTo,
   );
+
+  // Total shown in the header should reflect the filtered reports
+  const reportCount = filteredReports.length;
 
   return (
     <AdminPageLayout className="bg-[#f1f1f9]">
