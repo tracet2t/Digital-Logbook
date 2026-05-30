@@ -49,8 +49,7 @@ export default function ReportsPage() {
     <AdminPageLayout className="bg-[#f1f1f9]">
       <div className="flex-1 p-8">
         <Card className="p-6 space-y-6">
-          {/* Header */}
-          <Card className="p-6 space-y-4">
+          <div className="space-y-4">
             <PageHeader
               title="Reports"
               action={
@@ -63,13 +62,16 @@ export default function ReportsPage() {
                 </Button>
               }
             />
-            <div className="rounded-xl border border-[#E5E5E5] bg-[#fafafa] px-4 py-3 text-sm text-[#737373]">
-              <span className="font-medium text-[#0A0A0A]">
-                Total Generated Reports:
-              </span>{" "}
-              <span>{tableRows.length}</span>
+
+            <div className="flex items-center gap-3 rounded-xl border border-[#E5E5E5] bg-[#fafafa] px-4 py-3">
+              <span className="text-sm font-medium text-[#525252]">
+                Total Generated Reports
+              </span>
+              <span className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-[#000053]">
+                {tableRows.length}
+              </span>
             </div>
-          </Card>
+          </div>
 
           {/* Filters */}
           <ReportsFilters
@@ -110,7 +112,7 @@ export default function ReportsPage() {
               totalPages={totalPages}
               total={filteredReports.length}
               itemsPerPage={ITEMS_PER_PAGE}
-              itemLabel="Entries"
+              itemLabel="entries"
               onPageChange={setPage}
             />
           </Card>
