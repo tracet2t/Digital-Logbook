@@ -37,13 +37,12 @@ const onboardingWorker = new Worker<OnboardingJobData>(
         },
       });
 
-      await transporter.verify();
-
-      const info = await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: "Application Received – Digital Logbook",
-        html: `
+      try {
+        const info = await transporter.sendMail({
+          from: process.env.EMAIL_USER,
+          to: email,
+          subject: "Application Received – Digital Logbook",
+          html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #000053;">Application Received</h2>
             <p>Hi <strong>${fullName}</strong>,</p>
@@ -58,11 +57,18 @@ const onboardingWorker = new Worker<OnboardingJobData>(
             </p>
           </div>
         `,
-      });
+        });
 
-      console.log(
-        `[onboarding] ✓ Confirmation email sent to ${email}. Message ID: ${info.messageId}`,
-      );
+        console.log(
+          `[onboarding] ✓ Confirmation email sent to ${email}. Message ID: ${info.messageId}`,
+        );
+      } catch (error) {
+        console.error(
+          `[onboarding] ✗ Failed to send confirmation email to ${email}:`,
+          error instanceof Error ? error.message : error,
+        );
+        throw error;
+      }
     }
   },
   { connection: redis },
