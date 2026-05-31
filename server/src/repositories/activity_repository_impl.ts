@@ -89,7 +89,10 @@ export class ActivityRepository extends BaseRepository<Activity> {
       prisma.activity.count({
         where: {
           studentId,
-          feedback: { some: { status: "approved" } },
+          OR: [
+            { status: "accepted" },
+            { feedback: { some: { status: "approved" } } },
+          ],
         },
       }),
       prisma.activity.count({

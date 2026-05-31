@@ -4,6 +4,8 @@ const config: Config.InitialOptions = {
   preset: "ts-jest",
   testEnvironment: "node",
 
+  setupFiles: ["<rootDir>/test/jest.setup.ts"],
+
   transform: {
     "\\.[jt]sx?$": ["babel-jest", { configFile: "./babel.config.testing.js" }],
   },
