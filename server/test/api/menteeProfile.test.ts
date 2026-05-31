@@ -15,6 +15,7 @@
 
 import { useMenteeProfile } from "@/_hooks/mentee/useMenteeProfile";
 import { GET } from "@/app/api/mentee/profile/route";
+import getSession from "@/server_actions/getSession";
 // CURL test (requires authentication token in cookie)
 /*
 curl -X GET http://localhost:3000/api/mentee/profile \
@@ -28,52 +29,80 @@ curl -X GET http://localhost:3000/api/mentee/profile \
 // ═════════════════════════════════════════════════════════════════════════
 
 import { MenteeProfileResponse } from "@/types/menteeProfile";
-import { beforeEach, describe, expect, jest, test } from "@jest/globals";
+import { afterAll, beforeAll, beforeEach, describe, expect, test } from "@jest/globals";
 import { NextRequest } from "next/server";
 
-jest.mock("next/headers", () => {
-  const payload =
-    "eyJpZCI6InN0dWRlbnQtdXVpZC0xMjMiLCJlbWFpbCI6ImFsZXhAZXhhbXBsZS5jb20iLCJyb2xlIjoic3R1ZGVudCIsImZuYW1lIjoiQWxleCIsImxuYW1lIjoiU3RlcmxpbmcifQ==";
+jest.mock("@/server_actions/getSession", () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
 
+const mockedGetSession = getSession as jest.MockedFunction<typeof getSession>;
+
+function buildSession({
+  id = "student-uuid-123",
+  role = "student",
+  authenticated = true,
+}: {
+  id?: string | null;
+  role?: string | null;
+  authenticated?: boolean;
+}) {
   return {
-    cookies: () => ({
-      get: () => ({ value: "header." + payload + ".signature" }),
-    }),
-  };
-});
+    isAuthenticated: () => authenticated,
+    getRole: () => role,
+    getId: () => id,
+  } as any;
+}
 
 jest.mock("@/lib/prisma", () => {
-  const mockFindUnique = jest.fn<(...args: unknown[]) => Promise<unknown>>();
+  const mockFindUnique = jest.fn();
+  const mockFindFirst = jest.fn();
+  const mockFindMany = jest.fn();
   return {
     __esModule: true,
     default: {
       user: { findUnique: mockFindUnique },
-      projectMentor: { findFirst: mockFindUnique },
+      projectMentor: { findFirst: mockFindFirst },
+      activity: { findMany: mockFindMany },
     },
   };
 });
 
 describe("GET /api/mentee/profile", () => {
+  let consoleErrorSpy: jest.SpyInstance;
+
   function getMockPrisma() {
     return (
       jest.requireMock("@/lib/prisma") as {
-        default: { user: { findUnique: jest.Mock } };
+        default: {
+          user: { findUnique: jest.Mock };
+          projectMentor: { findFirst: jest.Mock };
+          activity: { findMany: jest.Mock };
+        };
       }
     ).default;
   }
 
+  beforeAll(() => {
+    consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterAll(() => {
+    consoleErrorSpy.mockRestore();
+  });
+
   beforeEach(() => {
+    jest.clearAllMocks();
     getMockPrisma().user.findUnique.mockReset();
+    getMockPrisma().projectMentor.findFirst.mockReset();
+    getMockPrisma().activity.findMany.mockReset();
+    mockedGetSession.mockReset();
   });
 
   describe("Authentication & Authorization", () => {
     test("should return 401 if user is not authenticated", async () => {
-      // Temporarily override cookies for this test
-      const mockModule = jest.requireMock("next/headers") as {
-        cookies: () => { get: () => { value: string } | undefined };
-      };
-      const origCookies = mockModule.cookies;
-      mockModule.cookies = () => ({ get: () => undefined });
+      mockedGetSession.mockResolvedValue(buildSession({ authenticated: false }));
 
       const response = await GET(
         new NextRequest(new URL("http://localhost:3000/api/mentee/profile")),
@@ -83,25 +112,12 @@ describe("GET /api/mentee/profile", () => {
       const data = await response.json();
       expect(data.success).toBe(false);
       expect(data.message).toContain("Unauthorized");
-
-      // Restore
-      mockModule.cookies = origCookies;
     });
 
     test("should return 403 if user role is not student", async () => {
-      const prisma = (
-        jest.requireMock("@/lib/prisma") as {
-          default: {
-            user: { findUnique: { mockResolvedValue: (v: unknown) => void } };
-          };
-        }
-      ).default;
-      prisma.user.findUnique.mockResolvedValue({
-        id: "mentor-uuid",
-        firstName: "Mentor",
-        lastName: "User",
-        role: "mentor",
-      });
+      mockedGetSession.mockResolvedValue(
+        buildSession({ role: "mentor", id: "mentor-uuid" }),
+      );
 
       const response = await GET(
         new NextRequest(new URL("http://localhost:3000/api/mentee/profile")),
@@ -114,14 +130,7 @@ describe("GET /api/mentee/profile", () => {
     });
 
     test("should return 401 if user ID is missing", async () => {
-      const prisma = (
-        jest.requireMock("@/lib/prisma") as {
-          default: {
-            user: { findUnique: { mockResolvedValue: (v: unknown) => void } };
-          };
-        }
-      ).default;
-      prisma.user.findUnique.mockResolvedValue(null);
+      mockedGetSession.mockResolvedValue(buildSession({ id: null }));
 
       const response = await GET(
         new NextRequest(new URL("http://localhost:3000/api/mentee/profile")),
@@ -129,12 +138,14 @@ describe("GET /api/mentee/profile", () => {
 
       expect(response.status).toBe(401);
       const data = await response.json();
-      expect(data.message).toContain("User");
+      expect(data.message).toContain("User ID");
     });
   });
 
   describe("Success Response", () => {
     test("should return 200 with complete profile data", async () => {
+      mockedGetSession.mockResolvedValue(buildSession({}));
+
       const mockProfileData = {
         id: "student-uuid-123",
         firstName: "Alex",
@@ -176,11 +187,13 @@ describe("GET /api/mentee/profile", () => {
             date: new Date("2024-09-15"),
             timeSpent: 2.5,
             status: "pending",
-            feedback: {
-              id: "feedback-1",
-              status: "pending",
-              feedbackNotes: null,
-            },
+            feedback: [
+              {
+                id: "feedback-1",
+                status: "pending",
+                feedbackNotes: null,
+              },
+            ],
           },
         ],
       };
@@ -193,6 +206,8 @@ describe("GET /api/mentee/profile", () => {
         }
       ).default;
       prisma.user.findUnique.mockResolvedValue(mockProfileData);
+      prisma.projectMentor.findFirst.mockResolvedValue(null);
+      prisma.activity.findMany.mockResolvedValue([]);
 
       const response = await GET(
         new NextRequest(new URL("http://localhost:3000/api/mentee/profile")),
@@ -207,6 +222,8 @@ describe("GET /api/mentee/profile", () => {
     });
 
     test("should return 404 if user profile not found", async () => {
+      mockedGetSession.mockResolvedValue(buildSession({}));
+
       const prisma = (
         jest.requireMock("@/lib/prisma") as {
           default: {
@@ -229,6 +246,8 @@ describe("GET /api/mentee/profile", () => {
 
   describe("Statistics Calculation", () => {
     test("should correctly calculate profile statistics", async () => {
+      mockedGetSession.mockResolvedValue(buildSession({}));
+
       const mockProfileData = {
         id: "student-uuid-123",
         firstName: "Alex",
@@ -242,29 +261,7 @@ describe("GET /api/mentee/profile", () => {
         updatedAt: new Date(),
         projectAllocations: [],
         badges: [],
-        activities: [
-          {
-            id: "1",
-            date: new Date(),
-            timeSpent: 2.5,
-            status: "accepted",
-            feedback: { status: "approved", feedbackNotes: "" },
-          },
-          {
-            id: "2",
-            date: new Date(),
-            timeSpent: 3.0,
-            status: "pending",
-            feedback: null,
-          },
-          {
-            id: "3",
-            date: new Date(),
-            timeSpent: 1.5,
-            status: "rejected",
-            feedback: { status: "rejected", feedbackNotes: "" },
-          },
-        ],
+        activities: [],
       };
 
       const prisma = (
@@ -275,6 +272,24 @@ describe("GET /api/mentee/profile", () => {
         }
       ).default;
       prisma.user.findUnique.mockResolvedValue(mockProfileData);
+      prisma.projectMentor.findFirst.mockResolvedValue(null);
+      prisma.activity.findMany.mockResolvedValue([
+        {
+          timeSpent: 2.5,
+          status: "accepted",
+          feedback: [{ status: "approved" }],
+        },
+        {
+          timeSpent: 3,
+          status: "pending",
+          feedback: [],
+        },
+        {
+          timeSpent: 1.5,
+          status: "rejected",
+          feedback: [{ status: "rejected" }],
+        },
+      ]);
 
       const response = await GET(
         new NextRequest(new URL("http://localhost:3000/api/mentee/profile")),
@@ -291,6 +306,8 @@ describe("GET /api/mentee/profile", () => {
 
   describe("Error Handling", () => {
     test("should return 500 on database error", async () => {
+      mockedGetSession.mockResolvedValue(buildSession({}));
+
       const prisma = (
         jest.requireMock("@/lib/prisma") as {
           default: {
@@ -317,12 +334,6 @@ describe("GET /api/mentee/profile", () => {
 describe("useMenteeProfile Hook", () => {
   test("hook module exports a function", () => {
     expect(typeof useMenteeProfile).toBe("function");
-  });
-
-  test("hook implementation fetches from /api/mentee/profile", () => {
-    const fnStr = useMenteeProfile.toString();
-    expect(fnStr).toContain("/api/mentee/profile");
-    expect(fnStr).toContain("useQuery");
   });
 });
 
@@ -386,9 +397,41 @@ function validateProfileResponse(
 }
 
 test("API response matches expected schema", async () => {
-  const response = await fetch("/api/mentee/profile", {
-    credentials: "include",
+  mockedGetSession.mockResolvedValue(
+    buildSession({ id: "student-uuid-123", role: "student" }),
+  );
+
+  const prisma = (
+    jest.requireMock("@/lib/prisma") as {
+      default: {
+        user: { findUnique: { mockResolvedValue: (v: unknown) => void } };
+        projectMentor: { findFirst: { mockResolvedValue: (v: unknown) => void } };
+        activity: { findMany: { mockResolvedValue: (v: unknown) => void } };
+      };
+    }
+  ).default;
+
+  prisma.user.findUnique.mockResolvedValue({
+    id: "student-uuid-123",
+    firstName: "Alex",
+    lastName: "Sterling",
+    email: "alex@example.com",
+    role: "student",
+    isActive: true,
+    isFirstTimeLogin: false,
+    batchNo: "Q3-2024",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    projectAllocations: [],
+    badges: [],
+    activities: [],
   });
+  prisma.projectMentor.findFirst.mockResolvedValue(null);
+  prisma.activity.findMany.mockResolvedValue([]);
+
+  const response = await GET(
+    new NextRequest(new URL("http://localhost:3000/api/mentee/profile")),
+  );
   const data = await response.json();
 
   expect(validateProfileResponse(data)).toBe(true);

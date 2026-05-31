@@ -127,8 +127,9 @@ describe("ActivityRepository.getMenteeDashboardData integration", () => {
 
     expect(result.stats).toEqual({
       totalHoursLogged: 0,
-      tasksCompleted: 0,
+      approvedTasks: 0,
       pendingApprovals: 0,
+      rejectedTasks: 0,
     });
     expect(result.activities).toEqual([]);
     expect(result.pagination.page).toBe(1);
@@ -164,7 +165,7 @@ describe("ActivityRepository.getMenteeDashboardData integration", () => {
     const result = await repository.getMenteeDashboardData(student.id, 1, 10);
 
     expect(result.stats.totalHoursLogged).toBe(150);
-    expect(result.stats.tasksCompleted).toBe(2);
+    expect(result.stats.approvedTasks).toBe(2);
     expect(result.stats.pendingApprovals).toBe(1);
   });
 

@@ -259,8 +259,9 @@ describe("mentee dashboard route integration", () => {
     expect(response.status).toBe(200);
 
     expect(typeof body.stats.totalHoursLogged).toBe("number");
-    expect(typeof body.stats.tasksCompleted).toBe("number");
+    expect(typeof body.stats.approvedTasks).toBe("number");
     expect(typeof body.stats.pendingApprovals).toBe("number");
+    expect(typeof body.stats.rejectedTasks).toBe("number");
 
     expect(Array.isArray(body.activities)).toBe(true);
     expect(body.activities.length).toBeGreaterThanOrEqual(1);
