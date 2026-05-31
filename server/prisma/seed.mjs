@@ -1,5 +1,31 @@
+import { constants, publicEncrypt } from "crypto";
+
 import { PrismaClient, WarningCategory } from "@prisma/client";
 import bcrypt from "bcrypt";
+import { config } from "dotenv";
+
+// Load .env so NIC_SSH_PUB_KEY_B64 is available during seeding
+config({ path: new URL("../.env", import.meta.url).pathname });
+
+/**
+ * Encrypts a NIC string using the RSA public key (RSA-OAEP).
+ * Mirrors encryptNIC in src/lib/encryption.ts.
+ */
+function encryptNIC(plaintext) {
+  const pubKeyB64 = process.env.NIC_SSH_PUB_KEY_B64;
+  if (!pubKeyB64) {
+    throw new Error(
+      "NIC_SSH_PUB_KEY_B64 not set in .env — cannot encrypt seed NIC values",
+    );
+  }
+  const publicKey = Buffer.from(pubKeyB64, "base64").toString("utf8");
+  const buffer = Buffer.from(plaintext, "utf8");
+  const encrypted = publicEncrypt(
+    { key: publicKey, padding: constants.RSA_PKCS1_OAEP_PADDING },
+    buffer,
+  );
+  return encrypted.toString("base64");
+}
 
 const prisma = new PrismaClient();
 
@@ -552,7 +578,7 @@ async function main() {
       data: {
         fullName: "Alexander Hamilton",
         email: "alex.hamilton@university.edu",
-        nic: "123456789V",
+        nic: encryptNIC("123456789V"),
         mobileNumber: "+94771234567",
         address: "123 Main Street, Colombo",
         university: "State University",

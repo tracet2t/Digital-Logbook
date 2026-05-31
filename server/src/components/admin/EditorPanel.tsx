@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
+import { useUploadImage } from "@/_hooks/admin/useMediaUpload";
 import {
   Calendar,
   Clock,
@@ -49,6 +50,21 @@ export function EditorPanel({
   onDeleteActive,
 }: EditorPanelProps) {
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { mutate: uploadImage, isPending: isUploading } = useUploadImage();
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Reset input so the same file can be re-selected if needed
+    e.target.value = "";
+    uploadImage(file, {
+      onSuccess: (data) => {
+        onUpdate({ imageUrl: data.url, imageName: file.name });
+        onSaveDraft();
+      },
+    });
+  }
 
   return (
     <>
@@ -279,13 +295,40 @@ export function EditorPanel({
               <label className="text-[10px] font-bold uppercase tracking-widest text-[#0F172A]">
                 Media Asset
               </label>
-              <div className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#E5E5E5] bg-[#F8FAFC] p-6 transition-colors hover:border-[#CBD5E1]">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => !isUploading && fileInputRef.current?.click()}
+                onKeyDown={(e) =>
+                  (e.key === "Enter" || e.key === " ") &&
+                  !isUploading &&
+                  fileInputRef.current?.click()
+                }
+                className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed bg-[#F8FAFC] p-6 transition-colors ${
+                  isUploading
+                    ? "cursor-not-allowed border-[#CBD5E1] opacity-60"
+                    : "border-[#E5E5E5] hover:border-[#CBD5E1]"
+                }`}
+              >
                 <Upload
                   size={24}
-                  className="mb-1.5 text-[#94A3B8]"
+                  className={`mb-1.5 ${
+                    isUploading
+                      ? "animate-pulse text-[#000053]"
+                      : "text-[#94A3B8]"
+                  }`}
                   strokeWidth={1.5}
                 />
-                <p className="text-xs font-bold text-[#64748B]">Upload Image</p>
+                <p className="text-xs font-bold text-[#64748B]">
+                  {isUploading ? "Uploading…" : "Upload Image"}
+                </p>
               </div>
               {activeCard.imageName ? (
                 <div className="flex items-center justify-between rounded-xl border border-[#E5E5E5] bg-white p-3 shadow-sm">
@@ -303,10 +346,11 @@ export function EditorPanel({
                     </div>
                   </div>
                   <button
+                    disabled={isUploading}
                     onClick={() =>
                       onUpdate({ imageName: null, imageUrl: null })
                     }
-                    className="px-2 text-[#CBD5E1] transition-colors hover:text-red-500"
+                    className="px-2 text-[#CBD5E1] transition-colors hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <Trash2 size={16} />
                   </button>

@@ -1,3 +1,4 @@
+import { mediaRepository } from "@/repositories/media_repository_impl";
 import getSession from "@/server_actions/getSession";
 // ─── Helper (same as in route.ts) ─────────────────────────────────────────────
 
@@ -114,6 +115,13 @@ export async function DELETE(
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
 
   const { id } = await params;
+
+  const article = await prisma.article.findUnique({ where: { id } });
+  if (article?.featuredImage) {
+    // Best-effort cleanup — delete from MinIO if it's a MinIO-hosted image
+    await mediaRepository.deleteFile(article.featuredImage).catch(() => null);
+  }
+
   await prisma.article.delete({ where: { id } });
   return NextResponse.json({ success: true });
 }

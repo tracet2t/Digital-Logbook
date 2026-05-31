@@ -29,6 +29,9 @@ export { useBulkSendInvitations } from "./useBulkInvitation";
 // Project Hooks
 export { useGetAllProjects, useGetProject } from "./useProject";
 
+// Media Upload Hook
+export { useUploadImage } from "./useMediaUpload";
+
 // Onboarding Approval Hooks
 export {
   useOnboardingApplications,
