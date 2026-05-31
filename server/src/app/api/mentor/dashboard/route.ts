@@ -125,7 +125,7 @@ export const GET = async (_req: NextRequest) => {
     });
 
     let totalWorkingHours = 0;
-    
+
     // Only sum hours for students whose project allocation has been actively accepted by the mentor
     const acceptedStudentIds = new Set(
       mentees
@@ -134,6 +134,11 @@ export const GET = async (_req: NextRequest) => {
         .map((m) => m.student.id)
     );
 
+    const activitySummaryByStudent = new Map<
+      string,
+      { total: number; approved: number }
+    >();
+
     for (const a of studentActivities) {
       let activityStatus = a.status ?? "pending";
       if (a.feedback && a.feedback.length > 0) {
@@ -141,10 +146,19 @@ export const GET = async (_req: NextRequest) => {
       }
       
       const normalizedStatus = activityStatus === "accepted" ? "approved" : activityStatus;
+
+      const currentSummary = activitySummaryByStudent.get(a.studentId) ?? {
+        total: 0,
+        approved: 0,
+      };
+      currentSummary.total += 1;
       
       if (normalizedStatus === "approved" && acceptedStudentIds.has(a.studentId)) {
         totalWorkingHours += a.timeSpent;
+        currentSummary.approved += 1;
       }
+
+      activitySummaryByStudent.set(a.studentId, currentSummary);
     }
 
     // timeSpent is already in hours
@@ -181,17 +195,6 @@ export const GET = async (_req: NextRequest) => {
 
     const recentMenteesWithActivity = await Promise.all(
       topRecentlyActive.map(async (allocation) => {
-        const latestSubmittedActivity = await prisma.activity.findFirst({
-          where: { studentId: allocation.student.id },
-          orderBy: { createdAt: "desc" },
-          include: {
-            feedback: {
-              orderBy: { createdAt: "desc" },
-              take: 1,
-            },
-          },
-        });
-
         const initials =
           allocation.student.firstName.charAt(0) +
           allocation.student.lastName.charAt(0);
@@ -200,26 +203,16 @@ export const GET = async (_req: NextRequest) => {
         const lastSubmittedAt = lastSubmittedMap.get(allocation.student.id) ?? null;
         const lastActivityText = formatLastActivity(lastSubmittedAt);
 
-        // Map activity status to dashboard status
-        let dashboardStatus: "ACCEPTED" | "PENDING" | "REJECTED" = "PENDING";
-        if (latestSubmittedActivity) {
-          let activityState = latestSubmittedActivity.status ?? "pending";
-          if (
-            latestSubmittedActivity.feedback &&
-            latestSubmittedActivity.feedback.length > 0
-          ) {
-            activityState = latestSubmittedActivity.feedback[0].status as any;
-          }
-
-          const statusMap: Record<string, "ACCEPTED" | "PENDING" | "REJECTED"> = {
-            accepted: "ACCEPTED",
-            approved: "ACCEPTED",
-            pending: "PENDING",
-            rejected: "REJECTED",
-          };
-          // @ts-ignore - Prisma type generation issue with status field
-          dashboardStatus = statusMap[activityState] ?? "PENDING";
-        }
+        const activitySummary = activitySummaryByStudent.get(allocation.student.id);
+        const dashboardStatus:
+          | "ACCEPTED"
+          | "PENDING"
+          | "REJECTED" =
+          activitySummary &&
+          activitySummary.total > 0 &&
+          activitySummary.approved === activitySummary.total
+            ? "ACCEPTED"
+            : "PENDING";
 
         return {
           id: allocation.student.id,
