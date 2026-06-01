@@ -20,7 +20,6 @@ export class ArticleRepository extends BaseRepository<Article> {
     slug: string;
     content: string;
     excerpt?: string;
-    featuredImage?: string;
     isHero?: boolean;
     isEvent?: boolean;
     status?: ArticleStatus;
@@ -62,7 +61,6 @@ export class ArticleRepository extends BaseRepository<Article> {
       slug: string;
       content: string;
       excerpt: string;
-      featuredImage: string;
       isHero: boolean;
       isEvent: boolean;
       status: ArticleStatus;

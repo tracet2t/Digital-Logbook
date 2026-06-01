@@ -2,17 +2,40 @@
 
 import { useRef, useState } from "react";
 
-import { useUploadImage } from "@/_hooks/admin/useMediaUpload";
+import {
+  useDeleteImage,
+  useReorderImages,
+  useUploadImage,
+} from "@/_hooks/admin/useMediaUpload";
+import {
+  closestCenter,
+  DndContext,
+  DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  horizontalListSortingStrategy,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
   Calendar,
   Clock,
   Eye,
   EyeOff,
   FileImage,
+  GripVertical,
+  ImagePlus,
   PanelRight,
   Plus,
   Trash2,
-  Upload,
+  X,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -26,9 +49,63 @@ import ConfirmDeleteDialog from "@/components/admin/ConfirmDeleteDialog";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 
 import {
+  ArticleImageItem,
   CmsCard,
   formatDisplayDate,
 } from "../../app/admin/landing-page-cms/_constants";
+
+// ─── Sortable gallery thumbnail ───────────────────────────────────────────────
+
+function SortableImage({
+  item,
+  onDelete,
+  isDeleting,
+}: {
+  item: ArticleImageItem;
+  onDelete: (id: string) => void;
+  isDeleting: boolean;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="group relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-[#E5E5E5] bg-[#F8FAFC]"
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={item.url}
+        alt="gallery"
+        className="h-full w-full object-cover"
+      />
+      {/* drag handle */}
+      <button
+        {...attributes}
+        {...listeners}
+        className="absolute left-0.5 top-0.5 cursor-grab rounded bg-black/40 p-0.5 text-white opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing"
+      >
+        <GripVertical size={10} />
+      </button>
+      {/* delete */}
+      <button
+        disabled={isDeleting}
+        onClick={() => onDelete(item.id)}
+        className="absolute right-0.5 top-0.5 rounded bg-black/40 p-0.5 text-white opacity-0 transition-opacity group-hover:opacity-100 disabled:cursor-not-allowed"
+      >
+        <X size={10} />
+      </button>
+    </div>
+  );
+}
+
+// ─── EditorPanel ─────────────────────────────────────────────────────────────
 
 interface EditorPanelProps {
   open: boolean;
@@ -50,21 +127,52 @@ export function EditorPanel({
   onDeleteActive,
 }: EditorPanelProps) {
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { mutate: uploadImage, isPending: isUploading } = useUploadImage();
+  const coverInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  const { mutate: uploadImage, isPending: isUploading } = useUploadImage();
+  const { mutate: deleteImage, isPending: isDeleting } = useDeleteImage();
+  const { mutate: reorderImages } = useReorderImages();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    // Reset input so the same file can be re-selected if needed
     e.target.value = "";
-    uploadImage(file, {
-      onSuccess: (data) => {
-        onUpdate({ imageUrl: data.url, imageName: file.name });
-        onSaveDraft();
-      },
+    uploadImage({ file, articleId: activeCard.id, type: "cover" });
+  }
+
+  function handleGalleryChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    uploadImage({ file, articleId: activeCard.id, type: "gallery" });
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = activeCard.images.findIndex((i) => i.id === active.id);
+    const newIndex = activeCard.images.findIndex((i) => i.id === over.id);
+    const reordered = arrayMove(activeCard.images, oldIndex, newIndex);
+
+    // Optimistic local update
+    onUpdate({ images: reordered });
+
+    reorderImages({
+      articleId: activeCard.id,
+      orderedIds: reordered.map((i) => i.id),
     });
   }
+
+  const galleryFull = activeCard.images.length >= 5;
 
   return (
     <>
@@ -291,76 +399,140 @@ export function EditorPanel({
                 </p>
               )}
             </div>
+            {/* Cover Image */}
             <div className="space-y-2">
               <label className="text-[10px] font-bold uppercase tracking-widest text-[#0F172A]">
-                Media Asset
+                Cover Image
               </label>
               <input
-                ref={fileInputRef}
+                ref={coverInputRef}
                 type="file"
                 accept="image/jpeg,image/png,image/webp,image/gif"
                 className="hidden"
-                onChange={handleFileChange}
+                onChange={handleCoverChange}
               />
-              <div
-                role="button"
-                tabIndex={0}
-                onClick={() => !isUploading && fileInputRef.current?.click()}
-                onKeyDown={(e) =>
-                  (e.key === "Enter" || e.key === " ") &&
-                  !isUploading &&
-                  fileInputRef.current?.click()
-                }
-                className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed bg-[#F8FAFC] p-6 transition-colors ${
-                  isUploading
-                    ? "cursor-not-allowed border-[#CBD5E1] opacity-60"
-                    : "border-[#E5E5E5] hover:border-[#CBD5E1]"
-                }`}
-              >
-                <Upload
-                  size={24}
-                  className={`mb-1.5 ${
-                    isUploading
-                      ? "animate-pulse text-[#000053]"
-                      : "text-[#94A3B8]"
-                  }`}
-                  strokeWidth={1.5}
-                />
-                <p className="text-xs font-bold text-[#64748B]">
-                  {isUploading ? "Uploading…" : "Upload Image"}
-                </p>
-              </div>
-              {activeCard.imageName ? (
-                <div className="flex items-center justify-between rounded-xl border border-[#E5E5E5] bg-white p-3 shadow-sm">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <div className="rounded-lg bg-blue-50 p-2 text-blue-500">
-                      <FileImage size={16} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="truncate text-xs font-bold text-[#0F172A]">
-                        {activeCard.imageName}
-                      </p>
-                      <p className="text-[9px] font-bold uppercase text-[#94A3B8]">
-                        Ready to publish
-                      </p>
-                    </div>
+              {activeCard.coverImage ? (
+                <div className="relative overflow-hidden rounded-xl border border-[#E5E5E5]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={activeCard.coverImage.url}
+                    alt="cover"
+                    className="h-36 w-full object-cover"
+                  />
+                  <div className="absolute inset-0 flex items-start justify-end gap-1 p-2">
+                    <button
+                      disabled={isUploading || isDeleting}
+                      onClick={() => coverInputRef.current?.click()}
+                      className="rounded-lg bg-black/50 px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-white transition-colors hover:bg-black/70 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Replace
+                    </button>
+                    <button
+                      disabled={isUploading || isDeleting}
+                      onClick={() => deleteImage(activeCard.coverImage!.id)}
+                      className="rounded-lg bg-red-500/80 p-1 text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <X size={12} />
+                    </button>
                   </div>
-                  <button
-                    disabled={isUploading}
-                    onClick={() =>
-                      onUpdate({ imageName: null, imageUrl: null })
-                    }
-                    className="px-2 text-[#CBD5E1] transition-colors hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    <Trash2 size={16} />
-                  </button>
                 </div>
               ) : (
-                <div className="flex items-center justify-center rounded-xl border border-dashed border-[#E5E5E5] bg-[#F8FAFC] p-3">
-                  <span className="text-[9px] font-bold uppercase tracking-widest text-[#94A3B8]">
-                    No file selected
-                  </span>
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => !isUploading && coverInputRef.current?.click()}
+                  onKeyDown={(e) =>
+                    (e.key === "Enter" || e.key === " ") &&
+                    !isUploading &&
+                    coverInputRef.current?.click()
+                  }
+                  className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed bg-[#F8FAFC] p-6 transition-colors ${
+                    isUploading
+                      ? "cursor-not-allowed border-[#CBD5E1] opacity-60"
+                      : "border-[#E5E5E5] hover:border-[#CBD5E1]"
+                  }`}
+                >
+                  <FileImage
+                    size={22}
+                    className={`mb-1.5 ${
+                      isUploading
+                        ? "animate-pulse text-[#000053]"
+                        : "text-[#94A3B8]"
+                    }`}
+                    strokeWidth={1.5}
+                  />
+                  <p className="text-xs font-bold text-[#64748B]">
+                    {isUploading ? "Uploading…" : "Upload Cover"}
+                  </p>
                 </div>
+              )}
+            </div>
+
+            {/* Gallery Images */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-[#0F172A]">
+                  Gallery Images{" "}
+                  <span className="text-[#94A3B8]">
+                    ({activeCard.images.length}/5)
+                  </span>
+                </label>
+                <button
+                  disabled={galleryFull || isUploading}
+                  onClick={() => galleryInputRef.current?.click()}
+                  className="flex items-center gap-1 rounded-lg border border-[#E5E5E5] bg-[#F8FAFC] px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-[#64748B] transition-colors hover:border-[#000053] hover:text-[#000053] disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <ImagePlus size={11} />
+                  Add
+                </button>
+              </div>
+              <input
+                ref={galleryInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="hidden"
+                onChange={handleGalleryChange}
+              />
+              {activeCard.images.length > 0 ? (
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={activeCard.images.map((i) => i.id)}
+                    strategy={horizontalListSortingStrategy}
+                  >
+                    <div className="flex flex-wrap gap-2">
+                      {activeCard.images.map((item) => (
+                        <SortableImage
+                          key={item.id}
+                          item={item}
+                          onDelete={deleteImage}
+                          isDeleting={isDeleting}
+                        />
+                      ))}
+                      {isUploading && (
+                        <div className="h-20 w-20 shrink-0 animate-pulse rounded-xl border border-dashed border-[#CBD5E1] bg-[#F8FAFC]" />
+                      )}
+                    </div>
+                  </SortableContext>
+                </DndContext>
+              ) : (
+                <div className="flex items-center justify-center rounded-xl border border-dashed border-[#E5E5E5] bg-[#F8FAFC] p-4">
+                  {isUploading ? (
+                    <div className="h-8 w-8 animate-pulse rounded-lg bg-[#CBD5E1]" />
+                  ) : (
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-[#94A3B8]">
+                      No gallery images — drag to reorder once added
+                    </span>
+                  )}
+                </div>
+              )}
+              {galleryFull && (
+                <p className="text-[9px] font-bold uppercase tracking-widest text-amber-500">
+                  Maximum 5 gallery images reached
+                </p>
               )}
             </div>
 

@@ -30,7 +30,11 @@ export { useBulkSendInvitations } from "./useBulkInvitation";
 export { useGetAllProjects, useGetProject } from "./useProject";
 
 // Media Upload Hook
-export { useUploadImage } from "./useMediaUpload";
+export {
+  useUploadImage,
+  useDeleteImage,
+  useReorderImages,
+} from "./useMediaUpload";
 
 // Onboarding Approval Hooks
 export {
