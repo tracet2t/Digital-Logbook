@@ -38,10 +38,10 @@ export function ArticlePreviewModal({
 
         {/* ── Hero image ── */}
         <div className="relative h-[17.5rem] w-full overflow-hidden sm:h-[22.5rem] md:h-[25rem]">
-          {card.imageUrl ? (
+          {card.coverImage ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={card.imageUrl}
+              src={card.coverImage.url}
               alt={card.title}
               className="h-full w-full object-cover"
             />

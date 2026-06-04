@@ -314,7 +314,6 @@ model Article {
   slug          String        @unique
   excerpt       String?
   content       String        @db.Text
-  featuredImage String?
   status        ArticleStatus @default(DRAFT)
   isHero        Boolean       @default(false)
   isEvent       Boolean       @default(false)
@@ -329,6 +328,7 @@ model Article {
   tags          ArticleTag[]
   seo           ArticleSeo?
   event         ArticleEvent?
+  images        ArticleImage[]
 
   @@map("articles")
 }
@@ -376,4 +376,23 @@ enum ArticleStatus {
   DRAFT
   PUBLISHED
   ARCHIVED
+}
+
+enum ArticleImageType {
+  COVER
+  GALLERY
+}
+
+model ArticleImage {
+  id        String           @id @default(cuid())
+  articleId String
+  url       String
+  key       String
+  type      ArticleImageType @default(GALLERY)
+  order     Int              @default(0)
+  createdAt DateTime         @default(now())
+
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@map("articleImages")
 }

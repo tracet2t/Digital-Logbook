@@ -1,12 +1,16 @@
+import { mediaRepository } from "@/repositories/media_repository_impl";
 import getSession from "@/server_actions/getSession";
 // ─── Helper (same as in route.ts) ─────────────────────────────────────────────
 
-import { Article, ArticleEvent } from "@prisma/client";
+import { Article, ArticleEvent, ArticleImage } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 import prisma from "@/lib/prisma";
 
-type ArticleWithEvent = Article & { event: ArticleEvent | null };
+type ArticleWithEvent = Article & {
+  event: ArticleEvent | null;
+  images: ArticleImage[];
+};
 
 function cardFromArticle(article: ArticleWithEvent) {
   const ev = article.event;
@@ -26,6 +30,10 @@ function cardFromArticle(article: ArticleWithEvent) {
     date = rawTime ? `${datePart} AT ${rawTime}` : datePart;
   }
 
+  const sorted = [...article.images].sort((a, b) => a.order - b.order);
+  const cover = sorted.find((i) => i.type === "COVER") ?? null;
+  const gallery = sorted.filter((i) => i.type === "GALLERY");
+
   return {
     id: article.id,
     title: article.title,
@@ -34,10 +42,13 @@ function cardFromArticle(article: ArticleWithEvent) {
     rawDate,
     rawTime,
     isVisible: article.status === "PUBLISHED",
-    imageName: article.featuredImage
-      ? (article.featuredImage.split("/").pop() ?? null)
-      : null,
-    imageUrl: article.featuredImage ?? null,
+    coverImage: cover ? { id: cover.id, url: cover.url, key: cover.key } : null,
+    images: gallery.map((i) => ({
+      id: i.id,
+      url: i.url,
+      key: i.key,
+      order: i.order,
+    })),
     tag: ev?.tag ?? "",
     registerLink: ev?.registerLink ?? "",
     venue: ev?.venue ?? "",
@@ -52,7 +63,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await getSession();
-  if (!session)
+  if (!session.isAuthenticated())
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   if (session.getRole() !== "superAdmin")
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
@@ -65,7 +76,6 @@ export async function PUT(
     rawDate,
     rawTime,
     isVisible,
-    imageUrl,
     tag,
     registerLink,
     venue,
@@ -87,7 +97,6 @@ export async function PUT(
       title: title || "Draft Event Title",
       content: description || "",
       status: isVisible ? "PUBLISHED" : "DRAFT",
-      featuredImage: imageUrl ?? null,
       event: {
         upsert: {
           create: eventData,
@@ -95,7 +104,7 @@ export async function PUT(
         },
       },
     },
-    include: { event: true },
+    include: { event: true, images: true },
   });
 
   return NextResponse.json(cardFromArticle(article));
@@ -108,12 +117,23 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await getSession();
-  if (!session)
+  if (!session.isAuthenticated())
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   if (session.getRole() !== "superAdmin")
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
 
   const { id } = await params;
+
+  // Best-effort cleanup — delete all article images from MinIO
+  const articleImages = await prisma.articleImage.findMany({
+    where: { articleId: id },
+  });
+  await Promise.all(
+    articleImages.map((img) =>
+      mediaRepository.deleteImage(img.id).catch(() => null),
+    ),
+  );
+
   await prisma.article.delete({ where: { id } });
   return NextResponse.json({ success: true });
 }

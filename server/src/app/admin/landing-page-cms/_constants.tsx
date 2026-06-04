@@ -1,4 +1,17 @@
 // ─── Types ────────────────────────────────────────────────────────────────────
+export interface ArticleImageItem {
+  id: string;
+  url: string;
+  key: string;
+  order: number;
+}
+
+export interface CoverImage {
+  id: string;
+  url: string;
+  key: string;
+}
+
 export interface CmsCard {
   id: string;
   title: string;
@@ -7,8 +20,8 @@ export interface CmsCard {
   rawDate: string; // ISO YYYY-MM-DD for the date picker
   rawTime: string; // HH:MM for the time picker
   isVisible: boolean;
-  imageName: string | null;
-  imageUrl: string | null;
+  coverImage: CoverImage | null;
+  images: ArticleImageItem[];
   tag: string;
   registerLink: string; // URL for the register button
   venue: string;
@@ -40,9 +53,12 @@ export const DEFAULT_CARDS: CmsCard[] = [
     rawDate: "2026-03-07",
     rawTime: "09:30",
     isVisible: true,
-    imageName: "research_excellence_lab.jpg",
-    imageUrl:
-      "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=80",
+    coverImage: {
+      id: "seed-cover-1",
+      url: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=80",
+      key: "seed/research_excellence_lab.jpg",
+    },
+    images: [],
     tag: "WORKSHOP",
     registerLink: "",
     venue: "",
@@ -57,9 +73,12 @@ export const DEFAULT_CARDS: CmsCard[] = [
     rawDate: "2023-11-02",
     rawTime: "",
     isVisible: true,
-    imageName: "startup_path.jpg",
-    imageUrl:
-      "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=400&q=80",
+    coverImage: {
+      id: "seed-cover-2",
+      url: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=400&q=80",
+      key: "seed/startup_path.jpg",
+    },
+    images: [],
     tag: "WEBINAR",
     registerLink: "",
     venue: "",

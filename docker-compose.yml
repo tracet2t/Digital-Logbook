@@ -55,17 +55,49 @@ services:
       NEXT_PUBLIC_POSTGRES_PASSWORD: postgres
       NEXT_PUBLIC_REDIS_HOST: redis
       NEXT_PUBLIC_REDIS_PORT: 6379
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
       DATABASE_URL: "postgresql://postgres:postgres@pgdb:5432/postgres?schema=public"
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_USE_SSL: "false"
+      MINIO_BUCKET: ${MINIO_BUCKET}
+      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_started
+      minio:
+        condition: service_healthy
     networks:
       - mynetwork
     dns:
       - 8.8.8.8 # Google's public DNS
       - 1.1.1.1 # Cloudflare's public DNS
+
+  minio:
+    container_name: minio
+    image: minio/minio:latest
+    restart: always
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - mynetwork
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   worker:
     container_name: bullmq-worker
@@ -78,17 +110,28 @@ services:
       REDIS_PORT: 6379
       EMAIL_USER: ${EMAIL_USER}
       EMAIL_PASS: ${EMAIL_PASS}
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_USE_SSL: "false"
+      MINIO_BUCKET: ${MINIO_BUCKET}
+      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_started
+      minio:
+        condition: service_healthy
     networks:
       - mynetwork
     restart: unless-stopped
 
 volumes:
   postgres:
+    driver: local
+  minio_data:
     driver: local
 
 networks:

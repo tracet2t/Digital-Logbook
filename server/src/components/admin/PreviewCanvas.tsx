@@ -84,10 +84,10 @@ export function PreviewCanvas({
 
             {/* Thumbnail */}
             <div className="flex h-48 w-full shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#E5E5E5] bg-[#F8FAFC] sm:h-28 sm:w-40">
-              {card.imageUrl ? (
+              {card.coverImage ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={card.imageUrl}
+                  src={card.coverImage.url}
                   className="h-full w-full object-cover"
                   alt={card.title}
                 />

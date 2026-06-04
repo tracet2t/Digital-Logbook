@@ -1,5 +1,5 @@
 import getSession from "@/server_actions/getSession";
-import { Article, ArticleEvent } from "@prisma/client";
+import { Article, ArticleEvent, ArticleImage } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 import prisma from "@/lib/prisma";
@@ -19,7 +19,10 @@ function slugify(str: string) {
   );
 }
 
-type ArticleWithEvent = Article & { event: ArticleEvent | null };
+type ArticleWithEvent = Article & {
+  event: ArticleEvent | null;
+  images: ArticleImage[];
+};
 
 function cardFromArticle(article: ArticleWithEvent) {
   const ev = article.event;
@@ -39,6 +42,10 @@ function cardFromArticle(article: ArticleWithEvent) {
     date = rawTime ? `${datePart} AT ${rawTime}` : datePart;
   }
 
+  const sorted = [...article.images].sort((a, b) => a.order - b.order);
+  const cover = sorted.find((i) => i.type === "COVER") ?? null;
+  const gallery = sorted.filter((i) => i.type === "GALLERY");
+
   return {
     id: article.id,
     title: article.title,
@@ -47,10 +54,13 @@ function cardFromArticle(article: ArticleWithEvent) {
     rawDate,
     rawTime,
     isVisible: article.status === "PUBLISHED",
-    imageName: article.featuredImage
-      ? (article.featuredImage.split("/").pop() ?? null)
-      : null,
-    imageUrl: article.featuredImage ?? null,
+    coverImage: cover ? { id: cover.id, url: cover.url, key: cover.key } : null,
+    images: gallery.map((i) => ({
+      id: i.id,
+      url: i.url,
+      key: i.key,
+      order: i.order,
+    })),
     tag: ev?.tag ?? "",
     registerLink: ev?.registerLink ?? "",
     venue: ev?.venue ?? "",
@@ -62,14 +72,14 @@ function cardFromArticle(article: ArticleWithEvent) {
 
 export async function GET() {
   const session = await getSession();
-  if (!session)
+  if (!session.isAuthenticated())
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   if (session.getRole() !== "superAdmin")
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
 
   const articles = await prisma.article.findMany({
     where: { isEvent: true },
-    include: { event: true },
+    include: { event: true, images: true },
     orderBy: { createdAt: "asc" },
   });
 
@@ -80,10 +90,21 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const session = await getSession();
-  if (!session)
+  if (!session.isAuthenticated())
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   if (session.getRole() !== "superAdmin")
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+
+  const userId = session.getId() as string;
+
+  // Verify user exists in database (handles stale sessions after DB resets)
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    return NextResponse.json(
+      { message: "User not found. Please re-login." },
+      { status: 401 },
+    );
+  }
 
   const body = await req.json();
   const {
@@ -92,7 +113,6 @@ export async function POST(req: NextRequest) {
     rawDate,
     rawTime,
     isVisible,
-    imageUrl,
     tag,
     registerLink,
     venue,
@@ -106,8 +126,7 @@ export async function POST(req: NextRequest) {
       content: description || "",
       status: isVisible ? "PUBLISHED" : "DRAFT",
       isEvent: true,
-      featuredImage: imageUrl ?? null,
-      authorId: session.getId() as string,
+      authorId: userId,
       event: {
         create: {
           eventDate: rawDate ? new Date(rawDate + "T00:00:00") : null,
@@ -119,7 +138,7 @@ export async function POST(req: NextRequest) {
         },
       },
     },
-    include: { event: true },
+    include: { event: true, images: true },
   });
 
   return NextResponse.json(cardFromArticle(article), { status: 201 });
