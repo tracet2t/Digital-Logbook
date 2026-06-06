@@ -46,8 +46,24 @@ export const validateBulkUploadRows = (
 ): BulkUploadCellError[] => {
   const errors: BulkUploadCellError[] = [];
 
+  const emailColumn = resolveColumnName(mapping.email, defaultColumns.email);
+
+  // Detect duplicate emails across all rows
+  const emailRowMap = new Map<string, number[]>();
   rows.forEach((row, rowIndex) => {
-    const emailColumn = resolveColumnName(mapping.email, defaultColumns.email);
+    const emailValue = String(row[emailColumn] ?? "").trim().toLowerCase();
+    if (emailValue) {
+      const existing = emailRowMap.get(emailValue) ?? [];
+      emailRowMap.set(emailValue, [...existing, rowIndex]);
+    }
+  });
+  const duplicateEmails = new Set(
+    [...emailRowMap.entries()]
+      .filter(([, indices]) => indices.length > 1)
+      .map(([email]) => email),
+  );
+
+  rows.forEach((row, rowIndex) => {
     const roleColumn = resolveColumnName(mapping.role, defaultColumns.role);
     const firstNameColumn = resolveColumnName(
       mapping.firstName,
@@ -70,6 +86,13 @@ export const validateBulkUploadRows = (
         row: rowIndex,
         column: emailColumn,
         message: emailResult.error.errors[0]?.message || "Invalid email",
+        value: emailValue,
+      });
+    } else if (duplicateEmails.has(emailValue.toLowerCase())) {
+      errors.push({
+        row: rowIndex,
+        column: emailColumn,
+        message: "Duplicate email address",
         value: emailValue,
       });
     }
