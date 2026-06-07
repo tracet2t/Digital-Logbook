@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
         role: newUser.role,
       },
     });
-
+    //setting the cookie
     response.headers.set("Set-Cookie", `token=${jwtToken}; Path=/; HttpOnly`);
     return response;
   } catch (error) {

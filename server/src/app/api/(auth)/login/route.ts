@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+import { UserRepository } from "@/repositories/user_repository_impl"; // Import the repository
 import { compare } from "bcrypt-ts";
 import * as jose from "jose";
-import { UserRepository } from "@/repositories/user_repository_impl"; // Import the repository
+import { NextResponse } from "next/server";
+
 export async function POST(request: Request) {
   const baseUrl = request.headers.get("origin");
   const formData = await request.formData();
@@ -34,7 +35,10 @@ export async function POST(request: Request) {
 
     if (!user.isActive) {
       return NextResponse.json(
-        { error: "Your account has been deactivated. Please contact an administrator." },
+        {
+          error:
+            "Your account has been deactivated. Please contact an administrator.",
+        },
         { status: 403 },
       );
     }
@@ -67,10 +71,12 @@ export async function POST(request: Request) {
       redirectUrl = `${baseUrl}/admin`;
     }
 
+    //sending a response to the client
     const response = NextResponse.json({
       message: "Login successful",
       redirectUrl: redirectUrl,
     });
+    //setting the cookie
     response.headers.set("Set-Cookie", `token=${token}; Path=/; HttpOnly`);
     return response;
   } catch (error) {

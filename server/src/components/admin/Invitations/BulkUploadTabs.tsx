@@ -82,6 +82,7 @@ export function BulkUploadTabs({ onCancel }: BulkUploadTabsProps) {
 
   const handleFileUploadAndAdvance = async (file: File) => {
     await handleFileUpload(file);
+    
     goToStep(2);
   };
 

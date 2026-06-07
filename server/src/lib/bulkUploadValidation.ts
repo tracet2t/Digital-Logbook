@@ -51,7 +51,9 @@ export const validateBulkUploadRows = (
   // Detect duplicate emails across all rows
   const emailRowMap = new Map<string, number[]>();
   rows.forEach((row, rowIndex) => {
-    const emailValue = String(row[emailColumn] ?? "").trim().toLowerCase();
+    const emailValue = String(row[emailColumn] ?? "")
+      .trim()
+      .toLowerCase();
     if (emailValue) {
       const existing = emailRowMap.get(emailValue) ?? [];
       emailRowMap.set(emailValue, [...existing, rowIndex]);
